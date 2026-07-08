@@ -1,0 +1,354 @@
+GYMDESK
+Gym Management SaaS — Initial Project Setup & Structure
+Subscription-based multi-tenant product · MERN Stack · v1.0 Planning Document
+1. Product Summary
+GymDesk is a subscription SaaS for gym owners. It has two layers: a Root Admin layer (your own company/team, controlling the whole platform) and a Subscriber layer (each paying gym, which itself has three internal logins — Admin/Owner, Trainer, Member). This document defines the tech stack, the role hierarchy, the module list per role, and the initial folder structure to start development.
+2. Tech Stack
+Layer
+Technology
+Frontend
+React 18 + Vite + Tailwind CSS
+Backend
+Node.js + Express
+Database
+MongoDB (Mongoose ODM)
+State Management
+Zustand / Context API
+Auth
+JWT (role-based access control)
+HTTP Client
+Axios
+Charts
+Recharts
+Hosting (suggested)
+Frontend: Vercel/Netlify · Backend: Railway/Render · DB: MongoDB Atlas
+3. Public Website & Onboarding Flow
+This is the front door — the journey a brand-new gym owner (e.g. 'Arun') goes through before any Admin panel exists for him. Everything else in this document assumes a subscriber already exists; this flow is what actually creates one.
+#
+Page
+What Happens
+1
+Landing Page
+Public marketing site — product info, feature highlights, testimonials, pricing. No login required.
+2
+Sign Up / Sign In
+Arun creates an account (name, gym name, phone/email, password) or signs back into an existing one.
+3
+Plan Selection
+Arun picks a plan — Free (7-day trial) or a paid tier (Starter/Basic/Premium).
+4
+Free Trial Activation
+If Free is chosen: a subscriber record is created with plan='free', trialEndsAt = now + 7 days, isActive=true — full Admin panel unlocks immediately, no payment needed.
+5
+Payment (paid plans)
+Razorpay checkout. On success: subscriber.plan is set, isActive=true, planStartedAt recorded.
+6
+Admin Panel Unlocked
+Arun is redirected to /admin/dashboard, now logged in as Admin for his own gym — ready to add Trainers and Members.
+7
+Trial Expiry / Renewal
+A daily cron job checks trialEndsAt / plan expiry. If expired with no payment, Arun's panel access is restricted to a 'Renew Plan' screen only — his data is preserved, not deleted.
+ℹ Paid features stay locked behind step 4/5 — the Admin panel simply doesn't unlock (or reverts to a renew-only screen) until a subscriber has an active trial or active paid plan. This is a plan-status check, not a separate codebase.
+4. Role Hierarchy
+Two tiers, four logins total. This is the access model the whole app is built around:
+Tier
+Role
+Who
+Scope
+Platform
+Root Admin
+Your company team
+Full control — manages every subscriber (gym), plans, coupons, platform analytics
+Subscriber (a Gym)
+Admin
+Gym owner
+Full control of their own gym only
+Subscriber (a Gym)
+Trainer
+Gym staff
+Limited — own members, attendance, earnings, workouts
+Subscriber (a Gym)
+Member
+Gym's customer
+Read-only self-service — own attendance, plan, payments
+ℹ "Later any page need I will add here" — the module lists below are intentionally structured as flat, ordered lists per role so new pages can be appended without renumbering or restructuring anything else.
+5. Tenant Data Isolation (Critical)
+Every gym's data must be completely walled off from every other gym's. If Arun logs in as Admin, he only ever sees his own Trainers and Members — never another gym owner's. The same isolation applies down the chain to Trainer and Member logins. This is enforced at the database/API layer, not just hidden in the UI:
+Every gym gets a unique subscriberId the moment it's created in the onboarding flow above.
+Every record created afterward — every Trainer, Member, Attendance entry, Payment — is stamped with that subscriberId.
+Every login's JWT carries their subscriberId (Root Admin is the one exception — it has none, since it spans all gyms).
+One shared middleware (tenantScope.js) reads subscriberId off the JWT and injects it into every database query automatically — so no individual route can forget to filter by it.
+Result: two gyms can have identically named members, trainers, whatever — there is zero chance of data crossing between them.
+6. Module List — Root Admin
+Root Admin is your company's control panel over the entire platform (all subscribers). Includes a Request Access page for new team-member logins.
+#
+Module
+Purpose
+1
+Dashboard
+Platform overview — MRR/ARR, total subscribers, active/inactive, recent signups
+2
+Subscriber
+List of all gyms (subscribers) — plan, status, search/filter, suspend/activate, drill into a gym
+3
+Plan Creation
+Create/edit the subscription plans sold to gyms (name, price, member limit, features included)
+4
+Coupons
+Create discount/promo codes, set expiry & usage limits, view redemption history
+5
+Analytics
+Platform-wide analytics — revenue trend, churn, plan distribution, growth
+6
+Settings
+Root Admin account & platform-level configuration
+7
+Request Access
+Internal team members request a Root Admin login; existing Root Admin approves/rejects
+7. Module List — Subscriber (Gym) Roles
+Each gym that subscribes gets three logins: Admin (owner), Trainer, Member. Each has its own module set.
+7.1 Admin (Gym Owner)
+#
+Module
+1
+Dashboard
+2
+Members
+3
+Attendance
+4
+Payment
+5
+Trainers
+6
+Earnings
+7
+PT Sessions
+8
+Workouts
+9
+AI Plans
+10
+Accounts
+11
+Trial
+12
+Payment History
+13
+Plan Creation
+14
+Settings
+ℹ "Plan Creation" at Admin level is a different module than Root Admin's "Plan Creation" — this one is the gym's own membership plans it sells to its members (e.g. Monthly/Quarterly/Annual), not the platform subscription tiers.
+7.2 Trainer
+#
+Module
+1
+Dashboard
+2
+Members
+3
+Attendance
+4
+Earnings
+5
+PT Sessions
+6
+Workout
+7
+Settings
+7.3 Member
+#
+Module
+1
+Dashboard
+2
+Attendance
+3
+Subscription Plan
+4
+Payment History
+5
+Settings
+8. Frontend Project Structure (React + Vite + Tailwind)
+gymdesk-frontend/
+├── public/
+├── src/
+│   ├── assets/
+│   ├── api/
+│   │   └── client.js              // Axios instance + interceptors
+│   ├── store/
+│   │   └── authStore.js           // Zustand: token, user, role
+│   ├── components/
+│   │   ├── ui/                    // Button, Input, Card, Modal, Badge
+│   │   ├── layout/
+│   │   │   ├── Sidebar.jsx        // role-aware nav
+│   │   │   └── Header.jsx
+│   │   └── ProtectedRoute.jsx     // role-based route guard
+│   ├── layouts/
+│   │   ├── RootAdminLayout.jsx
+│   │   ├── AdminLayout.jsx
+│   │   ├── TrainerLayout.jsx
+│   │   └── MemberLayout.jsx
+│   ├── pages/
+│   │   ├── public/
+│   │   │   ├── Landing.jsx        // marketing page, no login
+│   │   │   ├── SignUp.jsx         // gym owner creates account
+│   │   │   ├── SignIn.jsx
+│   │   │   ├── PlanSelect.jsx     // Free (7-day trial) vs paid tiers
+│   │   │   └── Payment.jsx        // Razorpay checkout for paid plans
+│   │   ├── auth/
+│   │   │   ├── Login.jsx
+│   │   │   └── RequestAccess.jsx
+│   │   ├── root-admin/
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Subscribers.jsx
+│   │   │   ├── PlanCreation.jsx
+│   │   │   ├── Coupons.jsx
+│   │   │   ├── Analytics.jsx
+│   │   │   └── Settings.jsx
+│   │   ├── admin/
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Members.jsx
+│   │   │   ├── Attendance.jsx
+│   │   │   ├── Payment.jsx
+│   │   │   ├── Trainers.jsx
+│   │   │   ├── Earnings.jsx
+│   │   │   ├── PTSessions.jsx
+│   │   │   ├── Workouts.jsx
+│   │   │   ├── AIPlans.jsx
+│   │   │   ├── Accounts.jsx
+│   │   │   ├── Trial.jsx
+│   │   │   ├── PaymentHistory.jsx
+│   │   │   ├── PlanCreation.jsx
+│   │   │   └── Settings.jsx
+│   │   ├── trainer/
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Members.jsx
+│   │   │   ├── Attendance.jsx
+│   │   │   ├── Earnings.jsx
+│   │   │   ├── PTSessions.jsx
+│   │   │   ├── Workout.jsx
+│   │   │   └── Settings.jsx
+│   │   └── member/
+│   │       ├── Dashboard.jsx
+│   │       ├── Attendance.jsx
+│   │       ├── SubscriptionPlan.jsx
+│   │       ├── PaymentHistory.jsx
+│   │       └── Settings.jsx
+│   ├── App.jsx                    // all routes
+│   ├── main.jsx
+│   └── index.css                  // Tailwind directives
+├── tailwind.config.js
+├── vite.config.js
+└── package.json
+9. Backend Project Structure (Node + Express + MongoDB)
+gymdesk-backend/
+├── config/
+│   └── db.js                      // Mongoose connection
+├── models/
+│   ├── RootAdmin.js
+│   ├── Subscriber.js              // the Gym document — plan, trialEndsAt, isActive
+│   ├── Plan.js                    // platform subscription tiers
+│   ├── GymPlan.js                 // gym's own membership plans
+│   ├── Coupon.js
+│   ├── Admin.js                   // gym owner login
+│   ├── Trainer.js
+│   ├── Member.js
+│   ├── Attendance.js
+│   ├── Payment.js
+│   ├── PTSession.js
+│   ├── Workout.js
+│   ├── AIPlan.js
+│   ├── Expense.js                 // for Accounts module
+│   └── Trial.js
+├── middleware/
+│   ├── auth.js                    // JWT verify
+│   ├── rootAdminAuth.js
+│   ├── roleGuard.js               // roles: root_admin | admin | trainer | member
+│   ├── tenantScope.js             // reads subscriberId off JWT, auto-filters every query
+│   └── planGuard.js               // blocks access if trial expired / plan inactive
+├── routes/
+│   ├── public.js                  // landing content, signup, plan-select, trial-start
+│   ├── payment.js                 // Razorpay order + webhook
+│   ├── auth.js
+│   ├── rootAdmin/
+│   │   ├── dashboard.js
+│   │   ├── subscribers.js
+│   │   ├── planCreation.js
+│   │   ├── coupons.js
+│   │   ├── analytics.js
+│   │   ├── settings.js
+│   │   └── requestAccess.js
+│   ├── admin/
+│   │   ├── dashboard.js
+│   │   ├── members.js
+│   │   ├── attendance.js
+│   │   ├── payment.js
+│   │   ├── trainers.js
+│   │   ├── earnings.js
+│   │   ├── ptSessions.js
+│   │   ├── workouts.js
+│   │   ├── aiPlans.js
+│   │   ├── accounts.js
+│   │   ├── trial.js
+│   │   ├── paymentHistory.js
+│   │   ├── planCreation.js
+│   │   └── settings.js
+│   ├── trainer/
+│   │   └── (dashboard, members, attendance, earnings, ptSessions, workout, settings)
+│   └── member/
+│       └── (dashboard, attendance, subscriptionPlan, paymentHistory, settings)
+├── controllers/                   // one file per route file above
+├── services/
+│   ├── ai.js                      // AI plan generation
+│   ├── notifications.js
+│   └── trialExpiryCron.js         // daily check: trialEndsAt / plan expiry → lock to renew-only
+├── utils/
+├── .env
+├── server.js
+└── package.json
+10. Suggested MongoDB Collections
+Collection
+Key Fields
+subscribers
+gymName, ownerName, phone, email, plan, isActive, trialEndsAt, planStartedAt, createdAt
+plans
+name, price, memberLimit, features[], isActive  (Root Admin's platform tiers)
+gymplans
+subscriberId, name, durationMonths, price  (gym's own member-facing plans)
+coupons
+code, discountPct/amount, expiresAt, usageLimit, usedCount
+admins
+subscriberId, name, phone, passwordHash, role:'admin'
+trainers
+subscriberId, name, phone, specialization, baseSalary, ptCommissionPct
+members
+subscriberId, trainerId, name, phone, gender, goal, planId, expiresAt, status
+attendances
+subscriberId, memberId, checkedInAt, method
+payments
+subscriberId, memberId, amount, method, status, invoiceNumber, paidAt
+ptsessions
+subscriberId, memberId, trainerId, scheduledAt, status
+workouts
+subscriberId, memberId, trainerId, planData, generatedBy
+aiplans
+subscriberId, memberId, workoutJson, dietJson, createdAt
+expenses
+subscriberId, category, description, amount, date
+trials
+subscriberId, name, phone, preferredDate, status
+rootadmins
+name, phone, passwordHash, role, status  (approved/pending via Request Access)
+ℹ Every collection except rootadmins, subscribers, and plans carries a subscriberId field — that field is what tenantScope.js filters on automatically. It's the single mechanism that keeps every gym's data separate.
+11. Recommended Build Order
+Phase 0 — Public onboarding: Landing page, Sign Up/Sign In, Plan Selection, free-trial activation, Razorpay payment for paid plans. This is what creates a subscriber in the first place.
+Phase 1 — Auth, tenantScope & role guard: 4 logins (Root Admin, Admin, Trainer, Member) working with JWT + subscriberId-based data isolation + route protection.
+Phase 2 — Root Admin: Dashboard, Subscriber list, Plan Creation, Settings (core platform control first).
+Phase 3 — Admin (gym owner): Members, Attendance, Payment, Payment History (the daily-use core).
+Phase 4 — Admin continued: Trainers, Earnings, PT Sessions, Workouts, Trial, Accounts, gym-level Plan Creation.
+Phase 5 — Trainer & Member logins (mostly reuse of Admin's data with restricted views).
+Phase 6 — Root Admin: Coupons, Analytics, Request Access.
+Phase 7 — AI Plans module (can be gated behind a premium plan later, same as the earlier draft).
+Phase 8 — Trial-expiry cron + plan-guard: lock an expired subscriber to a 'Renew Plan' screen without deleting their data.
+ℹ This is the clean v1 structure based on your latest role/module breakdown. It intentionally drops the earlier inconsistent Postgres/Node draft in favor of MERN as you specified. Say the word if you want the actual boilerplate code (package.json, server.js, App.jsx, Tailwind config) scaffolded next.

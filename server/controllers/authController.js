@@ -2,38 +2,98 @@ const bcrypt = require('bcryptjs');
 const Admin = require('../models/Admin');
 const RootAdmin = require('../models/RootAdmin');
 const Subscriber = require('../models/Subscriber');
+const OtpRecord = require('../models/OtpRecord');
 const { generateToken } = require('../utils/jwt');
-const { generateOtp, sendOtpSms } = require('../utils/otp');
+const { generateOtp, sendOtpSms, sendOtpEmail } = require('../utils/otp');
 
-// @desc    Register Admin (Gym Owner) with Email & Password
-// @route   POST /api/auth/register-email
-const registerAdminWithEmail = async (req, res) => {
+// @desc    Request OTP for Registration (Email or Phone)
+// @route   POST /api/auth/register-otp-request
+const registerOtpRequest = async (req, res) => {
   try {
-    const { gymName, name, email, password } = req.body;
-
-    if (!gymName || !name || !email || !password) {
+    const { type, identifier, gymName, ownerName, password } = req.body;
+    
+    if (!type || !identifier || !gymName || !ownerName) {
       return res.status(400).json({ success: false, message: 'Please provide all required fields' });
     }
 
-    const adminExists = await Admin.findOne({ email });
-    if (adminExists) {
-      return res.status(400).json({ success: false, message: 'Admin already exists with this email' });
+    if (type === 'email') {
+      const existing = await Admin.findOne({ email: identifier });
+      if (existing) return res.status(400).json({ success: false, message: 'Email already in use' });
+      if (!password) return res.status(400).json({ success: false, message: 'Password is required for Email registration' });
+    } else if (type === 'phone') {
+      const existing = await Admin.findOne({ phone: identifier });
+      if (existing) return res.status(400).json({ success: false, message: 'Phone number already in use' });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
+    const otp = generateOtp();
+    const otpCodeHash = await bcrypt.hash(otp, 10);
+    
+    // Create temp record
+    let passwordHash = undefined;
+    if (password) {
+      passwordHash = await bcrypt.hash(password, 10);
+    }
 
-    // Create Subscriber (Gym)
-    const subscriber = await Subscriber.create({ gymName });
+    await OtpRecord.findOneAndUpdate(
+      { identifier },
+      {
+        identifier,
+        type,
+        otpCode: otpCodeHash,
+        gymName,
+        ownerName,
+        passwordHash,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+      },
+      { upsert: true, new: true }
+    );
 
-    // Create Admin linked to subscriber
-    const admin = await Admin.create({
+    let sendResult;
+    if (type === 'email') sendResult = await sendOtpEmail(identifier, otp);
+    else sendResult = await sendOtpSms(identifier, otp);
+
+    const responsePayload = { success: true, message: 'OTP sent successfully' };
+    if (sendResult.demo) responsePayload.demoOtp = sendResult.otp;
+
+    res.status(200).json(responsePayload);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @desc    Verify OTP and Create Account
+// @route   POST /api/auth/register-otp-verify
+const registerOtpVerify = async (req, res) => {
+  try {
+    const { identifier, otp } = req.body;
+
+    const record = await OtpRecord.findOne({ identifier });
+    if (!record) return res.status(400).json({ success: false, message: 'Invalid or expired OTP request' });
+
+    const isMatch = await bcrypt.compare(otp, record.otpCode);
+    if (!isMatch) return res.status(400).json({ success: false, message: 'Incorrect OTP' });
+
+    // OTP matched, create account
+    const subscriber = await Subscriber.create({ gymName: record.gymName });
+    
+    const adminData = {
       subscriberId: subscriber._id,
-      name,
-      email,
-      passwordHash
-    });
+      name: record.ownerName,
+      role: 'admin'
+    };
+
+    if (record.type === 'email') {
+      adminData.email = record.identifier;
+      adminData.passwordHash = record.passwordHash;
+    } else {
+      adminData.phone = record.identifier;
+    }
+
+    const admin = await Admin.create(adminData);
+    
+    // cleanup
+    await OtpRecord.deleteOne({ _id: record._id });
 
     const token = generateToken({ id: admin._id, role: admin.role, subscriberId: subscriber._id });
 
@@ -44,6 +104,7 @@ const registerAdminWithEmail = async (req, res) => {
         id: admin._id,
         name: admin.name,
         email: admin.email,
+        phone: admin.phone,
         role: admin.role,
         subscriberId: subscriber._id
       }
@@ -93,7 +154,7 @@ const loginAdminWithEmail = async (req, res) => {
   }
 };
 
-// @desc    Request OTP for Admin (using Phone)
+// @desc    Request OTP for Admin Login (using Phone)
 // @route   POST /api/auth/request-otp
 const requestAdminOtp = async (req, res) => {
   try {
@@ -104,9 +165,6 @@ const requestAdminOtp = async (req, res) => {
     }
 
     let admin = await Admin.findOne({ phone });
-    // Note: In a full flow, you might also create a Subscriber here if it's a new registration via OTP, 
-    // but typically you'd have a separate 'register-otp' flow that takes gymName. 
-    // We will assume this is for login/verification.
     if (!admin) {
       return res.status(404).json({ success: false, message: 'No account found with this phone number' });
     }
@@ -117,9 +175,12 @@ const requestAdminOtp = async (req, res) => {
     admin.otpExpiresAt = Date.now() + 10 * 60 * 1000;
     await admin.save();
 
-    await sendOtpSms(phone, otp);
+    const sendResult = await sendOtpSms(phone, otp);
 
-    res.status(200).json({ success: true, message: 'OTP sent successfully' });
+    const responsePayload = { success: true, message: 'OTP sent successfully' };
+    if (sendResult.demo) responsePayload.demoOtp = sendResult.otp;
+
+    res.status(200).json(responsePayload);
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -212,7 +273,8 @@ const loginRootAdmin = async (req, res) => {
 };
 
 module.exports = {
-  registerAdminWithEmail,
+  registerOtpRequest,
+  registerOtpVerify,
   loginAdminWithEmail,
   requestAdminOtp,
   loginAdminWithOtp,

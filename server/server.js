@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 
 // Import routes
 const authRoutes = require('./routes/auth');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

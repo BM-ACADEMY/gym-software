@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const {
-  registerAdminWithEmail,
+  registerOtpRequest,
+  registerOtpVerify,
   loginAdminWithEmail,
   requestAdminOtp,
   loginAdminWithOtp,
@@ -9,7 +10,8 @@ const {
 } = require('../controllers/authController');
 
 // Admin Auth Routes (Gym Owners)
-router.post('/register-email', registerAdminWithEmail);
+router.post('/register-otp-request', registerOtpRequest);
+router.post('/register-otp-verify', registerOtpVerify);
 router.post('/login-email', loginAdminWithEmail);
 router.post('/request-otp', requestAdminOtp);
 router.post('/login-otp', loginAdminWithOtp);

@@ -9,7 +9,7 @@ const Section = ({ title, children }) => (
 
 const Terms = () => (
   <LegalLayout title="Terms & Conditions">
-    <p className="text-gray-500 text-sm mb-8 bg-violet-50 border border-violet-100 rounded-xl p-4">
+    <p className="text-gray-500 text-sm mb-8 bg-teal-50 border border-teal-100 rounded-xl p-4">
       This document governs the use of the GymDesk platform (the "Website" and "App"). By using our services, you agree to be bound by these Terms & Conditions. Please read them carefully before proceeding.
     </p>
 
@@ -26,7 +26,7 @@ const Terms = () => (
 
     <Section title="Subscription & Payment">
       <p>Your subscription for GymDesk is on a Pay-As-You-Go basis and will start when GymDesk confirms your payment. Subscriptions will continue auto-renewing until you cancel.</p>
-      <p>At the end of each subscription period, you will automatically be renewed for an additional term of the same duration. If you do not wish your subscription to auto-renew, you may email us at <a href="mailto:info@gymdesk.in" className="text-violet-600">info@gymdesk.in</a> to cancel prior to the end of your current subscription term.</p>
+      <p>At the end of each subscription period, you will automatically be renewed for an additional term of the same duration. If you do not wish your subscription to auto-renew, you may email us at <a href="mailto:info@gymdesk.in" className="text-teal-600">info@gymdesk.in</a> to cancel prior to the end of your current subscription term.</p>
     </Section>
 
     <Section title="Cancellation & Refund Policy">
@@ -56,15 +56,15 @@ const Terms = () => (
     </Section>
 
     <Section title="Contact">
-      <p>If you have any questions about these Terms & Conditions, please contact us at <a href="mailto:info@gymdesk.in" className="text-violet-600 hover:underline">info@gymdesk.in</a>.</p>
+      <p>If you have any questions about these Terms & Conditions, please contact us at <a href="mailto:info@gymdesk.in" className="text-teal-600 hover:underline">info@gymdesk.in</a>.</p>
     </Section>
 
     <div className="mt-10 p-6 bg-gray-50 rounded-2xl border border-gray-100">
       <h3 className="font-bold text-gray-800 mb-3">Legal Contact</h3>
       <div className="text-sm text-gray-500 space-y-1">
         <p><strong>GymDesk Technologies Pvt. Ltd.</strong></p>
-        <p>Email: <a href="mailto:info@gymdesk.in" className="text-violet-600 hover:underline">info@gymdesk.in</a></p>
-        <p>Phone: <a href="tel:+918587885643" className="text-violet-600 hover:underline">+91 85878 85643</a></p>
+        <p>Email: <a href="mailto:info@gymdesk.in" className="text-teal-600 hover:underline">info@gymdesk.in</a></p>
+        <p>Phone: <a href="tel:+918587885643" className="text-teal-600 hover:underline">+91 85878 85643</a></p>
       </div>
     </div>
   </LegalLayout>

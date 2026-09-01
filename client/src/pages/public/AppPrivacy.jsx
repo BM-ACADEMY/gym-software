@@ -9,7 +9,7 @@ const Section = ({ title, children }) => (
 
 const AppPrivacy = () => (
   <LegalLayout title="App Privacy Policy">
-    <p className="text-gray-500 text-sm mb-8 bg-violet-50 border border-violet-100 rounded-xl p-4">
+    <p className="text-gray-500 text-sm mb-8 bg-teal-50 border border-teal-100 rounded-xl p-4">
       This App Privacy Policy applies to the GymDesk mobile application available on iOS and Android platforms. By using our app, you consent to the collection and use of information in accordance with this policy.
     </p>
 
@@ -75,8 +75,8 @@ const AppPrivacy = () => (
       <h3 className="font-bold text-gray-800 mb-3">Contact Us</h3>
       <div className="text-sm text-gray-500 space-y-1">
         <p><strong>GymDesk</strong> — Privacy Department</p>
-        <p>Email: <a href="mailto:info@gymdesk.in" className="text-violet-600 hover:underline">info@gymdesk.in</a></p>
-        <p>Phone: <a href="tel:+918587885643" className="text-violet-600 hover:underline">+91 85878 85643</a></p>
+        <p>Email: <a href="mailto:info@gymdesk.in" className="text-teal-600 hover:underline">info@gymdesk.in</a></p>
+        <p>Phone: <a href="tel:+918587885643" className="text-teal-600 hover:underline">+91 85878 85643</a></p>
       </div>
     </div>
   </LegalLayout>

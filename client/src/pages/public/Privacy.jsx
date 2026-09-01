@@ -9,7 +9,7 @@ const Section = ({ title, children }) => (
 
 const Privacy = () => (
   <LegalLayout title="Privacy Policy">
-    <p className="text-gray-500 text-sm mb-8 bg-violet-50 border border-violet-100 rounded-xl p-4">
+    <p className="text-gray-500 text-sm mb-8 bg-teal-50 border border-teal-100 rounded-xl p-4">
       At GymDesk, one of our main priorities is the privacy of our users. This Privacy Policy document contains types of information that is collected and recorded by GymDesk and how we use it. If you have additional questions or require more information, do not hesitate to contact us.
     </p>
 
@@ -69,8 +69,8 @@ const Privacy = () => (
       <h3 className="font-bold text-gray-800 mb-3">Contact Us</h3>
       <div className="text-sm text-gray-500 space-y-1">
         <p><strong>GymDesk</strong> — Privacy Department</p>
-        <p>Email: <a href="mailto:info@gymdesk.in" className="text-violet-600 hover:underline">info@gymdesk.in</a></p>
-        <p>Phone: <a href="tel:+918587885643" className="text-violet-600 hover:underline">+91 85878 85643</a></p>
+        <p>Email: <a href="mailto:info@gymdesk.in" className="text-teal-600 hover:underline">info@gymdesk.in</a></p>
+        <p>Phone: <a href="tel:+918587885643" className="text-teal-600 hover:underline">+91 85878 85643</a></p>
       </div>
     </div>
   </LegalLayout>

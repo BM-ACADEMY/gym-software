@@ -36,7 +36,7 @@ const OtpModeToggle = ({ currentMode, onToggle, loading }) => {
       <button
         onClick={onToggle}
         disabled={loading}
-        className={`relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:ring-offset-2 ${isLive ? 'bg-green-500' : 'bg-gray-300'} ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
+        className={`relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 ${isLive ? 'bg-green-500' : 'bg-gray-300'} ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
         role="switch"
         aria-checked={isLive}
       >
@@ -120,7 +120,7 @@ const RootAdminSettings = () => {
           <div className="p-6 space-y-4">
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-fuchsia-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
               </div>
             ) : (
               <>

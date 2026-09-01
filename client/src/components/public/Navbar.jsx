@@ -32,13 +32,13 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-18 py-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-600 to-teal-700 flex items-center justify-center">
               <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
               </svg>
             </div>
             <span className={`text-2xl font-extrabold tracking-tight transition-colors ${scrolled ? 'text-gray-900' : 'text-white'}`}>
-              Gym<span className="text-violet-500">Desk</span>
+              Gym<span className="text-teal-500">Desk</span>
             </span>
           </Link>
 
@@ -50,9 +50,9 @@ const Navbar = () => {
                 to={link.to}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive(link.to)
-                    ? 'text-violet-600 bg-violet-50'
+                    ? 'text-teal-600 bg-teal-50'
                     : scrolled
-                    ? 'text-gray-600 hover:text-violet-600 hover:bg-violet-50'
+                    ? 'text-gray-600 hover:text-teal-600 hover:bg-teal-50'
                     : 'text-white/90 hover:text-white hover:bg-white/10'
                 }`}
               >
@@ -66,7 +66,7 @@ const Navbar = () => {
             <a
               href="tel:+918587885643"
               className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
-                scrolled ? 'text-gray-600 hover:text-violet-600' : 'text-white/90 hover:text-white'
+                scrolled ? 'text-gray-600 hover:text-teal-600' : 'text-white/90 hover:text-white'
               }`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,14 +77,14 @@ const Navbar = () => {
             <Link
               to="/login"
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                scrolled ? 'text-gray-700 border border-gray-200 hover:border-violet-400' : 'text-white border border-white/30 hover:border-white'
+                scrolled ? 'text-gray-700 border border-gray-200 hover:border-teal-400' : 'text-white border border-white/30 hover:border-white'
               }`}
             >
               Sign In
             </Link>
             <Link
               to="/register"
-              className="px-5 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-500/30 transition-all hover:shadow-violet-500/50 hover:-translate-y-0.5"
+              className="px-5 py-2 rounded-lg text-sm font-semibold bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white hover:brightness-110 shadow-lg shadow-teal-500/30 transition-all hover:shadow-teal-500/50 hover:-translate-y-0.5"
             >
               Get FREE Trial
             </Link>
@@ -116,7 +116,7 @@ const Navbar = () => {
                 to={link.to}
                 onClick={() => setMenuOpen(false)}
                 className={`block px-4 py-2.5 rounded-lg text-sm font-medium ${
-                  isActive(link.to) ? 'text-violet-600 bg-violet-50' : 'text-gray-700 hover:bg-gray-50'
+                  isActive(link.to) ? 'text-teal-600 bg-teal-50' : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 {link.label}
@@ -124,7 +124,7 @@ const Navbar = () => {
             ))}
             <div className="pt-3 flex flex-col gap-2">
               <Link to="/login" onClick={() => setMenuOpen(false)} className="block text-center px-4 py-2.5 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium">Sign In</Link>
-              <Link to="/register" onClick={() => setMenuOpen(false)} className="block text-center px-4 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-semibold">Get FREE Trial</Link>
+              <Link to="/register" onClick={() => setMenuOpen(false)} className="block text-center px-4 py-2.5 rounded-lg bg-teal-600 text-white text-sm font-semibold">Get FREE Trial</Link>
             </div>
           </div>
         </div>

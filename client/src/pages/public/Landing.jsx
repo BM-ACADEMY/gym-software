@@ -30,14 +30,14 @@ const FeatureBlock = ({ title, description, items, imageIcon, reverse }) => {
         <div className={`flex flex-col lg:flex-row gap-16 items-center ${reverse ? 'lg:flex-row-reverse' : ''}`}>
           {/* Visual */}
           <div className="lg:w-1/2 flex-shrink-0">
-            <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 rounded-3xl p-10 border border-violet-100 shadow-xl">
+            <div className="relative bg-gradient-to-br from-teal-50 to-teal-50 rounded-3xl p-10 border border-teal-100 shadow-xl">
               <div className="text-8xl text-center">{imageIcon}</div>
               <div className="mt-6 grid grid-cols-3 gap-3">
                 {[1,2,3,4,5,6].map(i => (
-                  <div key={i} className="h-3 rounded-full bg-gradient-to-r from-violet-200 to-purple-200 opacity-60" style={{width:`${60+i*10}%`}}></div>
+                  <div key={i} className="h-3 rounded-full bg-gradient-to-r from-teal-200 to-teal-200 opacity-60" style={{width:`${60+i*10}%`}}></div>
                 ))}
               </div>
-              <div className="absolute -top-4 -right-4 w-12 h-12 bg-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <div className="absolute -top-4 -right-4 w-12 h-12 bg-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>
               </div>
             </div>
@@ -55,7 +55,7 @@ const FeatureBlock = ({ title, description, items, imageIcon, reverse }) => {
                     onClick={() => setOpen(open === i ? -1 : i)}
                   >
                     <span>{item.title}</span>
-                    <svg className={`w-5 h-5 text-violet-500 transition-transform ${open === i ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className={`w-5 h-5 text-teal-500 transition-transform ${open === i ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
                     </svg>
                   </button>
@@ -80,7 +80,7 @@ const TestimonialCard = ({ name, role, review }) => (
     </div>
     <p className="text-gray-600 text-sm leading-relaxed flex-1">"{review}"</p>
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white font-bold text-sm">
         {name.charAt(0)}
       </div>
       <div>
@@ -134,27 +134,27 @@ const Landing = () => {
       <Navbar />
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-gray-950 via-violet-950 to-gray-900">
+      <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-gray-950 via-teal-950 to-gray-900">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-800/10 rounded-full blur-3xl"></div>
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-teal-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-teal-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-800/10 rounded-full blur-3xl"></div>
           {/* Grid pattern */}
-          <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(rgba(139,92,246,0.1) 1px, transparent 1px)', backgroundSize:'40px 40px'}}></div>
+          <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(rgba(13,148,136,0.1) 1px, transparent 1px)', backgroundSize:'40px 40px'}}></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-24">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             {/* Left text */}
             <div className="lg:w-1/2 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/20 border border-violet-500/30 mb-6">
-                <div className="w-2 h-2 bg-violet-400 rounded-full animate-pulse"></div>
-                <span className="text-violet-300 text-sm font-medium">India's #1 Gym Management Software</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-500/20 border border-teal-500/30 mb-6">
+                <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
+                <span className="text-teal-300 text-sm font-medium">India's #1 Gym Management Software</span>
               </div>
               <h1 className="text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight">
                 Gym management<br />
-                <span className="bg-gradient-to-r from-violet-400 to-purple-300 bg-clip-text text-transparent">software for</span><br />
+                <span className="bg-gradient-to-r from-teal-400 to-teal-300 bg-clip-text text-transparent">software for</span><br />
                 fitness industry
               </h1>
               <p className="mt-6 text-lg text-gray-300 leading-relaxed max-w-xl">
@@ -163,7 +163,7 @@ const Landing = () => {
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link
                   to="/register"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold text-lg shadow-2xl shadow-violet-500/30 hover:shadow-violet-500/50 hover:-translate-y-1 transition-all duration-200"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white font-semibold text-lg shadow-2xl shadow-teal-500/30 hover:shadow-teal-500/50 hover:-translate-y-1 transition-all duration-200"
                 >
                   Request a Free Demo
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
@@ -185,11 +185,12 @@ const Landing = () => {
             {/* Right hero image */}
             <div className="lg:w-1/2 flex justify-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 rounded-3xl blur-2xl opacity-20 scale-110"></div>
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] rounded-3xl blur-2xl opacity-20 scale-110"></div>
                 <img
                   src="/hero-dashboard.png"
                   alt="GymDesk Dashboard"
                   className="relative rounded-2xl shadow-2xl border border-white/10 max-w-lg w-full"
+                  style={{ filter: 'hue-rotate(-87deg) saturate(1.15)' }}
                 />
                 {/* Floating badges */}
                 <div className="absolute -top-4 -left-4 bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-2">
@@ -199,7 +200,7 @@ const Landing = () => {
                   <div><p className="text-xs font-bold text-gray-800">500+</p><p className="text-xs text-gray-500">Gyms Trusted</p></div>
                 </div>
                 <div className="absolute -bottom-4 -right-4 bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-2">
-                  <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
                     <span className="text-sm">📈</span>
                   </div>
                   <div><p className="text-xs font-bold text-gray-800">99%</p><p className="text-xs text-gray-500">Retention Rate</p></div>
@@ -296,7 +297,7 @@ const Landing = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-3">Data-Centric</h2>
               <p className="text-gray-600 text-sm leading-relaxed">Adopt a data-centric approach with our gym software. Leverage insightful data analytics to empower your decision-making with the most effective strategies.</p>
             </div>
-            <div className="rounded-3xl p-8 bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-100">
+            <div className="rounded-3xl p-8 bg-gradient-to-br from-teal-50 to-teal-50 border border-teal-100">
               <h2 className="text-2xl font-bold text-gray-800 mb-3">Be a Brand</h2>
               <p className="text-gray-600 text-sm leading-relaxed">Service is the silent ambassador of your brand. Your reputation is earned by doing hard things well. GymDesk helps you build that reputation every day.</p>
             </div>
@@ -324,7 +325,7 @@ const Landing = () => {
       <section className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
-            Trusted by <span className="text-violet-600">500+</span> Worldwide Gyms and Fitness Studios
+            Trusted by <span className="text-teal-600">500+</span> Worldwide Gyms and Fitness Studios
           </h2>
           <p className="text-center text-gray-500 mb-12">See what gym owners say about GymDesk</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -334,19 +335,19 @@ const Landing = () => {
       </section>
 
       {/* ── STATS COUNTER ────────────────────────────────────────────────── */}
-      <section ref={statsRef} className="py-20 bg-gradient-to-r from-violet-900 to-purple-900">
+      <section ref={statsRef} className="py-20 bg-gradient-to-r from-teal-900 to-teal-900">
         <div className="max-w-4xl mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 text-center text-white">
             <div>
-              <div className="text-5xl font-extrabold text-violet-300">{c1}%</div>
+              <div className="text-5xl font-extrabold text-teal-300">{c1}%</div>
               <div className="mt-2 text-gray-300 font-medium">Customer Retention Rate</div>
             </div>
             <div>
-              <div className="text-5xl font-extrabold text-violet-300">{c2}+</div>
+              <div className="text-5xl font-extrabold text-teal-300">{c2}+</div>
               <div className="mt-2 text-gray-300 font-medium">Trusted Brands</div>
             </div>
             <div>
-              <div className="text-5xl font-extrabold text-violet-300">{c3}+</div>
+              <div className="text-5xl font-extrabold text-teal-300">{c3}+</div>
               <div className="mt-2 text-gray-300 font-medium">Members Managed</div>
             </div>
           </div>
@@ -360,7 +361,7 @@ const Landing = () => {
             {/* Left copy */}
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Digitally Transform Your <span className="text-violet-600">Health Club</span>
+                Digitally Transform Your <span className="text-teal-600">Health Club</span>
               </h2>
               <p className="text-gray-500 leading-relaxed mb-8">
                 Our cutting-edge fitness software serves as a digital hub, enabling a range of options and fitness encounters through seamless data utilization and integrations.
@@ -368,7 +369,7 @@ const Landing = () => {
               <ul className="space-y-3">
                 {['Smart Dashboard with real-time KPIs', 'Automated SMS & WhatsApp alerts', 'Biometric & BMI device integration', 'AI-powered workout & diet plans', 'Multi-branch management support'].map((item, i) => (
                   <li key={i} className="flex items-center gap-3 text-gray-700">
-                    <svg className="w-5 h-5 text-violet-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                    <svg className="w-5 h-5 text-teal-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
                     {item}
                   </li>
                 ))}
@@ -380,17 +381,17 @@ const Landing = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-6">Schedule a FREE Trial</h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <input className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white" placeholder="First Name *" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} />
-                  <input className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white" placeholder="Last Name *" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} />
+                  <input className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" placeholder="First Name *" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} />
+                  <input className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" placeholder="Last Name *" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} />
                 </div>
-                <input className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white" placeholder="Company / Gym Name *" value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} />
+                <input className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" placeholder="Company / Gym Name *" value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} />
                 <div className="grid grid-cols-2 gap-4">
-                  <input type="tel" className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white" placeholder="Phone Number *" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-                  <input type="email" className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white" placeholder="Email Address *" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                  <input type="tel" className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" placeholder="Phone Number *" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+                  <input type="email" className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" placeholder="Email Address *" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                 </div>
                 <Link
                   to="/register"
-                  className="block w-full text-center py-4 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold hover:from-violet-700 hover:to-purple-700 transition-all shadow-lg shadow-violet-500/20"
+                  className="block w-full text-center py-4 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white font-semibold hover:brightness-110 transition-all shadow-lg shadow-teal-500/20"
                 >
                   Request a Free Trial →
                 </Link>
@@ -404,19 +405,19 @@ const Landing = () => {
       <section className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-gray-900 mb-12">
-            Get to know more from <span className="text-violet-600">GymDesk Blog</span>
+            Get to know more from <span className="text-teal-600">GymDesk Blog</span>
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {blogs.map((blog, i) => (
               <Link to="/blog" key={i} className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <div className="h-36 bg-gradient-to-br from-violet-100 to-purple-50 flex items-center justify-center text-5xl">
+                <div className="h-36 bg-gradient-to-br from-teal-100 to-teal-50 flex items-center justify-center text-5xl">
                   {['📝', '🏋️', '📊', '💼'][i]}
                 </div>
                 <div className="p-5">
-                  <p className="text-xs text-violet-500 font-medium mb-2">{blog.date}</p>
-                  <h3 className="font-semibold text-gray-800 text-sm leading-snug mb-2 group-hover:text-violet-600 transition-colors line-clamp-2">{blog.title}</h3>
+                  <p className="text-xs text-teal-500 font-medium mb-2">{blog.date}</p>
+                  <h3 className="font-semibold text-gray-800 text-sm leading-snug mb-2 group-hover:text-teal-600 transition-colors line-clamp-2">{blog.title}</h3>
                   <p className="text-gray-400 text-xs line-clamp-2">{blog.excerpt}</p>
-                  <span className="mt-3 inline-block text-violet-600 text-xs font-semibold">Read more →</span>
+                  <span className="mt-3 inline-block text-teal-600 text-xs font-semibold">Read more →</span>
                 </div>
               </Link>
             ))}
@@ -425,7 +426,7 @@ const Landing = () => {
       </section>
 
       {/* ── SCROLLING MARQUEE ────────────────────────────────────────────── */}
-      <section className="py-4 bg-violet-600 overflow-hidden">
+      <section className="py-4 bg-teal-600 overflow-hidden">
         <div className="flex gap-8 animate-[marquee_25s_linear_infinite] whitespace-nowrap text-white/80 text-sm font-medium">
           {['Member Management', 'Attendance Tracking', 'Billing & POS', 'Trainer Management', 'AI Workout Plans', 'WhatsApp Alerts', 'BMI Integration', 'Payroll Management', 'Data Security', 'Multi-Branch Support', 'Smart Dashboard', 'Class Scheduling'].map((item, i) => (
             <span key={i} className="flex-shrink-0">{item} &nbsp;|&nbsp;</span>

@@ -64,8 +64,8 @@ const Pricing = () => {
       <Navbar />
 
       {/* Page Banner */}
-      <section className="pt-32 pb-16 bg-gradient-to-br from-gray-950 via-violet-950 to-gray-900 text-center relative overflow-hidden">
-        <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(rgba(139,92,246,0.1) 1px, transparent 1px)', backgroundSize:'40px 40px'}}></div>
+      <section className="pt-32 pb-16 bg-gradient-to-br from-gray-950 via-teal-950 to-gray-900 text-center relative overflow-hidden">
+        <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(rgba(13,148,136,0.1) 1px, transparent 1px)', backgroundSize:'40px 40px'}}></div>
         <div className="relative max-w-2xl mx-auto px-4">
           <h1 className="text-4xl font-extrabold text-white mb-4">Choose Plan That Fits For You</h1>
           <p className="text-gray-300 text-lg">All-In-One Gym Membership Management Software with multiple features made for Gyms & Fitness Health Clubs.</p>
@@ -82,20 +82,20 @@ const Pricing = () => {
                 key={i}
                 className={`relative rounded-3xl p-8 flex flex-col border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
                   plan.popular
-                    ? 'border-violet-400 bg-gradient-to-b from-violet-50 to-white shadow-lg shadow-violet-100'
+                    ? 'border-teal-400 bg-gradient-to-b from-teal-50 to-white shadow-lg shadow-teal-100'
                     : 'border-gray-100 bg-white shadow-sm'
                 }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="px-5 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs font-bold uppercase tracking-wider shadow-lg">
+                    <span className="px-5 py-1.5 rounded-full bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white text-xs font-bold uppercase tracking-wider shadow-lg">
                       Most Popular
                     </span>
                   </div>
                 )}
 
                 <div className="mb-6">
-                  <div className="w-12 h-12 rounded-2xl bg-violet-100 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-teal-100 flex items-center justify-center mb-4">
                     <span className="text-2xl">{['🚀', '⭐', '🏆'][i]}</span>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
@@ -125,7 +125,7 @@ const Pricing = () => {
                 <ul className="space-y-3 flex-1 mb-8">
                   {plan.features.map((f, j) => (
                     <li key={j} className="flex items-start gap-2.5 text-sm text-gray-600">
-                      <svg className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                       </svg>
                       {f}
@@ -137,8 +137,8 @@ const Pricing = () => {
                   to="/contact"
                   className={`block text-center py-3.5 rounded-2xl font-semibold text-sm transition-all ${
                     plan.popular
-                      ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-200'
-                      : 'border border-violet-200 text-violet-700 hover:bg-violet-50'
+                      ? 'bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white hover:brightness-110 shadow-lg shadow-teal-200'
+                      : 'border border-teal-200 text-teal-700 hover:bg-teal-50'
                   }`}
                 >
                   {plan.price ? 'Contact Us' : 'Talk to Sales'}
@@ -150,7 +150,7 @@ const Pricing = () => {
       </section>
 
       {/* Stats */}
-      <section className="py-16 bg-gradient-to-r from-violet-900 to-purple-900">
+      <section className="py-16 bg-gradient-to-r from-teal-900 to-teal-900">
         <div className="max-w-4xl mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 text-center text-white">
             {[
@@ -159,7 +159,7 @@ const Pricing = () => {
               { num: 'Pan India', label: 'Location Coverage' },
             ].map((stat, i) => (
               <div key={i}>
-                <div className="text-4xl font-extrabold text-violet-300 mb-2">{stat.num}</div>
+                <div className="text-4xl font-extrabold text-teal-300 mb-2">{stat.num}</div>
                 <div className="text-gray-300">{stat.label}</div>
               </div>
             ))}

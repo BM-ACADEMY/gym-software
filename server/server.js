@@ -6,6 +6,10 @@ const connectDB = require('./config/db');
 // Import routes
 const authRoutes = require('./routes/auth');
 const settingsRoutes = require('./routes/settings');
+const rootAdminRoutes = require('./routes/rootAdmin');
+const adminRoutes = require('./routes/admin');
+const subAdminRoutes = require('./routes/subadmin');
+const memberRoutes = require('./routes/member');
 
 const app = express();
 
@@ -20,6 +24,10 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/root-admin', rootAdminRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/subadmin', subAdminRoutes);
+app.use('/api/member', memberRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

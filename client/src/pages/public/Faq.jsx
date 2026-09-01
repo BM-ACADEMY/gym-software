@@ -26,8 +26,8 @@ const Faq = () => {
       <Navbar />
 
       {/* Banner */}
-      <section className="pt-32 pb-16 bg-gradient-to-br from-gray-950 via-violet-950 to-gray-900 relative overflow-hidden">
-        <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(rgba(139,92,246,0.1) 1px, transparent 1px)', backgroundSize:'40px 40px'}}></div>
+      <section className="pt-32 pb-16 bg-gradient-to-br from-gray-950 via-teal-950 to-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(rgba(13,148,136,0.1) 1px, transparent 1px)', backgroundSize:'40px 40px'}}></div>
         <div className="relative max-w-2xl mx-auto px-4 text-center">
           <h1 className="text-4xl font-extrabold text-white mb-4">Frequently Asked Questions</h1>
           <p className="text-gray-300">Get quick answers to common queries about GymDesk software.</p>
@@ -40,13 +40,13 @@ const Faq = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
             {/* Left illustration */}
             <div className="lg:col-span-2">
-              <div className="sticky top-28 bg-gradient-to-br from-violet-50 to-purple-50 rounded-3xl p-10 border border-violet-100 text-center">
+              <div className="sticky top-28 bg-gradient-to-br from-teal-50 to-teal-50 rounded-3xl p-10 border border-teal-100 text-center">
                 <div className="text-8xl mb-6">❓</div>
                 <h3 className="text-lg font-bold text-gray-800 mb-2">Can't find your answer?</h3>
                 <p className="text-gray-500 text-sm mb-6">Our support team is here to help you 24/7.</p>
                 <a
                   href="/contact"
-                  className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold text-sm hover:from-violet-700 hover:to-purple-700 transition-all"
+                  className="inline-block px-6 py-3 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white font-semibold text-sm hover:brightness-110 transition-all"
                 >
                   Contact Support
                 </a>
@@ -64,7 +64,7 @@ const Faq = () => {
                       className="w-full flex items-center justify-between px-6 py-5 text-left font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
                     >
                       <span className="pr-4">{faq.q}</span>
-                      <svg className={`w-5 h-5 text-violet-500 flex-shrink-0 transition-transform ${open === i ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className={`w-5 h-5 text-teal-500 flex-shrink-0 transition-transform ${open === i ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
                       </svg>
                     </button>

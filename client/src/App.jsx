@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Public pages
 import Landing from './pages/public/Landing';
@@ -13,16 +13,39 @@ import Terms from './pages/public/Terms';
 // Auth pages
 import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
+import RootAdminSignIn from './pages/auth/RootAdminSignIn';
+import ForgotPassword from './pages/auth/ForgotPassword';
 
-// Protected components
+// Protected shell
 import ProtectedRoute from './components/ProtectedRoute';
-import RootAdminSettings from './pages/root-admin/Settings';
+import RootAdminLayout from './layouts/RootAdminLayout';
+import AdminLayout from './layouts/AdminLayout';
+import SubAdminLayout from './layouts/SubAdminLayout';
+import MemberLayout from './layouts/MemberLayout';
 
-// Placeholder dashboards (to be extracted later)
-const RootAdminDashboard = () => <div className="p-8"><h1>Root Admin Dashboard</h1></div>;
-const AdminDashboard = () => <div className="p-8"><h1>Gym Admin Dashboard</h1></div>;
-const TrainerDashboard = () => <div className="p-8"><h1>Trainer Dashboard</h1></div>;
-const MemberDashboard = () => <div className="p-8"><h1>Member Dashboard</h1></div>;
+import { ROOT_ADMIN_NAV, ADMIN_NAV, SUBADMIN_NAV, MEMBER_NAV } from './config/navigation';
+
+// Eagerly load every page under each role folder, keyed by file path.
+// Nav config (config/navigation.js) is the single source of truth for which
+// page backs which route — add a page there + a matching file here and it's wired up.
+const rootAdminPages = import.meta.glob('./pages/root-admin/*.jsx', { eager: true });
+const adminPages = import.meta.glob('./pages/admin/*.jsx', { eager: true });
+const subadminPages = import.meta.glob('./pages/subadmin/*.jsx', { eager: true });
+const memberPages = import.meta.glob('./pages/member/*.jsx', { eager: true });
+
+const resolvePage = (pages, folder, name) => pages[`./pages/${folder}/${name}.jsx`]?.default;
+
+// Renders <Route> entries for a role's nav config against its loaded page modules.
+const roleRoutes = (navItems, pages, folder) =>
+  navItems.map(({ key, path, page }) => {
+    const Component = resolvePage(pages, folder, page);
+    if (!Component) return null;
+    return path === '' ? (
+      <Route key={key} index element={<Component />} />
+    ) : (
+      <Route key={key} path={path} element={<Component />} />
+    );
+  });
 
 function App() {
   return (
@@ -41,52 +64,59 @@ function App() {
         {/* ── Auth Routes ── */}
         <Route path="/login" element={<SignIn />} />
         <Route path="/register" element={<SignUp />} />
+        <Route path="/root-admin-login" element={<RootAdminSignIn />} />
+        <Route path="/forgot-password" element={<ForgotPassword variant="tenant" />} />
+        <Route path="/root-admin-forgot-password" element={<ForgotPassword variant="root" />} />
 
-        {/* ── Protected Routes by Role ── */}
-        <Route 
-          path="/root-admin/*" 
+        {/* ── Root Admin — platform control panel ── */}
+        <Route
+          path="/root-admin"
           element={
             <ProtectedRoute allowedRoles={['root_admin']}>
-              <Routes>
-                <Route path="dashboard" element={<RootAdminDashboard />} />
-                <Route path="settings" element={<RootAdminSettings />} />
-              </Routes>
+              <RootAdminLayout />
             </ProtectedRoute>
-          } 
-        />
+          }
+        >
+          {roleRoutes(ROOT_ADMIN_NAV, rootAdminPages, 'root-admin')}
+        </Route>
 
-        <Route 
-          path="/admin/*" 
+        {/* ── Gym Owner (Admin) — one gym, full control ── */}
+        <Route
+          path="/admin"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <Routes>
-                <Route path="dashboard" element={<AdminDashboard />} />
-              </Routes>
+              <AdminLayout />
             </ProtectedRoute>
-          } 
-        />
+          }
+        >
+          {roleRoutes(ADMIN_NAV, adminPages, 'admin')}
+        </Route>
 
-        <Route 
-          path="/trainer/*" 
+        {/* ── Sub-Admin (Staff) — permission-gated subset of the Gym Owner's pages ── */}
+        <Route
+          path="/staff"
           element={
-            <ProtectedRoute allowedRoles={['trainer']}>
-              <Routes>
-                <Route path="dashboard" element={<TrainerDashboard />} />
-              </Routes>
+            <ProtectedRoute allowedRoles={['subadmin']}>
+              <SubAdminLayout />
             </ProtectedRoute>
-          } 
-        />
+          }
+        >
+          {roleRoutes(SUBADMIN_NAV, subadminPages, 'subadmin')}
+        </Route>
 
-        <Route 
-          path="/member/*" 
+        {/* ── Customer (Member) — read-mostly self-service ── */}
+        <Route
+          path="/member"
           element={
             <ProtectedRoute allowedRoles={['member']}>
-              <Routes>
-                <Route path="dashboard" element={<MemberDashboard />} />
-              </Routes>
+              <MemberLayout />
             </ProtectedRoute>
-          } 
-        />
+          }
+        >
+          {roleRoutes(MEMBER_NAV, memberPages, 'member')}
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

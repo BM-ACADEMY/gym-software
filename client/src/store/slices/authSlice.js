@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  user: null, // { id, name, role, subscriberId, etc }
+  user: null, // { id, name, role, subscriberId, permissions?, template?, etc }
   token: null,
   isAuthenticated: false,
 };
@@ -29,5 +29,7 @@ export const { setCredentials, logout } = authSlice.actions;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectToken = (state) => state.auth.token;
+// Sub-Admin's { module: { view, edit } } map — undefined for every other role.
+export const selectPermissions = (state) => state.auth.user?.permissions;
 
 export default authSlice.reducer;

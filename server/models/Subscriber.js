@@ -20,6 +20,12 @@ const subscriberSchema = new mongoose.Schema({
   },
   planStartedAt: {
     type: Date
+  },
+  // Doc's "block vs warn-but-allow" toggle for check-in on an expired/frozen plan.
+  attendanceGraceMode: {
+    type: String,
+    enum: ['block', 'warn'],
+    default: 'block'
   }
 }, { timestamps: true });
 

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../store/slices/authSlice';
 import apiClient from '../../api/client';
+import PasswordInput from '../../components/ui/PasswordInput';
 
 const SignUp = () => {
   const [activeTab, setActiveTab] = useState('email'); // 'email' or 'phone'
@@ -72,26 +73,26 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-violet-950 to-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-teal-950 to-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-600/10 rounded-full blur-3xl"></div>
-        <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(rgba(139,92,246,0.1) 1px, transparent 1px)', backgroundSize:'40px 40px'}}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-teal-600/10 rounded-full blur-3xl"></div>
+        <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(rgba(13,148,136,0.1) 1px, transparent 1px)', backgroundSize:'40px 40px'}}></div>
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center mb-6">
         <Link to="/" className="inline-flex items-center gap-2 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-500/30">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 flex items-center justify-center shadow-lg shadow-teal-500/30">
             <svg viewBox="0 0 24 24" fill="white" className="w-6 h-6">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
           </div>
-          <span className="text-3xl font-extrabold text-white tracking-tight">Gym<span className="text-violet-400">Desk</span></span>
+          <span className="text-3xl font-extrabold text-white tracking-tight">Gym<span className="text-teal-400">Desk</span></span>
         </Link>
         <h2 className="text-3xl font-bold text-white mb-2">Create an account</h2>
         <p className="text-sm text-gray-300">
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-violet-400 hover:text-violet-300 transition-colors">
+          <Link to="/login" className="font-medium text-teal-400 hover:text-teal-300 transition-colors">
             Sign in
           </Link>
         </p>
@@ -128,11 +129,11 @@ const SignUp = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Gym Name</label>
-                    <input required type="text" value={formData.gymName} onChange={(e) => setFormData({...formData, gymName: e.target.value})} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
+                    <input required type="text" value={formData.gymName} onChange={(e) => setFormData({...formData, gymName: e.target.value})} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
-                    <input required type="text" value={formData.ownerName} onChange={(e) => setFormData({...formData, ownerName: e.target.value})} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
+                    <input required type="text" value={formData.ownerName} onChange={(e) => setFormData({...formData, ownerName: e.target.value})} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
                   </div>
                 </div>
                 
@@ -140,22 +141,22 @@ const SignUp = () => {
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
-                      <input required type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
+                      <input required type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                      <input required type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
+                      <PasswordInput required value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
                     </div>
                   </>
                 ) : (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number (with Country Code)</label>
-                    <input required type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="e.g. 919876543210" className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
+                    <input required type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="e.g. 919876543210" className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
                   </div>
                 )}
 
                 <div className="pt-2">
-                  <button type="submit" disabled={loading} className={`w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-violet-500/30 text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 transition-all ${loading ? 'opacity-75 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}>
+                  <button type="submit" disabled={loading} className={`w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-teal-500/30 text-sm font-bold text-white bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] hover:brightness-110 transition-all ${loading ? 'opacity-75 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}>
                     {loading ? 'Sending OTP...' : 'Continue'}
                   </button>
                 </div>
@@ -166,7 +167,7 @@ const SignUp = () => {
           {step === 2 && (
             <form className="space-y-6" onSubmit={handleVerifyOtp}>
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-3xl">🔐</span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Verify it's you</h3>
@@ -183,12 +184,12 @@ const SignUp = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Verification Code</label>
-                <input required type="text" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value)} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl tracking-[0.5em] text-center text-xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-gray-50 focus:bg-white transition-all" placeholder="------" />
+                <input required type="text" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value)} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl tracking-[0.5em] text-center text-xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-50 focus:bg-white transition-all" placeholder="------" />
               </div>
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setStep(1)} className="flex-[0.4] py-3.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">Back</button>
-                <button type="submit" disabled={loading} className={`flex-1 flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-violet-500/30 text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 transition-all ${loading ? 'opacity-75 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}>
+                <button type="submit" disabled={loading} className={`flex-1 flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-teal-500/30 text-sm font-bold text-white bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] hover:brightness-110 transition-all ${loading ? 'opacity-75 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}>
                   {loading ? 'Verifying...' : 'Create Account'}
                 </button>
               </div>

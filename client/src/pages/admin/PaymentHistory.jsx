@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Download, Receipt } from 'lucide-react';
 import apiClient from '../../api/client';
 import Badge from '../../components/ui/Badge';
+import { downloadFile } from '../../utils/downloadFile';
 
 const STATUS_TONE = { pending: 'gray', partial: 'amber', paid: 'green', overdue: 'red', refunded: 'blue' };
 const METHODS = ['cash', 'upi', 'card', 'gateway'];
@@ -87,13 +88,13 @@ const PaymentHistory = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-              <tr><th className="px-5 py-3">Date</th><th className="px-5 py-3">Member</th><th className="px-5 py-3">Invoice</th><th className="px-5 py-3">Method</th><th className="px-5 py-3">Amount</th><th className="px-5 py-3">Invoice status</th></tr>
+              <tr><th className="px-5 py-3">Date</th><th className="px-5 py-3">Member</th><th className="px-5 py-3">Invoice</th><th className="px-5 py-3">Method</th><th className="px-5 py-3">Amount</th><th className="px-5 py-3">Invoice status</th><th className="px-5 py-3"></th></tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={6} className="px-5 py-10 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400">Loading...</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={6} className="px-5 py-10 text-center text-gray-400">No transactions found.</td></tr>
+                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400">No transactions found.</td></tr>
               ) : rows.map((r, i) => (
                 <tr key={i}>
                   <td className="px-5 py-3 text-gray-600">{new Date(r.paidAt).toLocaleString()}</td>
@@ -102,6 +103,9 @@ const PaymentHistory = () => {
                   <td className="px-5 py-3 uppercase text-gray-600">{r.method}</td>
                   <td className="px-5 py-3 font-semibold text-gray-900">₹{r.amount.toLocaleString()}</td>
                   <td className="px-5 py-3"><Badge tone={STATUS_TONE[r.invoiceStatus] || 'gray'}>{r.invoiceStatus}</Badge></td>
+                  <td className="px-5 py-3">
+                    <button onClick={() => downloadFile(apiClient, `/admin/payment/${r.paymentId}/invoice.pdf`, `${r.invoiceNumber || r.paymentId}.pdf`)} title="Download invoice" className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"><Download className="h-4 w-4" /></button>
+                  </td>
                 </tr>
               ))}
             </tbody>

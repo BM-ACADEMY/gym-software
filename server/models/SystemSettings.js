@@ -26,7 +26,7 @@ systemSettingsSchema.statics.setSetting = async function(key, value, description
   return this.findOneAndUpdate(
     { key },
     { key, value, description },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
 };
 

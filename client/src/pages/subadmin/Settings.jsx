@@ -1,3 +1,96 @@
-import { useSelector } from 'react-redux';import { useState } from 'react';import { Bell, CalendarClock, CheckCircle2, Lock, Save, UserRound } from 'lucide-react';import { selectCurrentUser } from '../../store/slices/authSlice';import { Button, Card, CardTitle, Field, Page, PageHeader, Pill } from './ui';
-const Toggle=({label,text,initial=true})=>{const [on,setOn]=useState(initial);return <div className="flex items-center justify-between gap-4 py-3"><div><p className="text-sm font-semibold">{label}</p><p className="text-xs text-gray-500">{text}</p></div><button onClick={()=>setOn(!on)} className={`relative h-6 w-11 rounded-full transition ${on?'bg-teal-600':'bg-gray-200'}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${on?'left-6':'left-1'}`}/></button></div>};
-const Settings=()=>{const user=useSelector(selectCurrentUser);const [saved,setSaved]=useState(false);return <Page><PageHeader title="My settings" description="Manage your profile, availability and communication preferences." actions={<Pill tone="green"><CheckCircle2 className="mr-1 h-3 w-3"/>Trainer account active</Pill>}/><div className="grid gap-6 lg:grid-cols-[240px_1fr]"><Card className="h-fit p-3"><nav className="space-y-1">{[[UserRound,'Profile'],[CalendarClock,'Availability'],[Bell,'Notifications'],[Lock,'Security']].map(([I,t],i)=><button key={t} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold ${i===0?'bg-teal-50 text-teal-700':'text-gray-600 hover:bg-gray-50'}`}><I className="h-4 w-4"/>{t}</button>)}</nav></Card><div className="space-y-6"><Card><CardTitle title="Profile information" description="Visible to your assigned members"/><div className="space-y-5 p-5"><div className="flex items-center gap-4"><div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-100 text-xl font-bold text-teal-700">{(user?.name||'Trainer').split(' ').map(x=>x[0]).join('').slice(0,2)}</div><div><Button variant="secondary">Change photo</Button><p className="mt-1 text-xs text-gray-400">JPG or PNG, max 2 MB</p></div></div><div className="grid gap-4 sm:grid-cols-2"><Field label="Full name" defaultValue={user?.name||'Swetha'}/><Field label="Phone number" defaultValue={user?.phone||'9345989654'}/><Field label="Email address" type="email" defaultValue="swetha@gymdesk.in"/><Field label="Specialization" defaultValue="Strength & conditioning"/></div><label className="block text-sm font-medium text-gray-700">Coach bio<textarea defaultValue="Certified trainer focused on strength, sustainable fat loss and mobility." className="mt-1.5 h-24 w-full rounded-xl border border-gray-200 p-3 text-sm outline-none focus:border-teal-500"/></label></div></Card><Card><CardTitle title="Working hours" description="Used when scheduling PT sessions"/><div className="grid gap-3 p-5 sm:grid-cols-2">{['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((d,i)=><div key={d} className="flex items-center gap-3 rounded-xl bg-gray-50 p-3"><input type="checkbox" defaultChecked={i<6} className="accent-teal-600"/><span className="w-24 text-sm font-medium">{d}</span><span className="text-xs text-gray-500">6:00 AM – 9:00 PM</span></div>)}</div></Card><Card><CardTitle title="Notifications"/><div className="divide-y divide-gray-100 px-5"><Toggle label="Session reminders" text="15 minutes before every PT session"/><Toggle label="Member inactivity alerts" text="When a member misses three planned visits"/><Toggle label="Payment updates" text="Receipts and pending payment reminders" initial={false}/></div></Card><div className="flex items-center justify-end gap-3">{saved&&<span className="text-sm font-medium text-emerald-600">Changes saved</span>}<Button onClick={()=>setSaved(true)}><Save className="h-4 w-4"/>Save changes</Button></div></div></div></Page>};export default Settings;
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { Lock, UserRound } from 'lucide-react';
+import { selectCurrentUser } from '../../store/slices/authSlice';
+import { Button, Card, CardTitle, Field, Page, PageHeader } from './ui';
+import apiClient from '../../api/client';
+import useSuspended from '../../hooks/useSuspended';
+
+const Settings = () => {
+  const user = useSelector(selectCurrentUser);
+  const suspended = useSuspended();
+  const [profile, setProfile] = useState(null);
+  const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '' });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  useEffect(() => {
+    apiClient.get('/subadmin/settings')
+      .then((res) => setProfile(res.data.data))
+      .catch((err) => setError(err.response?.data?.message || 'Failed to load profile'));
+  }, []);
+
+  const flash = (msg) => { setSuccess(msg); setTimeout(() => setSuccess(''), 3000); };
+
+  const saveProfile = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const res = await apiClient.put('/subadmin/settings/profile', { name: profile.name, email: profile.email, phone: profile.phone, availability: profile.availability });
+      setProfile((p) => ({ ...p, ...res.data.data }));
+      flash('Profile saved');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to save profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const changePassword = async () => {
+    if (!passwords.currentPassword || !passwords.newPassword) return;
+    setChangingPassword(true);
+    setError('');
+    try {
+      await apiClient.put('/subadmin/settings/profile', passwords);
+      setPasswords({ currentPassword: '', newPassword: '' });
+      flash('Password changed');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  if (!profile) {
+    return <div className="flex items-center justify-center py-16"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-teal-600" /></div>;
+  }
+
+  return (
+    <Page>
+      <PageHeader title="My settings" description="Manage your contact info, availability and password." />
+      {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {success && <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div>}
+
+      <Card>
+        <CardTitle title="Profile information" description="Visible to your gym owner" />
+        <div className="space-y-5 p-5">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-100 text-xl font-bold text-teal-700">
+              {(user?.name || 'S').split(' ').map((x) => x[0]).join('').slice(0, 2)}
+            </div>
+            <p className="text-sm text-gray-500">Template: <span className="font-medium capitalize text-gray-700">{profile.template}</span></p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Full name" value={profile.name || ''} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
+            <Field label="Phone number" value={profile.phone || ''} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+            <Field label="Email address" type="email" value={profile.email || ''} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
+            <Field label="Availability" value={profile.availability || ''} onChange={(e) => setProfile({ ...profile, availability: e.target.value })} placeholder="e.g. Mon-Sat 6am-9pm" />
+          </div>
+          <Button onClick={saveProfile} disabled={saving || suspended}><UserRound className="h-4 w-4" />{saving ? 'Saving...' : 'Save profile'}</Button>
+        </div>
+      </Card>
+
+      <Card>
+        <CardTitle title="Change password" />
+        <div className="space-y-4 p-5">
+          <Field label="Current password" type="password" value={passwords.currentPassword} onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })} />
+          <Field label="New password" type="password" value={passwords.newPassword} onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })} />
+          <Button onClick={changePassword} disabled={changingPassword || suspended} variant="secondary"><Lock className="h-4 w-4" />{changingPassword ? 'Updating...' : 'Update password'}</Button>
+        </div>
+      </Card>
+    </Page>
+  );
+};
+export default Settings;

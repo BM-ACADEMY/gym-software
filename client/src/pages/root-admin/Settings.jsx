@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { CreditCard, Palette, Save, ScrollText, User } from 'lucide-react';
 import apiClient from '../../api/client';
 
 const OtpModeToggle = ({ currentMode, onToggle, loading }) => {
@@ -32,7 +33,6 @@ const OtpModeToggle = ({ currentMode, onToggle, loading }) => {
         </div>
       </div>
 
-      {/* Toggle Switch */}
       <button
         onClick={onToggle}
         disabled={loading}
@@ -40,19 +40,60 @@ const OtpModeToggle = ({ currentMode, onToggle, loading }) => {
         role="switch"
         aria-checked={isLive}
       >
-        <span
-          className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isLive ? 'translate-x-7' : 'translate-x-0'}`}
-        />
+        <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isLive ? 'translate-x-7' : 'translate-x-0'}`} />
       </button>
     </div>
   );
 };
+
+const SectionCard = ({ icon: Icon, title, description, children, onSave, saving }) => (
+  <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-6 py-4">
+      <Icon className="h-4 w-4 text-teal-600" />
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-700">{title}</h2>
+        {description && <p className="text-xs text-gray-400">{description}</p>}
+      </div>
+    </div>
+    <div className="space-y-4 p-6">{children}</div>
+    {onSave && (
+      <div className="flex justify-end border-t border-gray-100 px-6 py-4">
+        <button onClick={onSave} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-50">
+          <Save className="h-4 w-4" /> {saving ? 'Saving...' : 'Save'}
+        </button>
+      </div>
+    )}
+  </div>
+);
+
+const Input = ({ label, ...props }) => (
+  <label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">{label}</span>
+    <input {...props} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500" />
+  </label>
+);
+
+const NOTIFICATION_TYPES = [
+  ['plan_expiring', 'Plan expiring soon', '{{name}}, {{days}}'],
+  ['plan_expired', 'Plan expired', '{{name}}'],
+  ['payment_overdue', 'Payment overdue (member)', '{{name}}, {{balance}}'],
+  ['payment_overdue_summary', 'Payment overdue (gym owner)', '{{count}}, {{total}}'],
+  ['pt_session_reminder', 'PT session reminder (member)', '{{name}}, {{time}}'],
+  ['pt_session_reminder_staff', 'PT session reminder (trainer)', '{{memberName}}, {{time}}'],
+];
 
 const RootAdminSettings = () => {
   const [otpMode, setOtpMode] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const [profile, setProfile] = useState(null);
+  const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '' });
+  const [branding, setBranding] = useState(null);
+  const [templates, setTemplates] = useState({});
+  const [paymentGateway, setPaymentGateway] = useState(null);
+  const [newSecret, setNewSecret] = useState('');
+  const [savingSection, setSavingSection] = useState('');
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -62,14 +103,23 @@ const RootAdminSettings = () => {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get('/settings');
-      setOtpMode(res.data.data.otpMode);
+      const [otpRes, rootRes] = await Promise.all([
+        apiClient.get('/settings'),
+        apiClient.get('/root-admin/settings'),
+      ]);
+      setOtpMode(otpRes.data.data.otpMode);
+      setProfile(rootRes.data.data.profile);
+      setBranding(rootRes.data.data.branding);
+      setTemplates(rootRes.data.data.notificationTemplates || {});
+      setPaymentGateway(rootRes.data.data.paymentGateway);
     } catch {
       showToast('Failed to load settings', 'error');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => { fetchSettings(); }, []);
 
   const handleToggleMode = async () => {
     const newMode = otpMode === 'demo' ? 'live' : 'demo';
@@ -87,56 +137,140 @@ const RootAdminSettings = () => {
     }
   };
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  const saveProfile = async () => {
+    setSavingSection('profile');
+    try {
+      const payload = { name: profile.name, email: profile.email, phone: profile.phone, ...passwords };
+      const res = await apiClient.put('/root-admin/settings/profile', payload);
+      setProfile((p) => ({ ...p, ...res.data.data }));
+      setPasswords({ currentPassword: '', newPassword: '' });
+      showToast('Profile saved');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to save profile', 'error');
+    } finally {
+      setSavingSection('');
+    }
+  };
+
+  const saveBranding = async () => {
+    setSavingSection('branding');
+    try {
+      const res = await apiClient.put('/root-admin/settings/branding', branding);
+      setBranding(res.data.data);
+      showToast('Branding saved');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to save branding', 'error');
+    } finally {
+      setSavingSection('');
+    }
+  };
+
+  const saveTemplates = async () => {
+    setSavingSection('templates');
+    try {
+      await apiClient.put('/root-admin/settings/notification-templates', { templates });
+      showToast('Notification templates saved');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to save templates', 'error');
+    } finally {
+      setSavingSection('');
+    }
+  };
+
+  const savePaymentGateway = async () => {
+    setSavingSection('gateway');
+    try {
+      const payload = { provider: paymentGateway.provider, keyId: paymentGateway.keyId };
+      if (newSecret) payload.keySecret = newSecret;
+      const res = await apiClient.put('/root-admin/settings/payment-gateway', payload);
+      setPaymentGateway((pg) => ({ ...pg, ...res.data.data }));
+      setNewSecret('');
+      showToast('Payment gateway settings saved');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to save payment gateway', 'error');
+    } finally {
+      setSavingSection('');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div>
           <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
-          <p className="text-gray-500 mt-1">Manage platform-wide configuration for GymDesk.</p>
+          <p className="mt-1 text-gray-500">Your account, platform branding, notification templates, and payment gateway.</p>
         </div>
 
-        {/* Toast */}
         {toast && (
-          <div className={`mb-6 px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 ${toast.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-            {toast.type === 'success' ? (
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-            ) : (
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-            )}
+          <div className={`px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 ${toast.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
             {toast.msg}
           </div>
         )}
 
-        {/* Settings Card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
-            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">OTP Configuration</h2>
-          </div>
-          <div className="p-6 space-y-4">
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+        {loading || !profile ? (
+          <div className="flex items-center justify-center py-16"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-teal-600" /></div>
+        ) : (
+          <>
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+              <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-700">OTP Configuration</h2>
               </div>
-            ) : (
-              <>
-                <OtpModeToggle
-                  currentMode={otpMode}
-                  onToggle={handleToggleMode}
-                  loading={toggling}
-                />
-                <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-100 text-xs text-blue-700 leading-relaxed">
+              <div className="space-y-4 p-6">
+                <OtpModeToggle currentMode={otpMode} onToggle={handleToggleMode} loading={toggling} />
+                <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-xs leading-relaxed text-blue-700">
                   <strong>Demo Mode:</strong> OTP codes are returned in the API response and displayed as a browser alert — perfect for testing without spending SMS credits.<br /><br />
-                  <strong>Live Mode:</strong> OTP codes are sent via the BulkSMS API to the real phone number. Make sure your <code className="font-mono bg-blue-100 px-1 rounded">BULKSMS_API_URL</code> is configured in the server <code className="font-mono bg-blue-100 px-1 rounded">.env</code> file.
+                  <strong>Live Mode:</strong> OTP codes are sent via the BulkSMS API to the real phone number. Make sure your <code className="rounded bg-blue-100 px-1 font-mono">BULKSMS_API_URL</code> is configured in the server <code className="rounded bg-blue-100 px-1 font-mono">.env</code> file.
                 </div>
-              </>
-            )}
-          </div>
-        </div>
+              </div>
+            </div>
+
+            <SectionCard icon={User} title="Your account" onSave={saveProfile} saving={savingSection === 'profile'}>
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="Name" value={profile.name || ''} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
+                <Input label="Email" type="email" value={profile.email || ''} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
+              </div>
+              <Input label="Phone" value={profile.phone || ''} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+              <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+                <Input label="Current password" type="password" value={passwords.currentPassword} onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })} placeholder="To change password" />
+                <Input label="New password" type="password" value={passwords.newPassword} onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })} />
+              </div>
+            </SectionCard>
+
+            <SectionCard icon={Palette} title="Platform branding" description="Shown across the SaaS site" onSave={saveBranding} saving={savingSection === 'branding'}>
+              <Input label="Platform name" value={branding.platformName || ''} onChange={(e) => setBranding({ ...branding, platformName: e.target.value })} />
+              <Input label="Logo URL" value={branding.logoUrl || ''} onChange={(e) => setBranding({ ...branding, logoUrl: e.target.value })} placeholder="https://..." />
+              <label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Primary color</span>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={branding.primaryColor || '#0d9488'} onChange={(e) => setBranding({ ...branding, primaryColor: e.target.value })} className="h-10 w-14 rounded-lg border border-gray-200" />
+                  <span className="text-sm text-gray-500">{branding.primaryColor}</span>
+                </div>
+              </label>
+            </SectionCard>
+
+            <SectionCard icon={ScrollText} title="Notification templates" description="Overrides the built-in message for each auto-notification type — leave blank to use the default" onSave={saveTemplates} saving={savingSection === 'templates'}>
+              {NOTIFICATION_TYPES.map(([type, label, vars]) => (
+                <label key={type} className="block">
+                  <span className="mb-1 block text-sm font-medium text-gray-700">{label}</span>
+                  <textarea rows={2} value={templates[type] || ''} onChange={(e) => setTemplates({ ...templates, [type]: e.target.value })} placeholder={`Use ${vars} — default used if blank`} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500" />
+                </label>
+              ))}
+            </SectionCard>
+
+            <SectionCard icon={CreditCard} title="Payment gateway" description="Keys are stored, never displayed again — only whether one is set" onSave={savePaymentGateway} saving={savingSection === 'gateway'}>
+              <div className="grid grid-cols-2 gap-4">
+                <label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Provider</span>
+                  <select value={paymentGateway.provider || ''} onChange={(e) => setPaymentGateway({ ...paymentGateway, provider: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm">
+                    <option value="">Not configured</option>
+                    <option value="razorpay">Razorpay</option>
+                    <option value="stripe">Stripe</option>
+                  </select>
+                </label>
+                <Input label="Key ID" value={paymentGateway.keyId || ''} onChange={(e) => setPaymentGateway({ ...paymentGateway, keyId: e.target.value })} />
+              </div>
+              <Input label={`Key secret ${paymentGateway.hasSecret ? `(currently ${paymentGateway.keySecretMasked})` : ''}`} type="password" value={newSecret} onChange={(e) => setNewSecret(e.target.value)} placeholder={paymentGateway.hasSecret ? 'Leave blank to keep current secret' : 'Enter secret key'} />
+            </SectionCard>
+          </>
+        )}
       </div>
     </div>
   );

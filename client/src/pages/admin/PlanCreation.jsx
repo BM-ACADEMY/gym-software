@@ -4,6 +4,7 @@ import apiClient from '../../api/client';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import PlanCard, { planCardColor } from '../../components/ui/PlanCard';
+import useSuspended from '../../hooks/useSuspended';
 
 const emptyForm = {
   name: '',
@@ -17,6 +18,7 @@ const emptyForm = {
 };
 
 const PlanCreation = () => {
+  const suspended = useSuspended();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -115,7 +117,8 @@ const PlanCreation = () => {
         </div>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white text-sm font-semibold hover:brightness-110 transition-all flex-shrink-0"
+          disabled={suspended}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white text-sm font-semibold hover:brightness-110 transition-all flex-shrink-0 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Plus className="h-4 w-4" />
           New Plan
@@ -156,11 +159,12 @@ const PlanCreation = () => {
               ].filter(Boolean)}
               lines={plan.includedServices || []}
               actions={[
-                { label: 'Edit', icon: <Pencil className="h-3.5 w-3.5" />, onClick: () => openEdit(plan) },
+                { label: 'Edit', icon: <Pencil className="h-3.5 w-3.5" />, onClick: () => openEdit(plan), disabled: suspended },
                 {
                   label: plan.isActive ? 'Deactivate' : 'Activate',
                   icon: plan.isActive ? <Archive className="h-3.5 w-3.5" /> : <ArchiveRestore className="h-3.5 w-3.5" />,
                   onClick: () => handleToggle(plan),
+                  disabled: suspended,
                 },
               ]}
             />
@@ -180,7 +184,7 @@ const PlanCreation = () => {
             <button
               type="submit"
               form="gym-plan-form"
-              disabled={saving}
+              disabled={saving || suspended}
               className="px-4 py-2.5 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white text-sm font-semibold hover:brightness-110 disabled:opacity-60"
             >
               {saving ? 'Saving...' : 'Save Plan'}

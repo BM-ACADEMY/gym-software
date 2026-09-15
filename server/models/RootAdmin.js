@@ -37,6 +37,12 @@ const rootAdminSchema = new mongoose.Schema({
     type: String,
     enum: ['approved', 'pending', 'rejected'],
     default: 'approved'
+  },
+  // Set by the approving Root Admin — doc: "sets their internal permission level".
+  permissionLevel: {
+    type: String,
+    enum: ['full', 'support', 'billing'],
+    default: 'full'
   }
 }, { timestamps: true });
 

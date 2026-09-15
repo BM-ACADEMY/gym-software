@@ -1,8 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { handleRequest } = require('../../controllers/admin/trial');
+const { listTrials, createTrial, updateTrial, convertTrial } = require('../../controllers/admin/trial');
 const { protect, authorize } = require('../../middleware/auth');
 
-router.get('/', protect, authorize('admin'), handleRequest);
+router.use(protect, authorize('admin'));
+
+router.get('/', listTrials);
+router.post('/', createTrial);
+router.put('/:id', updateTrial);
+router.patch('/:id/convert', convertTrial);
 
 module.exports = router;

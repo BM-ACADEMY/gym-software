@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { handleRequest } = require('../../controllers/member/attendance');
+const { listMyAttendance, selfCheckIn } = require('../../controllers/member/attendance');
 const { protect, authorize } = require('../../middleware/auth');
 
-router.get('/', protect, authorize('member'), handleRequest);
+router.use(protect, authorize('member'));
+
+router.get('/', listMyAttendance);
+router.post('/check-in', selfCheckIn);
 
 module.exports = router;

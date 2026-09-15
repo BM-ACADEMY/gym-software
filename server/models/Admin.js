@@ -35,6 +35,10 @@ const adminSchema = new mongoose.Schema({
   role: {
     type: String,
     default: 'admin'
+  },
+  // Feeds the AI churn-risk flag's "login activity" signal (Root Admin Dashboard).
+  lastLoginAt: {
+    type: Date
   }
 }, { timestamps: true });
 

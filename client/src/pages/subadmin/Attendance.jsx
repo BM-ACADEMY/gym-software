@@ -4,12 +4,14 @@ import { CalendarDays, Clock, LogIn, LogOut, Users } from 'lucide-react';
 import { Button, Card, CardTitle, Page, PageHeader, Pill, SearchBox, Stat } from './ui';
 import apiClient from '../../api/client';
 import { selectPermissions } from '../../store/slices/authSlice';
+import useSuspended from '../../hooks/useSuspended';
 
 const initials = (name = '') => name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
 
 const Attendance = () => {
   const permissions = useSelector(selectPermissions);
   const canEdit = Boolean(permissions?.attendance?.edit);
+  const suspended = useSuspended();
 
   const [query, setQuery] = useState('');
   const [summary, setSummary] = useState({ checkedInToday: 0, currentlyInside: 0 });
@@ -89,7 +91,7 @@ const Attendance = () => {
                 </div>
                 <Pill tone={open ? 'green' : 'gray'}>{open ? 'In gym' : 'Away'}</Pill>
                 {canEdit && (
-                  <Button disabled={busy} onClick={() => (open ? checkOut(open._id) : checkIn(m._id))} variant={open ? 'secondary' : 'primary'}>
+                  <Button disabled={busy || suspended} onClick={() => (open ? checkOut(open._id) : checkIn(m._id))} variant={open ? 'secondary' : 'primary'}>
                     {open ? <><LogOut className="h-4 w-4" />Check out</> : <><LogIn className="h-4 w-4" />Check in</>}
                   </Button>
                 )}

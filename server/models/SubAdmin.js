@@ -74,6 +74,11 @@ const subAdminSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+    // Free-text for their own Settings page, e.g. "Mon-Sat 6am-9pm".
+    availability: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );

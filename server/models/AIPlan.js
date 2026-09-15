@@ -39,6 +39,20 @@ const aiPlanSchema = new mongoose.Schema(
     lastRefreshedAt: {
       type: Date,
     },
+    // Doc: sub-admin-generated drafts need owner review before the member
+    // ever sees them (Subscriber.aiPlanReviewRequired makes this configurable).
+    status: {
+      type: String,
+      enum: ['draft', 'published'],
+      default: 'draft',
+    },
+    generatedBySubAdminId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'SubAdmin',
+    },
+    publishedAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

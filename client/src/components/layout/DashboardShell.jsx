@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import SuspendedBanner from './SuspendedBanner';
 
 // Shared shell reused by every role layout: Sidebar + Header + routed page content.
 // Role layouts (RootAdminLayout, AdminLayout, SubAdminLayout, MemberLayout) just
@@ -29,6 +30,7 @@ const DashboardShell = ({ navItems, basePath, roleLabel }) => {
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
+        <SuspendedBanner />
         <Header onMenuClick={() => setSidebarOpen(true)} title={currentItem?.label} />
         <main className="flex-1 overflow-y-auto">
           <Outlet />

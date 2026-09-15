@@ -30,6 +30,21 @@ const platformPaymentSchema = new mongoose.Schema(
     paidAt: {
       type: Date,
     },
+    // Failed-payment retry queue + dunning.
+    retryCount: {
+      type: Number,
+      default: 0,
+    },
+    lastDunningAt: {
+      type: Date,
+    },
+    // Set when a gateway checkout order is created for this invoice — lets an
+    // incoming webhook find its way back to the right record.
+    gatewayOrderId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
   },
   { timestamps: true }
 );

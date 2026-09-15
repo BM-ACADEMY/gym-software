@@ -15,6 +15,8 @@ import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
 import RootAdminSignIn from './pages/auth/RootAdminSignIn';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import ImpersonateBootstrap from './pages/auth/ImpersonateBootstrap';
+import RootAdminRequestAccess from './pages/auth/RootAdminRequestAccess';
 
 // Protected shell
 import ProtectedRoute from './components/ProtectedRoute';
@@ -67,6 +69,8 @@ function App() {
         <Route path="/root-admin-login" element={<RootAdminSignIn />} />
         <Route path="/forgot-password" element={<ForgotPassword variant="tenant" />} />
         <Route path="/root-admin-forgot-password" element={<ForgotPassword variant="root" />} />
+        <Route path="/impersonate" element={<ImpersonateBootstrap />} />
+        <Route path="/root-admin-request-access" element={<RootAdminRequestAccess />} />
 
         {/* ── Root Admin — platform control panel ── */}
         <Route

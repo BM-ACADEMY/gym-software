@@ -2,6 +2,8 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const Payment = require('../../models/Payment');
 const Member = require('../../models/Member');
+const Subscriber = require('../../models/Subscriber');
+const { streamInvoicePdf } = require('../../utils/invoicePdf');
 
 const getModulePermission = (subAdmin, moduleKey) =>
   subAdmin?.permissions?.get?.(moduleKey) || subAdmin?.permissions?.[moduleKey];
@@ -41,10 +43,13 @@ const getOwnMemberIds = async (req, subAdminId) =>
 // @route   POST /api/admin/payment  |  POST /api/subadmin/payment (edit)
 const createPayment = async (req, res) => {
   try {
-    const { memberId, amount, amountNow, method, dueDate, note } = req.body;
+    const { memberId, amount, amountNow, method, dueDate, note, category } = req.body;
 
     if (!memberId || !amount || amount <= 0 || !method) {
       return res.status(400).json({ success: false, message: 'memberId, a positive amount, and method are required' });
+    }
+    if (category && !['membership', 'pt_session', 'other'].includes(category)) {
+      return res.status(400).json({ success: false, message: 'Invalid category' });
     }
 
     const member = await Member.findOne({ _id: memberId, subscriberId: req.user.subscriberId });
@@ -71,6 +76,7 @@ const createPayment = async (req, res) => {
       dueDate,
       method,
       note,
+      category: category || 'membership',
       status: resolveStatus(Number(amount), firstPayment),
       invoiceNumber: generateInvoiceNumber(),
       paidAt: firstPayment > 0 ? new Date() : undefined,
@@ -243,4 +249,27 @@ const todaySummary = async (req, res) => {
   }
 };
 
-module.exports = { createPayment, addInstallment, refundPayment, listPayments, listOverdue, todaySummary };
+// @desc    Download a PDF invoice/receipt for a payment
+// @route   GET /api/admin/payment/:id/invoice.pdf  |  GET /api/subadmin/payment/:id/invoice.pdf (view)
+const downloadInvoice = async (req, res) => {
+  try {
+    const payment = await Payment.findOne({ _id: req.params.id, subscriberId: req.user.subscriberId }).populate('memberId', 'name phone email');
+    if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
+
+    const { scoped, subAdminId } = getSubAdminScope(req);
+    if (scoped) {
+      const member = await Member.findById(payment.memberId._id).select('assignedSubAdminId');
+      if (!member || String(member.assignedSubAdminId) !== String(subAdminId)) {
+        return res.status(403).json({ success: false, message: 'This member is not assigned to you' });
+      }
+    }
+
+    const subscriber = await Subscriber.findById(req.user.subscriberId).select('gymName gstEnabled gstNumber gstRate');
+    streamInvoicePdf(res, { payment, member: payment.memberId, subscriber });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports = { createPayment, addInstallment, refundPayment, listPayments, listOverdue, todaySummary, downloadInvoice };

@@ -9,6 +9,16 @@ const freezeEntrySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const progressEntrySchema = new mongoose.Schema(
+  {
+    weight: { type: Number },
+    measurements: { type: String, trim: true },
+    photoUrl: { type: String, trim: true },
+    loggedAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const memberSchema = new mongoose.Schema(
   {
     subscriberId: {
@@ -59,6 +69,11 @@ const memberSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    // Doc's AI Plan input: "goal, body stats, medical notes, and equipment available".
+    equipmentAvailable: {
+      type: String,
+      trim: true,
+    },
     planId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'GymPlan',
@@ -74,6 +89,16 @@ const memberSchema = new mongoose.Schema(
     freezeHistory: {
       type: [freezeEntrySchema],
       default: [],
+    },
+    // Weight/measurements/photo log — feeds the (future) AI plan refresh and,
+    // for now, is real self-tracked progress data on its own.
+    progressLog: {
+      type: [progressEntrySchema],
+      default: [],
+    },
+    notificationPreferences: {
+      sms: { type: Boolean, default: true },
+      email: { type: Boolean, default: true },
     },
   },
   { timestamps: true }

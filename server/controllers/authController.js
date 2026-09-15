@@ -137,6 +137,9 @@ const loginAdminWithEmail = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
+    admin.lastLoginAt = new Date();
+    await admin.save();
+
     const token = generateToken({ id: admin._id, role: admin.role, subscriberId: admin.subscriberId });
 
     res.status(200).json({
@@ -216,6 +219,7 @@ const loginAdminWithOtp = async (req, res) => {
     // Clear OTP after successful login
     admin.otpCode = undefined;
     admin.otpExpiresAt = undefined;
+    admin.lastLoginAt = new Date();
     await admin.save();
 
     const token = generateToken({ id: admin._id, role: admin.role, subscriberId: admin.subscriberId });
@@ -302,6 +306,8 @@ const loginWithPhone = async (req, res) => {
 
     const admin = await Admin.findOne({ phone });
     if (admin && admin.passwordHash && (await bcrypt.compare(password, admin.passwordHash))) {
+      admin.lastLoginAt = new Date();
+      await admin.save();
       const token = generateToken({ id: admin._id, role: admin.role, subscriberId: admin.subscriberId });
       return res.status(200).json({
         success: true,
@@ -516,6 +522,37 @@ const resetRootPassword = async (req, res) => {
   }
 };
 
+// @desc    Internal team member requests a Root Admin login — lands as
+//          status: 'pending' until an existing Root Admin approves it.
+// @route   POST /api/auth/request-root-access
+const requestRootAccess = async (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body;
+    if (!name || !password || (!email && !phone)) {
+      return res.status(400).json({ success: false, message: 'Name, password, and an email or phone are required' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
+
+    const orConditions = [];
+    if (email) orConditions.push({ email });
+    if (phone) orConditions.push({ phone });
+    const existing = await RootAdmin.findOne({ $or: orConditions });
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'An account with that email or phone already exists' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    await RootAdmin.create({ name, email, phone, passwordHash, status: 'pending' });
+
+    res.status(201).json({ success: true, message: 'Access request submitted — an existing Root Admin will review it' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 module.exports = {
   registerOtpRequest,
   registerOtpVerify,
@@ -527,5 +564,6 @@ module.exports = {
   requestPasswordReset,
   resetPassword,
   requestRootPasswordReset,
-  resetRootPassword
+  resetRootPassword,
+  requestRootAccess
 };

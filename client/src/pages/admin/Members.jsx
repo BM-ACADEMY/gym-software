@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, QrCode, Search, X } from 'lucide-react';
+import { Lock, Plus, QrCode, Search, X } from 'lucide-react';
 import apiClient from '../../api/client';
+import useSuspended from '../../hooks/useSuspended';
 
 const STATUS_TONES = {
   active: 'bg-emerald-50 text-emerald-700',
@@ -29,6 +30,7 @@ const emptyForm = {
 };
 
 const Members = () => {
+  const suspended = useSuspended();
   const [members, setMembers] = useState([]);
   const [total, setTotal] = useState(0);
   const [plans, setPlans] = useState([]);
@@ -145,8 +147,13 @@ const Members = () => {
           <h1 className="text-2xl font-bold text-gray-900">Members</h1>
           <p className="mt-1 text-gray-500">{total} member{total === 1 ? '' : 's'} in your gym.</p>
         </div>
-        <button onClick={openCreate} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700">
-          <Plus className="h-4 w-4" /> Add member
+        <button
+          onClick={openCreate}
+          disabled={suspended}
+          title={suspended ? 'Disabled — this gym is suspended' : undefined}
+          className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+        >
+          {suspended ? <Lock className="h-4 w-4" /> : <Plus className="h-4 w-4" />} Add member
         </button>
       </div>
 
@@ -165,7 +172,7 @@ const Members = () => {
             <option key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</option>
           ))}
         </select>
-        {selectedIds.length > 0 && (
+        {selectedIds.length > 0 && !suspended && (
           <div className="flex items-center gap-2 text-sm">
             <span className="text-gray-500">{selectedIds.length} selected</span>
             <button onClick={() => applyBulkStatus('frozen')} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50">Freeze</button>
@@ -218,10 +225,15 @@ const Members = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/50 p-4" onMouseDown={() => setFormOpen(false)}>
           <form onSubmit={submitForm} onMouseDown={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-              <h3 className="text-lg font-bold">{editingId ? 'Edit member' : 'Add member'}</h3>
+              <h3 className="text-lg font-bold">{suspended ? 'View member' : editingId ? 'Edit member' : 'Add member'}</h3>
               <button type="button" onClick={() => setFormOpen(false)} className="rounded-lg p-2 text-gray-400 hover:bg-gray-100"><X className="h-5 w-5" /></button>
             </div>
-            <div className="space-y-4 p-5">
+            {suspended && (
+              <div className="mx-5 mt-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+                <Lock className="h-3.5 w-3.5 flex-shrink-0" /> This gym is suspended — view only, changes are disabled.
+              </div>
+            )}
+            <fieldset disabled={suspended} className="space-y-4 p-5 disabled:opacity-60">
               <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Name</span>
                 <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
               </label>
@@ -260,10 +272,12 @@ const Members = () => {
                   </select>
                 </label>
               </div>
-            </div>
+            </fieldset>
             <div className="flex justify-end gap-2 border-t border-gray-100 px-5 py-4">
-              <button type="button" onClick={() => setFormOpen(false)} className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="submit" disabled={saving} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save'}</button>
+              <button type="button" onClick={() => setFormOpen(false)} className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">{suspended ? 'Close' : 'Cancel'}</button>
+              {!suspended && (
+                <button type="submit" disabled={saving} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save'}</button>
+              )}
             </div>
           </form>
         </div>

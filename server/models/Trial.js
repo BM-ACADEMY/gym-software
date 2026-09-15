@@ -29,6 +29,11 @@ const trialSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'SubAdmin',
     },
+    // Set when this lead converts into a real Member (see trial.js's convert action).
+    convertedMemberId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Member',
+    },
   },
   { timestamps: true }
 );

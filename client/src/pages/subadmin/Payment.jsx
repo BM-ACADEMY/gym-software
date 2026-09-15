@@ -4,18 +4,22 @@ import { Banknote, CheckCircle2, CreditCard, IndianRupee, QrCode, Receipt } from
 import { Button, Card, CardTitle, Field, Page, PageHeader, Pill, Stat } from './ui';
 import apiClient from '../../api/client';
 import { selectPermissions } from '../../store/slices/authSlice';
+import useSuspended from '../../hooks/useSuspended';
 
 const METHODS = [['UPI', 'upi', QrCode], ['Card', 'card', CreditCard], ['Cash', 'cash', Banknote]];
+const CATEGORIES = [['membership', 'Membership'], ['pt_session', 'PT Session'], ['other', 'Other']];
 const STATUS_PILL = { pending: 'gray', partial: 'amber', paid: 'green', overdue: 'red', refunded: 'blue' };
 
 const Payment = () => {
   const permissions = useSelector(selectPermissions);
   const canEdit = Boolean(permissions?.payment?.edit);
+  const suspended = useSuspended();
 
   const [summary, setSummary] = useState({ collectedToday: 0, collectedTodayCount: 0, pendingDues: 0, pendingDuesCount: 0 });
   const [recent, setRecent] = useState([]);
   const [members, setMembers] = useState([]);
   const [method, setMethod] = useState('upi');
+  const [category, setCategory] = useState('membership');
   const [memberId, setMemberId] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -45,7 +49,7 @@ const Payment = () => {
     setSaving(true);
     setError('');
     try {
-      await apiClient.post('/subadmin/payment', { memberId, amount: Number(amount), amountNow: Number(amount), method, note: note || undefined });
+      await apiClient.post('/subadmin/payment', { memberId, amount: Number(amount), amountNow: Number(amount), method, category, note: note || undefined });
       setPaid(true);
       setAmount(''); setNote('');
       await fetchAll();
@@ -81,12 +85,18 @@ const Payment = () => {
                 ))}
               </div>
             </div>
+            <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">For</span>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} disabled={!canEdit} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none disabled:opacity-50">
+                {CATEGORIES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </select>
+            </label>
             <Field label="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} disabled={!canEdit} placeholder="e.g. Monthly renewal" />
             {canEdit ? (
-              <Button className="w-full" disabled={saving} onClick={confirmPayment}><IndianRupee className="h-4 w-4" />{saving ? 'Recording...' : 'Confirm payment'}</Button>
+              <Button className="w-full" disabled={saving || suspended} onClick={confirmPayment}><IndianRupee className="h-4 w-4" />{saving ? 'Recording...' : 'Confirm payment'}</Button>
             ) : (
               <p className="text-center text-xs text-gray-400">You have view-only access to Payment.</p>
             )}
+            {suspended && <p className="text-center text-xs text-gray-400">This gym is suspended — payments are disabled.</p>}
             {paid && (
               <div className="flex items-center gap-3 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">
                 <CheckCircle2 className="h-5 w-5" /><div><b>Payment recorded successfully</b><p>The invoice has been created.</p></div>

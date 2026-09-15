@@ -61,8 +61,9 @@ const PlanCard = ({ color, title, statusLabel, statusActive = true, price, price
               <button
                 key={i}
                 onClick={action.onClick}
+                disabled={action.disabled}
                 style={i === 0 ? { background: gradient } : undefined}
-                className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-all ${
+                className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
                   i === 0 ? 'text-white hover:brightness-110 shadow-md' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'
                 }`}
               >

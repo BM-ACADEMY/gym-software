@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Download, Receipt } from 'lucide-react';
 import { Button, Card, Empty, Page, PageHeader, Pill, SearchBox } from './ui';
 import apiClient from '../../api/client';
+import { downloadFile } from '../../utils/downloadFile';
 
 const STATUS_PILL = { pending: 'gray', partial: 'amber', paid: 'green', overdue: 'red', refunded: 'blue' };
 
@@ -59,7 +60,7 @@ const PaymentHistory = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-xs uppercase text-gray-500">
-              <tr>{['Invoice', 'Member', 'Date', 'Method', 'Amount', 'Status'].map((x) => <th key={x} className="px-5 py-3">{x}</th>)}</tr>
+              <tr>{['Invoice', 'Member', 'Date', 'Method', 'Amount', 'Status', ''].map((x) => <th key={x} className="px-5 py-3">{x}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {!loading && filtered.map((r, i) => (
@@ -70,6 +71,9 @@ const PaymentHistory = () => {
                   <td className="px-5 py-4 uppercase">{r.method}</td>
                   <td className="px-5 py-4 font-bold">₹{r.amount.toLocaleString()}</td>
                   <td className="px-5 py-4"><Pill tone={STATUS_PILL[r.invoiceStatus] || 'gray'}>{r.invoiceStatus}</Pill></td>
+                  <td className="px-5 py-4">
+                    <button onClick={() => downloadFile(apiClient, `/subadmin/payment/${r.paymentId}/invoice.pdf`, `${r.invoiceNumber || r.paymentId}.pdf`)} title="Download invoice" className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"><Download className="h-4 w-4" /></button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -31,6 +31,12 @@ const ptSessionSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Set when this session was booked against a purchased package's credit
+    // rather than paid for individually — lets cancellation refund the credit.
+    packagePurchaseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'PTPackagePurchase',
+    },
   },
   { timestamps: true }
 );

@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { handleRequest } = require('../../controllers/admin/settings');
+const { getGymSettings, updateGymSettings, updateAdminProfile } = require('../../controllers/admin/settings');
 const { protect, authorize } = require('../../middleware/auth');
 
-router.get('/', protect, authorize('admin'), handleRequest);
+router.use(protect, authorize('admin'));
+
+router.get('/', getGymSettings);
+router.put('/gym', updateGymSettings);
+router.put('/profile', updateAdminProfile);
 
 module.exports = router;

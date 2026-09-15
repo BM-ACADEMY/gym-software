@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, IndianRupee, Plus, Receipt } from 'lucide-react';
+import { AlertTriangle, Download, IndianRupee, Plus, Receipt } from 'lucide-react';
 import apiClient from '../../api/client';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
+import { downloadFile } from '../../utils/downloadFile';
+import useSuspended from '../../hooks/useSuspended';
 
 const STATUS_TONE = { pending: 'gray', partial: 'amber', paid: 'green', overdue: 'red', refunded: 'blue' };
 const METHODS = ['cash', 'upi', 'card'];
 
-const emptyForm = { memberId: '', amount: '', amountNow: '', method: 'cash', dueDate: '', note: '' };
+const CATEGORIES = [['membership', 'Membership'], ['pt_session', 'PT Session'], ['other', 'Other']];
+const emptyForm = { memberId: '', amount: '', amountNow: '', method: 'cash', category: 'membership', dueDate: '', note: '' };
 const installmentForm = { amount: '', method: 'cash', note: '' };
 
 const Payment = () => {
+  const suspended = useSuspended();
   const [summary, setSummary] = useState({ collectedToday: 0, collectedTodayCount: 0, pendingDues: 0, pendingDuesCount: 0 });
   const [payments, setPayments] = useState([]);
   const [members, setMembers] = useState([]);
@@ -61,6 +65,7 @@ const Payment = () => {
         amount: Number(form.amount),
         amountNow: form.amountNow === '' ? Number(form.amount) : Number(form.amountNow),
         method: form.method,
+        category: form.category,
         dueDate: form.dueDate || undefined,
         note: form.note || undefined,
       });
@@ -106,7 +111,7 @@ const Payment = () => {
           <h1 className="text-2xl font-bold text-gray-900">Payment</h1>
           <p className="mt-1 text-gray-500">Record collections and track dues.</p>
         </div>
-        <button onClick={openForm} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700">
+        <button disabled={suspended} onClick={openForm} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500">
           <Plus className="h-4 w-4" /> Record payment
         </button>
       </div>
@@ -152,12 +157,15 @@ const Payment = () => {
                     </Badge>
                   </td>
                   <td className="px-5 py-4">
-                    {['pending', 'partial'].includes(p.status) && (
-                      <button onClick={() => { setInstallmentTarget(p); setInstForm(installmentForm); }} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50">Add installment</button>
-                    )}
-                    {p.status === 'paid' && (
-                      <button onClick={() => refund(p)} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50">Refund</button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {['pending', 'partial'].includes(p.status) && (
+                        <button disabled={suspended} onClick={() => { setInstallmentTarget(p); setInstForm(installmentForm); }} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">Add installment</button>
+                      )}
+                      {p.status === 'paid' && (
+                        <button disabled={suspended} onClick={() => refund(p)} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">Refund</button>
+                      )}
+                      <button onClick={() => downloadFile(apiClient, `/admin/payment/${p._id}/invoice.pdf`, `${p.invoiceNumber || p._id}.pdf`)} title="Download invoice" className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"><Download className="h-4 w-4" /></button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -169,7 +177,7 @@ const Payment = () => {
       <Modal open={formOpen} onClose={() => setFormOpen(false)} title="Record payment" footer={
         <>
           <button onClick={() => setFormOpen(false)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button type="submit" form="payment-form" disabled={saving} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? 'Saving...' : 'Confirm payment'}</button>
+          <button type="submit" form="payment-form" disabled={saving || suspended} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? 'Saving...' : 'Confirm payment'}</button>
         </>
       }>
         <form id="payment-form" onSubmit={submitPayment} className="space-y-4">
@@ -203,6 +211,12 @@ const Payment = () => {
             </div>
           </div>
           <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">For</label>
+            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm">
+              {CATEGORIES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </div>
+          <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Note</label>
             <input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="e.g. Annual plan renewal" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm" />
           </div>
@@ -212,7 +226,7 @@ const Payment = () => {
       <Modal open={!!installmentTarget} onClose={() => setInstallmentTarget(null)} title={`Add installment — ${installmentTarget?.memberId?.name || ''}`} footer={
         <>
           <button onClick={() => setInstallmentTarget(null)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button type="submit" form="installment-form" disabled={saving} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? 'Saving...' : 'Record installment'}</button>
+          <button type="submit" form="installment-form" disabled={saving || suspended} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? 'Saving...' : 'Record installment'}</button>
         </>
       }>
         <form id="installment-form" onSubmit={submitInstallment} className="space-y-4">

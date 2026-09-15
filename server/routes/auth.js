@@ -11,7 +11,8 @@ const {
   requestPasswordReset,
   resetPassword,
   requestRootPasswordReset,
-  resetRootPassword
+  resetRootPassword,
+  requestRootAccess
 } = require('../controllers/authController');
 
 // Admin Auth Routes (Gym Owners)
@@ -32,5 +33,6 @@ router.post('/reset-password-verify', resetPassword);
 router.post('/login-root', loginRootAdmin);
 router.post('/reset-root-password-request', requestRootPasswordReset);
 router.post('/reset-root-password-verify', resetRootPassword);
+router.post('/request-root-access', requestRootAccess);
 
 module.exports = router;

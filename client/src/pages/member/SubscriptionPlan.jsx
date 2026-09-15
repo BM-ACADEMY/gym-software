@@ -3,6 +3,7 @@ import { Snowflake, RefreshCw, Sparkles } from 'lucide-react';
 import apiClient from '../../api/client';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
+import useSuspended from '../../hooks/useSuspended';
 
 const STATUS_TONE = {
   active: 'green',
@@ -20,6 +21,7 @@ const daysRemaining = (expiresAt) => {
 };
 
 const SubscriptionPlan = () => {
+  const suspended = useSuspended();
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -164,7 +166,7 @@ const SubscriptionPlan = () => {
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 onClick={() => handleRenew(plan._id)}
-                disabled={actionLoading}
+                disabled={actionLoading || suspended}
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white text-sm font-semibold hover:brightness-110 disabled:opacity-60"
               >
                 <RefreshCw className="h-4 w-4" />
@@ -173,7 +175,8 @@ const SubscriptionPlan = () => {
               {plan.allowFreeze && status !== 'frozen' && (
                 <button
                   onClick={() => setFreezeOpen(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+                  disabled={suspended}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <Snowflake className="h-4 w-4" />
                   Request Freeze
@@ -182,7 +185,7 @@ const SubscriptionPlan = () => {
               {status === 'frozen' && (
                 <button
                   onClick={handleUnfreeze}
-                  disabled={actionLoading}
+                  disabled={actionLoading || suspended}
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-60"
                 >
                   Unfreeze
@@ -216,7 +219,7 @@ const SubscriptionPlan = () => {
                 </p>
                 <button
                   onClick={() => handleRenew(p._id)}
-                  disabled={actionLoading || plan?._id === p._id}
+                  disabled={actionLoading || suspended || plan?._id === p._id}
                   className="mt-4 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 disabled:opacity-40"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
@@ -240,7 +243,7 @@ const SubscriptionPlan = () => {
             <button
               type="submit"
               form="freeze-form"
-              disabled={actionLoading}
+              disabled={actionLoading || suspended}
               className="px-4 py-2.5 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white text-sm font-semibold hover:brightness-110 disabled:opacity-60"
             >
               {actionLoading ? 'Submitting...' : 'Freeze Plan'}

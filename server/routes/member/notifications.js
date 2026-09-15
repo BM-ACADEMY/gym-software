@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { handleRequest } = require('../../controllers/member/notifications');
+const { listMyNotifications, markRead } = require('../../controllers/member/notifications');
 const { protect, authorize } = require('../../middleware/auth');
 
-router.get('/', protect, authorize('member'), handleRequest);
+router.use(protect, authorize('member'));
+
+router.get('/', listMyNotifications);
+router.patch('/:id/read', markRead);
 
 module.exports = router;

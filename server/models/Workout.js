@@ -17,6 +17,13 @@ const workoutSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'SubAdmin',
     },
+    // Which library template this was assigned from, if any — purely for
+    // provenance/"members using this template" counts; editing the template
+    // later does not retroactively change planData already copied here.
+    templateId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'WorkoutTemplate',
+    },
     planData: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
@@ -25,6 +32,12 @@ const workoutSchema = new mongoose.Schema(
       type: String,
       enum: ['manual', 'ai'],
       default: 'manual',
+    },
+    // Calendar dates (YYYY-MM-DD strings) the member has marked their workout
+    // done — feeds the streak/AI insights the doc describes.
+    completedDates: {
+      type: [String],
+      default: [],
     },
   },
   { timestamps: true }

@@ -41,6 +41,12 @@ const paymentSchema = new mongoose.Schema(
     dueDate: {
       type: Date,
     },
+    // Drives the Earnings module's revenue-by-category breakdown.
+    category: {
+      type: String,
+      enum: ['membership', 'pt_session', 'other'],
+      default: 'membership',
+    },
     method: {
       type: String,
       enum: ['cash', 'upi', 'card', 'gateway'],
@@ -62,6 +68,13 @@ const paymentSchema = new mongoose.Schema(
     },
     paidAt: {
       type: Date,
+    },
+    // Set when a gateway checkout order is created for this invoice — lets an
+    // incoming webhook find its way back to the right record.
+    gatewayOrderId: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
   },
   { timestamps: true }

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Ticket, Plus, Trash2, Edit2, Activity, RefreshCw } from 'lucide-react';
+import { Ticket, Plus, Trash2, Edit2, Activity, RefreshCw, History } from 'lucide-react';
 import apiClient from '../../api/client';
 import Modal from '../../components/ui/Modal';
-import Badge from '../../components/ui/Badge';
 
 const Coupons = () => {
   const [coupons, setCoupons] = useState([]);
@@ -18,6 +17,7 @@ const Coupons = () => {
     isActive: true,
   });
   const [editingId, setEditingId] = useState(null);
+  const [historyCoupon, setHistoryCoupon] = useState(null);
 
   const fetchCoupons = async () => {
     try {
@@ -199,7 +199,7 @@ const Coupons = () => {
                     <td className="px-6 py-4">
                       {coupon.discountType === 'percentage'
                         ? `${coupon.discountValue}%`
-                        : `$${coupon.discountValue}`}
+                        : `₹${coupon.discountValue}`}
                     </td>
                     <td className="px-6 py-4">
                       {coupon.usedCount} {coupon.usageLimit ? `/ ${coupon.usageLimit}` : ''}
@@ -221,6 +221,13 @@ const Coupons = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => setHistoryCoupon(coupon)}
+                          title="Redemption history"
+                          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                        >
+                          <History className="h-4 w-4" />
+                        </button>
                         <button
                           onClick={() => openModal(coupon)}
                           className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
@@ -272,7 +279,7 @@ const Coupons = () => {
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="percentage">Percentage (%)</option>
-                <option value="flat">Flat Amount ($)</option>
+                <option value="flat">Flat Amount (₹)</option>
               </select>
             </div>
             <div>
@@ -346,6 +353,28 @@ const Coupons = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        open={!!historyCoupon}
+        onClose={() => setHistoryCoupon(null)}
+        title={`Redemption history — ${historyCoupon?.code || ''}`}
+      >
+        {historyCoupon?.redemptions?.length ? (
+          <ul className="divide-y divide-gray-100">
+            {historyCoupon.redemptions.map((r, i) => (
+              <li key={i} className="flex items-center justify-between py-3 text-sm">
+                <div>
+                  <p className="font-medium text-gray-900">{r.subscriberId?.gymName || 'Unknown gym'}</p>
+                  <p className="text-xs text-gray-400">{new Date(r.redeemedAt).toLocaleString()}</p>
+                </div>
+                <span className="font-semibold text-teal-700">-₹{r.discountApplied}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="py-6 text-center text-sm text-gray-500">No redemptions yet — this fills in once platform-plan checkout is wired up.</p>
+        )}
       </Modal>
     </div>
   );

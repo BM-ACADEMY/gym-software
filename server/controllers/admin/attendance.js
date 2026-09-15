@@ -60,10 +60,14 @@ const checkIn = async (req, res) => {
       return res.status(403).json({ success: false, message: 'This member is not assigned to you' });
     }
 
+    let ptSession;
     if (sessionType === 'pt_session') {
-      const ptSession = await PTSession.findOne({ _id: ptSessionId, subscriberId: req.user.subscriberId, memberId });
+      ptSession = await PTSession.findOne({ _id: ptSessionId, subscriberId: req.user.subscriberId, memberId });
       if (!ptSession) {
         return res.status(404).json({ success: false, message: 'PT session not found for this member' });
+      }
+      if (ptSession.status !== 'scheduled') {
+        return res.status(400).json({ success: false, message: `This PT session is already ${ptSession.status}` });
       }
     }
 
@@ -108,6 +112,12 @@ const checkIn = async (req, res) => {
       sessionType,
       ptSessionId: sessionType === 'pt_session' ? ptSessionId : undefined,
     });
+
+    // Checking in for a PT session IS attending it — keep the session record in sync.
+    if (ptSession) {
+      ptSession.status = 'completed';
+      await ptSession.save();
+    }
 
     res.status(201).json({
       success: true,

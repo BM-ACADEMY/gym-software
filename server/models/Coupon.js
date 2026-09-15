@@ -35,6 +35,21 @@ const couponSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Doc: "redemption history" — usedCount alone doesn't say who/when/how much.
+    redemptions: {
+      type: [
+        new mongoose.Schema(
+          {
+            subscriberId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscriber', required: true },
+            planId: { type: mongoose.Schema.Types.ObjectId, ref: 'PlatformPlan' },
+            discountApplied: { type: Number, required: true },
+            redeemedAt: { type: Date, default: Date.now },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
     isActive: {
       type: Boolean,
       default: true,

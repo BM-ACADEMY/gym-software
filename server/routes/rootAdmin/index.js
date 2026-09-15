@@ -10,5 +10,6 @@ router.use('/analytics', require('./analytics'));
 router.use('/billing', require('./billing'));
 router.use('/support', require('./support'));
 router.use('/request-access', require('./requestAccess'));
+router.use('/settings', require('./settings'));
 
 module.exports = router;

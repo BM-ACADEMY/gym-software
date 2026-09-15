@@ -9,6 +9,7 @@ router.use('/subadmins', require('./subadmins'));
 router.use('/trainers', require('./trainers'));
 router.use('/earnings', require('./earnings'));
 router.use('/pt-sessions', require('./ptSessions'));
+router.use('/pt-packages', require('./ptPackages'));
 router.use('/workouts', require('./workouts'));
 router.use('/ai-plans', require('./aiPlans'));
 router.use('/accounts', require('./accounts'));
@@ -18,5 +19,7 @@ router.use('/plan-creation', require('./planCreation'));
 router.use('/reports-analytics', require('./reportsAnalytics'));
 router.use('/notifications', require('./notifications'));
 router.use('/settings', require('./settings'));
+router.use('/support', require('./support'));
+router.use('/billing', require('./billing'));
 
 module.exports = router;

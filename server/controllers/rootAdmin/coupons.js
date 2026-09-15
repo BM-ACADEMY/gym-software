@@ -1,4 +1,5 @@
 const Coupon = require('../../models/Coupon');
+const { validateCoupon } = require('../../utils/coupon');
 
 // Create a new coupon
 const createCoupon = async (req, res) => {
@@ -33,7 +34,7 @@ const createCoupon = async (req, res) => {
 // Get all coupons and compute analytics
 const getCoupons = async (req, res) => {
   try {
-    const coupons = await Coupon.find().sort({ createdAt: -1 });
+    const coupons = await Coupon.find().sort({ createdAt: -1 }).populate('redemptions.subscriberId', 'gymName');
 
     // Calculate analytics
     const totalCoupons = coupons.length;
@@ -131,10 +132,24 @@ const toggleCouponStatus = async (req, res) => {
   }
 };
 
+// Preview eligibility/discount without redeeming — for testing and for a
+// future checkout UI to check a code before charging.
+const previewCoupon = async (req, res) => {
+  try {
+    const { planId, amount } = req.body;
+    const result = await validateCoupon(req.params.code, { planId, amount });
+    res.status(200).json({ success: true, message: result.valid ? 'Coupon is valid' : result.message, data: result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error while validating coupon' });
+  }
+};
+
 module.exports = {
   createCoupon,
   getCoupons,
   updateCoupon,
   deleteCoupon,
   toggleCouponStatus,
+  previewCoupon,
 };

@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { handleRequest } = require('../../controllers/member/settings');
+const { getMySettings, updateMySettings } = require('../../controllers/member/settings');
 const { protect, authorize } = require('../../middleware/auth');
 
-router.get('/', protect, authorize('member'), handleRequest);
+router.use(protect, authorize('member'));
+
+router.get('/', getMySettings);
+router.put('/', updateMySettings);
 
 module.exports = router;

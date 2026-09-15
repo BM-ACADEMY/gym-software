@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { handleRequest } = require('../../controllers/admin/settings');
+const { getMyProfile, updateMyProfile } = require('../../controllers/admin/settings');
 const { protect, authorize } = require('../../middleware/auth');
 const permissionGuard = require('../../middleware/permissionGuard');
 
-router.get('/', protect, authorize('subadmin'), permissionGuard('settings', 'view'), handleRequest);
+router.use(protect, authorize('subadmin'));
+
+router.get('/', permissionGuard('settings', 'view'), getMyProfile);
+router.put('/profile', permissionGuard('settings', 'edit'), updateMyProfile);
 
 module.exports = router;

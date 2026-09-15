@@ -106,6 +106,12 @@ const RootAdminSignIn = () => {
               Go to the regular sign in
             </Link>
           </p>
+          <p className="mt-2 text-center text-sm text-gray-500">
+            New to the platform team?{' '}
+            <Link to="/root-admin-request-access" className="font-medium text-teal-500 hover:text-teal-400 transition-colors">
+              Request access
+            </Link>
+          </p>
         </div>
       </div>
     </div>

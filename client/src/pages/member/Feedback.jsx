@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle2, MessageSquareText, Send, Star, UserRound } from 'lucide-react';
 import { Button, Card, CardTitle, Page, PageHeader, Pill } from '../subadmin/ui';
+import useSuspended from '../../hooks/useSuspended';
 
 const pastFeedback = [
   { title: 'PT session with Arjun', date: '20 Aug 2026', rating: 5, text: 'Great session. The form corrections were really helpful.', reply: 'Thanks, Priya! Great progress this week.' },
@@ -8,6 +9,7 @@ const pastFeedback = [
 ];
 
 const Feedback = () => {
+  const suspended = useSuspended();
   const [category, setCategory] = useState('Trainer & PT session');
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
@@ -31,7 +33,7 @@ const Feedback = () => {
           <div><p className="mb-2 text-sm font-semibold text-gray-700">What is this about?</p><div className="grid gap-2 sm:grid-cols-3">{['Trainer & PT session','Gym facilities','App experience'].map(item => <button onClick={() => setCategory(item)} className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${category === item ? 'border-teal-600 bg-teal-50 text-teal-700 ring-2 ring-teal-100' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`} key={item}>{item}</button>)}</div></div>
           <div><p className="text-sm font-semibold text-gray-700">How was your experience?</p><div className="mt-3 flex items-center gap-2">{[1,2,3,4,5].map(value => <button key={value} onMouseEnter={() => setHovered(value)} onMouseLeave={() => setHovered(0)} onClick={() => setRating(value)} aria-label={`${value} stars`}><Star className={`h-9 w-9 transition ${(hovered || rating) >= value ? 'fill-amber-400 text-amber-400' : 'text-gray-200 hover:text-amber-300'}`} /></button>)}<span className="ml-2 text-sm font-medium text-gray-500">{rating ? ['','Poor','Fair','Good','Very good','Excellent'][rating] : 'Select a rating'}</span></div></div>
           <label className="block"><span className="text-sm font-semibold text-gray-700">Your comments</span><span className="float-right text-xs text-gray-400">{message.length}/500</span><textarea value={message} maxLength={500} onChange={event => setMessage(event.target.value)} placeholder="What went well? What could we improve?" className="mt-2 h-36 w-full resize-none rounded-xl border border-gray-200 p-3.5 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label>
-          <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-gray-400">Please avoid sharing payment or medical information.</p><Button disabled={!rating || !message.trim()} onClick={submit}><Send className="h-4 w-4" />Submit feedback</Button></div>
+          <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-gray-400">Please avoid sharing payment or medical information.</p><Button disabled={!rating || !message.trim() || suspended} onClick={submit}><Send className="h-4 w-4" />Submit feedback</Button></div>
         </div>
       </Card>
       <Card>

@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { handleRequest } = require('../../controllers/rootAdmin/support');
+const { listTickets, updateStatus, addNote } = require('../../controllers/rootAdmin/support');
 const { protect, authorize } = require('../../middleware/auth');
 
-router.get('/', protect, authorize('root_admin'), handleRequest);
+router.use(protect, authorize('root_admin'));
+
+router.get('/', listTickets);
+router.patch('/:id/status', updateStatus);
+router.post('/:id/notes', addNote);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Clock, LogIn, LogOut, Search, Users } from 'lucide-react';
 import apiClient from '../../api/client';
+import useSuspended from '../../hooks/useSuspended';
 
 const METHODS = [
   { value: 'manual', label: 'Manual (staff-marked)' },
@@ -22,6 +23,7 @@ const StatCard = ({ label, value, icon: Icon }) => (
 );
 
 const Attendance = () => {
+  const suspended = useSuspended();
   const [summary, setSummary] = useState({ checkedInToday: 0, currentlyInside: 0 });
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +136,7 @@ const Attendance = () => {
                 </div>
                 <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${open ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>{open ? 'In gym' : 'Away'}</span>
                 <button
-                  disabled={busy}
+                  disabled={busy || suspended}
                   onClick={() => (open ? checkOut(open._id) : checkIn(m._id))}
                   className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50 ${open ? 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50' : 'bg-teal-600 text-white hover:bg-teal-700'}`}
                 >

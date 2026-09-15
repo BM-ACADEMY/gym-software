@@ -4,6 +4,7 @@ import { SlidersHorizontal } from 'lucide-react';
 import { Button, Card, Empty, Field, Modal, Page, PageHeader, Pill, SearchBox } from './ui';
 import apiClient from '../../api/client';
 import { selectPermissions } from '../../store/slices/authSlice';
+import useSuspended from '../../hooks/useSuspended';
 
 const STATUS_TONE = { active: 'green', expiring: 'amber', expired: 'red', frozen: 'blue', trial: 'violet', cancelled: 'gray' };
 
@@ -14,6 +15,7 @@ const emptyForm = { name: '', phone: '', goal: '', medicalNotes: '' };
 const Members = () => {
   const permissions = useSelector(selectPermissions);
   const canEdit = Boolean(permissions?.members?.edit);
+  const suspended = useSuspended();
 
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -114,7 +116,7 @@ const Members = () => {
         open={!!selected}
         title={selected?.name || ''}
         onClose={() => setSelected(null)}
-        footer={canEdit ? (
+        footer={canEdit && !suspended ? (
           editing ? (
             <>
               <Button variant="secondary" onClick={() => setEditing(false)}>Cancel</Button>

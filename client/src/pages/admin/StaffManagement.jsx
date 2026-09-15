@@ -5,10 +5,12 @@ import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import PermissionMatrix from '../../components/PermissionMatrix';
 import { SUBADMIN_TEMPLATES } from '../../config/navigation';
+import useSuspended from '../../hooks/useSuspended';
 
 const emptyForm = { name: '', phone: '', email: '', password: '', template: 'custom', permissions: {} };
 
 const StaffManagement = () => {
+  const suspended = useSuspended();
   const [staff, setStaff] = useState([]);
   const [auditLog, setAuditLog] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ const StaffManagement = () => {
           <h1 className="text-2xl font-bold text-gray-900">Sub-Admin / Staff Management</h1>
           <p className="mt-1.5 max-w-2xl text-gray-500">Create staff logins and control exactly which modules each one can see or edit.</p>
         </div>
-        <button onClick={openCreate} className="inline-flex flex-shrink-0 items-center gap-2 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] px-4 py-2.5 text-sm font-semibold text-white hover:brightness-110">
+        <button onClick={openCreate} disabled={suspended} className="inline-flex flex-shrink-0 items-center gap-2 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] px-4 py-2.5 text-sm font-semibold text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40">
           <Plus className="h-4 w-4" /> Add staff
         </button>
       </div>
@@ -113,7 +115,7 @@ const StaffManagement = () => {
                   <td className="px-5 py-4"><Badge tone="blue">{SUBADMIN_TEMPLATES[s.template]?.label || s.template}</Badge></td>
                   <td className="px-5 py-4"><Badge tone={s.isActive ? 'green' : 'gray'}>{s.isActive ? 'Active' : 'Deactivated'}</Badge></td>
                   <td className="px-5 py-4">
-                    <button onClick={() => handleToggle(s)} title={s.isActive ? 'Deactivate' : 'Reactivate'} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
+                    <button onClick={() => handleToggle(s)} disabled={suspended} title={s.isActive ? 'Deactivate' : 'Reactivate'} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40">
                       <Power className="h-4 w-4" />
                     </button>
                   </td>
@@ -156,7 +158,7 @@ const StaffManagement = () => {
         footer={
           <>
             <button onClick={() => setModalOpen(false)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-            <button type="submit" form="staff-form" disabled={saving} className="rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] px-4 py-2.5 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-60">
+            <button type="submit" form="staff-form" disabled={saving || suspended} className="rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] px-4 py-2.5 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-60">
               {saving ? 'Saving...' : 'Save'}
             </button>
           </>

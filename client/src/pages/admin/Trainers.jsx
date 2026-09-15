@@ -3,10 +3,12 @@ import { Dumbbell, Pencil, Users } from 'lucide-react';
 import apiClient from '../../api/client';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
+import useSuspended from '../../hooks/useSuspended';
 
 const editEmptyForm = { specialization: '', baseSalary: '', ptCommissionPercent: '' };
 
 const Trainers = () => {
+  const suspended = useSuspended();
   const [trainers, setTrainers] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -97,7 +99,7 @@ const Trainers = () => {
               {trainers.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
             </select>
           </div>
-          <button type="submit" className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Assign</button>
+          <button type="submit" disabled={suspended} className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-40">Assign</button>
         </form>
       )}
 
@@ -133,7 +135,7 @@ const Trainers = () => {
       <Modal open={!!editing} onClose={() => setEditing(null)} title={`Edit trainer — ${editing?.name || ''}`} footer={
         <>
           <button onClick={() => setEditing(null)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button type="submit" form="trainer-form" disabled={saving} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? 'Saving...' : 'Save'}</button>
+          <button type="submit" form="trainer-form" disabled={saving || suspended} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? 'Saving...' : 'Save'}</button>
         </>
       }>
         <form id="trainer-form" onSubmit={saveEdit} className="space-y-4">

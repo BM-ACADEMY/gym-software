@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Member = require('../../models/Member');
 const Attendance = require('../../models/Attendance');
 const Payment = require('../../models/Payment');
+const PTSession = require('../../models/PTSession');
 const { computeMemberChurnRisk } = require('../../services/ai');
 
 const getModulePermission = (subAdmin, moduleKey) =>
@@ -83,6 +84,7 @@ const getDashboard = async (req, res) => {
     const memberFilter = { subscriberId: req.user.subscriberId, ...(scoped && { assignedSubAdminId: subAdminId }) };
     const attendanceFilter = { subscriberId: req.user.subscriberId, ...(scoped && { memberId: { $in: ownMemberIds } }) };
     const paymentMatch = { subscriberId, ...(scoped && { memberId: { $in: ownMemberIds } }) };
+    const sessionFilter = { subscriberId: req.user.subscriberId, ...(scoped && { subAdminId }) };
 
     const [
       todaysCheckIns,
@@ -91,6 +93,7 @@ const getDashboard = async (req, res) => {
       revenueAgg,
       pendingAgg,
       retentionRiskMembers,
+      todaysSessions,
     ] = await Promise.all([
       Attendance.countDocuments({ ...attendanceFilter, checkedInAt: { $gte: dayStart, $lt: dayEnd } }),
       Member.countDocuments({ ...memberFilter, status: 'active', $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }] }),
@@ -106,6 +109,11 @@ const getDashboard = async (req, res) => {
         { $group: { _id: null, total: { $sum: { $subtract: ['$amount', '$amountPaid'] } }, count: { $sum: 1 } } },
       ]),
       getRetentionRiskMembers({ subscriberId, memberFilter }),
+      PTSession.find({ ...sessionFilter, scheduledAt: { $gte: dayStart, $lt: dayEnd }, status: { $ne: 'cancelled' } })
+        .sort({ scheduledAt: 1 })
+        .limit(20)
+        .populate('memberId', 'name')
+        .select('scheduledAt status memberId'),
     ]);
 
     res.status(200).json({
@@ -118,6 +126,12 @@ const getDashboard = async (req, res) => {
         revenueThisMonth: revenueAgg[0]?.total || 0,
         pendingPayments: { count: pendingAgg[0]?.count || 0, amount: pendingAgg[0]?.total || 0 },
         retentionRiskMembers,
+        todaysSessions: todaysSessions.map((s) => ({
+          _id: s._id,
+          scheduledAt: s.scheduledAt,
+          status: s.status,
+          memberName: s.memberId?.name || 'Unknown member',
+        })),
       },
     });
   } catch (error) {

@@ -44,9 +44,10 @@ Seeded via `node server/scripts/seedDemoUsers.js` (safe to re-run; upserts):
 Everything is built against real business logic and real data — nothing in the app is mocked at the UI layer.
 
 - **Payment gateway** (`server/services/paymentGateway.js`, `webhookProcessor.js`): **live Razorpay integration** (test mode) is wired up — real order creation via Razorpay's API, the real Checkout.js widget on Member Payments and Admin platform billing, and real HMAC-SHA256 signature verification of the checkout callback, backed by a real idempotency ledger (`WebhookEvent`, unique-indexed on `(provider, eventId)`) so a duplicate confirmation can never double-credit an invoice. Credentials live in MongoDB (`SystemSettings`, key `payment_gateway`) — set via Root Admin → Settings → Payment gateway (`PUT /api/root-admin/settings/payment-gateway`), never in a config file or committed anywhere in the repo; the secret is write-only (masked on every read). Without a provider configured there, the app automatically falls back to the original dummy/simulated gateway — same code path, same idempotency guarantees, no real charge.
-- **AI service** (`server/services/ai.js`): churn risk, no-show prediction, optimal PT slot suggestion, monthly narrative reports, smart notification timing, and workout/diet plan generation are all real, deterministic, rule-based logic operating on real data (attendance, payments, session history) — not a live LLM call. The interface is shaped so a real Anthropic/OpenAI call can be dropped in without touching any calling controller.
+- **AI service** (`server/services/ai.js`): churn risk, no-show prediction, optimal PT slot suggestion, monthly narrative reports, and smart notification timing are real, deterministic, rule-based logic operating on real data (attendance, payments, session history) — by design, not stand-ins for an LLM call. **Workout/diet plan generation (AI Plans) does call Claude** (`claude-opus-5`) when `ANTHROPIC_API_KEY` is set in `server/.env` — real generation from the member's goal, medical notes, equipment, and body stats. Without a key configured, it automatically falls back to the same rule-based generator it always used, with no error surfaced to the user.
+- **WhatsApp** (`server/utils/whatsapp.js`): real WhatsApp Cloud API integration, enabled per-gym from Admin → Settings → WhatsApp and opt-in per member/trainer in their notification preferences. Sends for real once `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN` are set in `server/.env`; otherwise it logs the message instead of sending, the same demo-mode pattern SMS already used.
 
-Notifications (`server/services/notifications.js`) send real SMS (BulkSMS) and real email (SMTP) when `OTP_MODE=live` and the relevant env vars are set; there is no WhatsApp channel yet.
+Notifications (`server/services/notifications.js`) send real SMS (BulkSMS), real email (SMTP), and real WhatsApp when `OTP_MODE=live` and the relevant env vars are set.
 
 ### Testing the real Razorpay flow
 
@@ -65,12 +66,20 @@ npm test        # jest --runInBand
 
 Runs against `MONGODB_TEST_URI` (a dedicated `_test` database, dropped after each run) — never against real data. Covers multi-tenant data isolation, the sub-admin permission matrix, webhook idempotency, and a full cross-role walkthrough (owner → trainer → member → root admin).
 
+```bash
+cd client
+npm test         # vitest run
+npm run test:watch
+```
+
+Component/unit tests (Vitest + React Testing Library, jsdom) covering role-gating (`ProtectedRoute`), a Root Admin flow (Analytics charts), a Member flow (Dashboard next-payment widget), a Trainer flow (PT session reschedule), and the sub-admin nav-permission filter as a pure-logic unit test.
+
 ## 7. Known gaps / next steps
 
 These need something only the client can provide, so they're intentionally left open rather than faked:
 
-- **Live LLM for AI Plans** — needs an Anthropic/OpenAI API key. `services/ai.js` is already shaped for a drop-in swap.
-- **WhatsApp notifications** — needs a WhatsApp Business/Twilio account and API credentials.
-- **Production deployment** — currently runs dev-only (local Node + a self-hosted MongoDB box). Needs a MongoDB Atlas cluster, a Vercel project for `client/`, and a Railway/Render service for `server/`, plus production env vars set on each.
+- **Live LLM for AI Plans** — code is wired up (`services/ai.js`), just needs an `ANTHROPIC_API_KEY` in `server/.env` to go live; falls back to the rule-based generator until then.
+- **WhatsApp notifications** — code is wired up (`utils/whatsapp.js`, Meta WhatsApp Cloud API), just needs `WHATSAPP_PHONE_NUMBER_ID`/`WHATSAPP_ACCESS_TOKEN` in `server/.env` to go live; logs instead of sending until then.
+- **Production deployment** — currently runs dev-only (local Node + a self-hosted MongoDB box). All the deploy config is in place (`server/railway.json`, `render.yaml`, `client/vercel.json`, `.env.example` in both `server/` and `client/`) — see **[DEPLOYMENT.md](./DEPLOYMENT.md)** for the step-by-step runbook. What's left needs your own accounts: a MongoDB Atlas cluster, a Railway or Render service for `server/`, and a Vercel project for `client/`.
 
 Everything else called for in the original requirements doc is implemented and verified.

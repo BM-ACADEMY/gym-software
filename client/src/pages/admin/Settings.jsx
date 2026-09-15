@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { CreditCard, LifeBuoy, Plus, Save, Send, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, CreditCard, LifeBuoy, MessageCircle, Plus, Save, Send, Trash2, UserCog } from 'lucide-react';
 import apiClient from '../../api/client';
 import { openRazorpayCheckout } from '../../utils/razorpay';
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import useSuspended from '../../hooks/useSuspended';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const TABS = [
+  { key: 'general', label: 'General' },
+  { key: 'whatsapp', label: 'WhatsApp' },
+  { key: 'billing', label: 'Billing' },
+  { key: 'staff', label: 'Staff' },
+  { key: 'support', label: 'Support' },
+];
 
 const SectionCard = ({ title, description, children, onSave, saving, disabled }) => (
   <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -33,7 +41,9 @@ const Input = ({ label, ...props }) => (
 
 const Settings = () => {
   const user = useSelector(selectCurrentUser);
+  const navigate = useNavigate();
   const suspended = useSuspended();
+  const [tab, setTab] = useState('general');
   const [gym, setGym] = useState(null);
   const [profile, setProfile] = useState(null);
   const [newHoliday, setNewHoliday] = useState({ date: '', label: '' });
@@ -45,18 +55,21 @@ const Settings = () => {
   const [submittingTicket, setSubmittingTicket] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [payingInvoiceId, setPayingInvoiceId] = useState('');
+  const [staff, setStaff] = useState([]);
 
   const fetchAll = async () => {
     try {
-      const [settingsRes, ticketsRes, invoicesRes] = await Promise.all([
+      const [settingsRes, ticketsRes, invoicesRes, staffRes] = await Promise.all([
         apiClient.get('/admin/settings'),
         apiClient.get('/admin/support'),
         apiClient.get('/admin/billing/invoices'),
+        apiClient.get('/admin/subadmins'),
       ]);
       setGym(settingsRes.data.data.gym);
       setProfile(settingsRes.data.data.profile);
       setTickets(ticketsRes.data.data);
       setInvoices(invoicesRes.data.data);
+      setStaff(staffRes.data.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load settings');
     }
@@ -183,6 +196,19 @@ const Settings = () => {
       {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       {success && <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div>}
 
+      <div className="mt-6 flex gap-1 overflow-x-auto border-b border-gray-200">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`shrink-0 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${tab === t.key ? 'border-teal-600 text-teal-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'general' && (
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <SectionCard title="Gym profile & branding" description="Shown on the member-facing app" onSave={() => saveGym({ gymName: gym.gymName, logoUrl: gym.logoUrl, brandColor: gym.brandColor }, 'branding', 'Branding')} saving={savingSection === 'branding'} disabled={suspended}>
           <Input label="Gym name" value={gym.gymName || ''} onChange={(e) => setGym({ ...gym, gymName: e.target.value })} />
@@ -273,7 +299,34 @@ const Settings = () => {
             </>
           )}
         </SectionCard>
+      </div>
+      )}
 
+      {tab === 'whatsapp' && (
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <SectionCard
+          title="WhatsApp notifications"
+          description="Send plan-expiry, overdue-payment and PT-session reminders over WhatsApp in addition to SMS/email"
+          onSave={() => saveGym({ whatsappEnabled: gym.whatsappEnabled, whatsappNumber: gym.whatsappNumber }, 'whatsapp', 'WhatsApp settings')}
+          saving={savingSection === 'whatsapp'}
+          disabled={suspended}
+        >
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={!!gym.whatsappEnabled} onChange={(e) => setGym({ ...gym, whatsappEnabled: e.target.checked })} /> Enable WhatsApp notifications
+          </label>
+          {gym.whatsappEnabled && (
+            <Input label="WhatsApp Business number" value={gym.whatsappNumber || ''} onChange={(e) => setGym({ ...gym, whatsappNumber: e.target.value })} placeholder="+91XXXXXXXXXX" />
+          )}
+          <p className="flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-500">
+            <MessageCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            Messages send through the WhatsApp Cloud API once your gym owner account has WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN configured on the server. Until then, enabling this only logs messages instead of sending them — the same demo-mode behavior SMS uses before a gateway is connected.
+          </p>
+        </SectionCard>
+      </div>
+      )}
+
+      {tab === 'billing' && (
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <SectionCard title="Platform billing" description="Your GymDesk subscription invoices">
           {invoices.length === 0 ? (
             <p className="flex items-center gap-2 text-sm text-gray-400"><CreditCard className="h-4 w-4" />No invoices yet.</p>
@@ -297,7 +350,37 @@ const Settings = () => {
             </div>
           )}
         </SectionCard>
+      </div>
+      )}
 
+      {tab === 'staff' && (
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <SectionCard title="Staff overview" description="Sub-admin and trainer logins for this gym">
+          <div className="flex items-center gap-4 rounded-lg bg-gray-50 px-4 py-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700"><UserCog className="h-5 w-5" /></span>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{staff.filter((s) => s.isActive).length} active · {staff.filter((s) => !s.isActive).length} deactivated</p>
+              <p className="text-xs text-gray-500">{staff.length} total staff login{staff.length === 1 ? '' : 's'}</p>
+            </div>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {staff.slice(0, 5).map((s) => (
+              <div key={s._id} className="flex items-center justify-between py-2.5 text-sm">
+                <span className="font-medium text-gray-900">{s.name}</span>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${s.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>{s.isActive ? 'Active' : 'Deactivated'}</span>
+              </div>
+            ))}
+            {staff.length === 0 && <p className="py-3 text-sm text-gray-400">No staff logins yet.</p>}
+          </div>
+          <button onClick={() => navigate('/admin/staff')} className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:text-teal-800">
+            Manage staff & permissions <ArrowRight className="h-4 w-4" />
+          </button>
+        </SectionCard>
+      </div>
+      )}
+
+      {tab === 'support' && (
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <SectionCard title="Contact support" description="Raise an issue with the GymDesk team">
           <form onSubmit={submitTicket} className="space-y-3">
             <Input label="Subject" value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="What's the issue?" />
@@ -323,6 +406,7 @@ const Settings = () => {
           )}
         </SectionCard>
       </div>
+      )}
     </div>
   );
 };

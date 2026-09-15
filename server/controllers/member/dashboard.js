@@ -1,6 +1,7 @@
 const Member = require('../../models/Member');
 const PTSession = require('../../models/PTSession');
 const Attendance = require('../../models/Attendance');
+const Payment = require('../../models/Payment');
 const { generateMemberQrDataUrl } = require('../../utils/qrcode');
 const { computeStreak } = require('../../utils/streak');
 
@@ -26,12 +27,26 @@ const getDashboard = async (req, res) => {
 
     const qrCode = await generateMemberQrDataUrl(req.user.subscriberId, member._id);
 
+    const nextPaymentDoc = await Payment.findOne({ memberId: member._id, status: { $in: ['pending', 'partial'] } })
+      .sort({ dueDate: 1 });
+    let nextPayment = null;
+    if (nextPaymentDoc) {
+      const isOverdue = nextPaymentDoc.dueDate && new Date(nextPaymentDoc.dueDate) < now;
+      nextPayment = {
+        _id: nextPaymentDoc._id,
+        dueDate: nextPaymentDoc.dueDate,
+        balanceDue: Math.max(0, nextPaymentDoc.amount - nextPaymentDoc.amountPaid),
+        effectiveStatus: isOverdue ? 'overdue' : nextPaymentDoc.status,
+      };
+    }
+
     res.status(200).json({
       success: true,
       message: 'Dashboard fetched successfully',
       data: {
         planStatus: { status: member.status, planName: member.planId?.name, expiresAt: member.expiresAt, daysRemaining },
         nextSession,
+        nextPayment,
         streak,
         qrCode,
       },

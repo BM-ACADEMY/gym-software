@@ -3,7 +3,7 @@ const Subscriber = require('../../models/Subscriber');
 const Admin = require('../../models/Admin');
 const SubAdmin = require('../../models/SubAdmin');
 
-const GYM_FIELDS = ['gymName', 'logoUrl', 'brandColor', 'workingHours', 'holidays', 'memberIdFormat', 'staffIdFormat', 'attendanceGraceMode', 'aiPlanReviewRequired', 'gstEnabled', 'gstNumber', 'gstRate'];
+const GYM_FIELDS = ['gymName', 'logoUrl', 'brandColor', 'workingHours', 'holidays', 'memberIdFormat', 'staffIdFormat', 'attendanceGraceMode', 'aiPlanReviewRequired', 'gstEnabled', 'gstNumber', 'gstRate', 'whatsappEnabled', 'whatsappNumber'];
 
 // ===== Gym Owner: gym-wide settings =====
 
@@ -73,7 +73,7 @@ const updateAdminProfile = async (req, res) => {
 // @route   GET /api/subadmin/settings
 const getMyProfile = async (req, res) => {
   try {
-    const subAdmin = await SubAdmin.findById(req.user.id).select('name email phone template specialization availability');
+    const subAdmin = await SubAdmin.findById(req.user.id).select('name email phone template specialization availability notificationPreferences');
     if (!subAdmin) return res.status(404).json({ success: false, message: 'Account not found' });
     res.status(200).json({ success: true, message: 'Profile fetched successfully', data: subAdmin });
   } catch (error) {
@@ -89,11 +89,14 @@ const updateMyProfile = async (req, res) => {
     const subAdmin = await SubAdmin.findById(req.user.id);
     if (!subAdmin) return res.status(404).json({ success: false, message: 'Account not found' });
 
-    const { name, email, phone, availability, currentPassword, newPassword } = req.body;
+    const { name, email, phone, availability, notificationPreferences, currentPassword, newPassword } = req.body;
     if (name !== undefined) subAdmin.name = name;
     if (email !== undefined) subAdmin.email = email;
     if (phone !== undefined) subAdmin.phone = phone;
     if (availability !== undefined) subAdmin.availability = availability;
+    if (notificationPreferences !== undefined) {
+      subAdmin.notificationPreferences = { ...subAdmin.notificationPreferences, ...notificationPreferences };
+    }
 
     if (newPassword) {
       if (!currentPassword || !subAdmin.passwordHash || !(await bcrypt.compare(currentPassword, subAdmin.passwordHash))) {
@@ -109,7 +112,7 @@ const updateMyProfile = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Profile updated successfully',
-      data: { name: subAdmin.name, email: subAdmin.email, phone: subAdmin.phone, availability: subAdmin.availability },
+      data: { name: subAdmin.name, email: subAdmin.email, phone: subAdmin.phone, availability: subAdmin.availability, notificationPreferences: subAdmin.notificationPreferences },
     });
   } catch (error) {
     if (error.code === 11000) {

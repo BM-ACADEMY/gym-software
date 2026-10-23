@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Line, LineChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Line, LineChart, Bar, BarChart, Pie, PieChart, Cell, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Download, FileText, TrendingDown } from 'lucide-react';
 import apiClient from '../../api/client';
 import { downloadFile } from '../../utils/downloadFile';
 
 const fmtDate = (d) => new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+const PLAN_COLORS = ['#0d9488', '#7c3aed', '#f59e0b', '#ec4899', '#3b82f6', '#84cc16', '#f97316', '#64748b'];
 
 const StatCard = ({ label, value, helper }) => (
   <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -100,16 +102,50 @@ const Analytics = () => {
                 {data.growthChart.length === 0 && <p className="mt-[-140px] text-center text-sm text-gray-400">No new signups in this period.</p>}
               </ChartCard>
 
+              <ChartCard title="Churn trend">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={data.churnTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="date" tickFormatter={fmtDate} tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip labelFormatter={fmtDate} formatter={(v) => [v, 'Churned']} />
+                    <Line type="monotone" dataKey="churned" stroke="#dc2626" strokeWidth={2} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+                {data.churnTrend.length === 0 && <p className="mt-[-140px] text-center text-sm text-gray-400">No churn events in this period.</p>}
+              </ChartCard>
+
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 font-semibold text-gray-900">Plan distribution</h3>
-                <div className="space-y-2">
-                  {data.planDistribution.map((p) => (
-                    <div key={p.planId || 'none'} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
-                      <span className="text-gray-700">{p.planName}</span>
-                      <span className="font-semibold text-gray-900">{p.count}</span>
+                {data.planDistribution.length === 0 ? (
+                  <p className="text-sm text-gray-400">No subscribers yet.</p>
+                ) : (
+                  <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2">
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={data.planDistribution} dataKey="count" nameKey="planName" innerRadius={40} outerRadius={68} paddingAngle={2}>
+                            {data.planDistribution.map((p, i) => (
+                              <Cell key={p.planId || 'none'} fill={PLAN_COLORS[i % PLAN_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(v, n) => [v, n]} />
+                        </PieChart>
+                      </ResponsiveContainer>
                     </div>
-                  ))}
-                </div>
+                    <div className="space-y-1.5">
+                      {data.planDistribution.map((p, i) => (
+                        <div key={p.planId || 'none'} className="flex items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-1.5 text-sm">
+                          <span className="flex items-center gap-2 truncate text-gray-700">
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: PLAN_COLORS[i % PLAN_COLORS.length] }} />
+                            <span className="truncate">{p.planName}</span>
+                          </span>
+                          <span className="font-semibold text-gray-900">{p.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">

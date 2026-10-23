@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, CalendarPlus, Check, Dumbbell, Package, Plus, Sparkles, UserX, X } from 'lucide-react';
+import { AlertTriangle, CalendarClock, CalendarPlus, Check, Dumbbell, Package, Plus, Sparkles, UserX, X } from 'lucide-react';
 import apiClient from '../../api/client';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -7,6 +7,7 @@ import useSuspended from '../../hooks/useSuspended';
 
 const STATUS_TONE = { scheduled: 'blue', completed: 'green', no_show: 'red', cancelled: 'gray' };
 const emptyForm = { memberId: '', subAdminId: '', date: '', time: '', packagePurchaseId: '' };
+const emptyRescheduleForm = { date: '', time: '' };
 const emptyPackageForm = { name: '', sessionCount: '', price: '' };
 const emptySellForm = { memberId: '', packageId: '', method: 'cash' };
 
@@ -39,6 +40,9 @@ const PTSessions = () => {
   const [sellOpen, setSellOpen] = useState(false);
   const [sellForm, setSellForm] = useState(emptySellForm);
   const [savingPackage, setSavingPackage] = useState(false);
+  const [rescheduleTarget, setRescheduleTarget] = useState(null);
+  const [rescheduleForm, setRescheduleForm] = useState(emptyRescheduleForm);
+  const [rescheduling, setRescheduling] = useState(false);
 
   const fetchSessions = async () => {
     try {
@@ -177,6 +181,28 @@ const PTSessions = () => {
     }
   };
 
+  const openReschedule = (session) => {
+    const d = new Date(session.scheduledAt);
+    setRescheduleTarget(session);
+    setRescheduleForm({ date: d.toISOString().slice(0, 10), time: d.toTimeString().slice(0, 5) });
+  };
+
+  const submitReschedule = async (e) => {
+    e.preventDefault();
+    setRescheduling(true);
+    setError('');
+    try {
+      const scheduledAt = new Date(`${rescheduleForm.date}T${rescheduleForm.time}`).toISOString();
+      await apiClient.put(`/admin/pt-sessions/${rescheduleTarget._id}/reschedule`, { scheduledAt });
+      setRescheduleTarget(null);
+      await fetchSessions();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to reschedule session');
+    } finally {
+      setRescheduling(false);
+    }
+  };
+
   const grouped = groupByDate(sessions);
 
   return (
@@ -234,6 +260,7 @@ const PTSessions = () => {
                       <td className="px-5 py-4">
                         {s.status === 'scheduled' && (
                           <div className="flex gap-1">
+                            <button disabled={suspended} onClick={() => openReschedule(s)} title="Reschedule" className="rounded-lg p-2 text-blue-600 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"><CalendarClock className="h-4 w-4" /></button>
                             <button disabled={suspended} onClick={() => act(s, 'complete')} title="Mark completed" className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40"><Check className="h-4 w-4" /></button>
                             <button disabled={suspended} onClick={() => act(s, 'no-show')} title="Mark no-show" className="rounded-lg p-2 text-amber-600 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"><UserX className="h-4 w-4" /></button>
                             <button disabled={suspended} onClick={() => act(s, 'cancel')} title="Cancel" className="rounded-lg p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"><X className="h-4 w-4" /></button>
@@ -308,6 +335,29 @@ const PTSessions = () => {
             </div>
           )}
         </form>
+      </Modal>
+
+      <Modal open={!!rescheduleTarget} onClose={() => setRescheduleTarget(null)} title="Reschedule session" footer={
+        <>
+          <button onClick={() => setRescheduleTarget(null)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
+          <button type="submit" form="reschedule-form" disabled={rescheduling || suspended} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{rescheduling ? 'Saving...' : 'Save new time'}</button>
+        </>
+      }>
+        {rescheduleTarget && (
+          <form id="reschedule-form" onSubmit={submitReschedule} className="space-y-4">
+            <p className="text-sm text-gray-500">{rescheduleTarget.memberId?.name} with {rescheduleTarget.subAdminId?.name}</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Date</label>
+                <input required type="date" value={rescheduleForm.date} onChange={(e) => setRescheduleForm({ ...rescheduleForm, date: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Time</label>
+                <input required type="time" value={rescheduleForm.time} onChange={(e) => setRescheduleForm({ ...rescheduleForm, time: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm" />
+              </div>
+            </div>
+          </form>
+        )}
       </Modal>
 
       <Modal open={packagesOpen} onClose={() => setPackagesOpen(false)} title="PT packages">

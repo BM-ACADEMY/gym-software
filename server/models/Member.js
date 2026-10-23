@@ -99,6 +99,7 @@ const memberSchema = new mongoose.Schema(
     notificationPreferences: {
       sms: { type: Boolean, default: true },
       email: { type: Boolean, default: true },
+      whatsapp: { type: Boolean, default: false },
     },
   },
   { timestamps: true }

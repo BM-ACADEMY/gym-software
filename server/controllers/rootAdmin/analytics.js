@@ -23,7 +23,7 @@ const dayBucket = (dateField) => ({ $dateToString: { format: '%Y-%m-%d', date: d
 const buildReport = async (query) => {
   const { dateFrom, dateTo } = getPeriod(query);
 
-  const [revenueTrend, growthChart, planDistribution, activeSubscribers, churnedThisPeriod, topGyms] = await Promise.all([
+  const [revenueTrend, growthChart, churnTrendRaw, planDistribution, activeSubscribers, churnedThisPeriod, topGyms] = await Promise.all([
     PlatformPayment.aggregate([
       { $match: { status: 'paid', paidAt: { $gte: dateFrom, $lt: dateTo } } },
       { $group: { _id: dayBucket('$paidAt'), total: { $sum: '$amount' } } },
@@ -32,6 +32,11 @@ const buildReport = async (query) => {
     Subscriber.aggregate([
       { $match: { createdAt: { $gte: dateFrom, $lt: dateTo } } },
       { $group: { _id: dayBucket('$createdAt'), newSubscribers: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]),
+    Subscriber.aggregate([
+      { $match: { isActive: false, updatedAt: { $gte: dateFrom, $lt: dateTo } } },
+      { $group: { _id: dayBucket('$updatedAt'), churned: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ]),
     Subscriber.aggregate([
@@ -68,6 +73,7 @@ const buildReport = async (query) => {
     period: { dateFrom, dateTo },
     revenueTrend: revenueTrend.map((d) => ({ date: d._id, total: d.total })),
     growthChart: growthChart.map((d) => ({ date: d._id, newSubscribers: d.newSubscribers })),
+    churnTrend: churnTrendRaw.map((d) => ({ date: d._id, churned: d.churned })),
     planDistribution: planDistributionNamed,
     churn: { activeSubscribers, churnedThisPeriod, churnRate: Math.round(churnRate * 1000) / 1000 },
     topGyms: topGymsNamed,
@@ -99,6 +105,8 @@ const exportAnalytics = async (req, res) => {
 
     const lines = ['Section,Date/Gym,Value'];
     data.revenueTrend.forEach((r) => lines.push(['Revenue', r.date, r.total].map(escapeCsv).join(',')));
+    data.churnTrend.forEach((c) => lines.push(['Churned', c.date, c.churned].map(escapeCsv).join(',')));
+    data.planDistribution.forEach((p) => lines.push(['Plan distribution', p.planName, p.count].map(escapeCsv).join(',')));
     data.topGyms.forEach((g) => lines.push(['Top Gym', g.gymName, g.revenue].map(escapeCsv).join(',')));
 
     res.setHeader('Content-Type', 'text/csv');
@@ -139,6 +147,12 @@ const exportAnalyticsPdf = async (req, res) => {
     doc.fontSize(10).font('Helvetica');
     if (data.revenueTrend.length === 0) doc.fillColor('#999').text('No revenue in this period.').fillColor('#000');
     data.revenueTrend.forEach((r) => doc.text(`${r.date}  —  Rs. ${r.total.toLocaleString('en-IN')}`));
+    doc.moveDown();
+
+    doc.fontSize(13).font('Helvetica-Bold').text('Churn trend');
+    doc.fontSize(10).font('Helvetica');
+    if (data.churnTrend.length === 0) doc.fillColor('#999').text('No churn events in this period.').fillColor('#000');
+    data.churnTrend.forEach((c) => doc.text(`${c.date}  —  ${c.churned} churned`));
     doc.moveDown();
 
     doc.fontSize(13).font('Helvetica-Bold').text('Plan distribution');

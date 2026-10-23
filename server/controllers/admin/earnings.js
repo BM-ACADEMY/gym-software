@@ -67,22 +67,27 @@ const getEarnings = async (req, res) => {
       },
     ]);
 
+    // A scoped trainer may not have any payments yet this period (no revenue
+    // rows to aggregate) — make sure their own salary/commission-rate card
+    // still renders by seeding their id into the lookup set regardless.
     const trainerIds = trainerAgg.map((t) => t._id).filter(Boolean);
-    const trainers = await SubAdmin.find({ _id: { $in: trainerIds } }).select('name ptCommissionPercent');
+    if (scoped && !trainerIds.some((id) => String(id) === String(subAdminId))) trainerIds.push(subAdminId);
+    const trainers = await SubAdmin.find({ _id: { $in: trainerIds } }).select('name ptCommissionPercent baseSalary');
     const trainerById = new Map(trainers.map((t) => [String(t._id), t]));
 
-    const byTrainer = trainerAgg
-      .filter((t) => t._id)
-      .map((t) => {
-        const trainer = trainerById.get(String(t._id));
+    const byTrainer = trainerIds
+      .map((id) => {
+        const agg = trainerAgg.find((t) => String(t._id) === String(id)) || { revenue: 0, ptRevenue: 0 };
+        const trainer = trainerById.get(String(id));
         const commissionPercent = trainer?.ptCommissionPercent || 0;
         return {
-          trainerId: t._id,
+          trainerId: id,
           trainerName: trainer?.name || 'Unknown',
-          revenue: t.revenue,
-          ptRevenue: t.ptRevenue,
+          revenue: agg.revenue,
+          ptRevenue: agg.ptRevenue,
           commissionPercent,
-          commissionPayout: Math.round((t.ptRevenue * commissionPercent) / 100),
+          commissionPayout: Math.round((agg.ptRevenue * commissionPercent) / 100),
+          baseSalary: trainer?.baseSalary ?? null,
         };
       })
       .sort((a, b) => b.revenue - a.revenue);

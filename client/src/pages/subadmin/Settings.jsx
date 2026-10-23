@@ -1,10 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Lock, UserRound } from 'lucide-react';
+import { Lock, Mail, MessageCircle, MessageSquare, UserRound } from 'lucide-react';
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import { Button, Card, CardTitle, Field, Page, PageHeader } from './ui';
 import apiClient from '../../api/client';
 import useSuspended from '../../hooks/useSuspended';
+
+const Toggle = ({ checked, onChange, disabled }) => (
+  <button
+    type="button"
+    role="switch"
+    aria-checked={checked}
+    disabled={disabled}
+    onClick={() => onChange(!checked)}
+    className={`relative h-6 w-11 shrink-0 rounded-full transition disabled:cursor-not-allowed disabled:opacity-50 ${checked ? 'bg-teal-600' : 'bg-gray-200'}`}
+  >
+    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${checked ? 'left-5' : 'left-0.5'}`} />
+  </button>
+);
 
 const Settings = () => {
   const user = useSelector(selectCurrentUser);
@@ -35,6 +48,19 @@ const Settings = () => {
       setError(err.response?.data?.message || 'Failed to save profile');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveNotificationPreference = async (channel, value) => {
+    const previous = profile.notificationPreferences;
+    setProfile((p) => ({ ...p, notificationPreferences: { ...p.notificationPreferences, [channel]: value } }));
+    try {
+      const res = await apiClient.put('/subadmin/settings/profile', { notificationPreferences: { [channel]: value } });
+      setProfile((p) => ({ ...p, ...res.data.data }));
+      flash('Notification preferences saved');
+    } catch (err) {
+      setProfile((p) => ({ ...p, notificationPreferences: previous }));
+      setError(err.response?.data?.message || 'Failed to update notification preferences');
     }
   };
 
@@ -79,6 +105,24 @@ const Settings = () => {
             <Field label="Availability" value={profile.availability || ''} onChange={(e) => setProfile({ ...profile, availability: e.target.value })} placeholder="e.g. Mon-Sat 6am-9pm" />
           </div>
           <Button onClick={saveProfile} disabled={saving || suspended}><UserRound className="h-4 w-4" />{saving ? 'Saving...' : 'Save profile'}</Button>
+        </div>
+      </Card>
+
+      <Card>
+        <CardTitle title="Notification preferences" description="How you'd like to hear about assigned sessions and members." />
+        <div className="divide-y divide-gray-100 p-5">
+          <div className="flex items-center justify-between gap-4 py-3">
+            <span className="flex items-center gap-3 text-sm text-gray-700"><MessageSquare className="h-4 w-4 text-gray-400" />SMS notifications</span>
+            <Toggle checked={profile.notificationPreferences?.sms !== false} onChange={(v) => saveNotificationPreference('sms', v)} disabled={suspended} />
+          </div>
+          <div className="flex items-center justify-between gap-4 py-3">
+            <span className="flex items-center gap-3 text-sm text-gray-700"><Mail className="h-4 w-4 text-gray-400" />Email notifications</span>
+            <Toggle checked={profile.notificationPreferences?.email !== false} onChange={(v) => saveNotificationPreference('email', v)} disabled={suspended} />
+          </div>
+          <div className="flex items-center justify-between gap-4 py-3">
+            <span className="flex items-center gap-3 text-sm text-gray-700"><MessageCircle className="h-4 w-4 text-gray-400" />WhatsApp notifications</span>
+            <Toggle checked={profile.notificationPreferences?.whatsapp === true} onChange={(v) => saveNotificationPreference('whatsapp', v)} disabled={suspended} />
+          </div>
         </div>
       </Card>
 

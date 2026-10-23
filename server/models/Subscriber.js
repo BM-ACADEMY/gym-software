@@ -85,6 +85,17 @@ const subscriberSchema = new mongoose.Schema({
   gstRate: {
     type: Number,
     default: 18
+  },
+  // Gated behind WHATSAPP_PHONE_NUMBER_ID/WHATSAPP_ACCESS_TOKEN in .env, same
+  // demo/live pattern as SMS — enabling this without those env vars set just
+  // logs messages instead of sending them (see utils/whatsapp.js).
+  whatsappEnabled: {
+    type: Boolean,
+    default: false
+  },
+  whatsappNumber: {
+    type: String,
+    trim: true
   }
 }, { timestamps: true });
 

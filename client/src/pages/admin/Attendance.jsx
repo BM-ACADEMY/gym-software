@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Clock, LogIn, LogOut, Search, Users } from 'lucide-react';
+import { CalendarSearch, Clock, LogIn, LogOut, QrCode, Search, Users } from 'lucide-react';
 import apiClient from '../../api/client';
 import useSuspended from '../../hooks/useSuspended';
+import QrScannerModal from '../../components/QrScannerModal';
+
+const toInputDate = (d) => d.toISOString().slice(0, 10);
 
 const METHODS = [
   { value: 'manual', label: 'Manual (staff-marked)' },
@@ -32,6 +35,27 @@ const Attendance = () => {
   const [method, setMethod] = useState('manual');
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanning, setScanning] = useState(false);
+
+  const [historyFrom, setHistoryFrom] = useState(() => toInputDate(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)));
+  const [historyTo, setHistoryTo] = useState(() => toInputDate(new Date()));
+  const [historyRecords, setHistoryRecords] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const fetchHistory = async (from, to) => {
+    setHistoryLoading(true);
+    try {
+      const res = await apiClient.get('/admin/attendance', { params: { dateFrom: from, dateTo: to } });
+      setHistoryRecords(res.data.data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load attendance history');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchHistory(historyFrom, historyTo); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchAll = async () => {
     try {
@@ -93,6 +117,22 @@ const Attendance = () => {
 
   const recordFor = (memberId) => records.find((r) => r.memberId?._id === memberId && !r.checkedOutAt);
 
+  const handleScan = async (payload) => {
+    if (scanning) return;
+    setScanning(true);
+    setError('');
+    try {
+      const res = await apiClient.post('/admin/attendance/scan', { payload });
+      if (res.data.warning) setError(res.data.warning);
+      await fetchAll();
+    } catch (err) {
+      setError(err.response?.data?.message || 'QR check-in failed');
+    } finally {
+      setScanning(false);
+      setScannerOpen(false);
+    }
+  };
+
   return (
     <div className="p-6 sm:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -100,10 +140,17 @@ const Attendance = () => {
           <h1 className="text-2xl font-bold text-gray-900">Attendance</h1>
           <p className="mt-1 text-gray-500">Check members in and monitor today's floor activity.</p>
         </div>
-        <select value={method} onChange={(e) => setMethod(e.target.value)} className="rounded-xl border border-gray-200 bg-white py-2.5 px-3.5 text-sm outline-none">
-          {METHODS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-        </select>
+        <div className="flex gap-2">
+          <select value={method} onChange={(e) => setMethod(e.target.value)} className="rounded-xl border border-gray-200 bg-white py-2.5 px-3.5 text-sm outline-none">
+            {METHODS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+          </select>
+          <button onClick={() => setScannerOpen(true)} disabled={suspended} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500">
+            <QrCode className="h-4 w-4" /> Scan QR
+          </button>
+        </div>
       </div>
+
+      <QrScannerModal open={scannerOpen} onClose={() => setScannerOpen(false)} onDecode={handleScan} title="Scan member check-in QR" />
 
       {error && <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{error}</div>}
 
@@ -163,6 +210,50 @@ const Attendance = () => {
               ) : records.map((r) => (
                 <tr key={r._id}>
                   <td className="px-5 py-3 font-medium text-gray-900">{r.memberId?.name || '—'}</td>
+                  <td className="px-5 py-3 capitalize text-gray-600">{r.method}</td>
+                  <td className="px-5 py-3 text-gray-600">{new Date(r.checkedInAt).toLocaleTimeString()}</td>
+                  <td className="px-5 py-3 text-gray-600">{r.checkedOutAt ? new Date(r.checkedOutAt).toLocaleTimeString() : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900">Attendance history</h3>
+            <p className="mt-1 text-xs text-gray-500">Browse check-ins across any date range.</p>
+          </div>
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="text-xs font-medium text-gray-500">
+              From
+              <input type="date" value={historyFrom} max={historyTo} onChange={(e) => setHistoryFrom(e.target.value)} className="mt-1 block rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
+            </label>
+            <label className="text-xs font-medium text-gray-500">
+              To
+              <input type="date" value={historyTo} min={historyFrom} max={toInputDate(new Date())} onChange={(e) => setHistoryTo(e.target.value)} className="mt-1 block rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
+            </label>
+            <button onClick={() => fetchHistory(historyFrom, historyTo)} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">
+              <CalendarSearch className="h-4 w-4" /> Search
+            </button>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <tr><th className="px-5 py-3">Member</th><th className="px-5 py-3">Date</th><th className="px-5 py-3">Method</th><th className="px-5 py-3">In</th><th className="px-5 py-3">Out</th></tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {historyLoading ? (
+                <tr><td colSpan={5} className="px-5 py-8 text-center text-gray-400">Loading...</td></tr>
+              ) : historyRecords.length === 0 ? (
+                <tr><td colSpan={5} className="px-5 py-8 text-center text-gray-400">No check-ins in this range.</td></tr>
+              ) : historyRecords.map((r) => (
+                <tr key={r._id}>
+                  <td className="px-5 py-3 font-medium text-gray-900">{r.memberId?.name || '—'}</td>
+                  <td className="px-5 py-3 text-gray-600">{new Date(r.checkedInAt).toLocaleDateString()}</td>
                   <td className="px-5 py-3 capitalize text-gray-600">{r.method}</td>
                   <td className="px-5 py-3 text-gray-600">{new Date(r.checkedInAt).toLocaleTimeString()}</td>
                   <td className="px-5 py-3 text-gray-600">{r.checkedOutAt ? new Date(r.checkedOutAt).toLocaleTimeString() : '—'}</td>

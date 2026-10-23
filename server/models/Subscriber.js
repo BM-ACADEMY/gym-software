@@ -18,6 +18,25 @@ const subscriberSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PlatformPlan'
   },
+  // Code-defined plan (config/plans.js). Null during the free trial, where the
+  // trial plan applies automatically. paidUntil is the end of the last paid
+  // period; status is computed from dates (services/subscription.js).
+  planKey: {
+    type: String,
+    enum: ['starter', 'growth', 'pro'],
+  },
+  billingCycle: {
+    type: String,
+    enum: ['monthly', 'yearly'],
+  },
+  paidUntil: {
+    type: Date
+  },
+  // Global-ready settings. Only INR/GST/India are switched on in Phase 1.
+  country: { type: String, default: 'IN' },
+  currency: { type: String, default: 'INR' },
+  timezone: { type: String, default: 'Asia/Kolkata' },
+  language: { type: String, enum: ['en', 'ta', 'hi'], default: 'en' },
   nextBillingDate: {
     type: Date
   },

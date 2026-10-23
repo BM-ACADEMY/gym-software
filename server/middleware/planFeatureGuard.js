@@ -1,5 +1,6 @@
 const Subscriber = require('../models/Subscriber');
 const PlatformPlan = require('../models/PlatformPlan');
+const { effectivePlan } = require('../services/subscription');
 
 // Doc NFR: "Feature gating is enforced server-side via a middleware that
 // checks the subscriber's active planId + feature flags... never gated only
@@ -9,6 +10,17 @@ const PlatformPlan = require('../models/PlatformPlan');
 const planFeatureGuard = (featureKey) => async (req, res, next) => {
   try {
     const subscriber = await Subscriber.findById(req.user.subscriberId);
+
+    // New gyms: code-defined plan (config/plans.js), trial counts as Growth.
+    const codePlan = subscriber && !subscriber.platformPlanId ? effectivePlan(subscriber) : null;
+    if (codePlan) {
+      if (!codePlan.features[featureKey]) {
+        return res.status(403).json({ success: false, message: `Your plan (${codePlan.name}) doesn't include this feature. Upgrade to use it.` });
+      }
+      req.planFeature = { feature: { key: featureKey }, enabled: true, value: undefined };
+      return next();
+    }
+
     if (!subscriber?.platformPlanId) {
       return res.status(403).json({ success: false, message: 'Your gym has no platform plan assigned — contact GymDesk support.' });
     }

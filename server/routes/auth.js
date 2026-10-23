@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   registerOtpRequest,
   registerOtpVerify,
+  signup,
   loginAdminWithEmail,
   requestAdminOtp,
   loginAdminWithOtp,
@@ -35,6 +36,7 @@ const signupGate = (req, res, next) => {
 };
 
 // Admin Auth Routes (Gym Owners)
+router.post('/signup', signupGate, rateLimit({ name: 'signup', windowMs: 60 * 60 * 1000, max: 10 }), signup);
 router.post('/register-otp-request', signupGate, sendLimit, registerOtpRequest);
 router.post('/register-otp-verify', signupGate, guessLimit, registerOtpVerify);
 router.post('/login-email', guessLimit, loginAdminWithEmail);

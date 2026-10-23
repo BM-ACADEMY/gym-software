@@ -20,6 +20,7 @@ router.use('/reports-analytics', require('./reportsAnalytics'));
 router.use('/notifications', require('./notifications'));
 router.use('/settings', require('./settings'));
 router.use('/support', require('./support'));
+router.use('/subscription', require('./subscription'));
 router.use('/billing', require('./billing'));
 
 module.exports = router;

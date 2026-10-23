@@ -14,13 +14,16 @@ Days are estimates for Claude-written code, excluding human test time.
 | P0-04 | Log the 25 failed P1 tests from the QA workbook as bugs | TODO (human) | Bug Log filled |
 | P0-05 | Razorpay exists (get test keys via Dev A, confirm company name + GST). Apply for WhatsApp Business API (separate GymDesk number). CA check on GST invoices. No SMS/DLT | TODO (human) | WhatsApp application submitted; test keys saved in Settings |
 
-## Phase 1a: Money (2 to 3 days of Claude coding each unless noted)
+## Phase 1a: Money
+
+Progress 24 Oct: dev branch `charles` merged in. 1A-01/02/03 written (plans in `server/config/plans.js`, status in `server/services/subscription.js`, `POST /api/auth/signup`, `GET /api/admin/subscription`). Pure logic checked 11/11 with a shim; DB tests in `tests/signup.test.js` not run. Legacy `PlatformPlan` kept for old pilot gyms only. Next: 1A-04 Razorpay billing, 1A-05 invoice, 1A-07 super admin.
+ (2 to 3 days of Claude coding each unless noted)
 
 | ID | Task | Status | Acceptance |
 | --- | --- | --- | --- |
-| 1A-01 | Code-defined plans (`server/config/plans.js`): starter, growth, pro, trial; limits and feature list; replace `PlatformPlan`/`PlanFeature` use and `planFeatureGuard` | TODO | Seed script gone; guards read config; existing tests updated |
-| 1A-02 | Subscription status from dates on every request (trial, paid until, grace, suspended); 402 `subscription_expired` except billing and account routes | TODO | Replaces interim trial lock in `middleware/auth.js` |
-| 1A-03 | Self-serve sign-up (password), 14-day trial on Growth, welcome state | TODO | New gym created with trial dates; no OTP dependency |
+| 1A-01 | Code-defined plans (`server/config/plans.js`): starter, growth, pro, trial; limits and feature list; replace `PlatformPlan`/`PlanFeature` use and `planFeatureGuard` | WRITTEN | Seed script gone; guards read config; existing tests updated |
+| 1A-02 | Subscription status from dates on every request (trial, paid until, grace, suspended); 402 `subscription_expired` except billing and account routes | WRITTEN | Replaces interim trial lock in `middleware/auth.js` |
+| 1A-03 | Self-serve sign-up (password), 14-day trial on Growth, welcome state | WRITTEN | New gym created with trial dates; no OTP dependency |
 | 1A-04 | Razorpay billing port: price on server, order, checkout verify, webhook (raw body), idempotent activation, credit for unused days on upgrade | TODO | Test-mode payment activates plan; repeat webhook is a no-op; amount mismatch fails |
 | 1A-05 | GST invoice numbers (gap-free, restart 1 April), CGST/SGST/IGST split, printable invoice | TODO | Invoice matches CA-approved wording |
 | 1A-06 | Gate every route by plan feature and member/staff limits (PT, earnings, accounts, analytics, branding, reminders) | TODO | QA tests GATE-05 to GATE-15, PLAT-02 to PLAT-18 pass |

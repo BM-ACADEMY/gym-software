@@ -6,6 +6,8 @@ const SubAdmin = require('../models/SubAdmin');
 const Member = require('../models/Member');
 const OtpRecord = require('../models/OtpRecord');
 const { generateToken } = require('../utils/jwt');
+const { trialDates } = require('../services/subscription');
+const { TRIAL_DAYS } = require('../config/plans');
 const { generateOtp, sendOtpSms, sendOtpEmail } = require('../utils/otp');
 
 // @desc    Request OTP for Registration (Email or Phone)
@@ -110,6 +112,72 @@ const registerOtpVerify = async (req, res) => {
         role: admin.role,
         subscriberId: subscriber._id
       }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+
+// @desc    Self-serve gym sign-up: creates the gym on a 14-day free trial and the
+//          owner login in one step. Password based, no OTP and no card.
+// @route   POST /api/auth/signup
+const signup = async (req, res) => {
+  try {
+    const gymName = (req.body.gymName || '').trim();
+    const ownerName = (req.body.ownerName || '').trim();
+    const email = (req.body.email || '').trim().toLowerCase();
+    const phone = (req.body.phone || '').replace(/[\s-]/g, '');
+    const password = req.body.password || '';
+
+    if (!gymName || !ownerName || !email || !phone || !password) {
+      return res.status(400).json({ success: false, message: 'Please provide gym name, your name, email, phone and a password' });
+    }
+    if (gymName.length > 100 || ownerName.length > 100) {
+      return res.status(400).json({ success: false, message: 'Name is too long' });
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email' });
+    }
+    if (!/^\+?\d{10,15}$/.test(phone)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid phone number' });
+    }
+    if (password.length < 8 || password.length > 128) {
+      return res.status(400).json({ success: false, message: 'Password must be 8 to 128 characters' });
+    }
+
+    const existing = await Admin.findOne({ $or: [{ email }, { phone }] }).select('_id');
+    if (existing) {
+      return res.status(409).json({ success: false, message: 'An account with this email or phone already exists. Please log in.' });
+    }
+
+    const subscriber = await Subscriber.create({ gymName, ...trialDates() });
+    let admin;
+    try {
+      admin = await Admin.create({
+        subscriberId: subscriber._id,
+        name: ownerName,
+        email,
+        phone,
+        passwordHash: await bcrypt.hash(password, 10),
+        lastLoginAt: new Date(),
+      });
+    } catch (err) {
+      await Subscriber.deleteOne({ _id: subscriber._id }); // no orphan gym if the owner insert fails
+      if (err && err.code === 11000) {
+        return res.status(409).json({ success: false, message: 'An account with this email or phone already exists. Please log in.' });
+      }
+      throw err;
+    }
+
+    const token = generateToken({ id: admin._id, role: admin.role, subscriberId: subscriber._id });
+    res.status(201).json({
+      success: true,
+      token,
+      trialDays: TRIAL_DAYS,
+      trialEndsAt: subscriber.trialEndsAt,
+      data: { id: admin._id, name: admin.name, email: admin.email, phone: admin.phone, role: admin.role, subscriberId: subscriber._id },
     });
   } catch (error) {
     console.error(error);
@@ -556,6 +624,7 @@ const requestRootAccess = async (req, res) => {
 module.exports = {
   registerOtpRequest,
   registerOtpVerify,
+  signup,
   loginAdminWithEmail,
   requestAdminOtp,
   loginAdminWithOtp,

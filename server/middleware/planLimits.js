@@ -2,6 +2,7 @@ const Subscriber = require('../models/Subscriber');
 const PlatformPlan = require('../models/PlatformPlan');
 const Member = require('../models/Member');
 const SubAdmin = require('../models/SubAdmin');
+const { effectivePlan } = require('../services/subscription');
 
 // Enforces the platform plan's memberLimit / staffLimit on the server so a
 // gym cannot exceed its plan by calling the API directly. A gym with no
@@ -23,10 +24,15 @@ const COUNTED = {
 const planLimitGuard = (kind) => async (req, res, next) => {
   try {
     const rule = COUNTED[kind];
-    const subscriber = await Subscriber.findById(req.user.subscriberId).select('platformPlanId');
-    if (!subscriber?.platformPlanId) return next();
+    const subscriber = await Subscriber.findById(req.user.subscriberId)
+      .select('platformPlanId isActive trialEndsAt planStartedAt paidUntil planKey');
 
-    const plan = await PlatformPlan.findById(subscriber.platformPlanId).select(`name ${rule.field}`);
+    // Code-defined plan first (new gyms); legacy PlatformPlan otherwise.
+    let plan = !subscriber?.platformPlanId && subscriber ? effectivePlan(subscriber) : null;
+    if (!plan) {
+      if (!subscriber?.platformPlanId) return next();
+      plan = await PlatformPlan.findById(subscriber.platformPlanId).select(`name ${rule.field}`);
+    }
     const limit = plan?.[rule.field];
     if (limit === undefined || limit === null) return next();
 

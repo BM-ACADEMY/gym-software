@@ -1,6 +1,13 @@
 // One-off / re-runnable seed for the four demo login accounts (one per role).
 // Usage: node scripts/seedDemoUsers.js
 require('dotenv').config();
+
+// These accounts have publicly known passwords. Never create them on a real
+// database.
+if (process.env.NODE_ENV === 'production') {
+  console.error('Refusing to seed demo users with NODE_ENV=production.');
+  process.exit(1);
+}
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 

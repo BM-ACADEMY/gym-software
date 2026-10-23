@@ -28,16 +28,14 @@ Required `server/.env` keys: `MONGODB_URI`, `MONGODB_TEST_URI` (a **separate** d
 
 ## 3. Demo accounts
 
-Seeded via `node server/scripts/seedDemoUsers.js` (safe to re-run; upserts):
+Demo accounts exist for local development only. Their credentials are NOT
+listed here (this file used to contain them). Create them locally with
+`node server/scripts/seedDemoUsers.js` after reading that script, and never run
+it against a production database. Gym owners for the pilot are created by Root
+Admin.
 
-| Role | Name | Phone | Password |
-|---|---|---|---|
-| Root Admin | Snega | 7339017112 | Snega@123 |
-| Gym Owner | Charles | 8807226257 | Charles@123 |
-| Sub-Admin (trainer) | Swetha | 9345989654 | Swetha@123 |
-| Member | Ragu | 9486788591 | Ragu@123 |
-
-`OTP_MODE=demo` prints OTPs to the server console instead of sending real SMS/email — use this for a walkthrough without a live SMS/email provider configured.
+`OTP_MODE=demo` is for local development only. In production OTPs are always
+sent for real and never returned by the API.
 
 ## 4. What's real vs. simulated
 

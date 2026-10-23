@@ -1,7 +1,7 @@
 const Payment = require('../../models/Payment');
 const Member = require('../../models/Member');
 const Subscriber = require('../../models/Subscriber');
-const { createOrder, buildSimulatedWebhook } = require('../../services/paymentGateway');
+const { createOrder, buildSimulatedWebhook, simulationAllowed, isRealGatewayConfigured } = require('../../services/paymentGateway');
 const { processPaymentWebhook, processRazorpayPayment } = require('../../services/webhookProcessor');
 const { streamInvoicePdf } = require('../../utils/invoicePdf');
 
@@ -22,6 +22,9 @@ const listMyPayments = async (req, res) => {
 // @route   POST /api/member/payments/:id/checkout
 const createCheckout = async (req, res) => {
   try {
+    if (!simulationAllowed() && !(await isRealGatewayConfigured())) {
+      return res.status(503).json({ success: false, message: 'Online payment is not enabled yet. Please pay at the gym front desk.' });
+    }
     const payment = await Payment.findOne({ _id: req.params.id, memberId: req.user.id });
     if (!payment) return res.status(404).json({ success: false, message: 'Invoice not found' });
     if (['paid', 'refunded'].includes(payment.status)) {
@@ -49,6 +52,7 @@ const createCheckout = async (req, res) => {
 // @route   POST /api/member/payments/:id/simulate-payment
 const simulatePayment = async (req, res) => {
   try {
+    if (!simulationAllowed()) return res.status(404).json({ success: false, message: 'Not found' });
     const payment = await Payment.findOne({ _id: req.params.id, memberId: req.user.id });
     if (!payment) return res.status(404).json({ success: false, message: 'Invoice not found' });
     if (payment.status === 'paid') return res.status(400).json({ success: false, message: 'This invoice is already paid' });
@@ -88,40 +92,6 @@ const verifyRazorpay = async (req, res) => {
   }
 };
 
-// @desc    Manual online-payment recording (staff-assisted UPI/card, no gateway round-trip)
-// @route   POST /api/member/payments/:id/pay
-const payInvoice = async (req, res) => {
-  try {
-    const { amount, method } = req.body;
-    if (!amount || amount <= 0 || !['upi', 'card'].includes(method)) {
-      return res.status(400).json({ success: false, message: 'A positive amount and method (upi/card) are required' });
-    }
-
-    const payment = await Payment.findOne({ _id: req.params.id, memberId: req.user.id });
-    if (!payment) return res.status(404).json({ success: false, message: 'Invoice not found' });
-    if (['paid', 'refunded'].includes(payment.status)) {
-      return res.status(400).json({ success: false, message: `This invoice is already ${payment.status}` });
-    }
-
-    const remaining = payment.amount - payment.amountPaid;
-    if (Number(amount) > remaining) {
-      return res.status(400).json({ success: false, message: `Amount exceeds the remaining balance of ${remaining}` });
-    }
-
-    payment.installments.push({ amount: Number(amount), method, note: 'Paid online by member' });
-    payment.amountPaid += Number(amount);
-    payment.method = method;
-    payment.status = payment.amountPaid >= payment.amount ? 'paid' : 'partial';
-    payment.paidAt = new Date();
-    await payment.save();
-
-    res.status(200).json({ success: true, message: 'Payment successful', data: payment });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
-
 // @desc    Download a PDF invoice/receipt for one of my own payments
 // @route   GET /api/member/payments/:id/invoice.pdf
 const downloadInvoice = async (req, res) => {
@@ -140,4 +110,4 @@ const downloadInvoice = async (req, res) => {
   }
 };
 
-module.exports = { listMyPayments, createCheckout, simulatePayment, verifyRazorpay, payInvoice, downloadInvoice };
+module.exports = { listMyPayments, createCheckout, simulatePayment, verifyRazorpay, downloadInvoice };

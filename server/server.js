@@ -4,6 +4,20 @@ const app = require('./app');
 const { runAllRules } = require('./services/notifications');
 const { runBillingCycle, runMemberAutoRenewals } = require('./services/billing');
 
+// Refuse to start in production with unsafe configuration. A weak JWT secret
+// or a missing database URI would otherwise fail silently or insecurely.
+if (process.env.NODE_ENV === 'production') {
+  const problems = [];
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) problems.push('JWT_SECRET must be set and at least 32 characters');
+  if (!process.env.MONGODB_URI) problems.push('MONGODB_URI is not set');
+  if (problems.length) {
+    console.error(`Refusing to start in production:\n - ${problems.join('\n - ')}`);
+    process.exit(1);
+  }
+  if (!process.env.CORS_ORIGINS) console.warn('CORS_ORIGINS is not set — browsers on other origins (your web app) will be blocked.');
+  if (!process.env.BULKSMS_API_URL) console.warn('BULKSMS_API_URL is not set — OTP SMS (sign-up, password reset, OTP login) will fail. Password login still works.');
+}
+
 connectDB();
 
 const PORT = process.env.PORT || 5000;

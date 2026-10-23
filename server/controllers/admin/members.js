@@ -1,4 +1,5 @@
 const Member = require('../../models/Member');
+const { escapeRegex } = require('../../utils/escapeRegex');
 const GymPlan = require('../../models/GymPlan');
 const SubAdmin = require('../../models/SubAdmin');
 const { generateMemberQrDataUrl } = require('../../utils/qrcode');
@@ -76,8 +77,8 @@ const listMembers = async (req, res) => {
     if (search) {
       query.$and = (query.$and || []).concat({
         $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { phone: { $regex: search, $options: 'i' } },
+          { name: { $regex: escapeRegex(search), $options: 'i' } },
+          { phone: { $regex: escapeRegex(search), $options: 'i' } },
         ],
       });
     }

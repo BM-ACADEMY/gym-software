@@ -34,15 +34,25 @@ const protect = async (req, res, next) => {
     // Root Admin's own impersonation session (support/troubleshooting), and
     // submitting a support ticket — the one way to ask for reactivation.
     if (SUSPENDABLE_ROLES.includes(decoded.role) && decoded.subscriberId) {
-      const subscriber = await Subscriber.findById(decoded.subscriberId).select('isActive');
+      const subscriber = await Subscriber.findById(decoded.subscriberId).select('isActive trialEndsAt planStartedAt');
       const suspended = Boolean(subscriber && subscriber.isActive === false);
-      res.setHeader('X-Gym-Suspended', String(suspended));
+      // A trial that has ended without the gym moving to a paid plan locks the
+      // gym into the same read-only mode as a suspension (data stays visible).
+      // Gyms with no trialEndsAt (e.g. free pilot gyms) are never locked.
+      const trialExpired = Boolean(
+        subscriber && subscriber.trialEndsAt && !subscriber.planStartedAt && subscriber.trialEndsAt.getTime() < Date.now()
+      );
+      const readOnly = suspended || trialExpired;
+      res.setHeader('X-Gym-Suspended', String(readOnly));
 
-      if (suspended && req.method !== 'GET' && !decoded.impersonatedBy && !isSupportTicketWrite(req)) {
+      if (readOnly && req.method !== 'GET' && !decoded.impersonatedBy && !isSupportTicketWrite(req)) {
         return res.status(403).json({
           success: false,
           suspended: true,
-          message: 'This gym has been suspended. You can still view existing data, but changes are disabled until it is reactivated.',
+          trialExpired,
+          message: trialExpired && !suspended
+            ? 'Your free trial has ended. You can still view existing data; choose a plan to continue making changes.'
+            : 'This gym has been suspended. You can still view existing data, but changes are disabled until it is reactivated.',
         });
       }
     }

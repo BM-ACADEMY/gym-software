@@ -1,6 +1,6 @@
 # GymDesk: Finalized Project Scope and Phases
 
-Last updated: 2026-10-23. Owner: Mohamed Kamarudeen B (Afra Ventures Pvt Ltd).
+Last updated: 2026-10-24. Owner: Mohamed Kamarudeen B (Afra Ventures Pvt Ltd).
 This file is the single source of truth for what we are building, in what order, and why.
 Task-level status lives in `docs/BACKLOG.md`. Decisions live at the bottom of this file.
 
@@ -19,8 +19,8 @@ Working name: GymDesk (candidate: RepSetu, undecided). Tagline idea: "Your gym, 
   writes is trusted until a human runs `cd server && npm install && npm test` and staging checks.
 - One cycle: Claude pushes a branch and writes what to test, a human tests within one working day,
   Claude fixes, repeat. A phase is done when its gate (section 5) is green.
-- Account approvals (Razorpay KYC, SMS DLT, WhatsApp Business) take 1 to 3 weeks and are the real
-  critical path. They start on day 1.
+- Razorpay account already exists (Mohamed has it). WhatsApp Business approval (1 to 3 weeks) is the
+  real critical path and starts on day 1. SMS/DLT is NOT needed in Phase 1 (password sign-up, no OTP).
 
 ## 3. Phase 1 scope (public self-serve launch)
 
@@ -63,7 +63,7 @@ Not planned: white-label mobile app stores, POS, BMI devices, multi-branch (add 
 
 ## 5. Timeline and gates (built with Claude, stretch target)
 
-Targets assume a human tests each branch within one working day and accounts are approved by 12 Nov.
+Targets assume a human tests each branch within one working day and WhatsApp is approved by 12 Nov.
 Fallback public date if either slips: 15 Dec 2026.
 
 | Phase | Dates | Work | Gate |
@@ -117,6 +117,8 @@ Fallback public date if either slips: 15 Dec 2026.
 | 2026-10-23 | AI is a bonus feature; lead with collections, retention, flat pricing |
 | 2026-10-23 | Live biometric sync waits for a real device and the vendor spec |
 | 2026-10-23 | Build global-ready settings now, sell outside India in Phase 3 |
+| 2026-10-24 | WhatsApp only for messaging in Phase 1; no SMS/DLT. SMS maybe later as backup |
+| 2026-10-24 | Razorpay account already exists; member payments use the gym's own UPI link, not Razorpay Route |
 
 ## 9. Open decisions (ask Mohamed)
 
@@ -128,7 +130,7 @@ Fallback public date if either slips: 15 Dec 2026.
 
 ## 10. Accounts and inputs only a human can provide
 
-Razorpay account in the company name (test keys first), SMS DLT registration, WhatsApp Business API
+Razorpay test keys from the existing account (check it is in Afra Ventures name with GST added; website policy pages are built by Claude), WhatsApp Business API
 provider with Meta verification and approved templates, domain and email, production hosting
 (paid instance, not free tier) and MongoDB Atlas with backups, uptime monitor and error tracking,
 demo video, friendly pilot gyms.

@@ -12,7 +12,7 @@ Days are estimates for Claude-written code, excluding human test time.
 | P0-02 | Make GitHub repo private, change every password that was in HANDOVER.md | TODO (human) | Old passwords fail |
 | P0-03 | Production env set from `server/.env.example`; paid hosting; Atlas backups, one restore tested | TODO (human) | Restore drill done |
 | P0-04 | Log the 25 failed P1 tests from the QA workbook as bugs | TODO (human) | Bug Log filled |
-| P0-05 | Apply for Razorpay KYC, SMS DLT, WhatsApp Business API, GST check | TODO (human) | Applications submitted |
+| P0-05 | Razorpay exists (get test keys via Dev A, confirm company name + GST). Apply for WhatsApp Business API (separate GymDesk number). CA check on GST invoices. No SMS/DLT | TODO (human) | WhatsApp application submitted; test keys saved in Settings |
 
 ## Phase 1a: Money (2 to 3 days of Claude coding each unless noted)
 

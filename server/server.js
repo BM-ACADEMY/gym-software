@@ -58,3 +58,11 @@ setTimeout(() => {
   tick();
   setInterval(tick, 15 * 60 * 1000);
 }, 30000);
+
+// Founder daily brief email (SA-04): same 15-minute tick; sends once per IST day, 08:00 to 12:00.
+setTimeout(() => {
+  const { runFounderBrief } = require('./services/founderBrief');
+  const tick = () => runFounderBrief().catch((err) => console.error('Founder brief run failed:', err));
+  tick();
+  setInterval(tick, 15 * 60 * 1000);
+}, 40000);

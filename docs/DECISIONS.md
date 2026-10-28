@@ -19,7 +19,7 @@ Mohamed answers in one line. Claude moves answered items to the log in the next 
 
 ## Still waiting on people, not decisions (see `BACKLOG.md` phase 0)
 
-Every task below is a row in the **Dev Task Sheet** (shared doc, devs update Status and Notes): https://claude.ai/artifact/NwcPRQpgvbWifhqTzRetd1 . Claude reads it at the start of each session and fixes reported failures first.
+Every task below is a row in the team task sheet (`docs/TEAM_TASK_SHEET.xlsx`, one tab per person, detailed steps; the owner puts it in Google Drive so devs can edit online). The older shared doc https://claude.ai/artifact/NwcPRQpgvbWifhqTzRetd1 is superseded by it. Claude reads it at the start of each session and fixes reported failures first.
 
 - Dev A: run `cd server && npm install && npm test`, then `cd client && npm install && npm run build`; send back any red output. Follow `docs/TEST_RUNBOOK.md`.
 - Dev A: paid hosting, Atlas backups with one restore drill (`docs/OPS.md`), uptime monitor.
@@ -51,3 +51,4 @@ Every task below is a row in the **Dev Task Sheet** (shared doc, devs update Sta
 | 2026-10-28 | D-14 answered: yes, Afra AI OS is Afra's internal sales and lead hub; not a host for products; no dependency for launch | Mohamed |
 | 2026-10-28 | D-15 answered (changes Claude's recommendation): OpenAI for ALL products. Build one provider layer in `core-ai` (OpenAI default, model names in config) so the model can be changed without code changes. Price model section 14 to be re-run with OpenAI prices. Caps and usage for every product are managed centrally in Super Admin (SA-03 widened to all products) | Mohamed |
 | 2026-10-28 | D-16 approved: monthly AI-call caps Solo 15, Starter 40, Growth 120, Pro 300 (`plans.js` and the pricing page updated; written, not yet tested) | Mohamed |
+| 2026-10-28 | Team sheet is now a spreadsheet with detailed steps; new Hostinger KVM 2 server for Afra AI OS only (tab 'Afra AI OS server'); products on a paid always-on host and Atlas in an India region. Hosting spend still needs Mohamed's approval (M-09) | Mohamed |

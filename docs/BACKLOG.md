@@ -109,7 +109,7 @@ Rule: nothing here is advertised until it is built, tested by a human and listed
 | ID | Task | Pri | Days | Status |
 | --- | --- | --- | --- | --- |
 | AI-01 | Renewal Copilot: daily ranked list of who to chase, why, and a ready message (Tamil, English, Hindi). Works before Meta approval: a tap opens WhatsApp on the owner's own phone with the message filled in; automatic sends use approved templates once live | L (owner, 28 Oct) | 3 | WRITTEN (28 Oct; not yet tested: `tests/copilotRules.unit.test.js` 8/8 pass via shim; `tests/copilot.test.js` needs Dev A; screen `client/src/pages/admin/Copilot.jsx` never built. Ranking is rules, not AI; AI only rewrites a message template, no member data sent, counted in the monthly AI cap. Tamil/Hindi wording needs native review. Automatic sends after Meta approval still to do) |
-| AI-02 | Ask GymDesk on your own data via safe read-only tools (dues, expiring, absent, collections) | L (owner, 28 Oct) | 3 | TODO |
+| AI-02 | Ask GymDesk on your own data via safe read-only tools (dues, expiring, absent, collections) | L (owner, 28 Oct) | 3 | WRITTEN (not yet tested): server/services/askData.js, tests askData.unit.test.js (pure, checked with plain node) and askData.test.js (DB, not run) |
 | AI-03 | Register import from a photo or PDF of the paper register, with preview and correction | A | 3 | TODO |
 | AI-04 | Churn risk that explains why, plus an automatic win-back sequence | A | 3 | TODO |
 | AI-05 | Weekly owner coach: 3 actions with expected rupee impact, then tracks whether they were done (upgrade of 1E-02) | A | 2 | TODO |

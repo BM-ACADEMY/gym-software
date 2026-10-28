@@ -35,7 +35,7 @@ const Assistant = () => {
         <div className="mt-3 rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
           <p className="whitespace-pre-line">{res.answer}</p>
           <p className="mt-2 text-xs text-gray-400">
-            {res.source === 'ai' ? `Written by AI from our help articles. ${res.remaining} AI answers left this month.` : 'Matching help articles.'}
+            {res.source === 'data' ? 'Worked out from your gym\'s own records.' : res.source === 'ai' ? `Written by AI from our help articles. ${res.remaining} AI answers left this month.` : 'Matching help articles.'}
             {res.note ? ` ${res.note}` : ''}
           </p>
         </div>

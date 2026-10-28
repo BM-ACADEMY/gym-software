@@ -8,6 +8,7 @@ const Attendance = require('../models/Attendance');
 const { HELP_ARTICLES } = require('../config/helpArticles');
 const { effectivePlan } = require('./subscription');
 const { istParts } = require('./automationRules');
+const askData = require('./askData');
 
 const DAY = 86400000;
 const LEGACY_CAP = 200; // gyms still on the old DB plan system
@@ -110,6 +111,22 @@ const ask = async (subscriber, question, now = new Date()) => {
 
   const related = searchArticles(q, 3);
   const u = await usage(subscriber, now);
+
+  // Questions about the gym's own numbers: answered from this gym's data by our code.
+  // Keywords are free; the AI only picks which report to run (no member data is sent to it).
+  try {
+    const data = await askData.tryAnswer(subscriber, q, { canUseAi: u.remaining > 0, now });
+    if (data && data.usedAi) {
+      await AiUsage.create({ subscriberId: subscriber._id, kind: 'assistant', model: data.model, ...data.usage });
+    }
+    if (data && data.answer) {
+      const left = data.usedAi ? u.remaining - 1 : u.remaining;
+      return { status: 200, data: { answer: data.answer, source: 'data', remaining: left, articles: [] } };
+    }
+    if (data && data.usedAi) u.remaining = Math.max(0, u.remaining - 1);
+  } catch (err) {
+    console.warn('Ask on own data failed, using help articles:', err.message);
+  }
 
   if (aiEnabled() && u.remaining > 0) {
     try {

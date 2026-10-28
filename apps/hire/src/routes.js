@@ -21,10 +21,15 @@ const KNOWN = ['PARSE_NO_JSON', 'PARSE_BAD_JSON', 'RESUME_EMPTY', 'CAP_REACHED',
 
 function toPlain(d) { const o = d && d.toObject ? d.toObject() : d; return o ? { ...o, id: String(o._id) } : o; }
 
-function createHireRouter({ express, mongoose, protect, authorize, tenantOf, planOf, ai, budget, roles = ['admin', 'subadmin'] }) {
+function createHireRouter({ express, mongoose, protect, authorize, tenantOf, planOf, ai, budget, guardWrite, roles = ['admin', 'subadmin'] }) {
   const router = express.Router();
   const M = makeModels(mongoose);
   router.use(protect, authorize(...roles));
+  // Expired or suspended accounts can read but not change anything (guardWrite comes from @afra/core-billing).
+  if (guardWrite) router.use((req, res, next) => {
+    const g = guardWrite(req);
+    return g.ok ? next() : res.status(g.httpStatus || 402).json({ success: false, message: g.message, code: 'read_only' });
+  });
   const fail = (res, code, message) => res.status(code).json({ success: false, message });
   const wrap = (fn) => async (req, res) => {
     try { await fn(req, res, tenantOf(req)); } catch (err) {

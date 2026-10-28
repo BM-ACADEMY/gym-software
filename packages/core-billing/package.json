@@ -1,0 +1,9 @@
+{
+  "name": "@afra/core-billing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Subscription status, quotes, GST split, periods and plan limits for every Afra product. Pure functions, no database, no network. Plans are passed in, so each product keeps its own prices.",
+  "main": "src/index.js",
+  "scripts": { "test": "jest" },
+  "license": "UNLICENSED"
+}

@@ -14,15 +14,18 @@ const listPrice = (plan, cycle) => {
 
 // gstMode 'cgst_sgst' (seller and buyer in the same state) splits GST in two
 // halves; 'igst' charges it as one line. Total is identical either way.
-const quote = ({ plan, cycle, creditRupees = 0, gstMode = 'cgst_sgst' }) => {
+const quote = ({ plan, cycle, creditRupees = 0, gstMode = 'cgst_sgst', discountPercent = 0 }) => {
   const base = listPrice(plan, cycle);
   const credit = Math.max(0, Math.min(Math.floor(creditRupees), Math.floor(base * MAX_CREDIT_SHARE)));
-  const taxable = base - credit;
+  // Promo discount comes off the list price before GST; it can never push taxable below zero.
+  const pct = Math.max(0, Math.min(Number(discountPercent) || 0, 100));
+  const discount = Math.min(Math.floor((base * pct) / 100), base - credit);
+  const taxable = base - credit - discount;
   const gst = Math.round((taxable * GST_RATE) / 100);
   let cgst = 0, sgst = 0, igst = 0;
   if (gstMode === 'igst') igst = gst;
   else { cgst = Math.round(gst / 2); sgst = gst - cgst; }
-  return { base, credit, taxable, gst, cgst, sgst, igst, total: taxable + gst, gstMode, gstRate: GST_RATE, currency: 'INR' };
+  return { base, credit, discount, taxable, gst, cgst, sgst, igst, total: taxable + gst, gstMode, gstRate: GST_RATE, currency: 'INR' };
 };
 
 // Credit for the unused part of the current paid period (list price, daily rate).

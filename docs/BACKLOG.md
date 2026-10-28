@@ -83,7 +83,13 @@ Progress 28 Oct: 1B-01 to 1B-04 written. `utils/whatsapp.js` sends approved temp
 
 ## Phase 2 and 3
 
-See `docs/SCOPE.md` section 4. Not started.
+See `docs/SCOPE.md` section 4.
+
+| ID | Task | Status | Test |
+| --- | --- | --- | --- |
+| 2-01 | Discount, partner and referral codes at checkout (percent off before GST, max 50%, first payment only by default, plan limits, expiry, max uses, counted once per payment, shown on invoice). Root Admin API `/api/root-admin/promo-codes`; owner box on Billing page | WRITTEN (`tests/promoCodes.test.js`, never run). No Root Admin screen yet: codes are made through the API. Gym-to-gym referral rewards not built | Dev A runs the test; creates a code; pays with it in Razorpay test mode and checks the invoice |
+| 2-02 | Excel reports, class booking with waitlist, staff payroll port, member AutoPay | TODO | |
+| 2-03 | Live biometric sync and door control | BLOCKED (needs a real device and vendor spec) | |
 
 ## Open questions
 

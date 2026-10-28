@@ -47,6 +47,7 @@ const streamSubscriptionInvoice = (res, p) => {
     doc.text(value, { align: 'right' });
   };
   line('Plan price', rupees(p.base));
+  if (p.discount) line(`Discount${p.promoCode ? ` (${p.promoCode})` : ''}`, `- ${rupees(p.discount)}`);
   if (p.credit) line('Credit for unused days', `- ${rupees(p.credit)}`);
   line('Taxable value', rupees(p.taxable));
   if (p.igst) line(`IGST @ ${p.gstRate}%`, rupees(p.igst));

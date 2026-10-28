@@ -12,6 +12,9 @@ const schema = new mongoose.Schema(
     // Whole rupees.
     base: Number,
     credit: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 }, // promo code discount, whole rupees, before GST
+    promoCode: String,
+    promoRedeemedAt: Date,
     taxable: Number,
     gst: Number,
     cgst: { type: Number, default: 0 },

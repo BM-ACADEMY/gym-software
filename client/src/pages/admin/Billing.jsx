@@ -60,6 +60,7 @@ const Billing = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [stateChoice, setStateChoice] = useState('');
   const [gstChoice, setGstChoice] = useState('');
+  const [promoCode, setPromoCode] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -87,7 +88,7 @@ const Billing = () => {
     setMessage({ type: '', text: '' });
     setBusy(planKey);
     try {
-      const { data } = await apiClient.post('/admin/subscription/checkout', { plan: planKey, cycle });
+      const { data } = await apiClient.post('/admin/subscription/checkout', { plan: planKey, cycle, promoCode: promoCode.trim() || undefined });
       const order = data.data;
 
       if (order.provider === 'dummy') {
@@ -190,6 +191,11 @@ const Billing = () => {
             {c === 'monthly' ? 'Monthly' : 'Yearly (2 months free)'}
           </button>
         ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <input value={promoCode} onChange={(e) => setPromoCode(e.target.value.toUpperCase())} maxLength={24} placeholder="Have a code?" className="w-44 rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+        <span className="text-xs text-gray-500">Enter it before you click Pay. The discount shows on your invoice.</span>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">

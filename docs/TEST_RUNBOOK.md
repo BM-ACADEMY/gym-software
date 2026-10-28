@@ -48,3 +48,8 @@ Dev B (API attacks): try reading another gym's data with a valid token on every 
 
 ## 4. Report back
 For each failure: which step, what you expected, what happened, and the red error text. Claude fixes and replies with what to re-run.
+
+## Extra: discount codes (Dev A)
+1. `cd server && npm test -- promoCodes` should pass.
+2. Make a code as Root Admin: POST `/api/root-admin/promo-codes` with `{ "code": "TEST20", "percentOff": 20, "kind": "partner", "ownerLabel": "Test" }`.
+3. As a trial gym, type TEST20 in the "Have a code?" box on Billing and pay (Razorpay test mode). Expect the Razorpay amount to be 20% lower before GST, the invoice to show a Discount line, and a second payment with the same code to be refused.

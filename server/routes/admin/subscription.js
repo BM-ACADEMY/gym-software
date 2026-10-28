@@ -81,13 +81,13 @@ router.patch('/billing-details', protect, authorize('admin'), handle(async (req,
 
 // POST /api/admin/subscription/quote  { plan, cycle }
 router.post('/quote', protect, authorize('admin'), handle(async (req, res) => {
-  const { quote, rule } = await billing.buildQuote(req.user.subscriberId, str(req.body.plan), str(req.body.cycle));
+  const { quote, rule } = await billing.buildQuote(req.user.subscriberId, str(req.body.plan), str(req.body.cycle), new Date(), str(req.body.promoCode));
   res.json({ success: true, data: { quote, startMode: rule.startMode } });
 }));
 
 // POST /api/admin/subscription/checkout  { plan, cycle }
 router.post('/checkout', protect, authorize('admin'), handle(async (req, res) => {
-  const data = await billing.startCheckout(req.user.subscriberId, str(req.body.plan), str(req.body.cycle));
+  const data = await billing.startCheckout(req.user.subscriberId, str(req.body.plan), str(req.body.cycle), str(req.body.promoCode));
   res.status(201).json({ success: true, data });
 }));
 

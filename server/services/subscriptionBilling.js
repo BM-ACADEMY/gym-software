@@ -8,6 +8,7 @@ const { getPlan } = require('../config/plans');
 const { computeStatus } = require('./subscription');
 const M = require('./billingMath');
 const gateway = require('./paymentGateway');
+const promoSvc = require('./promo');
 
 const sellerState = () => process.env.SELLER_STATE || 'Puducherry';
 const invoicePrefix = () => process.env.INVOICE_PREFIX || 'AV';
@@ -23,7 +24,7 @@ const usageOf = async (subscriberId) => {
 };
 
 // What buying plan/cycle would cost this gym right now. No side effects.
-const buildQuote = async (subscriberId, planKey, cycle, now = new Date()) => {
+const buildQuote = async (subscriberId, planKey, cycle, now = new Date(), promoCode) => {
   const plan = getPlan(planKey);
   if (!plan || !M.CYCLES[cycle]) throw fail(400, 'Choose a plan and monthly or yearly billing', 'bad_plan');
 
@@ -48,16 +49,17 @@ const buildQuote = async (subscriberId, planKey, cycle, now = new Date()) => {
   if (!subscriber.state) {
     throw fail(400, 'Please select your state first. It decides how GST is shown on your invoice.', 'state_required');
   }
-  const quote = M.quote({ plan: planKey, cycle, creditRupees: rule.creditRupees, gstMode: M.gstModeFor(subscriber.state, sellerState()) });
-  return { subscriber, rule, quote, plan };
+  const promo = promoCode ? await promoSvc.checkPromo(promoCode, { subscriberId, planKey, now }) : null;
+  const quote = M.quote({ plan: planKey, cycle, creditRupees: rule.creditRupees, gstMode: M.gstModeFor(subscriber.state, sellerState()), discountPercent: promo ? promo.percentOff : 0 });
+  return { subscriber, rule, quote, plan, promo };
 };
 
-const startCheckout = async (subscriberId, planKey, cycle) => {
+const startCheckout = async (subscriberId, planKey, cycle, promoCode) => {
   const real = await gateway.isRealGatewayConfigured();
   if (!real && !gateway.simulationAllowed()) {
     throw fail(503, 'Online payment is not switched on yet. Please contact support.', 'billing_not_configured');
   }
-  const { subscriber, rule, quote } = await buildQuote(subscriberId, planKey, cycle);
+  const { subscriber, rule, quote, promo } = await buildQuote(subscriberId, planKey, cycle, new Date(), promoCode);
   if (quote.total < 1) throw fail(400, 'This amount is too small to charge.');
 
   const receipt = `gd_${Date.now().toString(36)}`;
@@ -71,7 +73,7 @@ const startCheckout = async (subscriberId, planKey, cycle) => {
 
   await SubscriptionPayment.create({
     subscriberId, planKey, cycle, startMode: rule.startMode, status: 'created',
-    base: quote.base, credit: quote.credit, taxable: quote.taxable, gst: quote.gst,
+    base: quote.base, credit: quote.credit, discount: quote.discount, promoCode: promo ? promo.code : undefined, taxable: quote.taxable, gst: quote.gst,
     cgst: quote.cgst, sgst: quote.sgst, igst: quote.igst, total: quote.total,
     gstMode: quote.gstMode, gstRate: quote.gstRate, provider: order.provider,
     razorpayOrderId: order.orderId, buyerName: subscriber.gymName,
@@ -132,6 +134,7 @@ const activate = async ({ orderId, paymentId, paidAmountRupees }, now = new Date
       p = (await SubscriptionPayment.findOneAndUpdate({ _id: p._id, invoiceNo: { $exists: false } }, { $set: { invoiceNo: await nextInvoiceNo(now) } }, { new: true })) || (await SubscriptionPayment.findById(p._id));
     }
     await applyToSubscriber(p);
+    await promoSvc.redeemForPayment(p);
   }
   return p;
 };

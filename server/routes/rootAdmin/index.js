@@ -13,5 +13,7 @@ router.use('/billing', require('./billing'));
 router.use('/support', require('./support'));
 router.use('/request-access', require('./requestAccess'));
 router.use('/settings', require('./settings'));
+router.use('/usage', require('./usage'));
+router.use('/usage', require('./usage'));
 
 module.exports = router;

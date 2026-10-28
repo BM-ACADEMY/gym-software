@@ -61,6 +61,7 @@ const generatePlan = async (req, res) => {
       medicalNotes: member.medicalNotes,
       equipmentAvailable: member.equipmentAvailable,
       bodyStats: { weightKg: latestProgress?.weight },
+      subscriberId: req.user.subscriberId,
     });
 
     const isSubAdmin = req.user.role === 'subadmin';

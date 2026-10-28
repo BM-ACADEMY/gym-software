@@ -9,6 +9,7 @@ const { HELP_ARTICLES } = require('../config/helpArticles');
 const { effectivePlan } = require('./subscription');
 const { istParts } = require('./automationRules');
 const askData = require('./askData');
+const aiBudget = require('./aiBudget');
 
 const DAY = 86400000;
 const LEGACY_CAP = 200; // gyms still on the old DB plan system
@@ -93,9 +94,12 @@ const capFor = (subscriber, now = new Date()) => {
 };
 
 const usage = async (subscriber, now = new Date()) => {
-  const used = await AiUsage.countDocuments({ subscriberId: subscriber._id, createdAt: { $gte: monthStartUtc(now) } });
+  // Plan generation has its own monthly limit (plan features), so it is not counted here.
+  const used = await AiUsage.countDocuments({ subscriberId: subscriber._id, kind: { $ne: 'plan' }, createdAt: { $gte: monthStartUtc(now) } });
   const cap = capFor(subscriber, now);
-  return { used, cap, remaining: Math.max(0, cap - used) };
+  // Platform daily budget reached: no AI anywhere today; rule-based answers carry on.
+  const budgetStopped = await aiBudget.isStopped(now);
+  return { used, cap, remaining: budgetStopped ? 0 : Math.max(0, cap - used), budgetStopped };
 };
 
 // ---------- model call ----------

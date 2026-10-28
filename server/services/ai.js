@@ -6,6 +6,8 @@
 // design, not a placeholder for an LLM call — the doc only calls out an LLM
 // for AI Plans.
 const aiProvider = require('./aiProvider');
+const aiBudget = require('./aiBudget');
+const AiUsage = require('../models/AiUsage');
 
 const GOAL_PROFILES = {
   'fat loss': { split: ['Full Body Circuit', 'Cardio + Core', 'Full Body Circuit', 'Active Recovery'], calorieAdjust: -400, proteinPerKg: 1.8 },
@@ -132,7 +134,7 @@ const extractJson = (text) => {
   return JSON.parse(text.slice(start, end + 1));
 };
 
-const generateWithModel = async ({ goal, medicalNotes, equipmentAvailable, bodyStats }) => {
+const generateWithModel = async ({ goal, medicalNotes, equipmentAvailable, bodyStats, subscriberId }) => {
   const prompt = `Create a personalized workout and diet plan for a gym member.
 Goal: ${goal || 'general fitness'}
 Medical notes / conditions to work around: ${medicalNotes || 'none reported'}
@@ -142,6 +144,10 @@ Body weight in kg, if known: ${bodyStats?.weightKg || 'unknown'}
 ${WORKOUT_DIET_SCHEMA_INSTRUCTIONS}`;
 
   const reply = await aiProvider.complete({ user: prompt, maxTokens: 4096, model: aiProvider.standardModel(), timeoutMs: 60000 });
+  // Record the real cost whether or not the answer is usable.
+  if (subscriberId) {
+    try { await AiUsage.create({ subscriberId, kind: 'plan', model: reply.model, ...reply.usage }); } catch (e) { console.warn('Could not record plan AI usage:', e.message); }
+  }
   const parsed = extractJson(reply.text);
   if (!Array.isArray(parsed.workoutJson?.days) || parsed.workoutJson.days.length === 0 || !parsed.dietJson?.macros) {
     throw new Error('AI response is missing required workoutJson/dietJson fields');
@@ -151,10 +157,10 @@ ${WORKOUT_DIET_SCHEMA_INSTRUCTIONS}`;
 
 // @param member  { goal, medicalNotes, equipmentAvailable }
 // @param bodyStats  { weightKg } — from the member's latest progress log entry, if any
-const generateWorkoutDietPlan = async ({ goal, medicalNotes, equipmentAvailable, bodyStats }) => {
-  if (aiProvider.isEnabled()) {
+const generateWorkoutDietPlan = async ({ goal, medicalNotes, equipmentAvailable, bodyStats, subscriberId }) => {
+  if (aiProvider.isEnabled() && !(await aiBudget.isStopped())) {
     try {
-      return await generateWithModel({ goal, medicalNotes, equipmentAvailable, bodyStats });
+      return await generateWithModel({ goal, medicalNotes, equipmentAvailable, bodyStats, subscriberId });
     } catch (error) {
       console.warn('AI plan generation failed, falling back to the built-in generator:', error.message);
     }

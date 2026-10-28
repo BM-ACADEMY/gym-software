@@ -32,12 +32,14 @@ Progress 24 Oct: dev branch `charles` merged in. 1A-01/02/03 written (plans in `
 
 ## Phase 1b: Retention and setup
 
+Progress 28 Oct: 1B-01 to 1B-04 written. `utils/whatsapp.js` sends approved templates only (demo mode logs text when no credentials); `services/automations.js` runs every 15 min (renewals at 30/7/1 days and +1/+7 after end, weekly dues up to 4, 10-day absence, owner summary at 8 pm IST; 9am to 9pm IST for members; each message has a unique dedupe key; per-plan monthly quota; skipped for locked gyms). Old SMS channel now off unless `SMS_ENABLED=true`. Templates to submit to Meta: `docs/WHATSAPP_TEMPLATES.md`. Tests `tests/automationRules.unit.test.js` (10/10 via shim) and `tests/automations.test.js` (not run). Open: dues pay link is a UPI ID in text (no clickable link); members reply to the GymDesk number, not the gym.
+
 | ID | Task | Status | Acceptance |
 | --- | --- | --- | --- |
-| 1B-01 | WhatsApp template sender (never throws, timeouts) and opt-in flag per member | TODO | Replaces free-text sender on branch `charles` |
-| 1B-02 | Renewal reminders at 30, 7, 1 day and at lapse; dues chase with Razorpay payment link | TODO | Member pays link, record updates itself |
-| 1B-03 | Absence alert (10 days) and one-tap win-back message | TODO | |
-| 1B-04 | Owner daily summary message | TODO | |
+| 1B-01 | WhatsApp template sender (never throws, timeouts) and opt-in flag per member | WRITTEN | Replaces free-text sender on branch `charles` |
+| 1B-02 | Renewal reminders at 30, 7, 1 day and at lapse; dues chase with Razorpay payment link | WRITTEN | Member pays link, record updates itself |
+| 1B-03 | Absence alert (10 days) and one-tap win-back message | WRITTEN | |
+| 1B-04 | Owner daily summary message | WRITTEN | |
 | 1B-05 | Setup wizard and demo data; Excel/CSV member import with preview and error list | TODO | 100 members imported in under 5 minutes |
 | 1B-06 | Device user ID on Member and SubAdmin; import device logs (CSV/Excel) into Attendance with `method: biometric` | TODO | Duplicates ignored; unmatched IDs listed |
 | 1B-07 | Staff attendance (QR/manual), leave and late marks | TODO | |

@@ -6,7 +6,6 @@ const Payment = require('../models/Payment');
 const PTSession = require('../models/PTSession');
 const { sendSms } = require('../utils/sms');
 const { sendEmail } = require('../utils/email');
-const { sendWhatsapp } = require('../utils/whatsapp');
 const { suggestBestSendHour } = require('./ai');
 
 // Same global demo/live switch Root Admin already controls for OTP delivery
@@ -37,9 +36,8 @@ const dispatchOne = async ({ subscriberId, recipientType, recipientId, type, cha
   const mode = await getMode();
   try {
     if (to && mode === 'live') {
-      if (channel === 'sms') await sendSms(to, message);
+      if (channel === 'sms' && process.env.SMS_ENABLED === 'true') await sendSms(to, message);
       if (channel === 'email') await sendEmail(to, 'GymDesk notification', message);
-      if (channel === 'whatsapp') await sendWhatsapp(to, message);
     } else if (to) {
       console.log(`[DEMO ${channel.toUpperCase()}] To: ${to} | ${message}`);
     }
@@ -52,9 +50,8 @@ const dispatchOne = async ({ subscriberId, recipientType, recipientId, type, cha
 const notifyMember = async (member, type, message) => {
   const prefs = member.notificationPreferences || { sms: true, email: true, whatsapp: false };
   const channels = [{ channel: 'in_app', to: null }];
-  if (member.phone && prefs.sms !== false) channels.push({ channel: 'sms', to: member.phone });
+  if (member.phone && prefs.sms !== false && process.env.SMS_ENABLED === 'true') channels.push({ channel: 'sms', to: member.phone });
   if (member.email && prefs.email !== false) channels.push({ channel: 'email', to: member.email });
-  if (member.phone && prefs.whatsapp === true) channels.push({ channel: 'whatsapp', to: member.phone });
   return Promise.all(channels.map((c) => dispatchOne({
     subscriberId: member.subscriberId, recipientType: 'member', recipientId: member._id, type, message, channel: c.channel, to: c.to,
   })));
@@ -63,9 +60,8 @@ const notifyMember = async (member, type, message) => {
 const notifyStaff = async (subAdmin, type, message) => {
   const prefs = subAdmin.notificationPreferences || { sms: true, email: true, whatsapp: false };
   const channels = [{ channel: 'in_app', to: null }];
-  if (subAdmin.phone) channels.push({ channel: 'sms', to: subAdmin.phone });
+  if (subAdmin.phone && process.env.SMS_ENABLED === 'true') channels.push({ channel: 'sms', to: subAdmin.phone });
   if (subAdmin.email) channels.push({ channel: 'email', to: subAdmin.email });
-  if (subAdmin.phone && prefs.whatsapp === true) channels.push({ channel: 'whatsapp', to: subAdmin.phone });
   return Promise.all(channels.map((c) => dispatchOne({
     subscriberId: subAdmin.subscriberId, recipientType: 'subadmin', recipientId: subAdmin._id, type, message, channel: c.channel, to: c.to,
   })));

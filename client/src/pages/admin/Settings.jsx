@@ -305,21 +305,34 @@ const Settings = () => {
       {tab === 'whatsapp' && (
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <SectionCard
-          title="WhatsApp notifications"
-          description="Send plan-expiry, overdue-payment and PT-session reminders over WhatsApp in addition to SMS/email"
-          onSave={() => saveGym({ whatsappEnabled: gym.whatsappEnabled, whatsappNumber: gym.whatsappNumber }, 'whatsapp', 'WhatsApp settings')}
+          title="WhatsApp reminders"
+          description="GymDesk messages your members for you: renewals, pending payments and members who stopped coming. You get a daily summary too."
+          onSave={() => saveGym({ whatsappEnabled: gym.whatsappEnabled, upiId: gym.upiId || '', automations: { renewal: gym.automations?.renewal !== false, dues: gym.automations?.dues !== false, absence: gym.automations?.absence !== false, dailySummary: gym.automations?.dailySummary !== false } }, 'whatsapp', 'WhatsApp settings')}
           saving={savingSection === 'whatsapp'}
           disabled={suspended}
         >
-          <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" checked={!!gym.whatsappEnabled} onChange={(e) => setGym({ ...gym, whatsappEnabled: e.target.checked })} /> Enable WhatsApp notifications
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input className="mt-1" type="checkbox" checked={!!gym.whatsappEnabled} onChange={(e) => setGym({ ...gym, whatsappEnabled: e.target.checked })} />
+            <span>Turn on WhatsApp reminders. I confirm my members have agreed to receive messages from my gym on WhatsApp.</span>
           </label>
           {gym.whatsappEnabled && (
-            <Input label="WhatsApp Business number" value={gym.whatsappNumber || ''} onChange={(e) => setGym({ ...gym, whatsappNumber: e.target.value })} placeholder="+91XXXXXXXXXX" />
+            <>
+              <Input label="Your UPI ID (shown in payment reminders)" value={gym.upiId || ''} onChange={(e) => setGym({ ...gym, upiId: e.target.value })} placeholder="irongym@okaxis" />
+              {[
+                ['renewal', 'Renewal reminders (30, 7 and 1 day before, and after it ends)'],
+                ['dues', 'Pending payment reminders (weekly, up to 4 times)'],
+                ['absence', 'Message members who have not visited for 10 days'],
+                ['dailySummary', 'Send me a daily summary at 8 pm'],
+              ].map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={gym.automations?.[key] !== false} onChange={(e) => setGym({ ...gym, automations: { ...(gym.automations || {}), [key]: e.target.checked } })} /> {label}
+                </label>
+              ))}
+            </>
           )}
           <p className="flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-500">
             <MessageCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            Messages send through the WhatsApp Cloud API once your gym owner account has WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN configured on the server. Until then, enabling this only logs messages instead of sending them — the same demo-mode behavior SMS uses before a gateway is connected.
+            Messages go out between 9 am and 9 pm. Each reminder is sent once. Members can ask you to stop at any time; turn their WhatsApp off on their profile.
           </p>
         </SectionCard>
       </div>

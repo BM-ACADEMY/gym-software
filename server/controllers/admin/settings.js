@@ -3,7 +3,7 @@ const Subscriber = require('../../models/Subscriber');
 const Admin = require('../../models/Admin');
 const SubAdmin = require('../../models/SubAdmin');
 
-const GYM_FIELDS = ['gymName', 'logoUrl', 'brandColor', 'workingHours', 'holidays', 'memberIdFormat', 'staffIdFormat', 'attendanceGraceMode', 'aiPlanReviewRequired', 'gstEnabled', 'gstNumber', 'gstRate', 'whatsappEnabled', 'whatsappNumber'];
+const GYM_FIELDS = ['gymName', 'logoUrl', 'brandColor', 'workingHours', 'holidays', 'memberIdFormat', 'staffIdFormat', 'attendanceGraceMode', 'aiPlanReviewRequired', 'gstEnabled', 'gstNumber', 'gstRate', 'whatsappEnabled', 'whatsappNumber', 'upiId', 'automations'];
 
 // ===== Gym Owner: gym-wide settings =====
 
@@ -35,8 +35,25 @@ const updateGymSettings = async (req, res) => {
     const subscriber = await Subscriber.findById(req.user.subscriberId);
     if (!subscriber) return res.status(404).json({ success: false, message: 'Gym not found' });
 
+    // upiId and automations need checking; everything else is a plain whitelisted copy.
+    if (req.body.upiId !== undefined) {
+      const upi = typeof req.body.upiId === 'string' ? req.body.upiId.trim() : null;
+      if (upi === null || (upi !== '' && !/^[\w.\-]{2,64}@[A-Za-z][A-Za-z0-9.\-]{1,30}$/.test(upi))) {
+        return res.status(400).json({ success: false, message: 'That UPI ID does not look right (example: irongym@okaxis)' });
+      }
+    }
+    if (req.body.automations !== undefined) {
+      const a = req.body.automations;
+      if (!a || typeof a !== 'object' || Array.isArray(a) || Object.values(a).some((v) => typeof v !== 'boolean')) {
+        return res.status(400).json({ success: false, message: 'Invalid automation settings' });
+      }
+      subscriber.automations = {
+        renewal: a.renewal !== false, dues: a.dues !== false, absence: a.absence !== false, dailySummary: a.dailySummary !== false,
+      };
+    }
     for (const field of GYM_FIELDS) {
-      if (req.body[field] !== undefined) subscriber[field] = req.body[field];
+      if (field === 'automations') continue;
+      if (req.body[field] !== undefined) subscriber[field] = field === 'upiId' ? req.body.upiId.trim() : req.body[field];
     }
     await subscriber.save();
 

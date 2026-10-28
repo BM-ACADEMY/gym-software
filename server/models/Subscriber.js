@@ -114,6 +114,17 @@ const subscriberSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  // Which WhatsApp automations run for this gym (all on by default once
+  // whatsappEnabled is switched on; whatsappEnabled means the gym confirms its
+  // members have agreed to receive reminders).
+  automations: {
+    renewal: { type: Boolean, default: true },
+    dues: { type: Boolean, default: true },
+    absence: { type: Boolean, default: true },
+    dailySummary: { type: Boolean, default: true },
+  },
+  // UPI ID printed in payment reminders, e.g. irongym@upi
+  upiId: { type: String, trim: true },
   whatsappNumber: {
     type: String,
     trim: true

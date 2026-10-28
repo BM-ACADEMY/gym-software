@@ -2,6 +2,7 @@ require('dotenv').config();
 const connectDB = require('./config/db');
 const app = require('./app');
 const { runAllRules } = require('./services/notifications');
+const { runWhatsappAutomations } = require('./services/automations');
 const { runBillingCycle, runMemberAutoRenewals } = require('./services/billing');
 
 // Refuse to start in production with unsafe configuration. A weak JWT secret
@@ -40,3 +41,11 @@ setTimeout(() => {
     runMemberAutoRenewals().catch((err) => console.error('Member auto-renewal run failed:', err));
   }, NOTIFICATION_RULES_INTERVAL_MS);
 }, 10000);
+
+// WhatsApp automations (renewals, dues, absence, owner summary): every 15 minutes.
+// Each message has a unique dedupe key, so overlapping or repeated runs never double-send.
+setTimeout(() => {
+  const tick = () => runWhatsappAutomations().catch((err) => console.error('WhatsApp automations run failed:', err));
+  tick();
+  setInterval(tick, 15 * 60 * 1000);
+}, 20000);

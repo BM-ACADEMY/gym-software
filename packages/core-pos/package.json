@@ -4,6 +4,7 @@
   "private": true,
   "description": "Shared billing, loyalty and stock rules for Salon, Mart, Dine, Cloth and Wash. Pure functions, no database, no network.",
   "main": "src/index.js",
+  "exports": { ".": "./src/index.js", "./pure": "./src/pure.js" },
   "scripts": { "test": "jest" },
   "license": "UNLICENSED"
 }

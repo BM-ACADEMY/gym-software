@@ -1,0 +1,10 @@
+{
+  "name": "@afra/core-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared screens and helpers for every product (browser code only).",
+  "main": "src/index.js",
+  "peerDependencies": { "react": "*" },
+  "license": "UNLICENSED"
+}

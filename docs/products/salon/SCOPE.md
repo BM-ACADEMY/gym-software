@@ -11,7 +11,7 @@ Empty slots from no-shows, customers who come once and vanish, staff who take cl
 | Competitors Dingg, MioSalon, Invoay, Salonist at Rs 800 to 2,500 a month plus Rs 200 to 500 per extra staff login | Source | CodingClave, via master plan section 2; vendor pages, not audited |
 | Marketing and win-back weak or paid extra | Source | master plan section 2 |
 | Our price band Rs 149 to 499 is a 70 to 88 percent cut | Fact (arithmetic) | Not yet approved: the shop ladder needs a cost check (D-10 covers gym only) |
-| Live comparison of each competitor's current feature list | Assumption | Not yet checked page by page; Lane E task SAL-R1 before launch copy |
+| Live comparison of each competitor's current feature list | Source (first pass, 28 Oct) | Invoay, SalonBoost, Easy Salon read; see `RESEARCH.md`. Vendor pricing pages and owner interviews still open (SAL-R1) |
 
 ## 3. Presets
 Salon (hair, skin, nails), Spa (long services, rooms, therapist slots, packages), Barber/Grooming (fast walk-in queue, short services, shaving/beard add-ons). Preset sets the service list, durations, GST/SAC defaults, queue vs appointment default and message wording.

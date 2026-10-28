@@ -38,7 +38,7 @@ Progress 28 Oct: 1B-01 to 1B-04 written. `utils/whatsapp.js` sends approved temp
 | --- | --- | --- | --- |
 | 1B-01 | WhatsApp template sender (never throws, timeouts) and opt-in flag per member | WRITTEN | Replaces free-text sender on branch `charles` |
 | 1B-02 | Renewal reminders at 30, 7, 1 day and at lapse; dues chase with Razorpay payment link | WRITTEN | Member pays link, record updates itself |
-| 1B-03 | Absence alert (10 days) and one-tap win-back message | WRITTEN | |
+| 1B-03 | Absence alert (10 days) and one-tap win-back message | WRITTEN (Win Back Members screen, `tests/retention.test.js` not run) | |
 | 1B-04 | Owner daily summary message | WRITTEN | |
 | 1B-05 | Setup wizard and demo data; Excel/CSV member import with preview and error list | WRITTEN (import + dashboard checklist) | 100 members imported in under 5 minutes |
 | 1B-06 | Device user ID on Member and SubAdmin; import device logs (CSV/Excel) into Attendance with `method: biometric` | WRITTEN | Duplicates ignored; unmatched IDs listed |
@@ -51,7 +51,7 @@ Progress 28 Oct: 1B-01 to 1B-04 written. `utils/whatsapp.js` sends approved temp
 | --- | --- | --- | --- |
 | 1C-01 | i18n framework; move all UI text to language files; English, Tamil, Hindi | PARTIAL (framework `client/src/i18n`, English text is the key; menu, header, trial banner translated; language picker in header; every other screen still English; Tamil and Hindi need native review) | Language switch per user; no hard-coded text left |
 | 1C-02 | Help centre (top 20 articles), in-app help links | WRITTEN (13 articles at `/help`, search, link in account menu and footer) | |
-| 1C-03 | Support chatbot on WhatsApp with hand-over; support tickets (reuse existing Ticket model) | PARTIAL (owner Help & Support page + tickets written, `tests/support.test.js` not run; WhatsApp chatbot NOT started, needs the WhatsApp number) | |
+| 1C-03 | Support chatbot on WhatsApp with hand-over; support tickets (reuse existing Ticket model) | WRITTEN (owner Help & Support page + tickets; WhatsApp bot for gym owners: webhook `/api/payments/whatsapp-webhook`, answers from help articles, AGENT or unsure creates one ticket then goes quiet for a day, demo mode without credentials; tests not run; needs the WhatsApp number, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET`) | |
 | 1C-04 | Global-ready settings: currency, tax label and rate, timezone, country code per gym | PARTIAL (country, currency, time zone, language saved per gym with checks, Settings card; `tests/settingsRegionBranding.test.js` not run. NOT yet used: automations still run on IST and English templates, invoices are INR + GST only) | INR/GST default |
 
 ## Phase 1e: AI features (added 28 Oct for the launch story)

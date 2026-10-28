@@ -40,6 +40,8 @@ Screen checks (Staff 1 and 2):
 7c. Super Admin: sign in as root admin, open Business Overview: gyms by status, MRR, trials ending. Give 7 days to a trial gym with a reason and check it moves.
 7d. Set SMTP in server env, set a gym's trialEndsAt to 2 days ahead: within 15 minutes (10:00 to 20:00 IST) the owner gets one email, never a second.
 7e. Billing page > Download your data: three CSV files open in Excel, only that gym's rows; works after the plan has ended.
+7f. Win Back Members screen lists absent and lapsed members; Send WhatsApp works once per member per day (demo mode logs the text).
+7g. WhatsApp support bot (after the number exists): set the webhook in Meta to /api/payments/whatsapp-webhook with WHATSAPP_VERIFY_TOKEN and WHATSAPP_APP_SECRET. Message from an owner's registered number: 'how do I import members' gets an answer; 'AGENT' creates one ticket in Root Admin Support.
 8. Solo plan gym with 51 members cannot buy Solo; Growth gym cannot change logo/colours (Pro only).
 
 Dev B (API attacks): try reading another gym's data with a valid token on every new route (`/api/admin/subscription`, `/members/import`, `/attendance/device-log`, `/staff-attendance`, `/support`, `/onboarding`); try forged webhooks; try a tampered member QR.

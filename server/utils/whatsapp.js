@@ -1,4 +1,5 @@
 const axios = require('axios');
+const crypto = require('crypto');
 const { orderedParams, render } = require('../config/whatsappTemplates');
 
 // WhatsApp Cloud API (Meta). Business-initiated messages go out as approved
@@ -56,4 +57,35 @@ const sendTemplate = async ({ to, template, params, lang = process.env.WHATSAPP_
   }
 };
 
-module.exports = { normalizePhone, isConfigured, sendTemplate };
+// Free-text reply. Only allowed by WhatsApp within 24 hours of the person's own
+// message, so it is used ONLY for answering inbound support chat, never for outreach.
+const sendText = async ({ to, text }) => {
+  const phone = normalizePhone(to);
+  if (!phone) return { ok: false, demo: false, error: 'invalid_phone' };
+  if (!isConfigured()) {
+    console.log(`[DEMO WHATSAPP REPLY] to ${phone} | ${text}`);
+    return { ok: true, demo: true };
+  }
+  const { phoneNumberId, accessToken } = credentials();
+  try {
+    await axios.post(
+      `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+      { messaging_product: 'whatsapp', to: phone, type: 'text', text: { body: String(text).slice(0, 1000), preview_url: false } },
+      { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 10000 }
+    );
+    return { ok: true, demo: false };
+  } catch (err) {
+    return { ok: false, demo: false, error: String(err.response?.data?.error?.message || err.message).slice(0, 200) };
+  }
+};
+
+// Meta signs the raw webhook body: X-Hub-Signature-256 = "sha256=" + HMAC-SHA256(app secret, body).
+const verifyMetaSignature = (rawBody, header, appSecret) => {
+  if (!rawBody || !header || !appSecret) return false;
+  const expected = 'sha256=' + crypto.createHmac('sha256', appSecret).update(rawBody).digest('hex');
+  const a = Buffer.from(expected);
+  const b = Buffer.from(String(header));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+};
+
+module.exports = { normalizePhone, isConfigured, sendTemplate, sendText, verifyMetaSignature };

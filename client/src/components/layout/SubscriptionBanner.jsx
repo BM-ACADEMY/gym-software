@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { useT } from '../../i18n';
 import apiClient from '../../api/client';
 import { selectCurrentUser } from '../../store/slices/authSlice';
 
@@ -10,6 +11,7 @@ import { selectCurrentUser } from '../../store/slices/authSlice';
 const SubscriptionBanner = () => {
   const user = useSelector(selectCurrentUser);
   const [info, setInfo] = useState(null);
+  const { t } = useT();
 
   useEffect(() => {
     if (user?.role !== 'admin') return;
@@ -21,10 +23,15 @@ const SubscriptionBanner = () => {
   const needsAttention = status === 'grace' || status === 'expired' || (status === 'trial' && daysLeft <= 5);
   if (!needsAttention) return null;
 
+  const one = daysLeft === 1;
   const text = {
-    trial: `Your free trial ends in ${daysLeft} day${daysLeft === 1 ? '' : 's'}. Choose a plan to keep everything running.`,
-    grace: `Your plan has ended. Pay within ${daysLeft} day${daysLeft === 1 ? '' : 's'} to avoid read-only mode.`,
-    expired: 'Your plan has ended. You can view your data, but changes are switched off until you pay.',
+    trial: one
+      ? t('Your free trial ends in 1 day. Choose a plan to keep everything running.')
+      : t('Your free trial ends in {n} days. Choose a plan to keep everything running.', { n: daysLeft }),
+    grace: one
+      ? t('Your plan has ended. Pay within 1 day to avoid read-only mode.')
+      : t('Your plan has ended. Pay within {n} days to avoid read-only mode.', { n: daysLeft }),
+    expired: t('Your plan has ended. You can view your data, but changes are switched off until you pay.'),
   }[status];
   const tone = status === 'expired' ? 'bg-red-600' : status === 'grace' ? 'bg-amber-500' : 'bg-teal-600';
 
@@ -32,7 +39,7 @@ const SubscriptionBanner = () => {
     <div className={`flex flex-wrap items-center gap-2 px-4 py-2.5 text-sm font-medium text-white ${tone}`}>
       <Clock className="h-4 w-4 flex-shrink-0" />
       <span>{text}</span>
-      <Link to="/admin/billing" className="ml-auto rounded-lg bg-white/20 px-3 py-1 font-semibold hover:bg-white/30">Choose plan</Link>
+      <Link to="/admin/billing" className="ml-auto rounded-lg bg-white/20 px-3 py-1 font-semibold hover:bg-white/30">{t('Choose plan')}</Link>
     </div>
   );
 };

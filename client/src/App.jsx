@@ -9,6 +9,7 @@ import Faq from './pages/public/Faq';
 import Privacy from './pages/public/Privacy';
 import Terms from './pages/public/Terms';
 import Refund from './pages/public/Refund';
+import Help from './pages/public/Help';
 
 // Auth pages
 import SignIn from './pages/auth/SignIn';
@@ -63,6 +64,7 @@ function App() {
         <Route path="/privacy/app-privacy" element={<Navigate to="/privacy" replace />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/refund" element={<Refund />} />
+        <Route path="/help" element={<Help />} />
 
         {/* ── Auth Routes ── */}
         <Route path="/login" element={<SignIn />} />

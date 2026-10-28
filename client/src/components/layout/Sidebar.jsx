@@ -1,9 +1,11 @@
+import { useT } from '../../i18n';
 import { NavLink } from 'react-router-dom';
 import { Dumbbell, X } from 'lucide-react';
 
 // Generic, role-aware sidebar. Every layout passes in its own nav config —
 // the component itself has no idea which role is looking at it.
 const Sidebar = ({ navItems, basePath, roleLabel, open, onClose }) => {
+  const { t } = useT();
   return (
     <>
       {open && (
@@ -49,7 +51,7 @@ const Sidebar = ({ navItems, basePath, roleLabel, open, onClose }) => {
               onClick={onClose}
             >
               <Icon className="h-4 w-4 flex-shrink-0" />
-              <span>{label}</span>
+              <span>{t(label)}</span>
             </NavLink>
           ))}
         </nav>

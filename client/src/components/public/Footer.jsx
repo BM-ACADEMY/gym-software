@@ -46,6 +46,7 @@ const Footer = () => {
                 { to: '/blog', label: 'Blog' },
                 { to: '/contact', label: 'Contact Support' },
                 { to: '/faq', label: 'FAQs' },
+                { to: '/help', label: 'Help centre' },
               ].map(link => (
                 <li key={link.to}>
                   <Link to={link.to} className="text-gray-400 hover:text-teal-400 text-sm transition-colors">{link.label}</Link>

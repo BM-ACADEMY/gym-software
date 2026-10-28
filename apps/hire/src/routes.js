@@ -13,10 +13,11 @@ const { checkCap } = require('./plans');
 const { parseResume } = require('./resumeService');
 const autopilot = require('./autopilot');
 const consent = require('./consent');
+const extract = require('./extract');
 
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const monthStart = () => { const n = new Date(); return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), 1)); };
-const KNOWN = ['PARSE_NO_JSON', 'PARSE_BAD_JSON', 'RESUME_EMPTY', 'CAP_REACHED', 'AI_OFF', 'TENANT_REQUIRED', 'PIPELINE_STAGE', 'PIPELINE_TRANSITION', 'PIPELINE_REASON', 'FEE_INVALID', 'CONSENT_SOURCE', 'PLAN_UNKNOWN'];
+const KNOWN = ['PARSE_NO_JSON', 'PARSE_BAD_JSON', 'RESUME_EMPTY', 'CAP_REACHED', 'AI_OFF', 'TENANT_REQUIRED', 'PIPELINE_STAGE', 'PIPELINE_TRANSITION', 'PIPELINE_REASON', 'FEE_INVALID', 'CONSENT_SOURCE', 'PLAN_UNKNOWN', 'FILE_EMPTY', 'FILE_TOO_BIG', 'FILE_TYPE', 'FILE_UNREADABLE', 'FILE_NO_TEXT'];
 
 function toPlain(d) { const o = d && d.toObject ? d.toObject() : d; return o ? { ...o, id: String(o._id) } : o; }
 
@@ -54,6 +55,23 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
     if (dup) return res.status(409).json({ success: false, message: 'This candidate already exists.', data: { id: dup.match.id, by: dup.by } });
     const doc = await M.Candidate.create({ ...candidate, tenantId: tid, source: 'manual', reviewed: true, consent: b.consentSource ? consent.consentRecord({ source: b.consentSource, purposeAi: !!b.purposeAi }) : undefined });
     res.status(201).json({ success: true, data: toPlain(doc) });
+  }));
+  const parseDeps = (req) => ({
+      ai, budget,
+      usage: { countThisMonth: (t, k) => countUsed(t, k), record: (t, r) => M.UsageLog.create({ tenantId: t, kind: r.kind, model: r.model, inTokens: r.usage.inTokens, outTokens: r.usage.outTokens }) },
+      candidates: {
+        list: async (t) => (await M.Candidate.find({ tenantId: t })).map(toPlain),
+        create: async (t, c) => toPlain(await M.Candidate.create({ ...c, tenantId: t })),
+        update: async (t, id, c) => { const { id: _i, _id, tenantId, ...rest } = c; await M.Candidate.updateOne({ _id: id, tenantId: t }, { $set: rest }); },
+      },
+    });
+  // Upload a resume as base64 JSON (fileBase64). The server must allow a JSON body of about 6 MB on this path.
+  router.post('/candidates/parse-file', wrap(async (req, res, tid) => {
+    let out;
+    try { out = await extract.extractText(extract.fromBase64(req.body && req.body.fileBase64)); }
+    catch (e) { if (e.code === 'READER_MISSING') return fail(res, 503, e.message); throw e; }
+    const r = await parseResume({ tenantId: tid, plan: planOf(req), text: out.text, consentSource: req.body.consentSource }, parseDeps(req));
+    res.status(r.action === 'created' ? 201 : 200).json({ success: true, data: r });
   }));
   router.post('/candidates/parse', wrap(async (req, res, tid) => {
     const plan = planOf(req);

@@ -6,7 +6,7 @@ DRAFT written 29 Oct 2026 by Claude. Not legal advice. The lawyer must review an
 [Company legal name] builds simple business software for small Indian businesses: gyms, salons, shops, restaurants, cloth stores, car washes and recruitment agencies. Registered office: 78, Lenin Street, Kosapalayam, Puducherry - 605013, India (Mohamed gave this on 29 Oct; check it matches the certificates exactly). Contact: hello@afraventures.in. Products are in invite-only testing; each product page lists exactly what works today.
 
 ## Contact and grievance
-Support: support@afraventures.in, [support phone]. Grievance officer: [name], privacy@afraventures.in. Phone support 10 am to 6 pm IST, Monday to Saturday [confirm days]. An AI help assistant answers how-to questions at any hour; billing, refund and data requests are answered by a person on the next working day. We reply within [2 working days] and resolve within [15 days] (lawyer to confirm the periods).
+Support: support@afraventures.in, [support phone]. Grievance officer: [name], privacy@afraventures.in. Phone support 10 am to 6 pm IST, Monday to Saturday (Mohamed, 29 Oct). An AI help assistant answers how-to questions at any hour; billing, refund and data requests are answered by a person on the next working day. We reply within [2 working days] and resolve within [15 days] (lawyer to confirm the periods).
 
 ## Privacy Policy (company level, all products)
 1. **Who we are.** [Legal name], 78, Lenin Street, Kosapalayam, Puducherry - 605013, India. We are the data fiduciary for our customers' account data. For data a business enters about its own customers, members or candidates, the business decides why it is collected and we process it for them.

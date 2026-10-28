@@ -13,7 +13,7 @@ Written 29 Oct 2026. Domain and email are in `docs/DOMAIN_AND_EMAIL_SETUP.md`. L
 | Each new product uses the same account; add its plan ids when its pricing is approved (Tier 3) | later |
 
 ## 2. Support from day one (decided 29 Oct)
-- Human phone support 10 am to 6 pm IST. AI help assistant 24 hours for how-to questions only: it answers from the help articles, says plainly it is an AI, never promises a refund, a fix or a date, and offers to create a ticket. Billing, refund, data deletion and complaints go to a person (next working day). The assistant is written but not yet tested by a person; do not advertise "24x7 support" until it is. Its AI use counts against the plan cap and the daily budget stop.
+- Human phone support 10 am to 6 pm IST, Monday to Saturday. Support phone number: Mohamed gives it on 30 Oct. AI help assistant 24 hours for how-to questions only: it answers from the help articles, says plainly it is an AI, never promises a refund, a fix or a date, and offers to create a ticket. Billing, refund, data deletion and complaints go to a person (next working day). The assistant is written but not yet tested by a person; do not advertise "24x7 support" until it is. Its AI use counts against the plan cap and the daily budget stop.
 - support@afraventures.in and one WhatsApp support number (can be the same business number, shown on every page). 
 - A shared inbox that two people can read; agree who answers within one working day.
 - The in-app Help & Support ticket list (already built) is checked daily; the Daily Brief lists open tickets.

@@ -4,6 +4,7 @@
   "private": true,
   "description": "Hire: AI hiring tool for small recruitment agencies. Pure rules first (no database, no network, no AI calls). Written, not yet tested by a person.",
   "main": "src/index.js",
+  "dependencies": { "pdf-parse": "1.1.1", "mammoth": "1.8.0" },
   "scripts": { "test": "jest" },
   "license": "UNLICENSED"
 }

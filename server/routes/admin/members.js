@@ -9,6 +9,7 @@ const {
   updateMember,
   bulkUpdateStatus,
 } = require('../../controllers/admin/members');
+const { importMembers } = require('../../controllers/admin/memberImport');
 const { protect, authorize } = require('../../middleware/auth');
 const { planLimitGuard } = require('../../middleware/planLimits');
 
@@ -17,6 +18,7 @@ router.use(protect, authorize('admin'));
 router.get('/meta/plans', listPlansLookup);
 router.get('/meta/staff', listStaffLookup);
 router.patch('/bulk-status', bulkUpdateStatus);
+router.post('/import', importMembers);
 
 router.get('/', listMembers);
 router.post('/', planLimitGuard('member'), createMember);

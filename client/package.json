@@ -22,6 +22,7 @@
     "react-dom": "^19.2.7",
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.18.1",
+    "read-excel-file": "^5.8.5",
     "recharts": "^3.9.2",
     "tailwind-merge": "^3.6.0"
   },

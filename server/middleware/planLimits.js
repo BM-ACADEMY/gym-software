@@ -53,4 +53,18 @@ const planLimitGuard = (kind) => async (req, res, next) => {
   }
 };
 
-module.exports = { planLimitGuard };
+// How many more members/staff the gym may add right now (Infinity = unlimited).
+const remainingCapacity = async (subscriberId, kind) => {
+  const rule = COUNTED[kind];
+  const subscriber = await Subscriber.findById(subscriberId).select('platformPlanId isActive trialEndsAt planStartedAt paidUntil planKey');
+  let plan = !subscriber?.platformPlanId && subscriber ? effectivePlan(subscriber) : null;
+  if (!plan) {
+    if (!subscriber?.platformPlanId) return Infinity;
+    plan = await PlatformPlan.findById(subscriber.platformPlanId).select(`name ${rule.field}`);
+  }
+  const limit = plan?.[rule.field];
+  if (limit === undefined || limit === null) return Infinity;
+  return Math.max(0, limit - (await rule.count(subscriberId)));
+};
+
+module.exports = { planLimitGuard, remainingCapacity };

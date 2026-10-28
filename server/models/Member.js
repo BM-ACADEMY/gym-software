@@ -48,6 +48,11 @@ const memberSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    // The member's ID on the gym's biometric/card device, used to match device logs.
+    deviceUserId: {
+      type: String,
+      trim: true,
+    },
     passwordHash: {
       type: String,
     },
@@ -106,6 +111,8 @@ const memberSchema = new mongoose.Schema(
 );
 
 memberSchema.index({ subscriberId: 1, status: 1 });
+memberSchema.index({ subscriberId: 1, deviceUserId: 1 }, { sparse: true });
+memberSchema.index({ subscriberId: 1, phone: 1 });
 memberSchema.index({ subscriberId: 1, assignedSubAdminId: 1 });
 
 module.exports = mongoose.model('Member', memberSchema);

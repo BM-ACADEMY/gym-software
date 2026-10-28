@@ -40,7 +40,7 @@ Progress 28 Oct: 1B-01 to 1B-04 written. `utils/whatsapp.js` sends approved temp
 | 1B-02 | Renewal reminders at 30, 7, 1 day and at lapse; dues chase with Razorpay payment link | WRITTEN | Member pays link, record updates itself |
 | 1B-03 | Absence alert (10 days) and one-tap win-back message | WRITTEN | |
 | 1B-04 | Owner daily summary message | WRITTEN | |
-| 1B-05 | Setup wizard and demo data; Excel/CSV member import with preview and error list | TODO | 100 members imported in under 5 minutes |
+| 1B-05 | Setup wizard and demo data; Excel/CSV member import with preview and error list | WRITTEN (import done; wizard TODO) | 100 members imported in under 5 minutes |
 | 1B-06 | Device user ID on Member and SubAdmin; import device logs (CSV/Excel) into Attendance with `method: biometric` | TODO | Duplicates ignored; unmatched IDs listed |
 | 1B-07 | Staff attendance (QR/manual), leave and late marks | TODO | |
 | 1B-08 | Landing page, pricing page, legal pages (terms, privacy, refund), city pages template | TODO | Razorpay website-policy needs met |

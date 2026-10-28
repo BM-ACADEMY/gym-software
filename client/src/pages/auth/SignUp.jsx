@@ -5,8 +5,10 @@ import { setCredentials } from '../../store/slices/authSlice';
 import apiClient from '../../api/client';
 import PasswordInput from '../../components/ui/PasswordInput';
 import { INDIAN_STATES } from '../../utils/indianStates';
+import { useT } from '../../i18n';
 
 const SignUp = () => {
+  const { t } = useT();
   const [formData, setFormData] = useState({ gymName: '', ownerName: '', email: '', phone: '', state: 'Tamil Nadu', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,11 +51,11 @@ const SignUp = () => {
           </div>
           <span className="text-3xl font-extrabold text-white tracking-tight">Gym<span className="text-teal-400">Desk</span></span>
         </Link>
-        <h2 className="text-3xl font-bold text-white mb-2">Start your 14-day free trial</h2>
+        <h2 className="text-3xl font-bold text-white mb-2">{t('Start your 14-day free trial')}</h2>
         <p className="text-sm text-gray-300">
-          Already have an account?{' '}
+          {t('Already have an account?')}{' '}
           <Link to="/login" className="font-medium text-teal-400 hover:text-teal-300 transition-colors">
-            Sign in
+            {t('Sign in')}
           </Link>
         </p>
       </div>
@@ -67,36 +69,36 @@ const SignUp = () => {
             )}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Gym Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('Gym Name')}</label>
                 <input required type="text" value={formData.gymName} onChange={(e) => setFormData({ ...formData, gymName: e.target.value })} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('Your Name')}</label>
                 <input required type="text" value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('Email address')}</label>
               <input required type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mobile number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('Mobile number')}</label>
               <input required type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="e.g. 9876543210" className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('State')}</label>
               <select required value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all">
                 {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password (8 or more characters)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('Password (8 or more characters)')}</label>
               <PasswordInput required minLength={8} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
             </div>
             <button type="submit" disabled={loading} className={`w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-teal-500/30 text-sm font-bold text-white bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] hover:brightness-110 transition-all ${loading ? 'opacity-75 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}>
-              {loading ? 'Creating your gym...' : 'Start 14-day free trial'}
+              {loading ? t('Creating your gym...') : t('Start 14-day free trial')}
             </button>
-            <p className="text-xs text-center text-gray-500">No card needed. By continuing you agree to our <Link to="/terms" className="underline">Terms</Link> and <Link to="/privacy" className="underline">Privacy Policy</Link>.</p>
+            <p className="text-xs text-center text-gray-500">{t('No card needed. By continuing you agree to our')} <Link to="/terms" className="underline">{t('Terms')}</Link> {t('and')} <Link to="/privacy" className="underline">{t('Privacy Policy')}</Link>.</p>
           </form>
         </div>
       </div>

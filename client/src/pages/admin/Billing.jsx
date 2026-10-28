@@ -163,7 +163,7 @@ const Billing = () => {
         ))}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {info.plans.map((p) => {
           const price = p[cycle];
           const isCurrent = info.currentPlan?.key === p.key && info.status === 'active' && info.billingCycle === cycle;
@@ -175,6 +175,7 @@ const Billing = () => {
               <ul className="mt-5 flex-1 space-y-2 text-sm text-gray-700">
                 <li className="flex gap-2"><Check className="h-4 w-4 text-teal-600" />{p.memberLimit ? `Up to ${p.memberLimit} members` : 'Unlimited members'}</li>
                 <li className="flex gap-2"><Check className="h-4 w-4 text-teal-600" />{p.staffLimit ? `${p.staffLimit} staff logins` : 'Unlimited staff logins'}</li>
+                <li className="flex gap-2"><Check className="h-4 w-4 text-teal-600" />{p.whatsappPerMonth ? `${p.whatsappPerMonth} WhatsApp messages / month` : 'No WhatsApp messages'}</li>
                 {Object.entries(FEATURE_LABELS).filter(([k]) => p.features[k]).map(([k, label]) => (
                   <li key={k} className="flex gap-2"><Check className="h-4 w-4 text-teal-600" />{label}</li>
                 ))}

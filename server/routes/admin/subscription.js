@@ -37,7 +37,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
         usage: { members, staff },
         gstRate: GST_RATE,
         plans: listPlans().map((p) => ({
-          key: p.key, name: p.name, memberLimit: p.memberLimit, staffLimit: p.staffLimit, features: p.features,
+          key: p.key, name: p.name, memberLimit: p.memberLimit, staffLimit: p.staffLimit, features: p.features, whatsappPerMonth: p.whatsappPerMonth,
           monthly: priceFor(p.key, 'monthly'), yearly: priceFor(p.key, 'yearly'),
         })),
       },

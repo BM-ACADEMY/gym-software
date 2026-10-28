@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const schema = new mongoose.Schema(
   {
     subscriberId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscriber', required: true, index: true },
-    planKey: { type: String, enum: ['starter', 'growth', 'pro'], required: true },
+    planKey: { type: String, enum: ['solo', 'starter', 'growth', 'pro'], required: true },
     cycle: { type: String, enum: ['monthly', 'yearly'], required: true },
     startMode: { type: String, enum: ['now', 'extend'], default: 'now' },
     status: { type: String, enum: ['created', 'paid', 'failed'], default: 'created' },

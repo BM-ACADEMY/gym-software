@@ -58,9 +58,25 @@ describe('plan prices', () => {
     expect(priceFor('pro', 'weekly')).toBeNull();
   });
   test('yearly is cheaper than 12 months for every plan', () => {
-    for (const k of ['starter', 'growth', 'pro']) {
+    for (const k of ['solo', 'starter', 'growth', 'pro']) {
       const p = getPlan(k);
       expect(p.yearly).toBeLessThan(p.monthly * 12);
     }
+  });
+});
+
+describe('Solo plan', () => {
+  const { getPlan, priceFor } = require('../config/plans');
+  test('priced at 249 / 2490 ex GST with no WhatsApp allowance', () => {
+    const p = getPlan('solo');
+    expect(p.monthly).toBe(249);
+    expect(p.yearly).toBe(2490);
+    expect(p.whatsappPerMonth).toBe(0);
+    expect(p.memberLimit).toBe(50);
+    expect(p.staffLimit).toBe(1);
+    expect(priceFor('solo', 'monthly').total).toBe(249 + Math.round(249 * 0.18));
+  });
+  test('Solo has no paid features', () => {
+    expect(Object.values(getPlan('solo').features).every((v) => v === false)).toBe(true);
   });
 });

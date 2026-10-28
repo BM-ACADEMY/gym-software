@@ -10,6 +10,17 @@ const TRIAL_DAYS = 14;
 const TRIAL_PLAN_KEY = 'growth'; // trial gets Growth features and limits
 
 const PLANS = {
+  solo: {
+    key: 'solo',
+    name: 'Solo',
+    currency: 'INR',
+    monthly: 249,
+    yearly: 2490,
+    memberLimit: 50,
+    staffLimit: 1,
+    features: { 'ai-plans': false, 'pt-sessions': false, accounts: false, branding: false },
+    whatsappPerMonth: 0, // no WhatsApp: every message costs us money
+  },
   starter: {
     key: 'starter',
     name: 'Starter',

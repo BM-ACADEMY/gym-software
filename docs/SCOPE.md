@@ -79,6 +79,7 @@ Fallback public date if either slips: 15 Dec 2026.
 
 | Plan | Monthly | Yearly | Limits |
 | --- | --- | --- | --- |
+| Solo | Rs 249 | Rs 2,490 | 50 members, 1 staff, no WhatsApp (added 28 Oct, approved by Mohamed) |
 | Starter | Rs 599 | Rs 5,999 | 150 members, 2 staff |
 | Growth (default) | Rs 999 | Rs 9,999 | 500 members, 5 staff, PT, accounts, AI plans, WhatsApp allowance |
 | Pro | Rs 1,999 | Rs 19,999 | Unlimited members and staff, higher WhatsApp allowance, branding |

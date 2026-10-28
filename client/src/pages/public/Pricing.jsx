@@ -6,8 +6,12 @@ import Footer from '../../components/public/Footer';
 // Keep in step with server/config/plans.js (prices exclude 18% GST).
 const plans = [
   {
+    name: 'Solo', blurb: 'For a trainer or a very small studio', monthly: 249, yearly: 2490,
+    features: ['Up to 50 members', '1 staff login', 'Member portal with QR check-in', 'Attendance and payments', 'No WhatsApp messages (upgrade for reminders)'],
+  },
+  {
     name: 'Starter', blurb: 'For a small gym just getting organised', monthly: 599, yearly: 5999,
-    features: ['Up to 150 members', '2 staff logins', 'Member app with QR check-in', 'Attendance and payments', 'Renewal reminders on WhatsApp'],
+    features: ['Up to 150 members', '2 staff logins', 'Member portal with QR check-in', 'Attendance and payments', 'Renewal reminders on WhatsApp'],
   },
   {
     name: 'Growth', blurb: 'For most gyms', monthly: 999, yearly: 9999, popular: true,
@@ -47,7 +51,7 @@ const Pricing = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             {plans.map((plan) => (
               <div key={plan.name} className={`relative rounded-3xl p-8 flex flex-col border ${plan.popular ? 'border-teal-400 bg-gradient-to-b from-teal-50 to-white shadow-lg shadow-teal-100' : 'border-gray-100 bg-white shadow-sm'}`}>
                 {plan.popular && (

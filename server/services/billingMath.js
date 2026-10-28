@@ -4,7 +4,7 @@ const { PLANS, GST_RATE } = require('../config/plans');
 
 const DAY = 24 * 60 * 60 * 1000;
 const CYCLES = { monthly: { months: 1, days: 30 }, yearly: { months: 12, days: 365 } };
-const RANK = { starter: 1, growth: 2, pro: 3 };
+const RANK = { solo: 0, starter: 1, growth: 2, pro: 3 };
 const MAX_CREDIT_SHARE = 0.9; // an upgrade never becomes (nearly) free
 
 const listPrice = (plan, cycle) => {

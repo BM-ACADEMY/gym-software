@@ -23,7 +23,7 @@ const subscriberSchema = new mongoose.Schema({
   // period; status is computed from dates (services/subscription.js).
   planKey: {
     type: String,
-    enum: ['starter', 'growth', 'pro'],
+    enum: ['solo', 'starter', 'growth', 'pro'],
   },
   billingCycle: {
     type: String,

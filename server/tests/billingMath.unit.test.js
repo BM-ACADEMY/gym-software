@@ -80,3 +80,13 @@ describe('GST place of supply', () => {
     expect(M.gstModeFor('', 'Puducherry')).toBe('igst');
   });
 });
+
+describe('Solo ranks below Starter', () => {
+  test('Solo to Starter is an upgrade, Starter to Solo waits for period end', () => {
+    const now = new Date('2026-10-28T00:00:00Z');
+    const live = { status: 'active' };
+    const ahead = new Date(now.getTime() + 15 * 86400000);
+    expect(M.purchaseRule({ status: live, currentPlan: 'solo', currentCycle: 'monthly', paidUntil: ahead, newPlan: 'starter', now }).code).not.toBe('downgrade_later');
+    expect(M.purchaseRule({ status: live, currentPlan: 'starter', currentCycle: 'monthly', paidUntil: ahead, newPlan: 'solo', now }).code).toBe('downgrade_later');
+  });
+});

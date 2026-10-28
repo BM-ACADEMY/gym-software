@@ -12,6 +12,6 @@ export const HELP_ARTICLES = [
   { id: 'gst', q: 'Where is my GST invoice?', a: ['Plan & Billing lists every payment with a Download invoice button.', 'Set your state in Plan & Billing first. Puducherry gyms get CGST + SGST, other states get IGST.'] },
   { id: 'upgrade', q: 'Can I upgrade or downgrade?', a: ['Upgrade any time. The unused value of your current plan is credited.', 'Downgrade takes effect when your current paid period ends.'] },
   { id: 'expired', q: 'My plan ended. What happens to my data?', a: ['You get 3 days of full access after the end date. After that your account is read-only: you can see and export your data, but cannot add or change anything until you pay.', 'Your data is not deleted.'] },
-  { id: 'staff', q: 'How do I add staff and limit what they see?', a: ['Open Sub-Admin / Staff, add the person and tick the screens they may use. Starter allows 2 staff, Growth 5, Pro unlimited.'] },
+  { id: 'staff', q: 'How do I add staff and limit what they see?', a: ['Open Sub-Admin / Staff, add the person and tick the screens they may use. Solo allows 1 staff login, Starter 2, Growth 5, Pro unlimited.'] },
   { id: 'password', q: 'I forgot my password', a: ['Use Forgot password on the sign-in page. If that does not work, contact support from the Contact page.'] },
 ];

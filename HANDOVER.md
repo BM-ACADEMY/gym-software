@@ -30,7 +30,7 @@ Required `server/.env` keys: `MONGODB_URI`, `MONGODB_TEST_URI` (a **separate** d
 
 Demo accounts exist for local development only. Their credentials are NOT
 listed here (this file used to contain them). Create them locally with
-`node server/scripts/seedDemoUsers.js` after reading that script, and never run
+`DEMO_SEED_PASSWORD=<your own 12+ character password> node server/scripts/seedDemoUsers.js` after reading that script, and never run
 it against a production database. Gym owners for the pilot are created by Root
 Admin.
 

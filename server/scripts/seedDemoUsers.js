@@ -2,10 +2,16 @@
 // Usage: node scripts/seedDemoUsers.js
 require('dotenv').config();
 
-// These accounts have publicly known passwords. Never create them on a real
-// database.
+// Local development only. Never create these accounts on a real database.
+// The password is NOT in this file: set DEMO_SEED_PASSWORD (12+ characters) in your own
+// shell for this one command. Never reuse a real password, and never commit it.
 if (process.env.NODE_ENV === 'production') {
   console.error('Refusing to seed demo users with NODE_ENV=production.');
+  process.exit(1);
+}
+const SEED_PASSWORD = process.env.DEMO_SEED_PASSWORD;
+if (!SEED_PASSWORD || SEED_PASSWORD.length < 12) {
+  console.error('Set DEMO_SEED_PASSWORD (at least 12 characters) before running this script.');
   process.exit(1);
 }
 const mongoose = require('mongoose');
@@ -18,10 +24,10 @@ const Admin = require('../models/Admin');
 const SubAdmin = require('../models/SubAdmin');
 const Member = require('../models/Member');
 
-const ROOT_ADMIN = { name: 'Snega', phone: '7339017112', password: 'Snega@123' };
-const OWNER = { name: 'Charles', phone: '8807226257', password: 'Charles@123', gymName: "Charles' Gym" };
-const SUB_ADMIN = { name: 'Swetha', phone: '9345989654', password: 'Swetha@123' };
-const MEMBER = { name: 'Ragu', phone: '9486788591', password: 'Ragu@123' };
+const ROOT_ADMIN = { name: 'Snega', phone: '7339017112', password: SEED_PASSWORD };
+const OWNER = { name: 'Charles', phone: '8807226257', password: SEED_PASSWORD, gymName: "Charles' Gym" };
+const SUB_ADMIN = { name: 'Swetha', phone: '9345989654', password: SEED_PASSWORD };
+const MEMBER = { name: 'Ragu', phone: '9486788591', password: SEED_PASSWORD };
 
 const hash = (plain) => bcrypt.hash(plain, 10);
 

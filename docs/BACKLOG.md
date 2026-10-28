@@ -176,6 +176,13 @@ Scope files: `docs/products/README.md` (index and rules), `CORE.md`, and one `SC
 | SA-16 | AI wording for suggestions (budget-checked, no personal data) | S | TODO |
 | SA-17 | Web push notifications (quiet hours, 3 a day) | M | TODO |
 | SA-18 | Super Admin "marketing" role for the DM team: sees to-do list, calendar, drafts; marks done; cannot see money, accounts or product data. Same two-step sign-in as admin | S | TODO |
+| CRM-01 | Super Admin CRM pure rules (`packages/core-crm`): stage from account facts, follow-up due dates, dedupe, renewal buckets, contact-permission check (`docs/SUPER_ADMIN_CRM.md`) | M | TODO |
+| CRM-02 | CRM store, routes, roles (admin, sales/support, marketing), audit, tests in `apps/admin` | M | TODO |
+| CRM-03 | Account-level list route in each product behind the internal key (business, owner contact, plan, dates, last active; no end-customer data) | M | TODO (needs Mohamed's OK, default yes) |
+| CRM-04 | CRM screens by manifest: Pipeline, Follow-ups, Account, Renewals, Sources, Reports | M | TODO |
+| CRM-05 | Lead import: CSV and website form, consent recorded | S | TODO |
+| CRM-06 | CRM suggestions and approved-template reminders on the autopilot runner | M | TODO (waits for Meta approval and core-autopilot) |
+| CRM-07 | CRM reports: sign-up, trial to paid, renewal %, lost reasons | S | TODO |
 | AP-02 | Owner-side marketing suggestions in each product on core-autopilot | L | TODO |
 | P-P | Floor-price tables per product (SAL-P1, MRT-P1, DIN-P1, CLO-P1, WSH-P1, HIR-P1), same method as the gym; Mohamed approves (Tier 3) | L | TODO |
 | P-QA | Product QA workbooks and Dev B attack lists per product | L | TODO |

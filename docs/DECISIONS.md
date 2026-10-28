@@ -61,3 +61,7 @@ Every task below is a row in the team task sheet (`docs/TEAM_TASK_SHEET.xlsx`, o
 - Super Admin gets marketing autopilot (push notifications, to-do, calendar, session plan, suggestions). Mohamed confirms every action. Plan: `docs/SUPER_ADMIN_AUTOPILOT.md`. Same idea added as owner-side suggestions in each product.
 - Confirmed: phone push only. Channels: all. Content made by Mohamed's DM team; Claude drafts, DM team posts, Mohamed approves. New role "marketing" (SA-18).
 
+## D-20 (29 Oct): Super Admin CRM
+- Super Admin gets a CRM for leads, trials, renewals and follow-ups (`docs/SUPER_ADMIN_CRM.md`). Goal: more sign-ups and renewals.
+- Claude's default (Mohamed may change): products send account-level facts (business, owner contact, plan, dates, last active) to Super Admin; no end-customer data. Human calls only, 10 am to 6 pm Monday to Saturday; no AI voice calls; auto-send only with approved templates and consent.
+

@@ -80,7 +80,7 @@ const check = () => {
         } else {
           const m = spec.match(/^@(?:afra|gymdesk)\/([a-z0-9-]+)(\/.*)?$/);
           if (m) {
-            if (pkgs[m[1]] || ALLOWED[m[1]]) { target = { kind: 'package', name: m[1] }; inner = !!m[2] && m[2] !== '/' && m[2] !== '/pure'; // '/pure' is the browser-safe entry of core-pos }
+            if (pkgs[m[1]] || ALLOWED[m[1]]) { target = { kind: 'package', name: m[1] }; inner = !!m[2] && m[2] !== '/' && m[2] !== '/pure'; } // '/pure' is the browser-safe entry of core-pos
             else if (PRODUCTS.includes(m[1])) target = { kind: 'product', name: m[1] };
           }
         }

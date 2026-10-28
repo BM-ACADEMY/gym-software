@@ -138,3 +138,9 @@ provider with Meta verification and approved templates, domain and email, produc
 demo video, friendly pilot gyms.
 
 - Open decision (28 Oct): refund window for the first payment. Draft says 7 days (`VITE_REFUND_DAYS`). Mohamed to confirm. Legal pages are drafts until a lawyer reviews them.
+
+## 11. Launch plan set 28 Oct 2026 (Mohamed)
+- 28 to 30 Oct: finish the build, including the AI features (Ask GymDesk, weekly insights, AI plans). Marketing says "AI" only as listed in `docs/MARKETING_CLAIMS.md`.
+- 30 Oct to about 4 Nov: Dev A, Dev B and Staff test for 3 to 5 days with `docs/TEST_RUNBOOK.md`; Claude fixes what they report first.
+- Then: soft launch with invited gyms, then `PUBLIC_SIGNUP=true`.
+- Blockers that are not code: product name, WhatsApp number and template approval (Meta can take days), Razorpay test then live keys, CA check on GST, lawyer review of legal pages, native review of Tamil/Hindi text.

@@ -13,6 +13,7 @@ try { auth = require('./src/auth'); } catch (e) { auth = null; } // written in S
 const closed = (req, res) => res.status(503).json({ success: false, message: 'Sign-in is not set up yet.' });
 
 if (auth && typeof auth.protect === 'function' && typeof auth.authorize === 'function') {
+  auth.mount(app);
   app.use('/api/admin', createAdminRouter({ express, protect: auth.protect, authorize: auth.authorize, collectAll, readConfig }));
 } else {
   app.use('/api', closed);

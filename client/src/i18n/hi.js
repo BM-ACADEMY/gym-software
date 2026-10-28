@@ -20,6 +20,7 @@ export default {
   'Plan Creation': 'प्लान बनाएं',
   'Reports & Analytics': 'रिपोर्ट और एनालिटिक्स',
   'Notifications Center': 'सूचना केंद्र',
+  'Help & Support': 'मदद और सहायता',
   Settings: 'सेटिंग्स',
   Logout: 'लॉग आउट',
   Language: 'भाषा',

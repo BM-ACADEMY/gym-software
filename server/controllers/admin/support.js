@@ -5,7 +5,11 @@ const Ticket = require('../../models/Ticket');
 const createTicket = async (req, res) => {
   try {
     const { subject, description } = req.body;
-    if (!subject) return res.status(400).json({ success: false, message: 'Subject is required' });
+    if (typeof subject !== 'string' || !subject.trim()) return res.status(400).json({ success: false, message: 'Subject is required' });
+    if (subject.length > 200) return res.status(400).json({ success: false, message: 'Subject is too long (max 200 characters)' });
+    if (description !== undefined && (typeof description !== 'string' || description.length > 4000)) {
+      return res.status(400).json({ success: false, message: 'Description must be text up to 4000 characters' });
+    }
 
     const ticket = await Ticket.create({
       subscriberId: req.user.subscriberId,

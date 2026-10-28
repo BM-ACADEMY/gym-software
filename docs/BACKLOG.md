@@ -51,7 +51,7 @@ Progress 28 Oct: 1B-01 to 1B-04 written. `utils/whatsapp.js` sends approved temp
 | --- | --- | --- | --- |
 | 1C-01 | i18n framework; move all UI text to language files; English, Tamil, Hindi | PARTIAL (framework `client/src/i18n`, English text is the key; menu, header, trial banner translated; language picker in header; every other screen still English; Tamil and Hindi need native review) | Language switch per user; no hard-coded text left |
 | 1C-02 | Help centre (top 20 articles), in-app help links | WRITTEN (13 articles at `/help`, search, link in account menu and footer) | |
-| 1C-03 | Support chatbot on WhatsApp with hand-over; support tickets (reuse existing Ticket model) | TODO | |
+| 1C-03 | Support chatbot on WhatsApp with hand-over; support tickets (reuse existing Ticket model) | PARTIAL (owner Help & Support page + tickets written, `tests/support.test.js` not run; WhatsApp chatbot NOT started, needs the WhatsApp number) | |
 | 1C-04 | Global-ready settings: currency, tax label and rate, timezone, country code per gym | TODO | INR/GST default |
 
 ## Phase 1d: Test and soft launch

@@ -58,6 +58,7 @@ export const ADMIN_NAV = [
   { key: 'accounts', label: 'Accounts', path: 'accounts', page: 'Accounts', icon: Wallet2 },
   { key: 'trial', label: 'Trial', path: 'trial', page: 'Trial', icon: UserPlus },
   { key: 'billing', label: 'Plan & Billing', path: 'billing', page: 'Billing', icon: CreditCard },
+  { key: 'support', label: 'Help & Support', path: 'support', page: 'Support', icon: LifeBuoy },
   { key: 'payment-history', label: 'Payment History', path: 'payment-history', page: 'PaymentHistory', icon: Receipt },
   { key: 'plan-creation', label: 'Plan Creation', path: 'plan-creation', page: 'PlanCreation', icon: Tags },
   { key: 'reports', label: 'Reports & Analytics', path: 'reports', page: 'ReportsAnalytics', icon: BarChart3 },

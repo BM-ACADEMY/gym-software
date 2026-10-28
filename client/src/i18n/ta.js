@@ -20,6 +20,7 @@ export default {
   'Plan Creation': 'திட்டம் உருவாக்கு',
   'Reports & Analytics': 'அறிக்கைகள் & பகுப்பாய்வு',
   'Notifications Center': 'அறிவிப்பு மையம்',
+  'Help & Support': 'உதவி & ஆதரவு',
   Settings: 'அமைப்புகள்',
   Logout: 'வெளியேறு',
   Language: 'மொழி',

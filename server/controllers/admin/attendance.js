@@ -2,6 +2,7 @@ const Attendance = require('../../models/Attendance');
 const Member = require('../../models/Member');
 const Subscriber = require('../../models/Subscriber');
 const PTSession = require('../../models/PTSession');
+const { verifyMemberQr } = require('../../utils/qrcode');
 
 const METHODS = ['qr', 'code', 'manual', 'biometric'];
 const BLOCKED_STATUSES = ['expired', 'frozen', 'cancelled'];
@@ -163,14 +164,15 @@ const scanCheckIn = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Unrecognized QR code' });
     }
 
-    if (!parsed.mid || !parsed.sid) {
-      return res.status(400).json({ success: false, message: 'Unrecognized QR code' });
+    const verified = verifyMemberQr(parsed);
+    if (!verified) {
+      return res.status(400).json({ success: false, message: 'Unrecognized or out-of-date QR code. Ask the member to open the latest QR in their app.' });
     }
-    if (String(parsed.sid) !== String(req.user.subscriberId)) {
+    if (verified.sid !== String(req.user.subscriberId)) {
       return res.status(403).json({ success: false, message: 'This QR code belongs to a different gym' });
     }
 
-    req.body = { memberId: parsed.mid, method: 'qr', sessionType: 'general' };
+    req.body = { memberId: verified.mid, method: 'qr', sessionType: 'general' };
     return checkIn(req, res);
   } catch (error) {
     console.error(error);

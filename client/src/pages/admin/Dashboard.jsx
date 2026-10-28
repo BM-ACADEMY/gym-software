@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, CalendarClock, CheckCircle2, IndianRupee, Receipt, Sparkles, Users } from 'lucide-react';
 import apiClient from '../../api/client';
+import OnboardingChecklist from '../../components/layout/OnboardingChecklist';
 
 const StatCard = ({ label, value, helper, icon: Icon, tone = 'teal' }) => {
   const tones = { teal: 'bg-teal-50 text-teal-700', amber: 'bg-amber-50 text-amber-700', blue: 'bg-blue-50 text-blue-700', violet: 'bg-violet-50 text-violet-700' };
@@ -36,6 +37,8 @@ const Dashboard = () => {
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-gray-500">Today's snapshot of your gym.</p>
       </div>
+
+      <div className="mt-6"><OnboardingChecklist /></div>
 
       {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 

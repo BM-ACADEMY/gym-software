@@ -15,8 +15,8 @@ const Refund = () => (
 
     <Section title="Refunds">
       <p><strong>First payment:</strong> if {company.product} does not suit you, write to us within <strong>{company.refundDays} days</strong> of your first payment and we will refund it in full to the original payment method.</p>
-      <p><strong>Renewals and upgrades:</strong> not refundable once paid, except where we charged you in error or charged twice. A failed payment where money left your account is refunded by the bank or Razorpay, usually within 5 to 7 working days.</p>
-      <p>Refunds are made through Razorpay. GST charged on a refunded amount is refunded too, and we issue a credit note for it.</p>
+      <p><strong>Renewals and upgrades:</strong> not refundable once paid, except where we charged you in error or charged twice. A failed payment where money left your account is returned automatically by the bank or Razorpay.</p>
+      <p>Approved refunds reach your account within 7 to 14 working days. Refunds are made through Razorpay. GST charged on a refunded amount is refunded too, and we issue a credit note for it.</p>
     </Section>
 
     <Section title="How to ask">

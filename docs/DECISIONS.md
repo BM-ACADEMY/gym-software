@@ -45,3 +45,5 @@ Every task below is a row in the **Dev Task Sheet** (shared doc, devs update Sta
 | 2026-10-28 | Dev work runs in parallel: Claude does not wait for the team; every dev task is a row in the Dev Task Sheet (a shared doc) | Mohamed |
 | 2026-10-28 | Gym address: fit.afraventures.in (app) and api.fit.afraventures.in (API) | Mohamed |
 | 2026-10-28 | Earlier decisions: see `SCOPE.md` section 8 | Mohamed |
+| 2026-10-28 | D-12: start with ONE Afra Ventures WhatsApp number for all products (display name must match the website). Template names are prefixed per product (gym_, salon_). Number is a per-product setting so it can be split later without code change. Revisit when volume grows or a quality warning appears | Mohamed (Claude recommends) |
+| 2026-10-28 | D-13: every AI/WhatsApp feature has a per-plan monthly cap, a per-gym usage view (SA-03), a platform-wide daily budget stop, and a spend limit set in the Anthropic Console | Mohamed |

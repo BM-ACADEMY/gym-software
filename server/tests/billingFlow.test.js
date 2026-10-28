@@ -147,4 +147,31 @@ describe('subscription billing flow', () => {
     expect(r.status).toBe(402);
     expect(r.body.code).toBe('plan_limit');
   });
+
+  test('a failed attempt does not kill the order: a retry on the same order still activates', async () => {
+    const t = await createTenant({ subscriber: { state: 'Puducherry', trialEndsAt: new Date(Date.now() + 86400000) } });
+    const co = await request(app).post('/api/admin/subscription/checkout').set(auth(t)).send({ plan: 'growth', cycle: 'monthly' });
+    const orderId = co.body.data.orderId;
+    const failed = JSON.stringify({ event: 'payment.failed', payload: { payment: { entity: { id: 'pay_f1', order_id: orderId, amount: 117900, error_description: 'bank declined' } } } });
+    await request(app).post('/api/payments/razorpay-webhook').set('Content-Type', 'application/json').set('X-Razorpay-Signature', sign(failed, 'whsec_test')).send(failed);
+    expect((await SubscriptionPayment.findOne({ razorpayOrderId: orderId })).status).toBe('created');
+    const ok = JSON.stringify({ event: 'payment.captured', payload: { payment: { entity: { id: 'pay_f2', order_id: orderId, amount: 117900 } } } });
+    await request(app).post('/api/payments/razorpay-webhook').set('Content-Type', 'application/json').set('X-Razorpay-Signature', sign(ok, 'whsec_test')).send(ok);
+    const p = await SubscriptionPayment.findOne({ razorpayOrderId: orderId });
+    expect(p.status).toBe('paid');
+    expect(p.appliedAt).toBeTruthy();
+    expect((await Subscriber.findById(t.subscriber._id)).planKey).toBe('growth');
+  });
+
+  test('upgrade that ends before the old paid-until still switches the plan', async () => {
+    const t = await createTenant({ subscriber: { state: 'Puducherry', planKey: 'starter', billingCycle: 'yearly', planStartedAt: new Date(), paidUntil: new Date(Date.now() + 300 * 86400000) } });
+    const co = await request(app).post('/api/admin/subscription/checkout').set(auth(t)).send({ plan: 'growth', cycle: 'monthly' });
+    expect(co.status).toBe(201);
+    const p = await billing.activate({ orderId: co.body.data.orderId, paymentId: 'pay_up1' });
+    expect(p.status).toBe('paid');
+    const sub = await Subscriber.findById(t.subscriber._id);
+    expect(sub.planKey).toBe('growth');
+    expect(sub.billingCycle).toBe('monthly');
+    expect(sub.paidUntil.getTime()).toBe(p.periodEnd.getTime());
+  });
 });

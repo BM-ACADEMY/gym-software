@@ -89,12 +89,17 @@ const nextInvoiceNo = async (now) => {
 };
 
 // Move the gym onto what was paid for. Safe to run twice: paidUntil only moves forward.
+// Applied exactly once per payment (appliedAt). It is unconditional because an
+// upgrade with credit can legitimately end before the old paidUntil (e.g. yearly
+// Starter to monthly Growth); the credit already paid for the unused days.
 const applyToSubscriber = async (p) => {
+  if (p.appliedAt) return;
   await Subscriber.updateOne(
-    { _id: p.subscriberId, $or: [{ paidUntil: { $lt: p.periodEnd } }, { paidUntil: null }, { paidUntil: { $exists: false } }] },
+    { _id: p.subscriberId },
     { $set: { planKey: p.planKey, billingCycle: p.cycle, paidUntil: p.periodEnd, nextBillingDate: p.periodEnd } }
   );
   await Subscriber.updateOne({ _id: p.subscriberId, planStartedAt: { $exists: false } }, { $set: { planStartedAt: p.paidAt } });
+  await SubscriptionPayment.updateOne({ _id: p._id, appliedAt: { $exists: false } }, { $set: { appliedAt: new Date() } });
 };
 
 // Called by BOTH the browser confirmation and the Razorpay webhook. Idempotent:
@@ -168,8 +173,10 @@ const handleWebhook = async (rawBody, signature) => {
     return { handled: Boolean(result), status: result?.status };
   }
   if (event.event === 'payment.failed') {
-    await SubscriptionPayment.updateOne({ razorpayOrderId: payment.order_id, status: 'created' }, { $set: { status: 'failed', note: payment.error_description || 'payment_failed' } });
-    return { handled: true, status: 'failed' };
+    // One failed attempt must not kill the order: the customer can retry on the
+    // same order and succeed. Only record the reason; the order stays 'created'.
+    await SubscriptionPayment.updateOne({ razorpayOrderId: payment.order_id, status: 'created' }, { $set: { note: payment.error_description || 'payment_failed' } });
+    return { handled: true, status: 'created' };
   }
   return { ignored: true };
 };

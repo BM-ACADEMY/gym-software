@@ -25,6 +25,7 @@ const schema = new mongoose.Schema(
     razorpayOrderId: { type: String, unique: true, sparse: true },
     razorpayPaymentId: { type: String },
     invoiceNo: { type: String, unique: true, sparse: true },
+    appliedAt: { type: Date }, // set once the gym's plan/dates were updated for this payment
     paidAt: Date,
     periodStart: Date,
     periodEnd: Date,

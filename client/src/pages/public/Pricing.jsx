@@ -35,7 +35,7 @@ const Pricing = () => {
       <section className="pt-32 pb-16 bg-gradient-to-br from-gray-950 via-teal-950 to-gray-900 text-center">
         <div className="max-w-2xl mx-auto px-4">
           <h1 className="text-4xl font-extrabold text-white mb-4">Simple pricing. Start free for 14 days.</h1>
-          <p className="text-gray-300 text-lg">No card needed. No setup fee. No fee on your members' payments. Cancel any time.</p>
+          <p className="text-gray-300 text-lg">No card needed. No setup fee. No fee on your members' payments..</p>
         </div>
       </section>
 

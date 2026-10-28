@@ -3,19 +3,18 @@ import Navbar from '../../components/public/Navbar';
 import Footer from '../../components/public/Footer';
 
 const faqs = [
-  { q: 'What is GymDesk Software?', a: 'GymDesk is a complete web-based gym management software designed to streamline and optimize fitness center operations. It provides gym owners and managers with a centralized platform to manage member data, attendance tracking, billing, and reporting.' },
-  { q: 'Is GymDesk useful for both small and large gym businesses?', a: 'GymDesk has been developed to serve gyms of all sizes. Whether you run a small health studio or a large fitness club, our scalable software adapts to your specific needs and helps increase revenue.' },
-  { q: 'Is GymDesk online or offline software?', a: 'GymDesk is 100% online cloud-based software. Our platform is accessible via the Internet, allowing gym owners and employees to manage operations from anywhere. Real-time updates and data security are built in.' },
-  { q: 'How can GymDesk help a gym or fitness studio?', a: 'GymDesk automates time-consuming tasks including member sign-up, payment tracking, and class booking. It enhances member engagement through personalized communications and provides detailed reporting and analytics for data-driven decisions.' },
-  { q: 'Can it handle membership management and sign-ups?', a: 'Yes! GymDesk offers robust membership management. You can create and manage member profiles, track membership status, handle renewals, and support online sign-up — making it convenient for new members to join your gym.' },
-  { q: 'Does GymDesk provide billing and payment processing features?', a: 'GymDesk includes built-in billing and payment processing features. Gyms can manage membership fees, dues, and class fees efficiently. Members can make secure payments through the software.' },
-  { q: 'Is GymDesk integrated with biometric systems?', a: 'GymDesk integrates with biometric devices for secure member authentication and attendance tracking. This allows gym owners to manage attendance accurately and enhance the overall member experience.' },
-  { q: 'Can GymDesk manage class schedules and bookings?', a: 'Absolutely! GymDesk includes class scheduling and booking capabilities. Gym owners can schedule and manage classes, track attendance, and manage bookings and cancellations easily.' },
-  { q: 'Does GymDesk provide attendance tracking for members?', a: 'GymDesk offers full attendance tracking functionality. Track member attendance, analyze class participation, and use attendance data to identify popular courses and improve offerings.' },
-  { q: 'How does GymDesk handle inventory and expense management?', a: 'The GymDesk expense management module ensures proper tracking of gym equipment and supplies. Monitor stock levels, track usage patterns, and set reorder alerts to keep operations smooth.' },
-  { q: 'Can GymDesk generate customizable reports?', a: 'GymDesk offers full reporting and analytics features. Generate reports on membership statistics, attendance, revenue analysis, class usage, and more — helping you make data-driven decisions.' },
-  { q: 'How safe is GymDesk in terms of data security?', a: 'GymDesk prioritizes data security. The software uses OTP login, advanced encryption, and secure data storage protocols to protect sensitive information including personal details and payment data.' },
-  { q: 'What customer support options are available?', a: 'GymDesk provides 24/7 customer support including live chat, email, and phone support. Our team of experts is always ready to assist you with any questions or technical issues.' },
+  { q: 'What is GymDesk?', a: 'GymDesk is web-based software for running a gym: members, plans, payments and dues, attendance, trainers, and WhatsApp reminders. You use it in a browser on a phone or computer.' },
+  { q: 'Is there a free trial?', a: 'Yes. 14 days with Growth plan features, no card needed. After that the account becomes read-only until you choose a plan.' },
+  { q: 'Which plan is right for my gym?', a: 'Solo for up to 50 members, Starter up to 150, Growth up to 500, Pro for bigger gyms. You can upgrade any time and the unused value of your current plan is credited.' },
+  { q: 'Does it renew automatically?', a: 'No. You pay for a month or a year in advance. We remind you before it ends and you pay again to continue. Nothing is charged without you paying.' },
+  { q: 'Do I get a GST invoice?', a: 'Yes, for every payment. Gyms in Puducherry see CGST and SGST; other states see IGST.' },
+  { q: 'Can I move my existing members in?', a: 'Yes. Upload an Excel or CSV file. You see a preview and any errors before anything is saved.' },
+  { q: 'Does it work with fingerprint or face machines?', a: 'You can import the attendance log from any brand as an Excel or CSV file. Live sync with machines is planned for later and is not available yet.' },
+  { q: 'What WhatsApp messages are sent?', a: 'Renewal reminders, weekly dues reminders, a check-in after 10 days of absence, and a daily summary for the owner. You can turn each off. Solo has no WhatsApp messages; other plans include a monthly allowance.' },
+  { q: 'Is there a mobile app?', a: 'Members use a web portal on their phone browser. There is no iOS or Android app yet.' },
+  { q: 'Which languages are supported?', a: 'English, Tamil and Hindi menus are available now, with more screens being translated.' },
+  { q: 'How safe is my data?', a: 'Each gym\'s data is kept separate, connections are encrypted and passwords are stored hashed. You can export your data.' },
+  { q: 'How do I get help?', a: 'Use the Help centre, or raise a request from Help & Support inside the app. We reply by email.' },
 ];
 
 const Faq = () => {
@@ -43,7 +42,7 @@ const Faq = () => {
               <div className="sticky top-28 bg-gradient-to-br from-teal-50 to-teal-50 rounded-3xl p-10 border border-teal-100 text-center">
                 <div className="text-8xl mb-6">❓</div>
                 <h3 className="text-lg font-bold text-gray-800 mb-2">Can't find your answer?</h3>
-                <p className="text-gray-500 text-sm mb-6">Our support team is here to help you 24/7.</p>
+                <p className="text-gray-500 text-sm mb-6">Write to us and we will reply by email.</p>
                 <a
                   href="/contact"
                   className="inline-block px-6 py-3 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white font-semibold text-sm hover:brightness-110 transition-all"

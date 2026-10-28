@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Public pages
 import Landing from './pages/public/Landing';
 import Pricing from './pages/public/Pricing';
-import Blog from './pages/public/Blog';
 import Contact from './pages/public/Contact';
 import Faq from './pages/public/Faq';
 import Privacy from './pages/public/Privacy';
@@ -57,7 +56,7 @@ function App() {
         {/* ── Public Website Routes ── */}
         <Route path="/" element={<Landing />} />
         <Route path="/pricing" element={<Pricing />} />
-        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog" element={<Navigate to="/" replace />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/privacy" element={<Privacy />} />

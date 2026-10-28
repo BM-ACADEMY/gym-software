@@ -60,17 +60,11 @@ const Landing = () => {
   const features = [
     { icon: '👥', title: 'Members Management', desc: 'Streamline member profiles, attendance, payments & communication.' },
     { icon: '📱', title: 'Member Portal', desc: 'Members open it on their phone browser to see their plan, expiry, attendance QR and workout plan. No app store download.' },
-    { icon: '💬', title: 'WhatsApp Alerts', desc: 'Engage members with automated WhatsApp notifications and updates.' },
+    { icon: '💬', title: 'WhatsApp Reminders', desc: 'Renewal, dues and absence reminders go out by themselves, and you get a daily summary at 8 pm.' },
         { icon: '💰', title: 'Commissions and Expenses', desc: 'Track trainer commissions, PT sessions and gym expenses in one place.' },
-    { icon: '🔒', title: 'Data Security', desc: 'OTP login, encrypted storage and IP-based security for your data.' },
+    { icon: '🔒', title: 'Your Data Stays Yours', desc: 'Each gym\'s data is kept separate, connections are encrypted, and you can export it any time.' },
   ];
 
-  const blogs = [
-    { title: 'Top Features Every Gym Management Software Should Have', excerpt: 'Managing a fitness business effectively is challenging. Here are the must-have features...', date: 'June 14, 2024' },
-    { title: 'How to Boost Member Retention at Your Gym', excerpt: 'Member retention is the biggest challenge gym owners face. Here are proven strategies...', date: 'May 28, 2024' },
-    { title: 'Why Your Gym Needs Digital Attendance Tracking', excerpt: 'Paper-based attendance is outdated. Discover how digital tracking transforms operations...', date: 'Apr 12, 2024' },
-    { title: 'Gym Payroll Management Made Simple', excerpt: 'Calculating trainer commissions and staff salaries manually wastes hours. Here\'s how to automate...', date: 'Mar 5, 2024' },
-  ];
 
   return (
     <div className="min-h-screen">
@@ -93,7 +87,7 @@ const Landing = () => {
             <div className="lg:w-1/2 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-500/20 border border-teal-500/30 mb-6">
                 <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
-                <span className="text-teal-300 text-sm font-medium">India's #1 Gym Management Software</span>
+                <span className="text-teal-300 text-sm font-medium">Gym Management Software Made in India</span>
               </div>
               <h1 className="text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight">
                 Gym management<br />
@@ -120,8 +114,8 @@ const Landing = () => {
               </div>
               <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 justify-center lg:justify-start text-sm text-gray-400">
                 <li className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>No credit card required</li>
-                <li className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>Cancel anytime</li>
-                <li className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>7-day free trial</li>
+                <li className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>No auto-renewal</li>
+                <li className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>14-day free trial</li>
               </ul>
             </div>
 
@@ -159,42 +153,42 @@ const Landing = () => {
           imageIcon="📋"
           reverse={false}
           items={[
-            { title: 'Quick Registration', content: 'Our Quick Registration feature optimizes the enrollment process, reducing both time and effort. It simplifies and expedites registration, ensuring a seamless experience for users.' },
-            { title: 'Member Management', content: 'Members management is the main goal of GymDesk software, helping employees respond to customers needs faster. Avoid lines at the check-in desk and reduce waiting times.' },
+            { title: 'Bring Your Members Over', content: 'Upload your existing members from Excel or CSV. You see a preview with any errors before anything is saved.' },
+            { title: 'QR Check-in', content: 'Each member gets a signed QR code in the member portal. Scan it at the front desk to mark attendance.' },
             { title: 'Member Portal', content: 'Members sign in from their phone browser to see their plan, expiry date, check-in QR and workout plan. There is no separate iOS or Android app yet.' },
           ]}
         />
         <FeatureBlock
           title="Club Retention"
-          description="Our software uses cutting-edge analytics and comprehensive reporting to help you increase your gym's retention rate. Track member activity and identify churn risks."
+          description="Know who is about to leave and remind them before they do."
           imageIcon="📊"
           reverse={true}
           items={[
-            { title: 'Data Management', content: 'Collect, store, and analyze data about your members. This data can be used to improve the member experience, personalize marketing campaigns, and identify churn risks.' },
+            { title: 'Absence Alerts', content: 'See members who have not come for 10 days, and send a friendly check-in message on WhatsApp.' },
             { title: 'WhatsApp Reminders', content: 'Renewal reminders, dues reminders, absence check-ins and a daily summary for you are sent on WhatsApp automatically. Each plan includes a monthly message allowance.' },
-            { title: 'Alerts Automation', content: 'Keep your clients motivated with personalized emails, push notifications, and SMS alerts. Send event and class reminders so they never miss a beat.' },
+            { title: 'Dues Reminders', content: 'Pending balances are chased weekly on WhatsApp, with your UPI ID in the message.' },
           ]}
         />
         <FeatureBlock
-          title="Sales & Marketing"
-          description="Our specialized platform enables you to improve member acquisition and boost your sales and marketing performance."
+          title="Money"
+          description="Collect fees, track dues and pay your trainers correctly."
           imageIcon="💹"
           reverse={false}
           items={[
-            { title: 'Sales System', content: 'Our payment integration makes front-desk transactions easy for everyone. Members can sign up for classes, purchase supplements, and pay dues all at the reception desk.' },
-            { title: 'CRM', content: 'Track the entire customer journey from prospect to happy club member! Assign lead acquisition channels to each prospect and see which marketing channels are most effective.' },
-            { title: 'Recommendation Engine', content: 'Our Business Intelligence module uses data to recommend fitness classes to new members based on their behavior, preferences, and fitness goals.' },
+            { title: 'Payments and Dues', content: 'Record full or part payments at the desk, see who owes what, and keep a payment history for every member.' },
+            { title: 'Trial Leads', content: 'Track people who booked a trial visit and convert them into members with one click.' },
+            { title: 'Trainer Commission and Expenses', content: 'Track PT sessions, trainer commission and gym expenses in one place (Growth plan and above).' },
           ]}
         />
         <FeatureBlock
           title="Operations"
-          description="Our health club and fitness management software solutions are intended to make running your club a breeze, streamlining operations and saving time."
+          description="Run the day without paper registers."
           imageIcon="⚙️"
           reverse={true}
           items={[
-            { title: 'Dashboard Reports', content: "Our interactive dashboard provides a centralized view of your health club's most important metrics. Track KPIs like membership numbers, attendance, and revenue in real time." },
-            { title: 'Device Integration', content: "Our software offers integrations with biometric devices, BMI machines, and more — enhancing your club's fitness experiences for members." },
-            { title: 'Staff Management', content: "Manage your gym's staff operations with dynamic employee scheduling, commission programs, and notifications. Keep employees organized and motivated." },
+            { title: 'Dashboard', content: 'See active members, renewals due this week, today\'s check-ins and money collected on one screen.' },
+            { title: 'Biometric Machine Logs', content: 'Export the attendance log from your fingerprint or face machine and import it. Live sync with machines is planned, not available yet.' },
+            { title: 'Staff and Attendance', content: 'Give each staff member their own login with limited screens, and mark staff attendance daily.' },
           ]}
         />
       </div>
@@ -221,32 +215,16 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="rounded-3xl p-8 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100">
               <h2 className="text-2xl font-bold text-gray-800 mb-3">Hassle-Free Experience.</h2>
-              <p className="text-gray-600 text-sm leading-relaxed">A hassle-free experience is the currency that drives customer loyalty. GymDesk helps fitness centres find more ways to make life convenient for their members.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">Members see their plan, expiry and QR on their phone, and get reminders before they lapse.</p>
             </div>
             <div className="rounded-3xl p-8 bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-100">
               <h2 className="text-2xl font-bold text-gray-800 mb-3">Data-Centric</h2>
-              <p className="text-gray-600 text-sm leading-relaxed">Adopt a data-centric approach with our gym software. Leverage insightful data analytics to empower your decision-making with the most effective strategies.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">Your dashboard shows renewals due, dues pending and who has stopped coming, so you act on facts.</p>
             </div>
             <div className="rounded-3xl p-8 bg-gradient-to-br from-teal-50 to-teal-50 border border-teal-100">
               <h2 className="text-2xl font-bold text-gray-800 mb-3">Be a Brand</h2>
-              <p className="text-gray-600 text-sm leading-relaxed">Service is the silent ambassador of your brand. Your reputation is earned by doing hard things well. GymDesk helps you build that reputation every day.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">Your gym name shows on the member portal. The Pro plan adds your own logo and colours.</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── TRUSTED BY BRANDS ────────────────────────────────────────────── */}
-      <section className="py-16 bg-white overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 text-center mb-10">
-          <h2 className="text-2xl font-bold text-gray-900">We are fortunate to work with exceptional brands</h2>
-        </div>
-        <div className="relative flex overflow-hidden">
-          <div className="flex gap-8 animate-[marquee_30s_linear_infinite]">
-            {['Origin Gym', 'Sculpt Master', 'Indian Iron', 'Tornado Fitness', 'The Warrior', 'Gym Discovery', 'Gym Naka', 'Urban Fitness', 'Pulse Fitness', 'Alpha Studio', 'FitZone', 'PowerFit'].map((name, i) => (
-              <div key={i} className="flex-shrink-0 px-8 py-4 rounded-2xl border border-gray-100 bg-gray-50 text-gray-500 font-semibold text-sm whitespace-nowrap">
-                {name}
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -308,34 +286,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── BLOG PREVIEW ─────────────────────────────────────────────────── */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-900 mb-12">
-            Get to know more from <span className="text-teal-600">GymDesk Blog</span>
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {blogs.map((blog, i) => (
-              <Link to="/blog" key={i} className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <div className="h-36 bg-gradient-to-br from-teal-100 to-teal-50 flex items-center justify-center text-5xl">
-                  {['📝', '🏋️', '📊', '💼'][i]}
-                </div>
-                <div className="p-5">
-                  <p className="text-xs text-teal-500 font-medium mb-2">{blog.date}</p>
-                  <h3 className="font-semibold text-gray-800 text-sm leading-snug mb-2 group-hover:text-teal-600 transition-colors line-clamp-2">{blog.title}</h3>
-                  <p className="text-gray-400 text-xs line-clamp-2">{blog.excerpt}</p>
-                  <span className="mt-3 inline-block text-teal-600 text-xs font-semibold">Read more →</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── SCROLLING MARQUEE ────────────────────────────────────────────── */}
       <section className="py-4 bg-teal-600 overflow-hidden">
         <div className="flex gap-8 animate-[marquee_25s_linear_infinite] whitespace-nowrap text-white/80 text-sm font-medium">
-          {['Member Management', 'Attendance Tracking', 'Billing & POS', 'Trainer Management', 'AI Workout Plans', 'WhatsApp Alerts', 'BMI Integration', 'Payroll Management', 'Data Security', 'Multi-Branch Support', 'Smart Dashboard', 'Class Scheduling'].map((item, i) => (
+          {['Member Management', 'QR Attendance', 'Payments and Dues', 'Trainer Commission', 'AI Workout Plans', 'WhatsApp Reminders', 'Excel Import', 'Biometric Log Import', 'GST Invoices', 'Tamil and Hindi menus', 'Smart Dashboard', 'Staff Attendance'].map((item, i) => (
             <span key={i} className="flex-shrink-0">{item} &nbsp;|&nbsp;</span>
           ))}
         </div>

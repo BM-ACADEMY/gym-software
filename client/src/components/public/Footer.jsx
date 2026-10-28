@@ -43,7 +43,6 @@ const Footer = () => {
             <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Resources</h4>
             <ul className="space-y-2.5">
               {[
-                { to: '/blog', label: 'Blog' },
                 { to: '/contact', label: 'Contact Support' },
                 { to: '/faq', label: 'FAQs' },
                 { to: '/help', label: 'Help centre' },

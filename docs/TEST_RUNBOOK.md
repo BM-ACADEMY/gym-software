@@ -7,7 +7,7 @@ Send Claude the output of anything that fails (copy the red part). Claude fixes 
 ```
 cd server
 npm install
-cp .env.example .env     # fill MONGO_URI for a TEST database, JWT_SECRET (long random). Never use the live database.
+cp .env.example .env     # fill MONGODB_URI and MONGODB_TEST_URI (a separate TEST database), JWT_SECRET (long random). Never use the live database.
 npm test
 ```
 Look for: all suites pass. Tests that were never run before and most likely to need fixes:
@@ -24,7 +24,7 @@ npm test
 Look for: build finishes with no errors. Known risk: `read-excel-file` (Excel reading) is new.
 
 ## 3. Run it and click through (staging)
-Server env needed: MONGO_URI, JWT_SECRET, CLIENT_URL, PUBLIC_SIGNUP=true (staging only), SELLER_STATE=Puducherry,
+Server env needed: MONGODB_URI, MONGODB_TEST_URI (tests only), JWT_SECRET, CLIENT_URL, PUBLIC_SIGNUP=true (staging only), SELLER_STATE=Puducherry,
 RAZORPAY_WEBHOOK_SECRET, SMTP_HOST/SMTP_USER/SMTP_PASS/SMTP_FROM (for owner emails), CLIENT_URL, ANTHROPIC_API_KEY (optional, for AI), AI_MODEL, AI_PLAN_MODEL, INTERNAL_API_KEY (24+ chars). Razorpay TEST keys go into Root Admin > Settings, never into chat or git.
 Client env: VITE_API_URL, VITE_SUPPORT_EMAIL, VITE_SUPPORT_PHONE (optional).
 

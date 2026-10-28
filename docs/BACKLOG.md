@@ -108,14 +108,16 @@ Rule: nothing here is advertised until it is built, tested by a human and listed
 
 | ID | Task | Pri | Days | Status |
 | --- | --- | --- | --- | --- |
-| AI-01 | Renewal Copilot: daily ranked list of who to chase, why, and a ready message (Tamil, English, Hindi); business-initiated sends still use approved WhatsApp templates | A | 3 | TODO |
-| AI-02 | Ask GymDesk on your own data via safe read-only tools (dues, expiring, absent, collections) | A | 3 | TODO |
+| AI-01 | Renewal Copilot: daily ranked list of who to chase, why, and a ready message (Tamil, English, Hindi). Works before Meta approval: a tap opens WhatsApp on the owner's own phone with the message filled in; automatic sends use approved templates once live | L (owner, 28 Oct) | 3 | TODO |
+| AI-02 | Ask GymDesk on your own data via safe read-only tools (dues, expiring, absent, collections) | L (owner, 28 Oct) | 3 | TODO |
 | AI-03 | Register import from a photo or PDF of the paper register, with preview and correction | A | 3 | TODO |
 | AI-04 | Churn risk that explains why, plus an automatic win-back sequence | A | 3 | TODO |
 | AI-05 | Weekly owner coach: 3 actions with expected rupee impact, then tracks whether they were done (upgrade of 1E-02) | A | 2 | TODO |
 | AI-06 | WhatsApp assistant for members (timings, dues, class booking); blocked until WhatsApp is live | B | 4 | BLOCKED |
 | AI-07 | Anomaly alerts: heavy discounts, proxy check-ins, cash that does not match | B | 3 | TODO |
 | AI-08 | Offer and message writer for owners in Tamil, Hindi and English | B | 2 | TODO |
+| PWA-01 | Installable web app (manifest, icons, service worker) so owners can add GymDesk to a phone or computer; data download already exists (1F-03). No app-store accounts needed | L (owner, 28 Oct) | 1.5 | TODO |
+| PRICE-01 | Cap on AI workout/diet plan generations per plan per month in `plans.js` (cost model assumes 30 on Growth, 100 on Pro) | L | 0.5 | TODO |
 
 ## Phase 2 and 3
 

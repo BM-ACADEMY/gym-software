@@ -3,15 +3,14 @@
 Format of an open item: question, Claude's recommendation, default if no answer, what it blocks, tier (see `OPERATING_RULES.md`).
 Mohamed answers in one line. Claude moves answered items to the log in the next commit.
 
-## Open: needs Mohamed (first batch, 28 Oct 2026)
+## Open: needs Mohamed (updated 28 Oct, after his first answers)
 
 | ID | Question | Recommendation | If no answer | Blocks | Tier |
 | --- | --- | --- | --- | --- | --- |
-| D-01 | `SCOPE.md` has two timelines: section 5 (public launch 1 Dec, build to 20 Nov) and section 11 (build done 28 to 30 Oct, test to about 4 Nov). Which is current? | Keep 1 Dec as the public launch. Treat section 11 as the first code-complete and test round, not the launch | Claude proceeds with that reading | Test planning, WhatsApp template timing | 2 |
-| D-02 | AI is now the main story (Mohamed, 28 Oct). `MARKETING_CLAIMS.md` forbids calling the whole product "AI-powered" because today only Ask GymDesk, the weekly summary and AI plans use AI; churn risk and dashboards are normal calculations. How do we reconcile? **A:** launch with claims limited to shipped AI, build AI Renewal Copilot first after launch. **B:** delay launch until Copilot ships. | A. Untested code is already the bottleneck, so adding more before launch raises risk. Make AI real first, then claim it | Claude builds the AI backlog as written; claims stay as they are | Landing copy, ad copy, `MARKETING_CLAIMS.md` | 3 |
-| D-03 | Freeze launch scope at what is in `BACKLOG.md` phases 0 to 1f, plus only three admin items: SA-03 AI and WhatsApp usage caps, SA-04 founder daily brief, SA-05 promo code screen? | Yes. Everything else in phases 1g and 3 starts after the soft launch | Claude treats the freeze as agreed | Order of work | 3 |
-| D-04 | The Rs 249 launch offer (12 months, 150 members). | **No** as written. Using the plan maths in the master doc (about Rs 90 monthly cost per gym), Rs 249 leaves about Rs 159 a month, so a Rs 3,000 cost per paying gym takes about 19 months to repay, against about 3.6 months at Rs 999. Safer: first month Rs 249, then the normal price | No offer is built | Pricing page, checkout | 3 |
-| D-05 | Turn on a daily autonomous run? A scheduled Claude session would work the Tier 1 and 2 queue each morning on `phase1-autopilot`, push small commits, and send the Daily Brief. It never touches `main`, production or real customers. | Yes, after the repo tests have run once, so it builds on a known-good base | Not turned on | Mohamed's 5 to 10 minute rhythm | 3 |
+| D-05 | Turn on a daily autonomous run (a scheduled Claude session that works the Tier 1 and 2 queue each morning on `phase1-autopilot` and sends the Daily Brief; never touches `main`, production or real customers)? | Yes, once Dev A has run the tests one time so it builds on a known-good base | Not turned on | The 5 to 10 minute rhythm | 3 |
+| D-09 | Calendar. Read as: 10 Nov gym invite-only with real software; 13, 16, 19, 22, 25 and 28 Nov one waitlist launch each (landing page, demo, sign-up list) for Salon/Spa/Barber, Mart, Dine (restaurant and pub), Cloth, Wash, Hire; 1 Dec gym public self-serve. Is that what you meant by a launch every 3 days? | Yes. Seven tested products by 28 Nov is not possible (tests not run, shared core not built, Meta approval pending, four testers) | Claude plans to this reading | Landing pages, ad plan | 3 |
+| D-10 | Approve the price table (section 14 of the master doc): Solo 249 (no paid ads), Starter 599, Growth 999, Pro 1,999 ex GST; launch offer for 3 months at Starter 499, Growth 849, Pro 1,799; no Rs 249-for-12-months offer | Yes. Offers sit above the floor price, so they cannot lose money even at full usage | Prices stay as the scope has them; no offer is built | Pricing page, checkout | 3 |
+| D-11 | Salon, Spa and Barber/Grooming as one product (salon.afraventures.in) with three presets, instead of three products? | One product. About 80 percent of the work is shared | Claude plans one product | Salon scope | 3 |
 
 ## Open: Tier 2, proceeding on default (veto any time)
 
@@ -22,6 +21,8 @@ Mohamed answers in one line. Claude moves answered items to the log in the next 
 | D-08 | Product name | Working name GymDesk (candidate RepSetu); interim address fit.afraventures.in; final name after the launch gate |
 
 ## Still waiting on people, not decisions (see `BACKLOG.md` phase 0)
+
+Every task below is a row in the **Dev Task Sheet** (shared doc, devs update Status and Notes): https://claude.ai/artifact/NwcPRQpgvbWifhqTzRetd1 . Claude reads it at the start of each session and fixes reported failures first.
 
 - Dev A: run `cd server && npm install && npm test`, then `cd client && npm install && npm run build`; send back any red output. Follow `docs/TEST_RUNBOOK.md`.
 - Dev A: paid hosting, Atlas backups with one restore drill (`docs/OPS.md`), uptime monitor.
@@ -37,4 +38,10 @@ Mohamed answers in one line. Claude moves answered items to the log in the next 
 | 2026-10-28 | Gym name can be any working name for now; final name decided after the launch gate | Mohamed |
 | 2026-10-28 | Claude works on its own and Mohamed reviews 5 to 10 minutes a day; work never stops for a pending decision (`OPERATING_RULES.md`) | Mohamed |
 | 2026-10-28 | Direction: AI is the main story and the Super Admin must be a complete SaaS back office. How to market it is D-02 | Mohamed |
+| 2026-10-28 | D-01 answered: all products start first-phase launches on 10 Nov, one every 3 days. Reading and limits in D-09 | Mohamed |
+| 2026-10-28 | D-02 answered: the first phase must be AI-driven. Pulled into launch scope: AI-01 Renewal Copilot and AI-02 Ask GymDesk on your own data, plus PWA-01. Claims still follow only what is built and tested | Mohamed |
+| 2026-10-28 | D-03 answered: yes, launch scope frozen at the backlog plus SA-03, SA-04, SA-05 and the AI items above | Mohamed |
+| 2026-10-28 | D-04 answered: no fixed offer; Claude builds a cost-based price model so that nobody says no and there is no loss. Result in D-10 | Mohamed |
+| 2026-10-28 | Dev work runs in parallel: Claude does not wait for the team; every dev task is a row in the Dev Task Sheet (a shared doc) | Mohamed |
+| 2026-10-28 | Gym address: fit.afraventures.in (app) and api.fit.afraventures.in (API) | Mohamed |
 | 2026-10-28 | Earlier decisions: see `SCOPE.md` section 8 | Mohamed |

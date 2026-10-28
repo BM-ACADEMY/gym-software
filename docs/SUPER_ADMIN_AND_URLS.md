@@ -39,3 +39,7 @@ The gym has its own Super Admin inside the gym app: businesses by status, MRR, t
 
 ## 5. Tasks
 SA-10 (Stage 2 design and summary route in the gym), SA-11 (admin app skeleton), SA-12 (per-product summary route in each product), SA-13 (actions with audit). Mohamed said on 29 Oct to proceed without waiting for tests. Written: SA-12 gym part (`server/services/adminSummary.js`, route `/api/internal/admin-summary`) and SA-11 collector/aggregator (`apps/admin`). Still to write: the admin screens, admin sign-in with two-step (SA-11b), summary routes for the other products.
+
+## 6. How the panels are built (29 Oct)
+Every admin panel is described as data (a manifest) and drawn by one shared set of screens in `packages/core-ui/src/admin`. A product adds or changes a menu item, list, form or settings page by editing its manifest, not by writing new screens. Lists, cards and tables read live data from the product's API; the Super Admin builds one page per product from whatever products the collector returns, so a new product appears without code. Custom screens can still be added for anything the manifest cannot describe. A test checks that every manifest call matches a real route.
+Not done yet: admin sign-in with two-step (SA-11b; the server stays closed until then), the Hire server entry with sign-up and billing, and rendering the screens in a browser.

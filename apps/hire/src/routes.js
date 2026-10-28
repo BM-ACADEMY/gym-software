@@ -119,6 +119,17 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
     const c = await M.Client.create({ tenantId: tid, name: str(b.name), contactName: str(b.contactName), feeType: b.feeType === 'flat' ? 'flat' : 'percent', feeValue: Number(b.feeValue) || 0, guaranteeDays: Number(b.guaranteeDays) || 30 });
     res.status(201).json({ success: true, data: toPlain(c) });
   }));
+  router.patch('/clients/:id', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const set = {};
+    if (b.name !== undefined) { set.name = str(b.name); if (!set.name) return fail(res, 400, 'Name is needed.'); }
+    if (b.contactName !== undefined) set.contactName = str(b.contactName);
+    if (b.feeType !== undefined) set.feeType = b.feeType === 'flat' ? 'flat' : 'percent';
+    if (b.feeValue !== undefined) set.feeValue = Number(b.feeValue) || 0;
+    if (b.guaranteeDays !== undefined) set.guaranteeDays = Number(b.guaranteeDays) || 30;
+    const c = await M.Client.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: set }, { new: true });
+    if (!c) return fail(res, 404, 'Client not found');
+    res.json({ success: true, data: { ...toPlain(c), shareToken: undefined, hasShareLink: !!c.shareToken } });
+  }));
   router.post('/clients/:id/share-link', wrap(async (req, res, tid) => {
     const token = crypto.randomBytes(24).toString('hex'); // 192 bits: cannot be guessed; a new call replaces the old link
     const c = await M.Client.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: { shareToken: token } }, { new: true });
@@ -137,6 +148,20 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
     const arr = (v) => (Array.isArray(v) ? v.map((x) => str(x, 40).toLowerCase()).filter(Boolean).slice(0, 30) : []);
     const j = await M.Job.create({ tenantId: tid, clientId: b.clientId || undefined, title: str(b.title), location: str(b.location, 80), openings: Number(b.openings) || 1, mustSkills: arr(b.mustSkills), niceSkills: arr(b.niceSkills), minExperience: num(b.minExperience), maxExperience: num(b.maxExperience), maxCtc: num(b.maxCtc), maxNoticeDays: num(b.maxNoticeDays) });
     res.status(201).json({ success: true, data: toPlain(j) });
+  }));
+  router.patch('/jobs/:id', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const set = {};
+    const arr = (v) => (Array.isArray(v) ? v.map((x) => str(x, 40).toLowerCase()).filter(Boolean).slice(0, 30) : []);
+    if (b.title !== undefined) { set.title = str(b.title); if (!set.title) return fail(res, 400, 'Job title is needed.'); }
+    if (b.location !== undefined) set.location = str(b.location, 80);
+    if (b.openings !== undefined) set.openings = Number(b.openings) || 1;
+    if (b.mustSkills !== undefined) set.mustSkills = arr(b.mustSkills);
+    if (b.niceSkills !== undefined) set.niceSkills = arr(b.niceSkills);
+    for (const k of ['minExperience', 'maxExperience', 'maxCtc', 'maxNoticeDays']) if (b[k] !== undefined) set[k] = num(b[k]);
+    if (['open', 'on_hold', 'filled', 'closed'].includes(b.status)) set.status = b.status;
+    const j = await M.Job.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: set }, { new: true });
+    if (!j) return fail(res, 404, 'Job not found');
+    res.json({ success: true, data: toPlain(j) });
   }));
   router.post('/jobs/:id/rank', wrap(async (req, res, tid) => {
     const job = await M.Job.findOne({ _id: req.params.id, tenantId: tid });
@@ -175,6 +200,14 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
     res.json({ success: true, data: toPlain(e) });
   }));
 
+  router.get('/entries', wrap(async (req, res, tid) => {
+    const q = { tenantId: tid }; if (req.query.jobId) q.jobId = String(req.query.jobId);
+    const entries = await M.Entry.find(q).sort({ stageAt: -1 }).limit(300).lean();
+    const [cands, jobs] = await Promise.all([M.Candidate.find({ tenantId: tid, _id: { $in: entries.map((e) => e.candidateId) } }).select('name').lean(), M.Job.find({ tenantId: tid, _id: { $in: entries.map((e) => e.jobId) } }).select('title').lean()]);
+    const cn = {}; cands.forEach((c) => { cn[String(c._id)] = c.name; }); const jt = {}; jobs.forEach((j) => { jt[String(j._id)] = j.title; });
+    res.json({ success: true, data: entries.map((e) => ({ id: String(e._id), candidate: cn[String(e.candidateId)] || '-', job: jt[String(e.jobId)] || '-', stage: e.stage, stageAt: e.stageAt, score: e.score, clientDecision: e.clientDecision || null, note: e.note || '' })) });
+  }));
+
   // ---- fees: only after the candidate has joined ----
   router.post('/entries/:id/fee', wrap(async (req, res, tid) => {
     const e = await M.Entry.findOne({ _id: req.params.id, tenantId: tid });
@@ -191,6 +224,11 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
     const fee = await M.Fee.create({ tenantId: tid, entryId: e._id, fee: f.fee, gst: f.gst, total: f.total, currency: 'INR', issuedAt: new Date(), dueDate: new Date(dueDate(joined ? joined.at : new Date(), client.guaranteeDays)) });
     res.status(201).json({ success: true, data: { ...toPlain(fee), cgst: f.cgst, sgst: f.sgst, igst: f.igst } });
   }));
+  router.get('/fees', wrap(async (req, res, tid) => {
+    const fees = await M.Fee.find({ tenantId: tid }).sort({ issuedAt: -1 }).limit(200).lean();
+    const now = Date.now();
+    res.json({ success: true, data: fees.map((f) => ({ id: String(f._id), fee: f.fee, gst: f.gst, total: f.total, currency: f.currency, issuedAt: f.issuedAt, dueDate: f.dueDate, paidAt: f.paidAt || null, status: f.paidAt ? 'paid' : new Date(f.dueDate).getTime() < now ? 'overdue' : 'due' })) });
+  }));
   router.post('/fees/:id/paid', wrap(async (req, res, tid) => {
     const f = await M.Fee.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: { paidAt: new Date() } }, { new: true });
     if (!f) return fail(res, 404, 'Fee not found');
@@ -204,6 +242,10 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
     const candidates = {}; cands.forEach((c) => { candidates[String(c._id)] = { ...c, id: String(c._id) }; });
     const items = autopilot.watch({ entries: entries.map((e) => ({ ...e, id: String(e._id), candidateId: String(e.candidateId) })), candidates, jobs: jobs.map((j) => ({ ...j, id: String(j._id) })), fees: fees.map((f) => ({ ...f, id: String(f._id) })) }, new Date(), s);
     res.json({ success: true, data: items });
+  }));
+  router.get('/autopilot/settings', wrap(async (req, res, tid) => {
+    const s = await settingsOf(tid); delete s._id; delete s.tenantId; delete s.__v; delete s.createdAt; delete s.updatedAt;
+    res.json({ success: true, data: s });
   }));
   router.put('/autopilot/settings', wrap(async (req, res, tid) => {
     const LV = ['off', 'suggest', 'auto_internal', 'auto_send']; const b = req.body || {}; const jobs = {};

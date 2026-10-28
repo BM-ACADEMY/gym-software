@@ -1,0 +1,20 @@
+{
+  "product": "admin",
+  "title": "Afra Super Admin",
+  "navData": { "overview": "/overview" },
+  "nav": [
+    { "key": "overview", "label": "Overview", "screen": "stats", "stats": "overview" },
+    { "key": "product", "label": "Product", "screen": "stats", "stats": "product", "from": { "source": "overview", "path": "products", "idKey": "product", "labelKey": "product" } }
+  ],
+  "stats": {
+    "overview": { "label": "All products", "endpoint": "/overview", "refreshMs": 60000, "attention": "attention",
+      "cards": [
+        { "label": "Businesses", "path": "totals.businesses", "type": "number" }, { "label": "Paying", "path": "totals.paying", "type": "number" }, { "label": "On trial", "path": "totals.trial", "type": "number" },
+        { "label": "MRR", "path": "totals.mrr", "type": "money" }, { "label": "Open tickets", "path": "totals.openTickets", "type": "number" },
+        { "label": "AI spent today", "path": "totals.aiCostTodayInr", "type": "money" }, { "label": "AI daily budget", "path": "totals.aiBudgetInr", "type": "money" }, { "label": "WhatsApp today", "path": "totals.whatsappSentToday", "type": "number" }],
+      "tables": [{ "label": "By product", "rows": "products", "columns": [{ "key": "product", "label": "Product" }, { "key": "state", "label": "State", "type": "pill" }, { "key": "businesses.total", "label": "Businesses", "type": "number" }, { "key": "businesses.paying", "label": "Paying", "type": "number" }, { "key": "mrr", "label": "MRR", "type": "money" }, { "key": "openTickets", "label": "Tickets", "type": "number" }] }] },
+    "product": { "label": "Product", "endpoint": "/overview", "refreshMs": 60000,
+      "tables": [{ "label": "Products shown (filtered by the menu choice)", "rows": "products", "columns": [{ "key": "product", "label": "Product" }, { "key": "state", "label": "State", "type": "pill" }, { "key": "businesses.trial", "label": "Trial", "type": "number" }, { "key": "businesses.grace", "label": "Grace", "type": "number" }, { "key": "businesses.expired", "label": "Expired", "type": "number" }, { "key": "ai.callsToday", "label": "AI calls today", "type": "number" }, { "key": "ai.costTodayInr", "label": "AI cost today", "type": "money" }, { "key": "whatsappSentToday", "label": "WhatsApp today", "type": "number" }] },
+        { "label": "Ending soon", "rows": "products.0.endingSoon", "empty": "Nothing ending soon.", "columns": [{ "key": "name", "label": "Business" }, { "key": "kind", "label": "Type", "type": "pill" }, { "key": "daysLeft", "label": "Days left", "type": "number" }] }] }
+  }
+}

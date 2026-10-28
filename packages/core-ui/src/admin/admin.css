@@ -1,0 +1,28 @@
+/* Theme tokens: the host app may override these variables. Light and dark both defined. */
+:root{--adm-bg:#f2f5f7;--adm-panel:#fff;--adm-ink:#14232b;--adm-mute:#5d6e78;--adm-line:#d9e1e6;--adm-accent:#0b6e75;--adm-accent-ink:#fff;--adm-soft:#dff0f1;--adm-warn:#9a5b00;--adm-warn-bg:#fdecc8;--adm-bad:#a52a2a;--adm-bad-bg:#f9dcdc}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--adm-bg:#0e171c;--adm-panel:#15232a;--adm-ink:#e6eef1;--adm-mute:#93a6b0;--adm-line:#27393f;--adm-accent:#4cc0c8;--adm-accent-ink:#06282b;--adm-soft:#173a3e;--adm-warn:#f0b955;--adm-warn-bg:#3d2f10;--adm-bad:#f08a8a;--adm-bad-bg:#3d1b1b}}
+:root[data-theme="dark"]{--adm-bg:#0e171c;--adm-panel:#15232a;--adm-ink:#e6eef1;--adm-mute:#93a6b0;--adm-line:#27393f;--adm-accent:#4cc0c8;--adm-accent-ink:#06282b;--adm-soft:#173a3e;--adm-warn:#f0b955;--adm-warn-bg:#3d2f10;--adm-bad:#f08a8a;--adm-bad-bg:#3d1b1b}
+.adm-shell{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100%;background:var(--adm-bg);color:var(--adm-ink);font:14px/1.45 system-ui,sans-serif}
+.adm-shell nav{background:var(--adm-panel);border-right:1px solid var(--adm-line);padding:16px 12px}
+.adm-brand{font-weight:700;font-size:16px;margin-bottom:12px}
+.adm-shell nav ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.adm-shell nav a{display:block;padding:8px 10px;border-radius:8px;color:inherit;text-decoration:none}
+.adm-shell nav a[aria-current="page"]{background:var(--adm-accent);color:var(--adm-accent-ink)}
+.adm-shell nav a:focus-visible,.adm-btn:focus-visible{outline:3px solid var(--adm-accent);outline-offset:2px}
+.adm-shell main{padding:16px;min-width:0}
+.adm-screen{background:var(--adm-panel);border:1px solid var(--adm-line);border-radius:12px;padding:16px;display:grid;gap:12px;min-width:0}
+.adm-head{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap}.adm-head h2{margin:0;font-size:18px}
+.adm-tools{display:flex;gap:8px;flex-wrap:wrap}
+.adm-tools input,.adm-form input,.adm-form select,.adm-form textarea{padding:8px;border:1px solid var(--adm-line);border-radius:8px;background:var(--adm-bg);color:inherit;font:inherit;min-width:0}
+.adm-btn{padding:7px 12px;border:1px solid var(--adm-line);border-radius:8px;background:var(--adm-panel);color:inherit;font:600 13px system-ui;cursor:pointer}
+.adm-btn.main{background:var(--adm-accent);color:var(--adm-accent-ink);border-color:var(--adm-accent)}
+.adm-note{color:var(--adm-mute);margin:0}.adm-error{color:var(--adm-bad);background:var(--adm-bad-bg);padding:8px 10px;border-radius:8px;margin:0}
+.adm-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.adm-form label{display:grid;gap:4px;min-width:0}.adm-form em{color:var(--adm-bad);font-style:normal;font-size:12px}
+.adm-check{display:flex!important;align-items:center;gap:8px}.adm-row{display:flex;gap:8px;grid-column:1/-1}
+.adm-table{overflow-x:auto}.adm-table table{border-collapse:collapse;width:100%;min-width:520px;font-variant-numeric:tabular-nums}
+.adm-table th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--adm-mute);text-align:left;padding:8px;border-bottom:1px solid var(--adm-line)}.adm-table td{padding:9px 8px;border-bottom:1px solid var(--adm-line)}.adm-table .n{text-align:right}
+.adm-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.adm-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.adm-cards div{background:var(--adm-bg);border-radius:8px;padding:10px}.adm-cards small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--adm-mute)}.adm-cards b{font-size:20px;font-variant-numeric:tabular-nums}
+.adm-pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--adm-soft);color:var(--adm-accent)}
+.adm-alert{display:flex;gap:8px;padding:8px 10px;border-radius:8px;background:var(--adm-warn-bg);color:var(--adm-warn)}.adm-alert.error{background:var(--adm-bad-bg);color:var(--adm-bad)}
+@media (max-width:720px){.adm-shell{grid-template-columns:1fr}.adm-shell nav{border-right:0;border-bottom:1px solid var(--adm-line)}.adm-shell nav ul{display:flex;overflow-x:auto}}

@@ -114,6 +114,22 @@ describe('Hire routes', () => {
     expect((await request(app).get(`/share/${token}`)).status).toBe(404);
   });
 
+  test('panel list and edit routes are tenant-scoped (fees, entries, jobs, clients, settings)', async () => {
+    const job = (await post(A, '/hire/jobs', { title: 'Panel job' })).body.data;
+    const cl = (await post(A, '/hire/clients', { name: 'Panel client' })).body.data;
+    expect((await request(app).patch(`/hire/jobs/${job.id}`).set(as(B)).send({ title: 'x' })).status).toBe(404);
+    expect((await request(app).patch(`/hire/clients/${cl.id}`).set(as(B)).send({ name: 'x' })).status).toBe(404);
+    expect((await request(app).patch(`/hire/jobs/${job.id}`).set(as(A)).send({ status: 'closed', title: 'Renamed' })).body.data.status).toBe('closed');
+    expect((await request(app).patch(`/hire/clients/${cl.id}`).set(as(A)).send({ name: '' })).status).toBe(400);
+    const cand = (await post(A, '/hire/candidates', { name: 'Panel P', phone: '93000 66666' })).body.data;
+    await post(A, '/hire/entries', { jobId: job.id, candidateId: cand.id });
+    expect((await request(app).get('/hire/entries').set(as(A))).body.data.some((e) => e.candidate === 'Panel P')).toBe(true);
+    expect((await request(app).get('/hire/entries').set(as(B))).body.data).toHaveLength(0);
+    expect((await request(app).get('/hire/fees').set(as(B))).body.data).toHaveLength(0);
+    const set = await request(app).get('/hire/autopilot/settings').set(as(B));
+    expect(set.status).toBe(200); expect(set.body.data.paused).toBe(false); expect(set.body.data.tenantId).toBe(undefined);
+  });
+
   test('ranking uses the plan limit and counts each run', async () => {
     const job = (await post(A, '/hire/jobs', { title: 'Ranked', mustSkills: ['java'] })).body.data;
     const r = await post(A, `/hire/jobs/${job.id}/rank`, {});

@@ -347,15 +347,17 @@
     "Resume parse flow with plan limits and budget stop",
     "Business autopilot rules and weekly report numbers",
     "Mock-up screens shared",
-    "Hire API: candidates, jobs, ranking, pipeline, fees, client share page, autopilot list (database test written, not run)"
+    "Hire API: candidates, jobs, ranking, pipeline, fees, client share page, autopilot list (database test written, not run)",
+    "Hire admin panel described as data (Today, Pipeline, Candidates, Jobs, Clients, Fees, Weekly report, Autopilot settings); screens read the live API (never rendered by a person)"
    ],
    "next": [
     "Dev A runs the Hire route test",
-    "Real screens",
     "PDF and Word text reading",
     "AI reason for each rank",
     "Floor-price table (HIR-P1)",
-    "Shared autopilot runner"
+    "Shared autopilot runner",
+    "Hire server entry with sign-up, trial and billing (needs shared core C-04)",
+    "Render and fix the Hire panel in a browser (Dev A)"
    ],
    "blockers": [
     "Plan caps are guesses until a real parse is costed",
@@ -375,6 +377,10 @@
     {
      "date": "2026-10-29",
      "text": "API with 24 routes, share link page and database test written"
+    },
+    {
+     "date": "2026-10-29",
+     "text": "Shared dynamic admin panel framework and Hire manifest written"
     }
    ],
    "launchChecklist": [

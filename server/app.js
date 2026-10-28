@@ -23,7 +23,8 @@ app.use(securityHeaders);
 // Origins are restricted by CORS_ORIGINS in production; exposedHeaders is
 // required for the browser's JS to read X-Gym-Suspended.
 app.use(cors(corsOptions()));
-app.use(express.json({ limit: '1mb' }));
+// rawBody is kept for the Razorpay webhook, whose signature covers the exact bytes.
+app.use(express.json({ limit: '1mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(rejectOperatorKeys);
 

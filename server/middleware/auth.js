@@ -11,7 +11,7 @@ const isSupportTicketWrite = (req) =>
   req.method === 'POST' && /\/support\/?$/.test(req.originalUrl.split('?')[0]);
 
 // An expired gym must still be able to pay: billing routes stay writable.
-const isBillingWrite = (req) => /\/billing(\/|$)/.test(req.originalUrl.split('?')[0]);
+const isBillingWrite = (req) => /\/(billing|subscription)(\/|$)/.test(req.originalUrl.split('?')[0]);
 
 const protect = async (req, res, next) => {
   let token;

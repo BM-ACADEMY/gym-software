@@ -24,5 +24,7 @@ module.exports = (mongoose) => {
   const UsageLog = define('HireUsage', { tenantId: T, kind: { type: String, enum: ['parse', 'rank', 'outreach'], required: true }, model: String, inTokens: Number, outTokens: Number }, [[{ tenantId: 1, kind: 1, createdAt: -1 }, {}]]);
   const AutopilotSettings = define('HireAutopilot', { tenantId: { ...T, unique: true }, paused: Boolean, quietFrom: Number, quietTo: Number, dailySendLimit: Number, jobs: Schema.Types.Mixed });
   const ActivityLog = define('HireActivity', { tenantId: T, job: String, ref: String, level: String, action: String, text: String }, [[{ tenantId: 1, createdAt: -1 }, {}]]);
-  return { Candidate, Client, Job, Entry, Fee, UsageLog, AutopilotSettings, ActivityLog };
+  const Tenant = define('HireTenant', { agencyName: { type: String, required: true, maxlength: 120 }, state: String, currency: { type: String, default: 'INR' }, trialEndsAt: Date, paidUntil: Date, planKey: String, billingCycle: String, planStartedAt: Date, isActive: { type: Boolean, default: true }, termsAcceptedAt: Date, termsVersion: String });
+  const User = define('HireUser', { tenantId: T, name: String, email: { type: String, required: true, unique: true, lowercase: true, trim: true }, role: { type: String, enum: ['admin', 'subadmin'], default: 'admin' }, passwordHash: { type: String, required: true, select: false }, failedLogins: { type: Number, default: 0 }, lockedUntil: Date, isActive: { type: Boolean, default: true }, lastLoginAt: Date });
+  return { Tenant, User, Candidate, Client, Job, Entry, Fee, UsageLog, AutopilotSettings, ActivityLog };
 };

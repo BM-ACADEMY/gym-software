@@ -49,3 +49,11 @@ Product QA workbook (to be written by Claude, same layout as the gym workbook): 
 
 ## 10. Backlog IDs
 SAL-01 to SAL-14 map to the 13 phase 1 items above; created in `docs/BACKLOG.md` when core packages exist (C-02). Status of all: TODO.
+
+## 11. Autopilot and owner reports (Decision to include, Assumption on the rules until owner interviews)
+Same switch model as every product (`docs/products/AUTOPILOT.md`): off / suggest (default) / auto inside the app / auto send. Guardrails: this business's data only, customer consent, quiet hours, daily send limit, activity log, pause switch, plan caps, no voice calls.
+- **Watches:** Customers not back in their usual gap, tomorrow's no-show risk, low stock, idle slots
+- **Acts:** Rebooking nudges, appointment reminders (3); staff tasks (2)
+- **Reports to the owner:** Daily sales and bookings, weekly top services and staff, slow hours
+- Reports and switches show in this product's own admin panel (manifest-driven) and the product counts show in Super Admin.
+- Not promised on the landing page until a human has seen it work.

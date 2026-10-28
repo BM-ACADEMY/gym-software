@@ -42,3 +42,11 @@ Job flow tests on a phone in real conditions (wet hands, bright sun: large butto
 
 ## 9. Backlog IDs
 WSH-01 to WSH-11. Status of all: TODO.
+
+## 11. Autopilot and owner reports (Decision to include, Assumption on the rules until owner interviews)
+Same switch model as every product (`docs/products/AUTOPILOT.md`): off / suggest (default) / auto inside the app / auto send. Guardrails: this business's data only, customer consent, quiet hours, daily send limit, activity log, pause switch, plan caps, no voice calls.
+- **Watches:** Customers due for next wash, unpaid jobs, pickup delays
+- **Acts:** Wash-due reminders, ready-for-pickup messages (3)
+- **Reports to the owner:** Daily jobs and revenue, repeat rate, staff work done
+- Reports and switches show in this product's own admin panel (manifest-driven) and the product counts show in Super Admin.
+- Not promised on the landing page until a human has seen it work.

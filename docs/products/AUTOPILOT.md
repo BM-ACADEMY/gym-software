@@ -32,7 +32,7 @@ Each product runs the owner's daily routine by itself and tells the owner only w
 | **Wash** | Customers due for next wash, unpaid jobs, pickup delays | Wash-due reminders, ready-for-pickup messages (3) | Daily jobs and revenue, repeat rate, staff work done |
 
 ## Shared build (core, one time)
-`packages/core-autopilot` (not created yet): job registry, schedule runner, levels and guardrails above, activity log, daily limits, quiet hours, per-job pause. Products only supply their own watch rules and wording. Until it exists, Hire's rules live in `apps/hire/src/autopilot.js` and move into core when the second product needs them.
+`packages/core-autopilot` (not created yet): job registry, schedule runner, levels and guardrails above, activity log, daily limits, quiet hours, per-job pause. Products only supply their own watch rules and wording. Billing, trial status and the read-only rule for expired accounts already exist as `packages/core-billing` (C-04a, written, not yet tested); autopilot jobs must respect it (an expired account gets no auto-send). Until `core-autopilot` exists, Hire's rules live in `apps/hire/src/autopilot.js` and move into core when the second product needs them.
 
 ## Open for Mohamed (Tier 3, not blocking)
 - WhatsApp template wording for auto-send jobs (lawyer for candidates; Meta approval).

@@ -47,3 +47,11 @@ Billing maths (GST, discounts, rounding, returns), offline sync conflict test, b
 
 ## 9. Backlog IDs
 MRT-01 to MRT-13 map to the phase 1 list. Status of all: TODO.
+
+## 11. Autopilot and owner reports (Decision to include, Assumption on the rules until owner interviews)
+Same switch model as every product (`docs/products/AUTOPILOT.md`): off / suggest (default) / auto inside the app / auto send. Guardrails: this business's data only, customer consent, quiet hours, daily send limit, activity log, pause switch, plan caps, no voice calls.
+- **Watches:** Items near out of stock, expiring batches, customers with udhaar overdue
+- **Acts:** Reorder list per supplier (1); udhaar reminders (3)
+- **Reports to the owner:** Daily sales, profit estimate, fast and dead stock, credit owed
+- Reports and switches show in this product's own admin panel (manifest-driven) and the product counts show in Super Admin.
+- Not promised on the landing page until a human has seen it work.

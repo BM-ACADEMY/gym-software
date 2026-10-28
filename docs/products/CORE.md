@@ -55,3 +55,8 @@ so the launch branch is never destabilised (Decision, protects the 10 Nov gym da
 - Offline billing with sync is the hardest part of POS. Phase 1 target: the billing screen keeps working when the network drops and syncs later; conflicts resolved by "bill number from the device prefix". Needs a human offline test.
 - Barcode scanning in a browser depends on the phone camera and the scanner type. Needs a real scanner and a real phone in the test plan.
 - Thermal printer support differs by shop (58 mm / 80 mm, USB / Bluetooth). Phase 1: browser print and PDF; direct thermal printing in Phase 2.
+
+## Progress note (29 Oct)
+- C-04a `packages/core-billing` written (status, quote, GST, proration, limits, read-only guard); parity-checked against the gym's code; gym not switched yet (waits for Dev A's first green run).
+- Hire has its own sign-up, sign-in and session (`apps/hire/src/signup.js`, `session.js`, `authRoutes.js`). When C-04 moves accounts into core, Hire's and the gym's move together; until then each product keeps its own.
+- `packages/core-autopilot` still to build (second product needing it triggers the move).

@@ -44,3 +44,11 @@ Variant grid creation, label print scan test with a real scanner, exchange/credi
 
 ## 9. Backlog IDs
 CLO-01 to CLO-12. Status of all: TODO. It shares the POS, inventory and purchase-bill modules with Mart, so Mart's C-02 work comes first.
+
+## 11. Autopilot and owner reports (Decision to include, Assumption on the rules until owner interviews)
+Same switch model as every product (`docs/products/AUTOPILOT.md`): off / suggest (default) / auto inside the app / auto send. Guardrails: this business's data only, customer consent, quiet hours, daily send limit, activity log, pause switch, plan caps, no voice calls.
+- **Watches:** Slow-moving stock, size gaps, season end, customers' occasions
+- **Acts:** Markdown suggestions (1); occasion messages (3)
+- **Reports to the owner:** Daily sales, stock ageing, supplier dues
+- Reports and switches show in this product's own admin panel (manifest-driven) and the product counts show in Super Admin.
+- Not promised on the landing page until a human has seen it work.

@@ -55,3 +55,11 @@ KOT flow tests on two real devices, split-bill maths, recipe deduction maths, va
 
 ## 10. Backlog IDs
 DIN-01 to DIN-16 (restaurant 11 + pub 5). Status of all: TODO.
+
+## 11. Autopilot and owner reports (Decision to include, Assumption on the rules until owner interviews)
+Same switch model as every product (`docs/products/AUTOPILOT.md`): off / suggest (default) / auto inside the app / auto send. Guardrails: this business's data only, customer consent, quiet hours, daily send limit, activity log, pause switch, plan caps, no voice calls.
+- **Watches:** Slow items, stock for tomorrow, table turn time, bad reviews if connected
+- **Acts:** Prep and purchase list (1); regular-guest offers (3)
+- **Reports to the owner:** Daily sales by hour and item, wastage, weekly summary
+- Reports and switches show in this product's own admin panel (manifest-driven) and the product counts show in Super Admin.
+- Not promised on the landing page until a human has seen it work.

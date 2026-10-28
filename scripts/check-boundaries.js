@@ -76,7 +76,7 @@ const check = () => {
           const abs = path.resolve(path.dirname(file), spec);
           target = ownerOf(abs, prods, pkgs);
           // reaching into a package's inner files from outside it
-          if (target && target.kind === 'package' && !(owner.kind === 'package' && owner.name === target.name)) inner = true;
+          if (target && target.kind === 'package' && !(owner.kind === 'package' && owner.name === target.name) && abs !== pkgs[target.name]) inner = true; // the package root itself is allowed
         } else {
           const m = spec.match(/^@(?:afra|gymdesk)\/([a-z0-9-]+)(\/.*)?$/);
           if (m) {

@@ -41,7 +41,7 @@ const compute = ({ lines, billDiscount, taxMode = 'none', gstMode = 'cgst_sgst',
     d = Math.min(d, gross);
     const rate = taxMode === 'none' ? 0 : Number(l.gstRate ?? 0);
     if (!GST_SLABS.includes(rate)) bad(`GST rate ${rate} is not a standard slab.`);
-    return { name: l.name, kind: l.kind || 'item', staffId: l.staffId || null, qty, unitPrice, gross, lineDiscount: d, net: gross - d, rate };
+    return { name: l.name, kind: l.kind || 'item', staffId: l.staffId || null, itemId: l.itemId || null, qty, unitPrice, gross, lineDiscount: d, net: gross - d, rate };
   });
 
   // 2. bill-level discount shared across lines in proportion to what each line costs

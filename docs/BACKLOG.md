@@ -145,7 +145,7 @@ Scope files: `docs/products/README.md` (index and rules), `CORE.md`, and one `SC
 | ID | Task | Pri | Status |
 | --- | --- | --- | --- |
 | C-01 | Package boundaries, architecture note, no-cross-product-import check | L | DONE (written and checked in plain node): docs/ARCHITECTURE.md and scripts/check-boundaries.js; gym code passes. CI hook is a Dev A task |
-| C-02 | `core-pos`: customer, billing/POS (offline), loyalty, inventory, with tests; first user Salon, then Mart | L | PARTIAL: `packages/core-pos` pure rules written and run in plain node (19 checks: bill maths with GST inclusive/exclusive/none, discounts, split payments, pay-later, loyalty, stock and expiry). Still to do: customer, bill and stock models, routes, POS screen, offline sync, then Salon uses it |
+| C-02 | `core-pos`: customer, billing/POS (offline), loyalty, inventory, with tests; first user Salon, then Mart | L | PARTIAL: `packages/core-pos` has pure rules (19 checks run in plain node), records (customers, items, stock moves, loyalty, bills, counters) and a router factory `createPosRouter` (customers, items, stock, bills with GST, split pay, pay-later, points, offline-safe retry, whole-bill return, low-stock and expiry reports). DB test `server/tests/posCore.test.js` written, NOT run. Still to do: POS screen, offline queue on the client, part returns, then Salon app uses it |
 | C-03 | Fail-closed tenant plugin, a test per model | L | TODO |
 | C-04 | Move billing, plans, WhatsApp, caps, Super Admin into packages; gym consumes them only after Dev A's first green run | A | TODO |
 | C-05 | Business-type switch and per-product presets | L | TODO |

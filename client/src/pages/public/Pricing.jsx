@@ -7,19 +7,19 @@ import Footer from '../../components/public/Footer';
 const plans = [
   {
     name: 'Solo', blurb: 'For a trainer or a very small studio', monthly: 249, yearly: 2490,
-    features: ['Up to 50 members', '1 staff login', 'Member portal with QR check-in', 'Attendance and payments', 'No WhatsApp messages (upgrade for reminders)'],
+    features: ['Up to 50 members', '1 staff login', 'Member portal with QR check-in', 'Attendance and payments', 'No WhatsApp messages (upgrade for reminders)', '15 AI answers a month'],
   },
   {
     name: 'Starter', blurb: 'For a small gym just getting organised', monthly: 599, yearly: 5999,
-    features: ['Up to 150 members', '2 staff logins', 'Member portal with QR check-in', 'Attendance and payments', 'Renewal reminders on WhatsApp'],
+    features: ['Up to 150 members', '2 staff logins', 'Member portal with QR check-in', 'Attendance and payments', 'Renewal reminders on WhatsApp', '60 AI answers a month'],
   },
   {
     name: 'Growth', blurb: 'For most gyms', monthly: 999, yearly: 9999, popular: true,
-    features: ['Up to 500 members', '5 staff logins', 'Everything in Starter', 'PT sessions and trainer commission', 'Accounts and expenses', 'AI workout and diet plans'],
+    features: ['Up to 500 members', '5 staff logins', 'Everything in Starter', 'PT sessions and trainer commission', 'Accounts and expenses', 'AI workout and diet plans', '200 AI answers a month'],
   },
   {
     name: 'Pro', blurb: 'For big or multi-trainer gyms', monthly: 1999, yearly: 19999,
-    features: ['Unlimited members', 'Unlimited staff logins', 'Everything in Growth', 'Your own logo and colours', 'Higher WhatsApp allowance'],
+    features: ['Unlimited members', 'Unlimited staff logins', 'Everything in Growth', 'Your own logo and colours', 'Higher WhatsApp allowance', '600 AI answers a month'],
   },
 ];
 

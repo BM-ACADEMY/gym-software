@@ -62,6 +62,7 @@ const Landing = () => {
     { icon: '📱', title: 'Member Portal', desc: 'Members open it on their phone browser to see their plan, expiry, attendance QR and workout plan. No app store download.' },
     { icon: '💬', title: 'WhatsApp Reminders', desc: 'Renewal, dues and absence reminders go out by themselves, and you get a daily summary at 8 pm.' },
         { icon: '💰', title: 'Commissions and Expenses', desc: 'Track trainer commissions, PT sessions and gym expenses in one place.' },
+    { icon: '✨', title: 'AI Built In', desc: 'AI workout and diet plans for members, a weekly summary of your gym with things to act on, and an assistant that answers how-to questions.' },
     { icon: '🔒', title: 'Your Data Stays Yours', desc: 'Each gym\'s data is kept separate, connections are encrypted, and you can export it any time.' },
   ];
 
@@ -95,7 +96,7 @@ const Landing = () => {
                 fitness industry
               </h1>
               <p className="mt-6 text-lg text-gray-300 leading-relaxed max-w-xl">
-                All-In-One Gym Membership Management Software with multiple features made for Gyms & Fitness Health Clubs.
+                Run members, payments and attendance, send WhatsApp reminders automatically, and get AI plans and weekly insights. Made for gyms in India.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link

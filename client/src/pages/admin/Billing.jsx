@@ -176,6 +176,7 @@ const Billing = () => {
                 <li className="flex gap-2"><Check className="h-4 w-4 text-teal-600" />{p.memberLimit ? `Up to ${p.memberLimit} members` : 'Unlimited members'}</li>
                 <li className="flex gap-2"><Check className="h-4 w-4 text-teal-600" />{p.staffLimit ? `${p.staffLimit} staff logins` : 'Unlimited staff logins'}</li>
                 <li className="flex gap-2"><Check className="h-4 w-4 text-teal-600" />{p.whatsappPerMonth ? `${p.whatsappPerMonth} WhatsApp messages / month` : 'No WhatsApp messages'}</li>
+                <li className="flex gap-2"><Check className="h-4 w-4 text-teal-600" />{p.aiCallsPerMonth} AI answers / month</li>
                 {Object.entries(FEATURE_LABELS).filter(([k]) => p.features[k]).map(([k, label]) => (
                   <li key={k} className="flex gap-2"><Check className="h-4 w-4 text-teal-600" />{label}</li>
                 ))}

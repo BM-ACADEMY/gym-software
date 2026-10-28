@@ -5,6 +5,45 @@ import Badge from '../../components/ui/Badge';
 const TONE = { open: 'amber', in_progress: 'blue', resolved: 'green' };
 const LABEL = { open: 'Open', in_progress: 'In progress', resolved: 'Resolved' };
 
+const Assistant = () => {
+  const [q, setQ] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState('');
+
+  const ask = async (e) => {
+    e.preventDefault();
+    setErr(''); setRes(null); setBusy(true);
+    try {
+      const r = await apiClient.post('/admin/assistant/ask', { question: q });
+      setRes(r.data.data);
+    } catch (ex) {
+      setErr(ex.response?.data?.message || 'Could not get an answer. Please try again.');
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <h2 className="text-lg font-semibold text-gray-800">Ask GymDesk</h2>
+      <p className="mt-1 text-sm text-gray-500">Ask how to do something. Answers come from our help articles.</p>
+      <form onSubmit={ask} className="mt-3 flex gap-2">
+        <input id="ask-gymdesk" required minLength={3} maxLength={500} value={q} onChange={(e) => setQ(e.target.value)} placeholder="For example: how do I import my old members?" className="min-w-0 flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+        <button disabled={busy} className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{busy ? 'Thinking…' : 'Ask'}</button>
+      </form>
+      {err && <p className="mt-2 text-sm text-red-600">{err}</p>}
+      {res && (
+        <div className="mt-3 rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
+          <p className="whitespace-pre-line">{res.answer}</p>
+          <p className="mt-2 text-xs text-gray-400">
+            {res.source === 'ai' ? `Written by AI from our help articles. ${res.remaining} AI answers left this month.` : 'Matching help articles.'}
+            {res.note ? ` ${res.note}` : ''}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Support = () => {
   const [tickets, setTickets] = useState([]);
   const [subject, setSubject] = useState('');
@@ -31,6 +70,7 @@ const Support = () => {
 
   return (
     <div className="space-y-6 max-w-3xl">
+      <Assistant />
       <div className="rounded-xl border border-gray-200 bg-white p-5">
         <h2 className="text-lg font-semibold text-gray-800">Need help?</h2>
         <p className="mt-1 text-sm text-gray-500">

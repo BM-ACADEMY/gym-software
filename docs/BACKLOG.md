@@ -54,6 +54,16 @@ Progress 28 Oct: 1B-01 to 1B-04 written. `utils/whatsapp.js` sends approved temp
 | 1C-03 | Support chatbot on WhatsApp with hand-over; support tickets (reuse existing Ticket model) | PARTIAL (owner Help & Support page + tickets written, `tests/support.test.js` not run; WhatsApp chatbot NOT started, needs the WhatsApp number) | |
 | 1C-04 | Global-ready settings: currency, tax label and rate, timezone, country code per gym | PARTIAL (country, currency, time zone, language saved per gym with checks, Settings card; `tests/settingsRegionBranding.test.js` not run. NOT yet used: automations still run on IST and English templates, invoices are INR + GST only) | INR/GST default |
 
+## Phase 1e: AI features (added 28 Oct for the launch story)
+
+| ID | Task | Status | Acceptance |
+| --- | --- | --- | --- |
+| 1E-01 | Ask GymDesk assistant (answers from help articles, article search when no key or cap used, monthly cap per plan) | WRITTEN | `tests/aiAssistant.test.js`, `tests/aiAssist.unit.test.js` (10/10 via shim) |
+| 1E-02 | Weekly AI insights card on owner dashboard (totals only, AI at most weekly, rules fallback daily) | WRITTEN | no names or phones in the model prompt |
+| 1E-03 | AI plan generation: cheaper model default via `AI_PLAN_MODEL` (old code used a model name that may not exist) | WRITTEN | plan generation works with the key set |
+| 1E-04 | Marketing claims list `docs/MARKETING_CLAIMS.md` | WRITTEN | landing copy matches |
+| 1E-05 | AI cost check after 1 week of use; adjust `aiCallsPerMonth` in `plans.js` | TODO (human data) | |
+
 ## Phase 1d: Test and soft launch
 
 | ID | Task | Status | Acceptance |

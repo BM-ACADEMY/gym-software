@@ -25,7 +25,7 @@ Look for: build finishes with no errors. Known risk: `read-excel-file` (Excel re
 
 ## 3. Run it and click through (staging)
 Server env needed: MONGO_URI, JWT_SECRET, CLIENT_URL, PUBLIC_SIGNUP=true (staging only), SELLER_STATE=Puducherry,
-RAZORPAY_WEBHOOK_SECRET, INTERNAL_API_KEY (24+ chars). Razorpay TEST keys go into Root Admin > Settings, never into chat or git.
+RAZORPAY_WEBHOOK_SECRET, ANTHROPIC_API_KEY (optional, for AI), AI_MODEL, AI_PLAN_MODEL, INTERNAL_API_KEY (24+ chars). Razorpay TEST keys go into Root Admin > Settings, never into chat or git.
 Client env: VITE_API_URL, VITE_SUPPORT_EMAIL, VITE_SUPPORT_PHONE (optional).
 
 Screen checks (Staff 1 and 2):
@@ -36,6 +36,7 @@ Screen checks (Staff 1 and 2):
 5. Import Device Log: use a real export from your fingerprint/face machine. REPORT the brand and how dates look.
 6. Set a gym's paidUntil in the database to 4 days ago: account must be read-only, billing page still works.
 7. Switch language to Tamil and Hindi: menu and banner change.
+7b. AI: on the Dashboard a card 'This week at your gym' appears (Auto summary without an AI key, 'Written by AI' with ANTHROPIC_API_KEY set). Help & Support > Ask GymDesk answers 'how do I import members'. Check the AI cost in the Anthropic console after a day and tell Claude.
 8. Solo plan gym with 51 members cannot buy Solo; Growth gym cannot change logo/colours (Pro only).
 
 Dev B (API attacks): try reading another gym's data with a valid token on every new route (`/api/admin/subscription`, `/members/import`, `/attendance/device-log`, `/staff-attendance`, `/support`, `/onboarding`); try forged webhooks; try a tampered member QR.

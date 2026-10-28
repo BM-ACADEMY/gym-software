@@ -96,4 +96,16 @@ describe('Ask GymDesk + insights', () => {
     const sent = JSON.stringify(mockCreate.mock.calls[0][0]);
     expect(sent).not.toMatch(/Secret Person|9111111111/);
   });
+
+  test('an AI insight is reused for the rest of the week (one paid call, not one a day)', async () => {
+    process.env.ANTHROPIC_API_KEY = 'test-key';
+    mockCreate.mockResolvedValue(reply('{"summary":"Fine week.","actions":["Do a thing"]}'));
+    const g = await createTenant({ subscriber: { planKey: 'growth', paidUntil: new Date(Date.now() + 20 * DAY) } });
+    const AiInsight = require('../models/AiInsight');
+    const yesterday = new Date(Date.now() - DAY).toISOString().slice(0, 10);
+    await AiInsight.create({ subscriberId: g.subscriber._id, day: yesterday, source: 'ai', summary: 'Old but recent', actions: ['x'] });
+    const r = await request(app).get('/api/admin/assistant/insights').set(auth(g));
+    expect(r.body.data.summary).toBe('Old but recent');
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
 });

@@ -177,6 +177,11 @@ const getInsight = async (subscriber, now = new Date()) => {
   const day = istDay(now);
   const cached = await AiInsight.findOne({ subscriberId: subscriber._id, day });
   if (cached) return { insight: cached, cached: true };
+  // An AI-written insight stays on the dashboard for a week, so AI costs at most
+  // about 4 calls a month per gym. Rule-based summaries (free) refresh daily.
+  const weekAgo = istDay(new Date(now.getTime() - 6 * DAY));
+  const recentAi = await AiInsight.findOne({ subscriberId: subscriber._id, source: 'ai', day: { $gte: weekAgo } }).sort({ day: -1 });
+  if (recentAi) return { insight: recentAi, cached: true };
 
   const stats = await gatherStats(subscriber._id, now);
   let out = null;

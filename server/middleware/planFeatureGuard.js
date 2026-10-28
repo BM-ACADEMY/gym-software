@@ -39,4 +39,28 @@ const planFeatureGuard = (featureKey) => async (req, res, next) => {
   }
 };
 
+// For features that exist only in the code-defined plans (config/plans.js).
+// Gyms on the legacy DB plan system, or with no plan assigned (old pilot gyms),
+// pass through untouched so nothing that works today breaks.
+const codeFeatureGuard = (featureKey) => async (req, res, next) => {
+  try {
+    const subscriber = await Subscriber.findById(req.user.subscriberId);
+    if (!subscriber || subscriber.platformPlanId) return next();
+    const plan = effectivePlan(subscriber);
+    if (!plan) return next();
+    if (!plan.features[featureKey]) {
+      return res.status(403).json({
+        success: false,
+        planUpgradeRequired: true,
+        message: `Your plan (${plan.name}) doesn't include this feature. Upgrade to use it.`,
+      });
+    }
+    next();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 module.exports = planFeatureGuard;
+module.exports.codeFeatureGuard = codeFeatureGuard;

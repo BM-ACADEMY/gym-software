@@ -59,3 +59,24 @@ describe('self-serve sign-up and subscription', () => {
     expect(ok.status).not.toBe(403);
   });
 });
+
+describe('plan gating of PT and accounts', () => {
+  beforeAll(async () => { await db.connect(); });
+  afterAll(async () => { await db.clearDatabase(); await db.closeDatabase(); });
+
+  test('starter is blocked from PT and accounts, growth and legacy gyms are not', async () => {
+    const paid = (planKey) => ({ planKey, paidUntil: new Date(Date.now() + 20 * 86400000) });
+    const starter = await createTenant({ subscriber: paid('starter') });
+    const growth = await createTenant({ subscriber: paid('growth') });
+    const legacy = await createTenant();
+    for (const path of ['/api/admin/pt-packages', '/api/admin/accounts/expenses']) {
+      const blocked = await request(app).get(path).set('Authorization', `Bearer ${starter.adminToken}`);
+      expect(blocked.status).toBe(403);
+      expect(blocked.body.planUpgradeRequired).toBe(true);
+      const ok = await request(app).get(path).set('Authorization', `Bearer ${growth.adminToken}`);
+      expect(ok.status).not.toBe(403);
+      const old = await request(app).get(path).set('Authorization', `Bearer ${legacy.adminToken}`);
+      expect(old.status).not.toBe(403);
+    }
+  });
+});

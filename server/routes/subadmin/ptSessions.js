@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { bookSession, listSessions, rescheduleSession, cancelSession, completeSession, noShowSession, suggestSlots, listActivePackages, sellPackage, listMemberPackages } = require('../../controllers/admin/ptSessions');
 const { protect, authorize } = require('../../middleware/auth');
+const { codeFeatureGuard } = require('../../middleware/planFeatureGuard');
 const permissionGuard = require('../../middleware/permissionGuard');
 
-router.use(protect, authorize('subadmin'));
+router.use(protect, authorize('subadmin'), codeFeatureGuard('pt-sessions'));
 
 router.get('/suggest-slots', permissionGuard('pt-sessions', 'view'), suggestSlots);
 router.get('/packages', permissionGuard('pt-sessions', 'view'), listActivePackages);

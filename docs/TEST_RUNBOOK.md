@@ -53,3 +53,8 @@ For each failure: which step, what you expected, what happened, and the red erro
 1. `cd server && npm test -- promoCodes` should pass.
 2. Make a code as Root Admin: POST `/api/root-admin/promo-codes` with `{ "code": "TEST20", "percentOff": 20, "kind": "partner", "ownerLabel": "Test" }`.
 3. As a trial gym, type TEST20 in the "Have a code?" box on Billing and pay (Razorpay test mode). Expect the Razorpay amount to be 20% lower before GST, the invoice to show a Discount line, and a second payment with the same code to be refused.
+
+## Extra: class booking (Dev A, Staff)
+1. `cd server && npm test -- classBooking` should pass.
+2. Owner: Classes, add a class with 1 seat for tomorrow. Member A books (Booked). Member B books (On waitlist). Member A cancels: Member B becomes Booked and gets a notification.
+3. An expired or frozen member must be refused. Owner cancels the class: members get a notice.

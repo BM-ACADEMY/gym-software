@@ -27,5 +27,6 @@ router.use('/billing', require('./billing'));
 router.use('/assistant', require('./assistant'));
 router.use('/export', require('./export'));
 router.use('/retention', require('./retention'));
+router.use('/classes', require('./classes'));
 
 module.exports = router;

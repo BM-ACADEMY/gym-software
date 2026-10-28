@@ -65,6 +65,6 @@ Everything is in the activity log. Suggested wording avoids unproven claims (`do
 
 ## 6. Open for Mohamed (not blocking)
 - Approve account-level facts from each product into Super Admin (default yes).
-- Done: Mohamed has a sales team (names and roles still needed for the Lead Hub brand access).
+- Done: Mohamed has a sales team. People will change (telecaller or BD), so access is granted per person in the Lead Hub, never fixed in code. Brand split decided: one "AFRA Products" brand (D-21).
 - Which renewal offers are allowed (e.g. yearly = 10 months already exists for the gym).
 - Leads are in a sheet (Mohamed, 29 Oct). Real lead data must never go into git or chat: Mohamed shares the sheet with Dev A, who runs the Lead Hub CSV dry-run import and sends back only the counts (rows, duplicates, bad rows).

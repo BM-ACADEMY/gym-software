@@ -66,3 +66,7 @@ Every task below is a row in the team task sheet (`docs/TEAM_TASK_SHEET.xlsx`, o
 - Claude's default (Mohamed may change): products send account-level facts (business, owner contact, plan, dates, last active) to Super Admin; no end-customer data. Human calls only, 10 am to 6 pm Monday to Saturday; no AI voice calls; auto-send only with approved templates and consent.
 - D-20 update (29 Oct): Mohamed said to connect the CRM to Afra AI OS if possible. Direction: sales and renewal follow-ups run in the Afra AI OS Lead Hub; Super Admin supplies account facts and a daily contact CSV. Claude did not change the Afra AI OS repo; its brand and access decisions wait for Mohamed (`docs/AFRA_AI_OS_HANDOFF_PRODUCTS_SALES.md`). Leads sheet: shared only with Dev A, never in git or chat.
 
+## D-21 (29 Oct): sales leads for Afra's products
+- One Afra AI OS brand "AFRA Products" for all product sales and renewals; product and stage in `campaign`. People are telecaller or BD and will change; access granted per person, not fixed in code.
+- Afra AI OS session must still log it in its own decisions and plan before building.
+

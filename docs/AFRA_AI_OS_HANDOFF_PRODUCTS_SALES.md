@@ -18,5 +18,9 @@ From: GymDesk/products session (Claude), 29 Oct 2026. For: whoever carries out `
 5. Dedupe key is phone per brand; check that a returning owner merges into history.
 6. Calling remains manual (Phase 1 rule). Do-not-contact enforced on the server. WhatsApp templates are a separate Meta task.
 
+## Answers from Mohamed (29 Oct)
+- Brand split: yes, one brand ("AFRA Products"); product and stage go in `campaign`. This is Mohamed's approval to add the brand; the Afra AI OS session still records it in `docs/decisions.md` and follows its plan-first rule before building.
+- People: not fixed. A telecaller or a BD (business development) person handles these leads, and who it is will change. So do not hard-code names: use normal brand access (`grant_brand_access()`), and treat "BD" as a person with the telecaller (or manager) role on this brand. Question for that session: does BD need a role of its own, or is telecaller enough?
+
 ## Out of scope here
 No calling engine, no AI agents, no new dependencies. Phase 3 work is untouched.

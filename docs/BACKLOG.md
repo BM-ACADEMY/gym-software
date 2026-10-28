@@ -176,7 +176,7 @@ Scope files: `docs/products/README.md` (index and rules), `CORE.md`, and one `SC
 | SA-16 | AI wording for suggestions (budget-checked, no personal data) | S | TODO |
 | SA-17 | Web push notifications (quiet hours, 3 a day) | M | TODO |
 | SA-18 | Super Admin "marketing" role for the DM team: sees to-do list, calendar, drafts; marks done; cannot see money, accounts or product data. Same two-step sign-in as admin | S | TODO |
-| CRM-00 | Decide how sales work links to Afra AI OS Lead Hub (`docs/SUPER_ADMIN_CRM.md` section 0; hand-off in `docs/AFRA_AI_OS_HANDOFF_PRODUCTS_SALES.md`). Mohamed OKs brand split and sales team access in the Afra AI OS decision log | S | WRITTEN (plan only), waiting for Mohamed |
+| CRM-00 | Decide how sales work links to Afra AI OS Lead Hub (`docs/SUPER_ADMIN_CRM.md` section 0; hand-off in `docs/AFRA_AI_OS_HANDOFF_PRODUCTS_SALES.md`). Mohamed OKs brand split and sales team access in the Afra AI OS decision log | S | DECIDED by Mohamed (one AFRA Products brand; people change, access per person). Afra AI OS session to record it in its decision log and plan; no build yet |
 | CRM-01 | Account facts for sales: pure rules (trial ending, renewal buckets, expired, last used) and the daily contact CSV in the Lead Hub import format (headings phone,name,email,source,campaign; no amounts, no end-customer data). Replaces the old core-crm idea | M | TODO |
 | CRM-02 | Super Admin account pages and renewal lists (read-only, from product facts) with roles and audit. Lead and follow-up work stays in the Lead Hub | M | TODO |
 | CRM-03 | Account-level list route in each product behind the internal key (business, owner contact, plan, dates, last active; no end-customer data) | M | TODO (needs Mohamed's OK, default yes) |

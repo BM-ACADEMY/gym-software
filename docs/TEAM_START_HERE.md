@@ -3,7 +3,7 @@
 For Dev A, Dev B, Staff 1 and 2. Nothing in this file is a password. Passwords, keys and tokens never go in git, the task sheet or chat.
 
 ## 1. Your task list
-Live sheet (only today's tasks): https://docs.google.com/spreadsheets/d/1W2Jdj014Bujsvyb5BWcpPjQzkvrlgVH-nFpjNNJdTS8/edit
+Live sheet (only today's tasks): https://docs.google.com/spreadsheets/d/1SVmWQtCUvrYqdvUDOBs-8xKSUv3uSP8hjVH2r1OkM00/edit
 Set Status and write results in Notes. Red error text goes in Notes (remove secrets first).
 
 ## 2. The code and the instructions

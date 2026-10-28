@@ -1,7 +1,22 @@
 # Super Admin CRM: leads, trials, renewals and follow-ups (plan)
 
-Status: planned, not built. Request from Mohamed (29 Oct): customer management in Super Admin for all leads, status, renewal follow-ups; goal is to make customers sign up and renew.
+Status: planned, not built. **Revised 29 Oct: connect to Afra AI OS instead of building a second CRM** (see section 0). Request from Mohamed (29 Oct): customer management in Super Admin for all leads, status, renewal follow-ups; goal is to make customers sign up and renew.
 Who the "customer" is here: the business owner who buys an Afra product (a gym owner, an agency owner). Not their members, candidates or shoppers. Those stay inside each product and never come to Super Admin.
+
+## 0. Decision direction: use Afra AI OS Lead Hub for the sales work (Mohamed, 29 Oct: "connect there if possible")
+Afra AI OS Phase 1 is already a Lead and Follow-up Hub (brand-separated leads, phone dedupe, round-robin assignment, statuses, notes, callbacks, CSV import with dry run, audit, mobile screens). Its scope already lists P02 AFRA Gym Management with sales, renewal and customer success work. Building the same thing again in Super Admin would split the sales team across two tools.
+Split of jobs (Claude's proposal, needs Mohamed's OK in the Afra AI OS decision log; nothing in that repo was changed from this session):
+| Where | Does |
+| --- | --- |
+| **Afra AI OS Lead Hub** (Postgres, its own sign-in and rules) | Sales leads and follow-ups: who to call, status, notes, callbacks, assignment, dedupe, outcome of each call, conversion. Sales team works only here |
+| **Super Admin** (this repo's admin app) | Account facts from products (trial ending, renewal due, expired, last used) as read-only lists and numbers; marketing to-do; product launch notes. Produces the daily "call these accounts" list for the Lead Hub |
+| **The link** | Phase 1: a labelled CSV of the day's contacts (phone, name, email, source, campaign such as `fit-renewal-7d`) imported through the Lead Hub's dry-run import. Later (needs approval): a service-user webhook so no CSV is needed |
+Why this is the safe first step: the Lead Hub CSV takes only phone, name, email, source and campaign, so no renewal amounts or usage details travel with it; the caller opens the Super Admin account page for those. Re-importing a phone that exists merges into history, not a duplicate.
+What Afra AI OS must decide first (its rules: plan first, no new brand without asking):
+1. Is "AFRA Products" (one brand for Fit, groom, Mart, Dine, Cloth, Wash, Hire sales) or one brand per product the right split? Claude suggests one brand with `campaign` = product + stage, to keep telecaller sets simple. Mohamed decides.
+2. Which people are telecallers, which is the manager (the sales team Mohamed has).
+3. Calling stays manual (Superfone or phones) with outcomes logged by hand, per its Phase 1 rule. No calling-engine work.
+Claude does not edit the Afra AI OS repo from this session. Hand-off text for that session: `docs/AFRA_AI_OS_HANDOFF_PRODUCTS_SALES.md`.
 
 ## 1. What the team sees
 | Screen | Purpose |
@@ -39,7 +54,7 @@ Everything is in the activity log. Suggested wording avoids unproven claims (`do
 - **Sales/support:** leads, follow-ups, notes, renewals; no money settings, no exports, no deletes.
 - **Marketing (DM team, SA-18):** lead sources and campaign results only; no contact details.
 
-## 5. Build order (nothing built yet)
+## 5. Build order (nothing built yet; re-scoped by section 0: items that duplicate the Lead Hub are dropped)
 1. CRM-01 pure rules in `packages/core-crm`: stage from account facts, follow-up due dates, dedupe, renewal buckets, contact-permission check. Tests with fake data.
 2. CRM-02 store and routes in `apps/admin` (leads, activities, tasks), role checks, audit, tests.
 3. CRM-03 account-level list route in every product (gym first, Hire second) behind the internal key.
@@ -50,6 +65,6 @@ Everything is in the activity log. Suggested wording avoids unproven claims (`do
 
 ## 6. Open for Mohamed (not blocking)
 - Approve account-level facts from each product into Super Admin (default yes).
-- Names and roles of the sales/support team.
+- Done: Mohamed has a sales team (names and roles still needed for the Lead Hub brand access).
 - Which renewal offers are allowed (e.g. yearly = 10 months already exists for the gym).
-- Where leads come from today (a list or sheet to import).
+- Leads are in a sheet (Mohamed, 29 Oct). Real lead data must never go into git or chat: Mohamed shares the sheet with Dev A, who runs the Lead Hub CSV dry-run import and sends back only the counts (rows, duplicates, bad rows).

@@ -176,11 +176,12 @@ Scope files: `docs/products/README.md` (index and rules), `CORE.md`, and one `SC
 | SA-16 | AI wording for suggestions (budget-checked, no personal data) | S | TODO |
 | SA-17 | Web push notifications (quiet hours, 3 a day) | M | TODO |
 | SA-18 | Super Admin "marketing" role for the DM team: sees to-do list, calendar, drafts; marks done; cannot see money, accounts or product data. Same two-step sign-in as admin | S | TODO |
-| CRM-01 | Super Admin CRM pure rules (`packages/core-crm`): stage from account facts, follow-up due dates, dedupe, renewal buckets, contact-permission check (`docs/SUPER_ADMIN_CRM.md`) | M | TODO |
-| CRM-02 | CRM store, routes, roles (admin, sales/support, marketing), audit, tests in `apps/admin` | M | TODO |
+| CRM-00 | Decide how sales work links to Afra AI OS Lead Hub (`docs/SUPER_ADMIN_CRM.md` section 0; hand-off in `docs/AFRA_AI_OS_HANDOFF_PRODUCTS_SALES.md`). Mohamed OKs brand split and sales team access in the Afra AI OS decision log | S | WRITTEN (plan only), waiting for Mohamed |
+| CRM-01 | Account facts for sales: pure rules (trial ending, renewal buckets, expired, last used) and the daily contact CSV in the Lead Hub import format (headings phone,name,email,source,campaign; no amounts, no end-customer data). Replaces the old core-crm idea | M | TODO |
+| CRM-02 | Super Admin account pages and renewal lists (read-only, from product facts) with roles and audit. Lead and follow-up work stays in the Lead Hub | M | TODO |
 | CRM-03 | Account-level list route in each product behind the internal key (business, owner contact, plan, dates, last active; no end-customer data) | M | TODO (needs Mohamed's OK, default yes) |
 | CRM-04 | CRM screens by manifest: Pipeline, Follow-ups, Account, Renewals, Sources, Reports | M | TODO |
-| CRM-05 | Lead import: CSV and website form, consent recorded | S | TODO |
+| CRM-05 | Mohamed's lead sheet imported into the Lead Hub by Dev A via dry run; counts only reported back | S | TODO (needs CRM-00 and the sheet shared with Dev A) |
 | CRM-06 | CRM suggestions and approved-template reminders on the autopilot runner | M | TODO (waits for Meta approval and core-autopilot) |
 | CRM-07 | CRM reports: sign-up, trial to paid, renewal %, lost reasons | S | TODO |
 | AP-02 | Owner-side marketing suggestions in each product on core-autopilot | L | TODO |

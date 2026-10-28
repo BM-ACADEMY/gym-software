@@ -68,3 +68,17 @@ For each failure: which step, what you expected, what happened, and the red erro
 ## Extra: entrance poster (Dev A, Staff)
 1. Set `CLIENT_URL` on the server. `cd server && npm test -- poster` should pass.
 2. Owner, Entrance Poster: print it (or save as PDF). Scan with a phone: it must open the sign-in page. A member signs in and taps Check in.
+
+## Extra: Renewal Copilot (Dev A, Staff)
+1. `cd server && npm test -- copilot` (two files: `copilotRules.unit`, `copilot`) should pass.
+2. Owner, Renewal Copilot: with a few test members (one ending in 2 days, one with a part-paid overdue bill, one not seen for 20 days) the list shows them ranked, each with a reason and a ready message.
+3. Switch the app language to Tamil, then Hindi: the messages change language. Write any odd wording in the sheet Notes.
+4. Tap Open WhatsApp on a phone: WhatsApp opens with the message ready; nothing is sent until you press send. The member then disappears from the list; tomorrow they stay hidden for 3 days.
+5. With OPENAI_API_KEY set, tap Rewrite with AI: the wording changes, names stay as {name} placeholders until filled, and the counter "AI rewrites left" goes down by one.
+
+## Extra: install as an app (Dev A, Staff)
+1. Open the staging site over https in Chrome on an Android phone. Menu, Install app (or Add to Home screen). The GymDesk icon appears and opens without the browser bar.
+2. Turn on airplane mode and open the app: the shell opens (data screens say they cannot load). Turn the network back on: everything works.
+3. On a computer in Chrome, the install icon appears in the address bar.
+4. After a new release, open the app twice: the second open shows the new version.
+

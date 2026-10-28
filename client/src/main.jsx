@@ -12,3 +12,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </Provider>
   </React.StrictMode>,
 );
+
+// PWA-01: make the app installable. Production only, so local development never caches files.
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => { /* installing is optional */ });
+  });
+}

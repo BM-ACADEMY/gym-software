@@ -61,3 +61,10 @@ If a Tier 3 answer has not come in 48 hours and it blocks the launch path, it go
 
 Repos are private on the GitHub Free plan, which has no protected branches or required reviews for private repos. "Never push to `main`"
 is a rule we follow, not one GitHub enforces. Revisit if a paid plan is bought.
+
+## 7. The team sheet (keep it short for the team)
+
+Live sheet (Google Sheets, owner shares it): https://docs.google.com/spreadsheets/d/1-CdfKvAnGXCoATvIovenW5W6-8v_C4h75JXwDdmv1uk/edit
+- It shows only what each person must do NOW: at most 3 to 4 rows per person. Nobody should see a long list.
+- The full list lives in `docs/TEAM_TASK_SHEET.xlsx` (tabs Dev A, Dev B, Staff, Mohamed, Afra AI OS server). Claude adds rows to the live sheet only when a row's "Do first" task is Done or when Claude needs something from the team.
+- Claude reads the live sheet at the start of every session and fixes anything marked Failed first.

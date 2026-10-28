@@ -64,7 +64,7 @@ is a rule we follow, not one GitHub enforces. Revisit if a paid plan is bought.
 
 ## 7. The team sheet (keep it short for the team)
 
-Live sheet v3 (28 Oct, with due dates; owner shares it): https://docs.google.com/spreadsheets/d/1SVmWQtCUvrYqdvUDOBs-8xKSUv3uSP8hjVH2r1OkM00/edit
+Live sheet v4 (28 Oct, with due dates; owner shares it): https://docs.google.com/spreadsheets/d/1CU4QfKEwVggyD3QbV81GGDy9ldiwzS0MmD2KNym_agc/edit
 - It shows only what each person must do NOW: at most 3 to 4 rows per person. Nobody should see a long list.
 - The full list lives in `docs/TEAM_TASK_SHEET.xlsx` (tabs Dev A, Dev B, Staff, Mohamed, Afra AI OS server). Claude adds rows to the live sheet only when a row's "Do first" task is Done or when Claude needs something from the team.
 - Claude reads the live sheet at the start of every session and fixes anything marked Failed first.

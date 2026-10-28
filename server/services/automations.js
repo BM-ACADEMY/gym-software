@@ -116,6 +116,7 @@ const runAbsence = async (sub, ctx, t) => {
 
 const runDailySummary = async (sub, ctx, t) => {
   if (!ctx.owner?.phone) return;
+  if (!(await withinQuota(sub, ctx.now))) { bump(t, 'quota'); return; } // Solo plan has 0 messages
   const dayStart = R.istDayStart(ctx.now);
   const [checkins, collectedAgg, duesAgg, renewals] = await Promise.all([
     Attendance.countDocuments({ subscriberId: sub._id, checkedInAt: { $gte: dayStart } }),

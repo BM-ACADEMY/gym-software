@@ -85,6 +85,14 @@ describe('WhatsApp automations', () => {
     expect(sendTemplate).not.toHaveBeenCalled();
   });
 
+  test('Solo plan sends no WhatsApp at all, including the owner summary', async () => {
+    const t = await gym({ planKey: 'solo' });
+    await createMember(t.subscriber, { phone: '9000000008', expiresAt: new Date(now.getTime() + 7 * DAY - 1000) });
+    await runWhatsappAutomations({ subscriberId: t.subscriber._id, now });
+    await runWhatsappAutomations({ subscriberId: t.subscriber._id, now: new Date('2026-12-01T14:45:00Z') });
+    expect(sendTemplate).not.toHaveBeenCalled();
+  });
+
   test('owner gets one daily summary at 8 pm IST', async () => {
     const t = await gym();
     const at8pm = new Date('2026-12-01T14:45:00Z');

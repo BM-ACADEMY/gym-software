@@ -1,6 +1,12 @@
-// Database test. The Anthropic SDK is mocked: nothing is really sent anywhere.
+// Database test. The AI provider layer is mocked: nothing is really sent anywhere.
 const mockCreate = jest.fn();
-jest.mock('@anthropic-ai/sdk', () => jest.fn().mockImplementation(() => ({ messages: { create: mockCreate } })));
+let mockKeyOn = false;
+jest.mock('../services/aiProvider', () => ({
+  isEnabled: () => mockKeyOn,
+  smallModel: () => 'test-small',
+  standardModel: () => 'test-standard',
+  complete: (args) => mockCreate(args),
+}));
 
 const request = require('supertest');
 const app = require('../app');
@@ -11,7 +17,7 @@ const AiUsage = require('../models/AiUsage');
 
 const DAY = 86400000;
 const auth = (t) => ({ Authorization: `Bearer ${t.adminToken}` });
-const reply = (text) => ({ stop_reason: 'end_turn', content: [{ type: 'text', text }] });
+const reply = (text) => ({ text, usage: { inTokens: 100, outTokens: 20 }, model: 'test-small' });
 
 describe('Ask GymDesk + insights', () => {
   let t;
@@ -19,8 +25,8 @@ describe('Ask GymDesk + insights', () => {
     await db.connect();
     t = await createTenant({ subscriber: { planKey: 'starter', paidUntil: new Date(Date.now() + 20 * DAY) } });
   });
-  afterAll(async () => { delete process.env.ANTHROPIC_API_KEY; await db.clearDatabase(); await db.closeDatabase(); });
-  beforeEach(() => { mockCreate.mockReset(); delete process.env.ANTHROPIC_API_KEY; });
+  afterAll(async () => { mockKeyOn = false; await db.clearDatabase(); await db.closeDatabase(); });
+  beforeEach(() => { mockCreate.mockReset(); mockKeyOn = false; });
 
   const ask = (tok, q) => request(app).post('/api/admin/assistant/ask').set(tok).send({ question: q });
 
@@ -34,19 +40,22 @@ describe('Ask GymDesk + insights', () => {
   });
 
   test('with a key it asks the model, records one use, and sends only articles + the question', async () => {
-    process.env.ANTHROPIC_API_KEY = 'test-key';
+    mockKeyOn = true;
     mockCreate.mockResolvedValue(reply('Go to Import Members and upload your Excel file.'));
     const r = await ask(auth(t), 'how do I import members');
     expect(r.body.data.source).toBe('ai');
     expect(r.body.data.answer).toMatch(/Import Members/);
     expect(await AiUsage.countDocuments({ subscriberId: t.subscriber._id, kind: 'assistant' })).toBe(1);
+    const row = await AiUsage.findOne({ subscriberId: t.subscriber._id, kind: 'assistant' });
+    expect(row.inTokens).toBe(100);
+    expect(row.model).toBe('test-small');
     const arg = mockCreate.mock.calls[0][0];
     expect(arg.system).toMatch(/ONLY from the help articles/);
-    expect(arg.messages[0].content).toBe('how do I import members');
+    expect(arg.user).toBe('how do I import members');
   });
 
   test('model failure falls back to articles and is not charged to the cap', async () => {
-    process.env.ANTHROPIC_API_KEY = 'test-key';
+    mockKeyOn = true;
     mockCreate.mockRejectedValue(new Error('network'));
     const before = await AiUsage.countDocuments({ subscriberId: t.subscriber._id });
     const r = await ask(auth(t), 'where is my gst invoice');
@@ -56,7 +65,7 @@ describe('Ask GymDesk + insights', () => {
   });
 
   test('once the monthly cap is used, the model is not called any more', async () => {
-    process.env.ANTHROPIC_API_KEY = 'test-key';
+    mockKeyOn = true;
     const solo = await createTenant({ subscriber: { planKey: 'solo', paidUntil: new Date(Date.now() + 20 * DAY) } });
     await AiUsage.insertMany(Array.from({ length: 15 }, () => ({ subscriberId: solo.subscriber._id, kind: 'assistant' })));
     const r = await ask(auth(solo), 'how do I pay and renew');
@@ -87,7 +96,7 @@ describe('Ask GymDesk + insights', () => {
   });
 
   test('insights with a key: the model prompt holds numbers only, never names or phones', async () => {
-    process.env.ANTHROPIC_API_KEY = 'test-key';
+    mockKeyOn = true;
     mockCreate.mockResolvedValue(reply('{"summary":"Steady week.","actions":["Call expiring members","Chase dues"]}'));
     const g = await createTenant({ subscriber: { planKey: 'growth', paidUntil: new Date(Date.now() + 20 * DAY) } });
     await createMember(g.subscriber, { name: 'Secret Person', phone: '9111111111', expiresAt: new Date(Date.now() + 2 * DAY) });
@@ -98,7 +107,7 @@ describe('Ask GymDesk + insights', () => {
   });
 
   test('an AI insight is reused for the rest of the week (one paid call, not one a day)', async () => {
-    process.env.ANTHROPIC_API_KEY = 'test-key';
+    mockKeyOn = true;
     mockCreate.mockResolvedValue(reply('{"summary":"Fine week.","actions":["Do a thing"]}'));
     const g = await createTenant({ subscriber: { planKey: 'growth', paidUntil: new Date(Date.now() + 20 * DAY) } });
     const AiInsight = require('../models/AiInsight');

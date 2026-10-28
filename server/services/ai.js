@@ -1,11 +1,11 @@
 // Single internal AI service every module routes generation through, so the
 // model/provider can be swapped later without touching any controller (doc's
-// explicit requirement). generateWorkoutDietPlan calls Claude when
-// ANTHROPIC_API_KEY is configured; every other function here (churn risk,
+// explicit requirement). generateWorkoutDietPlan calls the AI provider (aiProvider.js,
+// OpenAI, decision D-15) when OPENAI_API_KEY is configured; every other function here (churn risk,
 // no-show prediction, slot suggestion) is a legible rule-based scorer by
 // design, not a placeholder for an LLM call — the doc only calls out an LLM
 // for AI Plans.
-const Anthropic = require('@anthropic-ai/sdk');
+const aiProvider = require('./aiProvider');
 
 const GOAL_PROFILES = {
   'fat loss': { split: ['Full Body Circuit', 'Cardio + Core', 'Full Body Circuit', 'Active Recovery'], calorieAdjust: -400, proteinPerKg: 1.8 },
@@ -103,7 +103,7 @@ const buildDietJson = ({ goal, bodyStats = {} }) => {
   };
 };
 
-// Claude must reply with exactly this shape so it drops straight into
+// The model must reply with exactly this shape so it drops straight into
 // AIPlan.workoutJson/dietJson — the same fields the rule-based fallback
 // below produces, and what client/src/pages/member/WorkoutDietPlan.jsx renders.
 const WORKOUT_DIET_SCHEMA_INSTRUCTIONS = `Respond with ONLY a single valid JSON object — no markdown code fences, no commentary before or after — matching exactly this shape:
@@ -123,18 +123,16 @@ const WORKOUT_DIET_SCHEMA_INSTRUCTIONS = `Respond with ONLY a single valid JSON 
 }
 Include 3-5 workout days and 4-5 meals. If medical notes mention an injury/condition, list it under cautions and avoid exercises that would aggravate it.`;
 
-// Pulls the first {...} object out of Claude's reply — tolerates the odd
+// Pulls the first {...} object out of the model's reply — tolerates the odd
 // stray sentence or markdown fence around the JSON without over-parsing.
 const extractJson = (text) => {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
-  if (start === -1 || end === -1 || end <= start) throw new Error('No JSON object found in Claude response');
+  if (start === -1 || end === -1 || end <= start) throw new Error('No JSON object found in AI response');
   return JSON.parse(text.slice(start, end + 1));
 };
 
-const generateWithClaude = async ({ goal, medicalNotes, equipmentAvailable, bodyStats }) => {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
+const generateWithModel = async ({ goal, medicalNotes, equipmentAvailable, bodyStats }) => {
   const prompt = `Create a personalized workout and diet plan for a gym member.
 Goal: ${goal || 'general fitness'}
 Medical notes / conditions to work around: ${medicalNotes || 'none reported'}
@@ -143,22 +141,10 @@ Body weight in kg, if known: ${bodyStats?.weightKg || 'unknown'}
 
 ${WORKOUT_DIET_SCHEMA_INSTRUCTIONS}`;
 
-  const response = await client.messages.create({
-    model: process.env.AI_PLAN_MODEL || 'claude-sonnet-5-5',
-    max_tokens: 4096,
-    messages: [{ role: 'user', content: prompt }],
-  });
-
-  if (response.stop_reason === 'refusal') {
-    throw new Error('Claude declined to generate this plan');
-  }
-
-  const textBlock = response.content.find((block) => block.type === 'text');
-  if (!textBlock?.text) throw new Error('No text content in Claude response');
-
-  const parsed = extractJson(textBlock.text);
+  const reply = await aiProvider.complete({ user: prompt, maxTokens: 4096, model: aiProvider.standardModel(), timeoutMs: 60000 });
+  const parsed = extractJson(reply.text);
   if (!Array.isArray(parsed.workoutJson?.days) || parsed.workoutJson.days.length === 0 || !parsed.dietJson?.macros) {
-    throw new Error('Claude response is missing required workoutJson/dietJson fields');
+    throw new Error('AI response is missing required workoutJson/dietJson fields');
   }
   return parsed;
 };
@@ -166,11 +152,11 @@ ${WORKOUT_DIET_SCHEMA_INSTRUCTIONS}`;
 // @param member  { goal, medicalNotes, equipmentAvailable }
 // @param bodyStats  { weightKg } — from the member's latest progress log entry, if any
 const generateWorkoutDietPlan = async ({ goal, medicalNotes, equipmentAvailable, bodyStats }) => {
-  if (process.env.ANTHROPIC_API_KEY) {
+  if (aiProvider.isEnabled()) {
     try {
-      return await generateWithClaude({ goal, medicalNotes, equipmentAvailable, bodyStats });
+      return await generateWithModel({ goal, medicalNotes, equipmentAvailable, bodyStats });
     } catch (error) {
-      console.warn('Claude AI plan generation failed — falling back to the built-in generator:', error.message);
+      console.warn('AI plan generation failed, falling back to the built-in generator:', error.message);
     }
   }
 

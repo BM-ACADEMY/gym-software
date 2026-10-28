@@ -7,11 +7,7 @@ Mohamed answers in one line. Claude moves answered items to the log in the next 
 
 | ID | Question | Recommendation | If no answer | Blocks | Tier |
 | --- | --- | --- | --- | --- | --- |
-| D-05 | Turn on a daily autonomous run (a scheduled Claude session that works the Tier 1 and 2 queue each morning on `phase1-autopilot` and sends the Daily Brief; never touches `main`, production or real customers)? | Yes, once Dev A has run the tests one time so it builds on a known-good base | Not turned on | The 5 to 10 minute rhythm | 3 |
-| D-10 | Approve the price table (section 14 of the master doc): Solo 249 (no paid ads), Starter 599, Growth 999, Pro 1,999 ex GST; launch offer for 3 months at Starter 499, Growth 849, Pro 1,799; no Rs 249-for-12-months offer | Yes. Offers sit above the floor price, so they cannot lose money even at full usage | Prices stay as the scope has them; no offer is built | Pricing page, checkout | 3 |
-| D-11 | Salon, Spa and Barber/Grooming as one product (salon.afraventures.in) with three presets, instead of three products? | One product. About 80 percent of the work is shared | Claude plans one product | Salon scope | 3 |
-| D-14 | Role of Afra AI OS (separate repo `afraventurepvt-create/afra-ai-os`): use it as Afra's internal sales and lead hub (ad leads, telecaller and field-agent follow-up, conversion reports) for selling the products. It does not host or run any customer product; separate stack, hosting and logins. Later link: one-way, authenticated events (sign-up, trial, payment) from products into its leads | Yes. Do not wait for it: its own plan puts the Gym brand last (Phase 5), so the 10 Nov gym launch must not depend on it | Products sell through WhatsApp/ad links and Super Admin only | Sales funnel, agent payouts | 3 |
-| D-15 | AI provider. Afra AI OS plans OpenAI for internal agents; our products are costed on Anthropic (price model section 14). Keep each on its own key, budget and cap; do not mix inside a product | Yes, separate | Products stay on Anthropic | AI cost model | 3 |
+| D-16 | PRICE-02: set monthly AI-call caps to Solo 15, Starter 40, Growth 120, Pro 300 (details in `docs/AI_COST_MODEL.md`) so every approved price stays above its floor with OpenAI costs | Yes | Caps stay as today; Starter and Growth offers and Pro could lose money if a gym used every call | Plans file, pricing page | 3 |
 
 ## Open: Tier 2, proceeding on default (veto any time)
 
@@ -20,6 +16,7 @@ Mohamed answers in one line. Claude moves answered items to the log in the next 
 | D-06 | Refund window for the first payment | 7 days, first payment only (`VITE_REFUND_DAYS`); legal pages stay drafts until a lawyer reviews |
 | D-07 | Business rules R01 to R30 in the QA workbook | Claude proposes safe defaults in a table for Mohamed to scan; none go live without the QA gate |
 | D-08 | Product name | Working name GymDesk (candidate RepSetu); interim address fit.afraventures.in; final name after the launch gate |
+
 
 ## Still waiting on people, not decisions (see `BACKLOG.md` phase 0)
 
@@ -47,5 +44,10 @@ Every task below is a row in the **Dev Task Sheet** (shared doc, devs update Sta
 | 2026-10-28 | Gym address: fit.afraventures.in (app) and api.fit.afraventures.in (API) | Mohamed |
 | 2026-10-28 | Earlier decisions: see `SCOPE.md` section 8 | Mohamed |
 | 2026-10-28 | D-12: start with ONE Afra Ventures WhatsApp number for all products (display name must match the website). Template names are prefixed per product (gym_, salon_). Number is a per-product setting so it can be split later without code change. Revisit when volume grows or a quality warning appears | Mohamed (Claude recommends) |
-| 2026-10-28 | D-13: every AI/WhatsApp feature has a per-plan monthly cap, a per-gym usage view (SA-03), a platform-wide daily budget stop, and a spend limit set in the Anthropic Console | Mohamed |
+| 2026-10-28 | D-13: every AI/WhatsApp feature has a per-plan monthly cap, a per-gym usage view (SA-03), a platform-wide daily budget stop, and a spend limit set in the OpenAI dashboard | Mohamed |
 | 2026-10-28 | D-09 answered: NO demo or waitlist launches. Every product's phase 1 is real, competitive software, planned like the gym (scope file, phases, backlog, tests, QA gate). Dates 13 to 28 Nov stay as owner targets. Claude's risk note: shared core must be extracted first and human tests set the real dates; Claude reports date confidence in every Daily Brief | Mohamed |
+| 2026-10-28 | D-10 answered: gym price table approved "for now" (Solo 249, Starter 599, Growth 999, Pro 1,999 ex GST; 3-month offers 499 / 849 / 1,799; Solo not for paid ads). To be re-checked after the AI provider change (D-15) and the first week of pilot data | Mohamed |
+| 2026-10-28 | D-11 answered in part: Salon, Spa and Barber stay ONE product. Owner prefers the working name/address "groom" (groom.afraventures.in); plan tier and presets decide the rest. Claude default (Tier 2): address groom.afraventures.in as working name, three presets chosen at sign-up, plan tier sets limits; final name decided with D-08 | Mohamed |
+| 2026-10-28 | D-05 answered: yes, daily autonomous run (scheduled task) on `phase1-autopilot`; never touches `main`, production or real customers | Mohamed |
+| 2026-10-28 | D-14 answered: yes, Afra AI OS is Afra's internal sales and lead hub; not a host for products; no dependency for launch | Mohamed |
+| 2026-10-28 | D-15 answered (changes Claude's recommendation): OpenAI for ALL products. Build one provider layer in `core-ai` (OpenAI default, model names in config) so the model can be changed without code changes. Price model section 14 to be re-run with OpenAI prices. Caps and usage for every product are managed centrally in Super Admin (SA-03 widened to all products) | Mohamed |

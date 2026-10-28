@@ -1,4 +1,4 @@
-const Anthropic = require('@anthropic-ai/sdk');
+const aiProvider = require('./aiProvider');
 const AiUsage = require('../models/AiUsage');
 const AiInsight = require('../models/AiInsight');
 const Subscriber = require('../models/Subscriber');
@@ -11,8 +11,7 @@ const { istParts } = require('./automationRules');
 
 const DAY = 86400000;
 const LEGACY_CAP = 200; // gyms still on the old DB plan system
-const model = () => process.env.AI_MODEL || 'claude-haiku-5-5';
-const aiEnabled = () => Boolean(process.env.ANTHROPIC_API_KEY);
+const aiEnabled = () => aiProvider.isEnabled();
 
 // ---------- pure helpers (unit tested) ----------
 
@@ -100,16 +99,8 @@ const usage = async (subscriber, now = new Date()) => {
 
 // ---------- model call ----------
 
-const callModel = async ({ system, user, maxTokens }) => {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 20000, maxRetries: 1 });
-  const res = await client.messages.create({
-    model: model(), max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }],
-  });
-  if (res.stop_reason === 'refusal') throw new Error('model declined');
-  const block = res.content.find((b) => b.type === 'text');
-  if (!block?.text) throw new Error('empty model reply');
-  return block.text.trim();
-};
+// Returns { text, usage, model }. Throws on any problem; callers fall back to articles or rules.
+const callModel = ({ system, user, maxTokens }) => aiProvider.complete({ system, user, maxTokens, model: aiProvider.smallModel() });
 
 // ---------- Ask GymDesk ----------
 
@@ -124,8 +115,9 @@ const ask = async (subscriber, question, now = new Date()) => {
     try {
       // Give the model the best matches plus a few more for context.
       const ctx = [...related, ...HELP_ARTICLES.filter((a) => !related.includes(a))].slice(0, 8);
-      const answer = await callModel({ system: ASSISTANT_SYSTEM(ctx), user: q, maxTokens: 350 });
-      await AiUsage.create({ subscriberId: subscriber._id, kind: 'assistant' });
+      const reply = await callModel({ system: ASSISTANT_SYSTEM(ctx), user: q, maxTokens: 350 });
+      const answer = reply.text;
+      await AiUsage.create({ subscriberId: subscriber._id, kind: 'assistant', model: reply.model, ...reply.usage });
       return { status: 200, data: { answer, source: 'ai', remaining: u.remaining - 1, articles: related.map((a) => a.id) } };
     } catch (err) {
       console.warn('Ask GymDesk model call failed, using article search:', err.message);
@@ -189,8 +181,9 @@ const getInsight = async (subscriber, now = new Date()) => {
   const u = await usage(subscriber, now);
   if (aiEnabled() && u.remaining > 0) {
     try {
-      out = parseInsightJson(await callModel({ system: 'You write short, practical weekly summaries for gym owners. Reply with JSON only.', user: insightPrompt(stats), maxTokens: 400 }));
-      if (out) { source = 'ai'; await AiUsage.create({ subscriberId: subscriber._id, kind: 'insight' }); }
+      const reply = await callModel({ system: 'You write short, practical weekly summaries for gym owners. Reply with JSON only.', user: insightPrompt(stats), maxTokens: 400 });
+      out = parseInsightJson(reply.text);
+      if (out) { source = 'ai'; await AiUsage.create({ subscriberId: subscriber._id, kind: 'insight', model: reply.model, ...reply.usage }); }
     } catch (err) {
       console.warn('Insight model call failed, using rules:', err.message);
     }

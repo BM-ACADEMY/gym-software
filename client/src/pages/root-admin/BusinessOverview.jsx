@@ -72,7 +72,7 @@ const BusinessOverview = () => {
         {['trial', 'active', 'grace', 'expired', 'suspended'].map((k) => <Stat key={k} label={k[0].toUpperCase() + k.slice(1)} value={c[k] || 0} />)}
         <Stat label="New in 7 days" value={data.newSignups7d} />
       </div>
-      <p className="text-xs text-gray-500">AI calls this month: assistant {data.aiCallsThisMonth?.assistant || 0}, insights {data.aiCallsThisMonth?.insight || 0}. Compare with the Anthropic bill to check the plan allowances.</p>
+      <p className="text-xs text-gray-500">AI calls this month: assistant {data.aiCallsThisMonth?.assistant || 0}, insights {data.aiCallsThisMonth?.insight || 0}. Compare with the OpenAI bill to check the plan allowances.</p>
       {msg && <p className="text-sm text-teal-700">{msg}</p>}
 
       {target && (

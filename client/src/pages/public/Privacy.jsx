@@ -39,7 +39,7 @@ const Privacy = () => (
     </Section>
 
     <Section title="Who else sees it">
-      <p>Service providers that help us run {company.product}: cloud hosting and database, Razorpay for payments, WhatsApp for messages, and an AI service (Anthropic). It receives: the goal, equipment and any health notes entered for a member when a gym generates a workout or diet plan; the text of a question typed into Ask GymDesk; and weekly totals (counts and rupee amounts, no names or phone numbers) for the dashboard summary. We share data with authorities only when the law requires it.</p>
+      <p>Service providers that help us run {company.product}: cloud hosting and database, Razorpay for payments, WhatsApp for messages, and an AI service (OpenAI). It receives: the goal, equipment and any health notes entered for a member when a gym generates a workout or diet plan; the text of a question typed into Ask GymDesk; and weekly totals (counts and rupee amounts, no names or phone numbers) for the dashboard summary. We share data with authorities only when the law requires it.</p>
     </Section>
 
     <Section title="Keeping and deleting">

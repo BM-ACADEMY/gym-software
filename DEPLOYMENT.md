@@ -26,7 +26,7 @@ The repo has config for both; use whichever platform you prefer, not both.
 1. `railway.json` already lives in `server/`.
 2. In the Railway dashboard: **New Project → Deploy from GitHub repo**, pick this repo.
 3. Set the service's **Root Directory** to `server`.
-4. Add the environment variables from `server/.env.example` under the service's **Variables** tab (`MONGODB_URI`, `JWT_SECRET`, `OTP_MODE=live`, `BULKSMS_API_URL`, `RAZORPAY_KEY_ID`/`SECRET`, and optionally `ANTHROPIC_API_KEY` / `WHATSAPP_PHONE_NUMBER_ID` / `WHATSAPP_ACCESS_TOKEN`).
+4. Add the environment variables from `server/.env.example` under the service's **Variables** tab (`MONGODB_URI`, `JWT_SECRET`, `OTP_MODE=live`, `BULKSMS_API_URL`, `RAZORPAY_KEY_ID`/`SECRET`, and optionally `OPENAI_API_KEY` / `WHATSAPP_PHONE_NUMBER_ID` / `WHATSAPP_ACCESS_TOKEN`).
 5. Railway assigns a public URL like `https://gymdesk-backend.up.railway.app` — that's your `VITE_API_URL` base (append `/api`).
 
 ### Option B: Render
@@ -49,4 +49,4 @@ Either way, confirm it's live: `curl https://<your-backend-url>/api/health` shou
 
 - Log in with the seeded demo accounts (`server/scripts/seedDemoUsers.js` — see `HANDOVER.md` §3) against the production URL to confirm the full stack talks to each other.
 - Rotate `JWT_SECRET`, `RAZORPAY_KEY_ID/SECRET`, and any API keys to production-grade values before real users touch it — the ones in `server/.env` today are dev/test credentials.
-- If you enable WhatsApp or the live Claude integration, set `WHATSAPP_PHONE_NUMBER_ID`/`WHATSAPP_ACCESS_TOKEN` or `ANTHROPIC_API_KEY` on the backend host, not in the frontend — they're server-only secrets.
+- If you enable WhatsApp or the live AI integration, set `WHATSAPP_PHONE_NUMBER_ID`/`WHATSAPP_ACCESS_TOKEN` or `OPENAI_API_KEY` on the backend host, not in the frontend — they're server-only secrets.

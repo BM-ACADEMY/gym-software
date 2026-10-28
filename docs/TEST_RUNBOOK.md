@@ -25,7 +25,7 @@ Look for: build finishes with no errors. Known risk: `read-excel-file` (Excel re
 
 ## 3. Run it and click through (staging)
 Server env needed: MONGODB_URI, MONGODB_TEST_URI (tests only), JWT_SECRET, CLIENT_URL, PUBLIC_SIGNUP=true (staging only), SELLER_STATE=Puducherry,
-RAZORPAY_WEBHOOK_SECRET, SMTP_HOST/SMTP_USER/SMTP_PASS/SMTP_FROM (for owner emails), CLIENT_URL, ANTHROPIC_API_KEY (optional, for AI), AI_MODEL, AI_PLAN_MODEL, INTERNAL_API_KEY (24+ chars). Razorpay TEST keys go into Root Admin > Settings, never into chat or git.
+RAZORPAY_WEBHOOK_SECRET, SMTP_HOST/SMTP_USER/SMTP_PASS/SMTP_FROM (for owner emails), CLIENT_URL, OPENAI_API_KEY (optional, for AI), AI_PROVIDER, AI_MODEL, AI_PLAN_MODEL, INTERNAL_API_KEY (24+ chars). Razorpay TEST keys go into Root Admin > Settings, never into chat or git.
 Client env: VITE_API_URL, VITE_SUPPORT_EMAIL, VITE_SUPPORT_PHONE (optional).
 
 Screen checks (Staff 1 and 2):
@@ -36,7 +36,7 @@ Screen checks (Staff 1 and 2):
 5. Import Device Log: use a real export from your fingerprint/face machine. REPORT the brand and how dates look.
 6. Set a gym's paidUntil in the database to 4 days ago: account must be read-only, billing page still works.
 7. Switch language to Tamil and Hindi: menu and banner change.
-7b. AI: on the Dashboard a card 'This week at your gym' appears (Auto summary without an AI key, 'Written by AI' with ANTHROPIC_API_KEY set). Help & Support > Ask GymDesk answers 'how do I import members'. Check the AI cost in the Anthropic console after a day and tell Claude.
+7b. AI: on the Dashboard a card 'This week at your gym' appears (Auto summary without an AI key, 'Written by AI' with OPENAI_API_KEY set). Help & Support > Ask GymDesk answers 'how do I import members'. Check the AI cost in the OpenAI dashboard after a day and tell Claude.
 7c. Super Admin: sign in as root admin, open Business Overview: gyms by status, MRR, trials ending. Give 7 days to a trial gym with a reason and check it moves.
 7d. Set SMTP in server env, set a gym's trialEndsAt to 2 days ahead: within 15 minutes (10:00 to 20:00 IST) the owner gets one email, never a second.
 7e. Billing page > Download your data: three CSV files open in Excel, only that gym's rows; works after the plan has ended.

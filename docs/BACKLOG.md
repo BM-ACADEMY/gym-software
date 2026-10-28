@@ -87,7 +87,7 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 
 | ID | Task | Pri | Days | Status |
 | --- | --- | --- | --- | --- |
-| SA-03 | AI and WhatsApp usage per gym with caps and alerts (ties to 1E-05) | L | 2 | TODO |
+| SA-03 | AI and WhatsApp usage with caps and alerts for every business in every product, plus a platform daily budget stop and token/rupee cost from `AiUsage` (ties to 1E-05, D-13, D-15) | L | 3 | TODO |
 | SA-04 | Founder daily brief by email (MRR, new and lost gyms, failed payments, tickets, AI cost, risks) | L | 2 | TODO |
 | SA-05 | Promo and referral code screen in Root Admin (API exists) | L | 1.5 | TODO |
 | SA-01 | Gym health score and churn-risk list from usage signals, with an automatic nudge to the owner | A | 3 | TODO |
@@ -117,6 +117,8 @@ Rule: nothing here is advertised until it is built, tested by a human and listed
 | AI-07 | Anomaly alerts: heavy discounts, proxy check-ins, cash that does not match | B | 3 | TODO |
 | AI-08 | Offer and message writer for owners in Tamil, Hindi and English | B | 2 | TODO |
 | PWA-01 | Installable web app (manifest, icons, service worker) so owners can add GymDesk to a phone or computer; data download already exists (1F-03). No app-store accounts needed | L (owner, 28 Oct) | 1.5 | TODO |
+| AI-00 | OpenAI provider layer for all products (D-15): `services/aiProvider.js` (fetch, no new package), `AI_PROVIDER`, `OPENAI_API_KEY`, `AI_MODEL`, `AI_PLAN_MODEL`; `AiUsage` now records model and tokens. Old Anthropic code removed from services (the `@anthropic-ai/sdk` entry stays in `package.json` until Dev A can regenerate the lock file) | L | 1 | WRITTEN (not yet tested: `tests/aiProvider.unit.test.js`, `tests/aiAssistant.test.js`; real model names and `reasoning_effort` unverified) |
+| PRICE-02 | AI call caps by plan from `docs/AI_COST_MODEL.md` (Starter 40, Growth 120, Pro 300). Tier 3: plan limits need Mohamed's OK; `plans.js` unchanged until then | L | 0.2 | WAITING FOR OWNER |
 | PRICE-01 | Cap on AI workout/diet plan generations per plan per month in `plans.js` (cost model assumes 30 on Growth, 100 on Pro) | L | 0.5 | TODO |
 
 ## Phase 2 and 3

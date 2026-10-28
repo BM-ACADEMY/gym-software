@@ -26,7 +26,7 @@ Written, not yet tested. Nothing here is done until a human ticks it.
 ## 5. Weekly checks (15 minutes)
 - Razorpay: paid orders without an activated subscription (should be zero).
 - Super Admin Business Overview: trials ending, failed payments, suspended gyms.
-- AI spend in the Anthropic console against the plan caps. Caps are guesses; adjust in `server/config/plans.js`.
+- AI spend in the OpenAI dashboard against the plan caps. Caps are guesses; adjust in `server/config/plans.js`.
 - WhatsApp template quality ratings in Meta Business Manager.
 
 ## 6. Incident basics

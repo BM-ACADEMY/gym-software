@@ -19,7 +19,7 @@ Shared foundation for all of them: `docs/products/CORE.md`. Nothing in a product
 
 1. Autopilot: sign-up, set-up, payment, help and renewal need no Afra person.
 2. Every query on tenant data filters by tenant; every new route has a test (`CLAUDE.md`).
-3. Every AI and WhatsApp feature has a per-plan monthly cap, a per-business usage view, a platform daily budget stop and a spend limit in the Anthropic Console (D-13).
+3. Every AI and WhatsApp feature has a per-plan monthly cap, a per-business usage view, a platform daily budget stop and a spend limit in the OpenAI dashboard (D-13).
 4. Marketing says only what is built and tested by a human (`MARKETING_CLAIMS.md` for each product).
 5. "Written, not yet tested" until a human runs it. A product reaches "invite-only start" only when its QA gate is green.
 6. Prices here are drafts. Only the gym ladder is approved (D-10); the shop ladder needs the same cost check before each launch.

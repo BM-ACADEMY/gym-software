@@ -9,7 +9,7 @@ Money stuck in unsold sizes and colours, big swings around festivals and seasons
 | Item | Type | Detail |
 | --- | --- | --- |
 | Competitors: Vyapar garment billing, Busy, Marg-type tools, same price range as retail billing | Source | Master plan section 2 |
-| Size/colour variants and season forecasting are thin in general tools | Source/Assumption | Master plan reading; verify per competitor (task CLO-R1) |
+| Size/colour variants and season forecasting are thin in general tools | Source/Assumption | First pass 28 Oct (`RESEARCH.md`): variants, barcodes and exchange are standard at myBillBook, Vyapar and Busy, so the variants claim is NOT supported. Season forecasting and stuck-stock advice were not on the pages read. CLO-R1 still open |
 | Festival demand swings (Pongal, Deepavali etc.) | Assumption | Founder knowledge; validate with 3 pilot shops' last-year sales |
 
 ## 3. Phase 1 must-have

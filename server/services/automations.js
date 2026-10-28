@@ -165,4 +165,4 @@ const runWhatsappAutomations = async ({ subscriberId, now = new Date() } = {}) =
   return totals;
 };
 
-module.exports = { runWhatsappAutomations, sendOnce };
+module.exports = { runWhatsappAutomations, sendOnce, withinQuota };

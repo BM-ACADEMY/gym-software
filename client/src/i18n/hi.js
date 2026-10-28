@@ -25,6 +25,7 @@ export default {
   'Subscriber Management': 'सब्सक्राइबर प्रबंधन',
   'Coupons': 'कूपन',
   Analytics: 'एनालिटिक्स',
+  'Win Back Members': 'सदस्यों को वापस लाएं',
   Settings: 'सेटिंग्स',
   Logout: 'लॉग आउट',
   Language: 'भाषा',

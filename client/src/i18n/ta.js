@@ -25,6 +25,7 @@ export default {
   'Subscriber Management': 'சந்தாதாரர் மேலாண்மை',
   'Coupons': 'கூப்பன்கள்',
   Analytics: 'பகுப்பாய்வு',
+  'Win Back Members': 'உறுப்பினர்களை மீட்டெடு',
   Settings: 'அமைப்புகள்',
   Logout: 'வெளியேறு',
   Language: 'மொழி',

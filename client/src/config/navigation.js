@@ -49,6 +49,7 @@ export const ADMIN_NAV = [
   { key: 'device-log', label: 'Import Device Log', path: 'device-log', page: 'DeviceLogImport', icon: CalendarCheck },
   { key: 'staff-attendance', label: 'Staff Attendance', path: 'staff-attendance', page: 'StaffAttendance', icon: UserCog },
   { key: 'attendance', label: 'Attendance', path: 'attendance', page: 'Attendance', icon: CalendarCheck },
+  { key: 'at-risk', label: 'Win Back Members', path: 'at-risk', page: 'AtRisk', icon: Megaphone },
   { key: 'payment', label: 'Payment', path: 'payment', page: 'Payment', icon: CreditCard },
   { key: 'staff', label: 'Sub-Admin / Staff', path: 'staff', page: 'StaffManagement', icon: UserCog },
   { key: 'trainers', label: 'Trainers', path: 'trainers', page: 'Trainers', icon: Dumbbell },

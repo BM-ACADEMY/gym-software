@@ -37,7 +37,7 @@ Source of truth: `server/config/whatsappTemplates.js`.
 - Parameters in order: {{1}} = name, {{2}} = gym, {{3}} = phone
 - Body:
 
-> Hi {{1}}, we miss you at {{2}}! Your membership ended a week ago. Come back this week and we will get you started again. Call {{3}}.
+> Hi {{1}}, we miss you at {{2}}! Your membership ended recently. Come back this week and we will get you started again. Call {{3}}.
 
 - Sample values for Meta: Ravi | Iron House Gym | 9876543210
 

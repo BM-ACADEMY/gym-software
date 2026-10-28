@@ -15,7 +15,7 @@ const TEMPLATES = {
   },
   gymdesk_winback: {
     params: ['name', 'gym', 'phone'],
-    body: 'Hi {{1}}, we miss you at {{2}}! Your membership ended a week ago. Come back this week and we will get you started again. Call {{3}}.',
+    body: 'Hi {{1}}, we miss you at {{2}}! Your membership ended recently. Come back this week and we will get you started again. Call {{3}}.',
   },
   gymdesk_dues_reminder: {
     params: ['name', 'gym', 'amount', 'upi', 'phone'],

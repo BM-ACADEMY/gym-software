@@ -29,7 +29,7 @@ Customers must have agreed to messages. Marketing templates are prepaid per mess
 - `wash_job_received` UTILITY. Params: name, place, vehicle, time. Body: Hi {{1}}, we received your {{3}} at {{2}}. Expected ready time: {{4}}.
 - `wash_due_reminder` MARKETING. Params: name, place, phone. Body: Hi {{1}}, it is time for your next wash at {{2}}. Call {{3}} to book.
 
-## Hire (`hire_`): HOLD, do not submit until the lawyer approves wording (Tier 3)
+## Hire (`hire_`): Mohamed reports (29 Oct) the lawyer approved. Before submitting, file the lawyer's written approval of this exact wording in the shared drive and note the date in the backlog
 - `hire_interview_reminder` UTILITY. Params: name, company, time. Body: Hi {{1}}, a reminder of your interview with {{2}} on {{3}}. Reply here if you need to change it.
 - `hire_consent_request` UTILITY or MARKETING (Meta decides). Params: name, agency. Body: Hi {{1}}, {{2}} would like to keep your details to match you with jobs. Reply YES to agree or NO to stop. Lawyer must approve this wording.
 - `hire_client_update` UTILITY. Params: client, count, agency. Body: Hi {{1}}, {{3}} has sent {{2}} new candidates for your open job. Open your shortlist link to review.

@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-28",
+ "updatedAt": "2026-10-29",
  "note": "Written by Claude each session. Read only. Everything here is 'written, not yet tested' until a person runs it. Dates are Mohamed's targets; confidence is Claude's estimate (an assumption).",
  "products": [
   {
@@ -35,6 +35,10 @@
     {
      "date": "2026-10-28",
      "text": "Usage screen, budget stop, founder brief, promo codes and CSV import written; sent to the team sheet v3"
+    },
+    {
+     "date": "2026-10-29",
+     "text": "Domain, email and website-page list written for Dev A; Meta template list ready for submission"
     }
    ],
    "launchChecklist": [
@@ -329,7 +333,7 @@
    "name": "Recruitment Agency (AI hiring tool)",
    "address": "hire.afraventures.in",
    "targetDate": "2026-11-28",
-   "stage": "Rules written, no screens or server routes yet",
+   "stage": "API and rules written, no screens yet",
    "confidence": "low",
    "confidenceNote": "Rules pass fake-data checks only; no database, no real AI call, no screens.",
    "done": [
@@ -337,20 +341,21 @@
     "Duplicate check, resume parse cleaning, fixed-rule ranking, pipeline, offer-drop flags, fee and GST, consent and retention",
     "Resume parse flow with plan limits and budget stop",
     "Business autopilot rules and weekly report numbers",
-    "Mock-up screens shared"
+    "Mock-up screens shared",
+    "Hire API: candidates, jobs, ranking, pipeline, fees, client share page, autopilot list (database test written, not run)"
    ],
    "next": [
-    "Server routes with tests",
+    "Dev A runs the Hire route test",
+    "Real screens",
     "PDF and Word text reading",
     "AI reason for each rank",
-    "Real screens",
     "Floor-price table (HIR-P1)",
     "Shared autopilot runner"
    ],
    "blockers": [
-    "Lawyer wording for consent, retention, WhatsApp outreach to candidates",
     "Plan caps are guesses until a real parse is costed",
-    "Meta templates not started"
+    "Meta templates not started",
+    "Lawyer approval reported by Mohamed on 29 Oct: file the written approval of the exact wording"
    ],
    "suggestions": [
     "Pilot with 3 small agencies; sell the client share link and fee tracking, not parsing",
@@ -361,6 +366,10 @@
     {
      "date": "2026-10-28",
      "text": "Research, rules, parse flow, autopilot rules and mock-up screens written"
+    },
+    {
+     "date": "2026-10-29",
+     "text": "API with 24 routes, share link page and database test written"
     }
    ],
    "launchChecklist": [

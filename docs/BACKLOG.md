@@ -81,6 +81,42 @@ Progress 28 Oct: 1B-01 to 1B-04 written. `utils/whatsapp.js` sends approved temp
 | 1D-02 | 10 invited gyms on paid plans | TODO (human) | |
 | 1D-03 | Turn on `PUBLIC_SIGNUP=true`, start ads at Rs 1,000/day | TODO (human) | |
 
+## Phase 1g: Super Admin completeness (added 28 Oct, owner direction)
+
+Priority: L = before launch (only these three, see D-03), A = first month after soft launch, B = later. Days are estimates for Claude-written code, excluding human test time. Existing: Business Overview page (1F-01), give days with logged reason (1A-07), tickets, promo codes through the API only (2-01), `AuditLog` model (viewer not checked).
+
+| ID | Task | Pri | Days | Status |
+| --- | --- | --- | --- | --- |
+| SA-03 | AI and WhatsApp usage per gym with caps and alerts (ties to 1E-05) | L | 2 | TODO |
+| SA-04 | Founder daily brief by email (MRR, new and lost gyms, failed payments, tickets, AI cost, risks) | L | 2 | TODO |
+| SA-05 | Promo and referral code screen in Root Admin (API exists) | L | 1.5 | TODO |
+| SA-01 | Gym health score and churn-risk list from usage signals, with an automatic nudge to the owner | A | 3 | TODO |
+| SA-02 | Support inbox with AI triage, reply drafts, auto-answer from help articles, SLA timers | A | 3 | TODO |
+| SA-06 | Plan and limit overrides and feature flags per gym, each with a logged reason | A | 2 | TODO |
+| SA-07 | View-as-gym for support: read-only, logged, time-limited | A | 2 | TODO |
+| SA-08 | Audit-log viewer with filters and export | A | 1.5 | TODO |
+| SA-09 | Announcements to all or selected gyms (in-app and email) | B | 1.5 | TODO |
+| SA-10 | Platform team roles: support, finance, read-only | B | 2 | TODO |
+| SA-11 | Refund and credit note tool with approval (needs CA wording, Tier 3) | B | 3 | TODO |
+| SA-12 | Data export and delete on request (DPDP; lawyer review) | B | 2 | TODO |
+| SA-13 | Trial-abuse and fake sign-up detection | B | 2 | TODO |
+| SA-14 | Cohort retention and MRR movement analytics | B | 2 | TODO |
+
+## Phase 3-AI: AI-first features (added 28 Oct, owner direction: AI is the main story)
+
+Rule: nothing here is advertised until it is built, tested by a human and listed in `docs/MARKETING_CLAIMS.md`. AI never gets raw database access; it uses a short list of read-only, tenant-scoped tools. Member names and phones are not sent to the model unless the feature needs them and the claims list says so.
+
+| ID | Task | Pri | Days | Status |
+| --- | --- | --- | --- | --- |
+| AI-01 | Renewal Copilot: daily ranked list of who to chase, why, and a ready message (Tamil, English, Hindi); business-initiated sends still use approved WhatsApp templates | A | 3 | TODO |
+| AI-02 | Ask GymDesk on your own data via safe read-only tools (dues, expiring, absent, collections) | A | 3 | TODO |
+| AI-03 | Register import from a photo or PDF of the paper register, with preview and correction | A | 3 | TODO |
+| AI-04 | Churn risk that explains why, plus an automatic win-back sequence | A | 3 | TODO |
+| AI-05 | Weekly owner coach: 3 actions with expected rupee impact, then tracks whether they were done (upgrade of 1E-02) | A | 2 | TODO |
+| AI-06 | WhatsApp assistant for members (timings, dues, class booking); blocked until WhatsApp is live | B | 4 | BLOCKED |
+| AI-07 | Anomaly alerts: heavy discounts, proxy check-ins, cash that does not match | B | 3 | TODO |
+| AI-08 | Offer and message writer for owners in Tamil, Hindi and English | B | 2 | TODO |
+
 ## Phase 2 and 3
 
 See `docs/SCOPE.md` section 4.

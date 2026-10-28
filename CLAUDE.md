@@ -5,6 +5,8 @@ You are continuing a project. Read these in order before doing anything:
 1. `docs/SCOPE.md`: goal, phases, pricing, architecture notes, decisions.
 2. `docs/BACKLOG.md`: task list with status. Pick the next TODO in the current phase.
 3. `HANDOVER.md`: older notes on the app (the demo-password section was removed on purpose).
+4. `docs/OPERATING_RULES.md`: how you work with Mohamed (decision tiers, never idle, the Daily Brief). Follow it every session.
+5. `docs/DECISIONS.md`: open questions and the decision log. Check it first; do not ask again what is already answered.
 
 ## Resume checklist
 
@@ -31,6 +33,7 @@ You are continuing a project. Read these in order before doing anything:
 - Do not promise features the code does not have (the old pricing page did). Landing copy must match `docs/SCOPE.md`.
 - Money: whole rupees; keep a currency code with each new amount.
 - Do not claim something works unless a human ran it. Say "written, not yet tested".
+- A pending approval never stops the whole queue: park that task, work another lane (see `OPERATING_RULES.md`). End each session with the Daily Brief.
 
 ## About the owner
 

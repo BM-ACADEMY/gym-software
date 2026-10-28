@@ -1,6 +1,7 @@
 // Code-defined SaaS plans. This is the single source of truth for prices,
 // limits and features (replaces the DB-driven PlatformPlan/PlanFeature for
 // new gyms; legacy pilot gyms that still have platformPlanId keep working).
+// aiCallsPerMonth caps the Ask GymDesk assistant + dashboard insights (a guess, tune from real cost).
 // Prices are whole rupees EXCLUDING GST. Yearly = 10 months.
 // Change a price here, deploy, done.
 
@@ -20,6 +21,7 @@ const PLANS = {
     staffLimit: 1,
     features: { 'ai-plans': false, 'pt-sessions': false, accounts: false, branding: false },
     whatsappPerMonth: 0, // no WhatsApp: every message costs us money
+    aiCallsPerMonth: 15,
   },
   starter: {
     key: 'starter',
@@ -31,6 +33,7 @@ const PLANS = {
     staffLimit: 2,
     features: { 'ai-plans': false, 'pt-sessions': false, accounts: false, branding: false },
     whatsappPerMonth: 300,
+    aiCallsPerMonth: 60,
   },
   growth: {
     key: 'growth',
@@ -42,6 +45,7 @@ const PLANS = {
     staffLimit: 5,
     features: { 'ai-plans': true, 'pt-sessions': true, accounts: true, branding: false },
     whatsappPerMonth: 1000,
+    aiCallsPerMonth: 200,
   },
   pro: {
     key: 'pro',
@@ -53,6 +57,7 @@ const PLANS = {
     staffLimit: null,
     features: { 'ai-plans': true, 'pt-sessions': true, accounts: true, branding: true },
     whatsappPerMonth: 3000,
+    aiCallsPerMonth: 600,
   },
 };
 

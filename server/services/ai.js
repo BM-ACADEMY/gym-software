@@ -144,7 +144,7 @@ Body weight in kg, if known: ${bodyStats?.weightKg || 'unknown'}
 ${WORKOUT_DIET_SCHEMA_INSTRUCTIONS}`;
 
   const response = await client.messages.create({
-    model: 'claude-opus-5',
+    model: process.env.AI_PLAN_MODEL || 'claude-sonnet-5-5',
     max_tokens: 4096,
     messages: [{ role: 'user', content: prompt }],
   });

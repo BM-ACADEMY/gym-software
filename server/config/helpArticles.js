@@ -1,0 +1,20 @@
+// COPY of client/src/config/helpArticles.js (kept in step by tests/helpArticles.test.js).
+// Help centre articles. Plain text; keep each short. Add more over time.
+// Only describe features that exist today.
+const HELP_ARTICLES = [
+  { id: 'start', q: 'How do I get started?', a: ['Sign up with your email and password. You get a 14-day free trial with Growth features, no card needed.', 'Follow the checklist on your dashboard: add your gym details, import or add members, set up plans, and turn on WhatsApp reminders.'] },
+  { id: 'import', q: 'How do I bring in my existing members?', a: ['Go to Import Members. Upload an Excel or CSV file with name, phone, plan and expiry date columns.', 'You see a preview with any errors first. Nothing is saved until you confirm. Up to 2,000 rows at a time.'] },
+  { id: 'dates', q: 'My member import shows wrong dates', a: ['Write dates as day-month-year, for example 25-12-2026. Excel date cells also work.', 'If a row is marked as an error, fix that row in your file and upload again.'] },
+  { id: 'biometric', q: 'Can I use my fingerprint or face machine?', a: ['Yes, by importing its log file. Export the attendance log from your machine as Excel or CSV and upload it in Import Device Log.', 'First give each member the same ID number the machine uses (Device ID on the member form). Unmatched IDs are listed so you can fix them. Live sync with machines is not available yet.'] },
+  { id: 'qr', q: 'How does QR check-in work?', a: ['Each member has a QR code in their member portal. Scan it at the front desk from the Attendance page.', 'The QR is signed, so a screenshot of someone else\'s old code or a made-up code is refused.'] },
+  { id: 'whatsapp', q: 'Which WhatsApp messages are sent?', a: ['Renewal reminders (30, 7 and 1 day before expiry, and after it ends), weekly dues reminders, a check-in after 10 days of absence, and a daily summary for you at 8 pm.', 'Members get messages only between 9 am and 9 pm. You can switch each type off in Settings. Each plan has a monthly message allowance.'] },
+  { id: 'optin', q: 'Do my members have to agree to WhatsApp messages?', a: ['Yes. You must have your members\' permission. Tick the confirmation in Settings, and keep a record. A member can ask you to stop; turn off messages for that member on their profile.'] },
+  { id: 'pay', q: 'How do I pay and renew?', a: ['Go to Plan & Billing, pick a plan and month or year, and pay through Razorpay (UPI, cards, net banking).', 'Plans are prepaid and do not renew by themselves. We remind you before the end date. Paying early adds time to your current end date.'] },
+  { id: 'gst', q: 'Where is my GST invoice?', a: ['Plan & Billing lists every payment with a Download invoice button.', 'Set your state in Plan & Billing first. Puducherry gyms get CGST + SGST, other states get IGST.'] },
+  { id: 'upgrade', q: 'Can I upgrade or downgrade?', a: ['Upgrade any time. The unused value of your current plan is credited.', 'Downgrade takes effect when your current paid period ends.'] },
+  { id: 'expired', q: 'My plan ended. What happens to my data?', a: ['You get 3 days of full access after the end date. After that your account is read-only: you can see and export your data, but cannot add or change anything until you pay.', 'Your data is not deleted.'] },
+  { id: 'staff', q: 'How do I add staff and limit what they see?', a: ['Open Sub-Admin / Staff, add the person and tick the screens they may use. Solo allows 1 staff login, Starter 2, Growth 5, Pro unlimited.'] },
+  { id: 'password', q: 'I forgot my password', a: ['Use Forgot password on the sign-in page. If that does not work, contact support from the Contact page.'] },
+];
+
+module.exports = { HELP_ARTICLES };

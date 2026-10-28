@@ -59,5 +59,5 @@ Every task below is a row in the team task sheet (`docs/TEAM_TASK_SHEET.xlsx`, o
 ## D-19 (29 Oct): brand and Super Admin marketing autopilot
 - Claude chooses taglines (easy, strategic, psychological); list in `docs/BRAND_AND_TAGLINES.md` section 6. Gym name stays Fit. Trademark checks when a brand reaches its target and converts.
 - Super Admin gets marketing autopilot (push notifications, to-do, calendar, session plan, suggestions). Mohamed confirms every action. Plan: `docs/SUPER_ADMIN_AUTOPILOT.md`. Same idea added as owner-side suggestions in each product.
-- Open: confirm "kush notification" = phone push.
+- Confirmed: phone push only. Channels: all. Content made by Mohamed's DM team; Claude drafts, DM team posts, Mohamed approves. New role "marketing" (SA-18).
 

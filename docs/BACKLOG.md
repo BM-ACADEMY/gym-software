@@ -175,6 +175,7 @@ Scope files: `docs/products/README.md` (index and rules), `CORE.md`, and one `SC
 | SA-15 | Rule-based marketing suggestions (trial ending, flat sign-ups, festival soon, launch date), a test per rule | M | TODO |
 | SA-16 | AI wording for suggestions (budget-checked, no personal data) | S | TODO |
 | SA-17 | Web push notifications (quiet hours, 3 a day) | M | TODO |
+| SA-18 | Super Admin "marketing" role for the DM team: sees to-do list, calendar, drafts; marks done; cannot see money, accounts or product data. Same two-step sign-in as admin | S | TODO |
 | AP-02 | Owner-side marketing suggestions in each product on core-autopilot | L | TODO |
 | P-P | Floor-price tables per product (SAL-P1, MRT-P1, DIN-P1, CLO-P1, WSH-P1, HIR-P1), same method as the gym; Mohamed approves (Tier 3) | L | TODO |
 | P-QA | Product QA workbooks and Dev B attack lists per product | L | TODO |

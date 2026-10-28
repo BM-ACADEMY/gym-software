@@ -1,7 +1,7 @@
 # Super Admin autopilot: marketing and growth suggestions (plan)
 
 Status: planned, not built. Decision by Mohamed (29 Oct): Super Admin should suggest marketing work (notifications, to-dos, calendar, session plans); Mohamed confirms; nothing goes out without his OK.
-Note: the message said "kush notification"; Claude reads it as phone push notification. Mohamed to correct if meant otherwise.
+Confirmed by Mohamed (29 Oct): notifications are phone push notifications only (no SMS or email for this).
 
 ## 1. What it does (same watch / suggest / confirm pattern as product autopilot)
 | Piece | What the owner sees | Example (Assumption until used) |
@@ -49,7 +49,12 @@ Same guardrails: owner confirms, consent and quiet hours apply, daily send limit
 5. SA-17 push notifications (web push, quiet hours, 3 a day cap).
 6. AP-02 owner-side marketing suggestions per product on `core-autopilot`.
 
-## 6. Open for Mohamed (not blocking)
-- Confirm "kush notification" means phone push.
-- Which channels does he post on (Instagram, YouTube, WhatsApp channel)? Needed so the to-do list names the right ones.
-- Who makes content (him, designer, Claude drafts the text)?
+## 6. Answers (Mohamed, 29 Oct)
+- Notifications: phone push only.
+- Channels: all (Instagram, YouTube, WhatsApp channel, others as they come). Each to-do item names its channel.
+- Content: Mohamed's digital marketing (DM) team makes and posts it. Claude drafts the wording and plan; the DM team is the owner on to-do items by default; Mohamed approves.
+- Implication: the to-do list needs a DM team login (role "marketing": sees and updates the to-do list, calendar and drafts; cannot see money, accounts or product data). Added as SA-18.
+
+## 7. Still open (not blocking)
+- Names and number of DM team members (for logins, M-ticket for Mohamed).
+- Brand assets the DM team uses (logo, colours) come from the UI designer (M-19).

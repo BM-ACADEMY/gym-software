@@ -2,6 +2,42 @@ const bcrypt = require('bcryptjs');
 const Subscriber = require('../../models/Subscriber');
 const Admin = require('../../models/Admin');
 const SubAdmin = require('../../models/SubAdmin');
+const { effectivePlan } = require('../../services/subscription');
+
+// Regional settings (global-ready). Pure so it can be unit tested.
+const validateRegional = (body) => {
+  const out = {};
+  if (body.country !== undefined) {
+    if (typeof body.country !== 'string' || !/^[A-Za-z]{2}$/.test(body.country)) return { error: 'Country must be a 2-letter code, for example IN' };
+    out.country = body.country.toUpperCase();
+  }
+  if (body.currency !== undefined) {
+    if (typeof body.currency !== 'string' || !/^[A-Za-z]{3}$/.test(body.currency)) return { error: 'Currency must be a 3-letter code, for example INR' };
+    out.currency = body.currency.toUpperCase();
+  }
+  if (body.timezone !== undefined) {
+    let ok = typeof body.timezone === 'string' && body.timezone.length < 64;
+    if (ok) { try { new Intl.DateTimeFormat('en', { timeZone: body.timezone }); } catch { ok = false; } }
+    if (!ok) return { error: 'That time zone is not recognised (example: Asia/Kolkata)' };
+    out.timezone = body.timezone;
+  }
+  if (body.language !== undefined) {
+    if (!['en', 'ta', 'hi'].includes(body.language)) return { error: 'Language must be en, ta or hi' };
+    out.language = body.language;
+  }
+  return { value: out };
+};
+
+// Branding (logo, colour) is a Pro feature for gyms on the code-defined plans.
+const validateBranding = (body) => {
+  if (body.logoUrl !== undefined && body.logoUrl !== '' && !(typeof body.logoUrl === 'string' && /^https:\/\/\S{3,500}$/.test(body.logoUrl))) {
+    return 'Logo must be a link starting with https://';
+  }
+  if (body.brandColor !== undefined && body.brandColor !== '' && !(typeof body.brandColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(body.brandColor))) {
+    return 'Brand colour must look like #0d9488';
+  }
+  return null;
+};
 
 const GYM_FIELDS = ['gymName', 'logoUrl', 'brandColor', 'workingHours', 'holidays', 'memberIdFormat', 'staffIdFormat', 'attendanceGraceMode', 'aiPlanReviewRequired', 'gstEnabled', 'gstNumber', 'gstRate', 'whatsappEnabled', 'whatsappNumber', 'upiId', 'automations'];
 
@@ -34,6 +70,20 @@ const updateGymSettings = async (req, res) => {
   try {
     const subscriber = await Subscriber.findById(req.user.subscriberId);
     if (!subscriber) return res.status(404).json({ success: false, message: 'Gym not found' });
+
+    const regional = validateRegional(req.body);
+    if (regional.error) return res.status(400).json({ success: false, message: regional.error });
+    const brandingError = validateBranding(req.body);
+    if (brandingError) return res.status(400).json({ success: false, message: brandingError });
+    const changesBranding = (req.body.logoUrl !== undefined && (req.body.logoUrl || '') !== (subscriber.logoUrl || ''))
+      || (req.body.brandColor !== undefined && (req.body.brandColor || '') !== (subscriber.brandColor || ''));
+    if (changesBranding && !subscriber.platformPlanId) {
+      const plan = effectivePlan(subscriber);
+      if (plan && !plan.features.branding) {
+        return res.status(403).json({ success: false, planUpgradeRequired: true, message: `Your plan (${plan.name}) doesn't include your own logo and colours. Upgrade to Pro to use them.` });
+      }
+    }
+    Object.assign(subscriber, regional.value);
 
     // upiId and automations need checking; everything else is a plain whitelisted copy.
     if (req.body.upiId !== undefined) {
@@ -140,4 +190,4 @@ const updateMyProfile = async (req, res) => {
   }
 };
 
-module.exports = { getGymSettings, updateGymSettings, updateAdminProfile, getMyProfile, updateMyProfile };
+module.exports = { validateRegional, validateBranding, getGymSettings, updateGymSettings, updateAdminProfile, getMyProfile, updateMyProfile };

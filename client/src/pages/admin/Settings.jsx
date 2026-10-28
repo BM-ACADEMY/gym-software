@@ -221,6 +221,18 @@ const Settings = () => {
           </label>
         </SectionCard>
 
+        <SectionCard title="Region & language" description="Country, currency, time zone and language for your gym" onSave={() => saveGym({ country: gym.country, currency: gym.currency, timezone: gym.timezone, language: gym.language }, 'region', 'Region')} saving={savingSection === 'region'} disabled={suspended}>
+          <Input label="Country code" maxLength={2} value={gym.country || ''} onChange={(e) => setGym({ ...gym, country: e.target.value.toUpperCase() })} placeholder="IN" />
+          <Input label="Currency code" maxLength={3} value={gym.currency || ''} onChange={(e) => setGym({ ...gym, currency: e.target.value.toUpperCase() })} placeholder="INR" />
+          <Input label="Time zone" value={gym.timezone || ''} onChange={(e) => setGym({ ...gym, timezone: e.target.value })} placeholder="Asia/Kolkata" />
+          <label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Preferred language (WhatsApp messages are English only for now)</span>
+            <select value={gym.language || 'en'} onChange={(e) => setGym({ ...gym, language: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm">
+              <option value="en">English</option><option value="ta">Tamil</option><option value="hi">Hindi</option>
+            </select>
+          </label>
+          <p className="text-xs text-gray-400">Your GymDesk bill is always in INR with GST.</p>
+        </SectionCard>
+
         <SectionCard title="Your profile" onSave={saveProfile} saving={savingSection === 'profile'} disabled={suspended}>
           <Input label="Name" value={profile.name || ''} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
           <Input label="Email" type="email" value={profile.email || ''} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />

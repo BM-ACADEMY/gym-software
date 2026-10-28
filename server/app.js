@@ -38,6 +38,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/subadmin', subAdminRoutes);
 app.use('/api/member', memberRoutes);
 app.use('/api/payments', webhookRoutes);
+app.use('/api/internal', require('./routes/internal'));
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'Server is running' });

@@ -16,7 +16,7 @@ Days are estimates for Claude-written code, excluding human test time.
 
 ## Phase 1a: Money
 
-Progress 24 Oct: dev branch `charles` merged in. 1A-01/02/03 written (plans in `server/config/plans.js`, status in `server/services/subscription.js`, `POST /api/auth/signup`, `GET /api/admin/subscription`). Pure logic checked 11/11 with a shim; DB tests in `tests/signup.test.js` not run. Legacy `PlatformPlan` kept for old pilot gyms only. 28 Oct: 1A-04 (checkout, confirm, webhook, idempotent activation, upgrade credit) and 1A-05 (gap-free GST invoice numbers per financial year, PDF) written in `services/subscriptionBilling.js`, `services/billingMath.js`, routes under `/api/admin/subscription`, webhook `/api/payments/razorpay-webhook`. Pure maths checked 26/26 with a shim; `tests/billingFlow.test.js` not run. Needs: Razorpay test keys in Root Admin Settings, `RAZORPAY_WEBHOOK_SECRET`, webhook URL set in Razorpay dashboard for events payment.captured and payment.failed, CA check on SAC code and GST mode. Next: 1A-07 super admin, 1A-08 reminder endpoint, 1A-06 gating.
+Progress 24 Oct: dev branch `charles` merged in. 1A-01/02/03 written (plans in `server/config/plans.js`, status in `server/services/subscription.js`, `POST /api/auth/signup`, `GET /api/admin/subscription`). Pure logic checked 11/11 with a shim; DB tests in `tests/signup.test.js` not run. Legacy `PlatformPlan` kept for old pilot gyms only. 28 Oct: 1A-04 (checkout, confirm, webhook, idempotent activation, upgrade credit) and 1A-05 (gap-free GST invoice numbers per financial year, PDF) written in `services/subscriptionBilling.js`, `services/billingMath.js`, routes under `/api/admin/subscription`, webhook `/api/payments/razorpay-webhook`. Pure maths checked 26/26 with a shim; `tests/billingFlow.test.js` not run. Needs: Razorpay test keys in Root Admin Settings, `RAZORPAY_WEBHOOK_SECRET`, webhook URL set in Razorpay dashboard for events payment.captured and payment.failed, CA check on SAC code and GST mode. 1A-07 (`GET /api/root-admin/subscriptions/overview`, `POST .../:id/extend` with logged reason) and 1A-08 (`GET /api/internal/billing-reminders`, header `x-internal-key` = `INTERNAL_API_KEY`) written; `tests/superAdminBilling.test.js` not run. Next: 1A-06 gating of PT/accounts/branding routes, then client screens (billing page, trial banner, sign-up page).
  (2 to 3 days of Claude coding each unless noted)
 
 | ID | Task | Status | Acceptance |
@@ -27,8 +27,8 @@ Progress 24 Oct: dev branch `charles` merged in. 1A-01/02/03 written (plans in `
 | 1A-04 | Razorpay billing port: price on server, order, checkout verify, webhook (raw body), idempotent activation, credit for unused days on upgrade | WRITTEN | Test-mode payment activates plan; repeat webhook is a no-op; amount mismatch fails |
 | 1A-05 | GST invoice numbers (gap-free, restart 1 April), CGST/SGST/IGST split, printable invoice | WRITTEN | Invoice matches CA-approved wording |
 | 1A-06 | Gate every route by plan feature and member/staff limits (PT, earnings, accounts, analytics, branding, reminders) | TODO | QA tests GATE-05 to GATE-15, PLAT-02 to PLAT-18 pass |
-| 1A-07 | Super admin overview: companies by status, MRR, trials ending, give days, suspend, with logged reason | TODO | No access to a gym's member data |
-| 1A-08 | Billing reminder list endpoint for the scheduler (trial_ending, renewal_due, expired) protected by internal key | TODO | |
+| 1A-07 | Super admin overview: companies by status, MRR, trials ending, give days, suspend, with logged reason | WRITTEN | No access to a gym's member data |
+| 1A-08 | Billing reminder list endpoint for the scheduler (trial_ending, renewal_due, expired) protected by internal key | WRITTEN | |
 
 ## Phase 1b: Retention and setup
 

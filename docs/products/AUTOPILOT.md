@@ -38,3 +38,6 @@ Each product runs the owner's daily routine by itself and tells the owner only w
 - WhatsApp template wording for auto-send jobs (lawyer for candidates; Meta approval).
 - Default daily send limit and quiet hours.
 - Whether any auto-send job should be on by default (Claude's recommendation: none).
+
+## Marketing suggestions (added 29 Oct)
+Owner-side and Super Admin marketing suggestions: `docs/SUPER_ADMIN_AUTOPILOT.md`. Same levels and guardrails.

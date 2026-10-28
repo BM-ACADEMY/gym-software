@@ -50,3 +50,6 @@ Same switch model as every product (`docs/products/AUTOPILOT.md`): off / suggest
 - **Reports to the owner:** Daily jobs and revenue, repeat rate, staff work done
 - Reports and switches show in this product's own admin panel (manifest-driven) and the product counts show in Super Admin.
 - Not promised on the landing page until a human has seen it work.
+
+## 12. Marketing suggestions for the owner (Decision 29 Oct, build later)
+See `docs/SUPER_ADMIN_AUTOPILOT.md` section 4 for this product's list. Owner confirms; nothing auto-posts or auto-sends in phase 1.

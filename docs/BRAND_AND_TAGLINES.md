@@ -1,6 +1,6 @@
 # Brand, taglines and landing-page plan (draft for Mohamed to choose)
 
-Status: Decision by Mohamed needed (names and taglines). Everything below is a suggestion. Nothing is trademark-checked.
+Status: Mohamed (29 Oct) told Claude to choose taglines (easy, strategic, psychological), kept **Fit** as the gym name, and will do trademark checks once a brand reaches its target and converts. Chosen lines are in section 6. Nothing is trademark-checked yet.
 Rule: a line goes on a landing page only after a person has seen that feature work (see `docs/products/AUTOPILOT.md`). Until then use the "safe now" column.
 
 ## 1. Idea that ties all products together (Assumption)
@@ -41,3 +41,15 @@ Umbrella: **Afra** (Afra Ventures Pvt Ltd). Product line style: `<Product> by Af
 - Keep "Fit" as the gym name or use "GymDesk" on the page.
 - Trademark search for each name before paying a designer (Claude cannot check the registry).
 - Designer (M-19): give them this file, `docs/products/AUTOPILOT.md` and the preview artifacts.
+
+## 6. Chosen taglines (Claude's pick, 29 Oct; easy words, one clear feeling each)
+| Product | Chosen line | Feeling it uses |
+| --- | --- | --- |
+| Hire | From resume to joined, nothing slips. | Fear of losing a placement fee |
+| Fit | Fewer members slip away. | Fear of losing members |
+| groom | Keep your chairs full. | Empty chair = lost money |
+| Mart | Know what to reorder before you run out. | Control, no more stock-outs |
+| Dine | Know what sold, what spoiled, what to cook tomorrow. | Waste hurts, certainty helps |
+| Cloth | Know which stock is stuck. | Money locked in shelves |
+| Wash | Bring them back for the next wash. | Repeat customers = steady income |
+Why: each names one loss the owner already feels, in plain words, and promises one thing to know or keep. Test them with 5 owners per product before the page goes live (Assumption: these will land; unproven).

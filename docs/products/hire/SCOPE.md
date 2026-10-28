@@ -44,3 +44,6 @@ Resume parsing accuracy on 50 real resumes in mixed formats (target set by Dev A
 
 ## 9. Backlog IDs
 HIR-01 to HIR-11. Status of all: TODO.
+
+## 12. Marketing suggestions for the owner (Decision 29 Oct, build later)
+See `docs/SUPER_ADMIN_AUTOPILOT.md` section 4 for this product's list. Owner confirms; nothing auto-posts or auto-sends in phase 1.

@@ -169,6 +169,13 @@ Scope files: `docs/products/README.md` (index and rules), `CORE.md`, and one `SC
 | HIR-05 | Hire accounts wired: `HireTenant`/`HireUser` models, signed 12-hour session cookie (HttpOnly, Secure, SameSite=Strict), `authRoutes.js` (signup, login, logout, me; needs header `x-requested-with: afra-hire`), `sessionMiddleware` to fill `req.user` from the cookie. Needs `HIRE_SESSION_SECRET` (32+ characters) in the server settings file only. Agency two-step sign-in: not built (decision for Mohamed, default off) | M | WRITTEN, not yet tested by a person (3 plain-node checks passed here; routes not run against a database) |
 | HIR-06 | Hire sign-in and sign-up screen (`apps/hire/client/src/AuthGate.jsx`): shows the form until the server confirms the cookie, then the panel; read-only banner when the plan has ended; terms/privacy links to afraventures.in (pages must exist, LAUNCH_ESSENTIALS). JSX syntax checked with esbuild only; never opened in a browser | S | WRITTEN, not yet tested by a person (Dev A: open it on a phone-size screen) |
 | AP-01 | Autopilot section added to Salon, Mart, Dine, Cloth, Wash scope files; core, productStatus and AUTOPILOT notes updated | S | DONE (documents only) |
+| BR-01 | Brand and tagline plan `docs/BRAND_AND_TAGLINES.md`: chosen taglines per product, landing page order, claims rules. Fit name kept. Trademark checks later (Mohamed) | S | DONE (document only) |
+| SA-13 | Super Admin autopilot, marketing: Today brief, marketing to-do, approve/skip log (`docs/SUPER_ADMIN_AUTOPILOT.md`) | M | TODO (planned) |
+| SA-14 | Super Admin calendar (editable festival list) and weekly session plan | M | TODO |
+| SA-15 | Rule-based marketing suggestions (trial ending, flat sign-ups, festival soon, launch date), a test per rule | M | TODO |
+| SA-16 | AI wording for suggestions (budget-checked, no personal data) | S | TODO |
+| SA-17 | Web push notifications (quiet hours, 3 a day) | M | TODO |
+| AP-02 | Owner-side marketing suggestions in each product on core-autopilot | L | TODO |
 | P-P | Floor-price tables per product (SAL-P1, MRT-P1, DIN-P1, CLO-P1, WSH-P1, HIR-P1), same method as the gym; Mohamed approves (Tier 3) | L | TODO |
 | P-QA | Product QA workbooks and Dev B attack lists per product | L | TODO |
 | P-LAND | Landing page and claims file per product, matching `MARKETING_CLAIMS.md` rules | L | TODO |

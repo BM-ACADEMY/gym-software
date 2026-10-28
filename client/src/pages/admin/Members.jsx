@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Lock, Plus, QrCode, Search, X } from 'lucide-react';
 import apiClient from '../../api/client';
 import useSuspended from '../../hooks/useSuspended';
+import { useT } from '../../i18n';
 
 const STATUS_TONES = {
   active: 'bg-emerald-50 text-emerald-700',
@@ -12,11 +13,14 @@ const STATUS_TONES = {
   cancelled: 'bg-gray-100 text-gray-500',
 };
 
-const StatusPill = ({ status }) => (
+const StatusPill = ({ status }) => {
+  const { t } = useT();
+  return (
   <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${STATUS_TONES[status] || 'bg-gray-100 text-gray-600'}`}>
-    {status}
+    {t(status[0].toUpperCase() + status.slice(1))}
   </span>
-);
+  );
+};
 
 const emptyForm = {
   name: '',
@@ -31,6 +35,7 @@ const emptyForm = {
 };
 
 const Members = () => {
+  const { t } = useT();
   const suspended = useSuspended();
   const [members, setMembers] = useState([]);
   const [total, setTotal] = useState(0);
@@ -146,16 +151,16 @@ const Members = () => {
     <div className="p-6 sm:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Members</h1>
-          <p className="mt-1 text-gray-500">{total} member{total === 1 ? '' : 's'} in your gym.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('Members')}</h1>
+          <p className="mt-1 text-gray-500">{total === 1 ? t('1 member in your gym.') : t('{n} members in your gym.', { n: total })}</p>
         </div>
         <button
           onClick={openCreate}
           disabled={suspended}
-          title={suspended ? 'Disabled — this gym is suspended' : undefined}
+          title={suspended ? t('Disabled — this gym is suspended') : undefined}
           className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
         >
-          {suspended ? <Lock className="h-4 w-4" /> : <Plus className="h-4 w-4" />} Add member
+          {suspended ? <Lock className="h-4 w-4" /> : <Plus className="h-4 w-4" />} {t('Add member')}
         </button>
       </div>
 
@@ -166,19 +171,19 @@ const Members = () => {
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <label className="relative min-w-0 flex-1 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or phone..." className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search name or phone...')} className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
         </label>
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-xl border border-gray-200 bg-white py-2.5 px-3.5 text-sm outline-none">
-          <option value="">All statuses</option>
+          <option value="">{t('All statuses')}</option>
           {['trial', 'active', 'expiring', 'expired', 'frozen', 'cancelled'].map((s) => (
-            <option key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</option>
+            <option key={s} value={s}>{t(s[0].toUpperCase() + s.slice(1))}</option>
           ))}
         </select>
         {selectedIds.length > 0 && !suspended && (
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-500">{selectedIds.length} selected</span>
-            <button onClick={() => applyBulkStatus('frozen')} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50">Freeze</button>
-            <button onClick={() => applyBulkStatus('cancelled')} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+            <span className="text-gray-500">{t('{n} selected', { n: selectedIds.length })}</span>
+            <button onClick={() => applyBulkStatus('frozen')} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50">{t('Freeze')}</button>
+            <button onClick={() => applyBulkStatus('cancelled')} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50">{t('Cancel')}</button>
           </div>
         )}
       </div>
@@ -189,19 +194,19 @@ const Members = () => {
             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
               <tr>
                 <th className="px-5 py-3"><input type="checkbox" checked={allSelected} onChange={toggleSelectAll} /></th>
-                <th className="px-5 py-3">Member</th>
-                <th className="px-5 py-3">Plan</th>
-                <th className="px-5 py-3">Assigned staff</th>
-                <th className="px-5 py-3">Expires</th>
-                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3">{t('Member')}</th>
+                <th className="px-5 py-3">{t('Plan')}</th>
+                <th className="px-5 py-3">{t('Assigned staff')}</th>
+                <th className="px-5 py-3">{t('Expires')}</th>
+                <th className="px-5 py-3">{t('Status')}</th>
                 <th className="px-5 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400">{t('Loading...')}</td></tr>
               ) : members.length === 0 ? (
-                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400">No members found.</td></tr>
+                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400">{t('No members found.')}</td></tr>
               ) : members.map((m) => (
                 <tr key={m._id} className="hover:bg-gray-50">
                   <td className="px-5 py-4"><input type="checkbox" checked={selectedIds.includes(m._id)} onChange={() => toggleSelect(m._id)} /></td>
@@ -214,7 +219,7 @@ const Members = () => {
                   <td className="px-5 py-4 text-gray-600">{m.expiresAt ? new Date(m.expiresAt).toLocaleDateString() : '—'}</td>
                   <td className="px-5 py-4"><StatusPill status={m.effectiveStatus} /></td>
                   <td className="px-5 py-4">
-                    <button onClick={() => openQr(m)} title="Show QR / ID card" className="rounded-lg p-2 hover:bg-gray-100"><QrCode className="h-4 w-4" /></button>
+                    <button onClick={() => openQr(m)} title={t('Show QR / ID card')} className="rounded-lg p-2 hover:bg-gray-100"><QrCode className="h-4 w-4" /></button>
                   </td>
                 </tr>
               ))}
@@ -236,52 +241,52 @@ const Members = () => {
               </div>
             )}
             <fieldset disabled={suspended} className="space-y-4 p-5 disabled:opacity-60">
-              <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Name</span>
+              <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">{t('Name')}</span>
                 <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
               </label>
               <div className="grid grid-cols-2 gap-3">
-                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Phone</span>
+                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">{t('Phone')}</span>
                   <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
                 </label>
-                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Email</span>
+                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">{t('Email')}</span>
                   <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
                 </label>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Gender</span>
+                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">{t('Gender')}</span>
                   <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none">
-                    <option value="">—</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option>
+                    <option value="">—</option><option value="male">{t('Male')}</option><option value="female">{t('Female')}</option><option value="other">{t('Other')}</option>
                   </select>
                 </label>
-                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Goal</span>
-                  <input value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} placeholder="e.g. Fat loss" className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
+                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">{t('Goal')}</span>
+                  <input value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} placeholder={t('e.g. Fat loss')} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
                 </label>
               </div>
-              <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Biometric / card ID on your device (optional)</span>
+              <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">{t('Biometric / card ID on your device (optional)')}</span>
                 <input value={form.deviceUserId} onChange={(e) => setForm({ ...form, deviceUserId: e.target.value })} placeholder="e.g. 101" className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
               </label>
-              <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Medical notes</span>
+              <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">{t('Medical notes')}</span>
                 <textarea value={form.medicalNotes} onChange={(e) => setForm({ ...form, medicalNotes: e.target.value })} rows={2} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
               </label>
               <div className="grid grid-cols-2 gap-3">
-                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Plan</span>
+                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">{t('Plan')}</span>
                   <select value={form.planId} onChange={(e) => setForm({ ...form, planId: e.target.value })} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none">
-                    <option value="">No plan</option>
+                    <option value="">{t('No plan')}</option>
                     {planOptions.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
                   </select>
                 </label>
-                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Assigned staff</span>
+                <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">{t('Assigned staff')}</span>
                   <select value={form.assignedSubAdminId} onChange={(e) => setForm({ ...form, assignedSubAdminId: e.target.value })} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none">
-                    <option value="">Unassigned</option>
+                    <option value="">{t('Unassigned')}</option>
                     {staff.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
                   </select>
                 </label>
               </div>
             </fieldset>
             <div className="flex justify-end gap-2 border-t border-gray-100 px-5 py-4">
-              <button type="button" onClick={() => setFormOpen(false)} className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">{suspended ? 'Close' : 'Cancel'}</button>
+              <button type="button" onClick={() => setFormOpen(false)} className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">{suspended ? t('Close') : t('Cancel')}</button>
               {!suspended && (
-                <button type="submit" disabled={saving} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save'}</button>
+                <button type="submit" disabled={saving} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 disabled:opacity-50">{saving ? t('Saving...') : t('Save')}</button>
               )}
             </div>
           </form>
@@ -292,9 +297,9 @@ const Members = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/50 p-4" onMouseDown={() => setQrMember(null)}>
           <div onMouseDown={(e) => e.stopPropagation()} className="w-full max-w-xs rounded-2xl bg-white p-6 text-center shadow-2xl">
             <h3 className="text-lg font-bold text-gray-900">{qrMember.name}</h3>
-            <p className="text-xs text-gray-500">Scan at entrance to check in</p>
+            <p className="text-xs text-gray-500">{t('Scan at entrance to check in')}</p>
             <img src={qrMember.qrCode} alt="Member check-in QR code" className="mx-auto mt-4 h-48 w-48" />
-            <button onClick={() => setQrMember(null)} className="mt-4 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Close</button>
+            <button onClick={() => setQrMember(null)} className="mt-4 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">{t('Close')}</button>
           </div>
         </div>
       )}

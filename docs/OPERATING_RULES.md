@@ -64,7 +64,9 @@ is a rule we follow, not one GitHub enforces. Revisit if a paid plan is bought.
 
 ## 7. The team sheet (keep it short for the team)
 
-Live sheet (Google Sheets, owner shares it): https://docs.google.com/spreadsheets/d/1-CdfKvAnGXCoATvIovenW5W6-8v_C4h75JXwDdmv1uk/edit
+Live sheet (Google Sheets, owner shares it): https://docs.google.com/spreadsheets/d/1W2Jdj014Bujsvyb5BWcpPjQzkvrlgVH-nFpjNNJdTS8/edit
 - It shows only what each person must do NOW: at most 3 to 4 rows per person. Nobody should see a long list.
 - The full list lives in `docs/TEAM_TASK_SHEET.xlsx` (tabs Dev A, Dev B, Staff, Mohamed, Afra AI OS server). Claude adds rows to the live sheet only when a row's "Do first" task is Done or when Claude needs something from the team.
 - Claude reads the live sheet at the start of every session and fixes anything marked Failed first.
+- Every row in the live sheet has a due date (Claude's plan to hit the 10 Nov gym start; the team says if a date is not possible). Dates are assumptions, not promises.
+- Google Drive access here can create files but not edit a sheet's cells. To change rows Claude makes a new version of the sheet and tells Mohamed the new link; the previous link is retired only when Mohamed agrees.

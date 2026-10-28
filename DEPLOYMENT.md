@@ -47,6 +47,6 @@ Either way, confirm it's live: `curl https://<your-backend-url>/api/health` shou
 
 ## 4. After both are live
 
-- Log in with the seeded demo accounts (`server/scripts/seedDemoUsers.js` — see `HANDOVER.md` §3) against the production URL to confirm the full stack talks to each other.
+- Sign up a new test gym on the production URL (not a seeded demo account) to confirm the full stack talks to each other, then remove it. Never create demo accounts on production.
 - Rotate `JWT_SECRET`, `RAZORPAY_KEY_ID/SECRET`, and any API keys to production-grade values before real users touch it — the ones in `server/.env` today are dev/test credentials.
 - If you enable WhatsApp or the live AI integration, set `WHATSAPP_PHONE_NUMBER_ID`/`WHATSAPP_ACCESS_TOKEN` or `OPENAI_API_KEY` on the backend host, not in the frontend — they're server-only secrets.

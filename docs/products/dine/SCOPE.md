@@ -14,7 +14,7 @@ Food cost creeping up unseen, wastage, aggregator commission, staff theft, slow 
 | CRM, loyalty and inventory are add-ons; heavy for small cafes | Source | Master plan section 2 |
 | Pub peg-level stock exists but is expensive or hardware-based | Source | Petpooja guide |
 | State excise and stock register rules differ by state | Fact (stated in master plan) | Do not promise any excise report until a state is confirmed with a CA/lawyer |
-| Zomato/Swiggy sync depends on partner access | Assumption | Not in phase 1 |
+| Zomato/Swiggy sync depends on partner access | Assumption | Not in phase 1. First research pass (`RESEARCH.md`): Petpooja lists food-aggregator integrations as a standard feature, so this is the top Phase 2 risk |
 
 ## 3. Phase 1 must-have (Restaurant/Cafe)
 1. Menu with categories, variants, add-ons, GST rates; QR menu page.

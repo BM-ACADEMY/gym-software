@@ -43,7 +43,7 @@ Progress 28 Oct: 1B-01 to 1B-04 written. `utils/whatsapp.js` sends approved temp
 | 1B-05 | Setup wizard and demo data; Excel/CSV member import with preview and error list | WRITTEN (import + dashboard checklist) | 100 members imported in under 5 minutes |
 | 1B-06 | Device user ID on Member and SubAdmin; import device logs (CSV/Excel) into Attendance with `method: biometric` | WRITTEN | Duplicates ignored; unmatched IDs listed |
 | 1B-07 | Staff attendance (QR/manual), leave and late marks | WRITTEN | |
-| 1B-08 | Landing page, pricing page, legal pages (terms, privacy, refund), city pages template | TODO | Razorpay website-policy needs met |
+| 1B-08 | Landing page, pricing page, legal pages (terms, privacy, refund), city pages template | WRITTEN (legal drafts, company details from `VITE_*` env, decoy contact form removed; lawyer review and city pages still open) | Razorpay website-policy needs met |
 
 ## Phase 1c: Language and support
 

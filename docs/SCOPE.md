@@ -135,3 +135,5 @@ Razorpay test keys from the existing account (check it is in Afra Ventures name 
 provider with Meta verification and approved templates, domain and email, production hosting
 (paid instance, not free tier) and MongoDB Atlas with backups, uptime monitor and error tracking,
 demo video, friendly pilot gyms.
+
+- Open decision (28 Oct): refund window for the first payment. Draft says 7 days (`VITE_REFUND_DAYS`). Mohamed to confirm. Legal pages are drafts until a lawyer reviews them.

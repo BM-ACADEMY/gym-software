@@ -59,7 +59,7 @@ const Landing = () => {
 
   const features = [
     { icon: '👥', title: 'Members Management', desc: 'Streamline member profiles, attendance, payments & communication.' },
-    { icon: '📱', title: 'Mobile App', desc: 'Members book classes, track progress & view plans from their phones.' },
+    { icon: '📱', title: 'Member Portal', desc: 'Members open it on their phone browser to see their plan, expiry, attendance QR and workout plan. No app store download.' },
     { icon: '💬', title: 'WhatsApp Alerts', desc: 'Engage members with automated WhatsApp notifications and updates.' },
         { icon: '💰', title: 'Commissions and Expenses', desc: 'Track trainer commissions, PT sessions and gym expenses in one place.' },
     { icon: '🔒', title: 'Data Security', desc: 'OTP login, encrypted storage and IP-based security for your data.' },
@@ -161,7 +161,7 @@ const Landing = () => {
           items={[
             { title: 'Quick Registration', content: 'Our Quick Registration feature optimizes the enrollment process, reducing both time and effort. It simplifies and expedites registration, ensuring a seamless experience for users.' },
             { title: 'Member Management', content: 'Members management is the main goal of GymDesk software, helping employees respond to customers needs faster. Avoid lines at the check-in desk and reduce waiting times.' },
-            { title: 'Mobile App Access', content: 'Our Gym App gives members the convenience of reserving classes, referring their friends, and exploring your club locations. Available on iOS and Android.' },
+            { title: 'Member Portal', content: 'Members sign in from their phone browser to see their plan, expiry date, check-in QR and workout plan. There is no separate iOS or Android app yet.' },
           ]}
         />
         <FeatureBlock
@@ -171,7 +171,7 @@ const Landing = () => {
           reverse={true}
           items={[
             { title: 'Data Management', content: 'Collect, store, and analyze data about your members. This data can be used to improve the member experience, personalize marketing campaigns, and identify churn risks.' },
-            { title: 'Gym Automation', content: "Automate your club's operations: special offers, class schedules, payment confirmations, and contract due dates — all handled automatically." },
+            { title: 'WhatsApp Reminders', content: 'Renewal reminders, dues reminders, absence check-ins and a daily summary for you are sent on WhatsApp automatically. Each plan includes a monthly message allowance.' },
             { title: 'Alerts Automation', content: 'Keep your clients motivated with personalized emails, push notifications, and SMS alerts. Send event and class reminders so they never miss a beat.' },
           ]}
         />

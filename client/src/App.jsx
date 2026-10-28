@@ -7,8 +7,8 @@ import Blog from './pages/public/Blog';
 import Contact from './pages/public/Contact';
 import Faq from './pages/public/Faq';
 import Privacy from './pages/public/Privacy';
-import AppPrivacy from './pages/public/AppPrivacy';
 import Terms from './pages/public/Terms';
+import Refund from './pages/public/Refund';
 
 // Auth pages
 import SignIn from './pages/auth/SignIn';
@@ -60,8 +60,9 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/privacy" element={<Privacy />} />
-        <Route path="/privacy/app-privacy" element={<AppPrivacy />} />
+        <Route path="/privacy/app-privacy" element={<Navigate to="/privacy" replace />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/refund" element={<Refund />} />
 
         {/* ── Auth Routes ── */}
         <Route path="/login" element={<SignIn />} />

@@ -1,72 +1,63 @@
 import LegalLayout from '../../components/public/LegalLayout';
+import Section, { DraftNotice } from '../../components/public/LegalSection';
+import { company } from '../../config/company';
 
-const Section = ({ title, children }) => (
-  <div className="mb-8">
-    <h2 className="text-lg font-bold text-gray-800 mb-3 pb-2 border-b border-gray-100">{title}</h2>
-    <div className="text-gray-600 text-sm leading-relaxed space-y-3">{children}</div>
-  </div>
-);
+const Contact = () => (company.email
+  ? <a href={`mailto:${company.email}`} className="text-teal-600">{company.email}</a>
+  : <span>the support option inside the app</span>);
 
 const Terms = () => (
-  <LegalLayout title="Terms & Conditions">
+  <LegalLayout title="Terms of Use">
+    <DraftNotice />
     <p className="text-gray-500 text-sm mb-8 bg-teal-50 border border-teal-100 rounded-xl p-4">
-      This document governs the use of the GymDesk platform (the "Website" and "App"). By using our services, you agree to be bound by these Terms & Conditions. Please read them carefully before proceeding.
+      These terms apply to your use of {company.product}, a gym management service run by {company.legalName} ("we", "us"). By creating an account you agree to them.
     </p>
 
-    <Section title="General Terms">
-      <p>The domain name gymdesk.in is owned and operated by GymDesk Technologies Pvt. Ltd. The use of this website by you is solely governed by this policy and any policy mentioned by terms of reference.</p>
-      <p>Moving past the home page, or using any of the services, shall be taken to mean that you have read and agreed to all of the policies and have undertaken binding obligations with the Company.</p>
-      <p>We hold the sole right to modify these Terms of Service without prior permission. If you continue to use the website following such a change, this is deemed as consent to the amended policies.</p>
+    <Section title="Who can use it">
+      <p>{company.product} is for gym and fitness business owners and their staff. You must be 18 or older and able to enter a contract. You must give correct details at sign-up, including your state, because it decides the GST on your invoices.</p>
+      <p>You are responsible for your password and for everything done under your account. Tell us at once if you think someone else has access.</p>
     </Section>
 
-    <Section title="User Account">
-      <p>To use GymDesk, you must register an account and provide accurate, current, and complete information. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
-      <p>You agree to immediately notify us of any unauthorized use of your account. GymDesk will not be liable for any loss or damage arising from your failure to comply with this security obligation.</p>
+    <Section title="Free trial">
+      <p>New accounts get a {14}-day free trial with Growth plan features. No card is needed. When the trial ends the account becomes read-only: you can still see and export your data and you can pay to continue, but you cannot add or change records until you subscribe.</p>
     </Section>
 
-    <Section title="Subscription & Payment">
-      <p>Your subscription for GymDesk is on a Pay-As-You-Go basis and will start when GymDesk confirms your payment. Subscriptions will continue auto-renewing until you cancel.</p>
-      <p>At the end of each subscription period, you will automatically be renewed for an additional term of the same duration. If you do not wish your subscription to auto-renew, you may email us at <a href="mailto:info@gymdesk.in" className="text-teal-600">info@gymdesk.in</a> to cancel prior to the end of your current subscription term.</p>
+    <Section title="Plans, payment and GST">
+      <p>Plans are prepaid for one month or one year. Prices on the pricing page are before GST. GST at 18% is added at checkout and shown on your invoice. If your gym is in Puducherry the invoice shows CGST and SGST; for other states it shows IGST.</p>
+      <p><strong>Plans do not renew automatically.</strong> We do not store your card or set up auto-debit. Before your plan ends we send reminders, and you renew by paying again. Renewing early adds time to the end of your current period.</p>
+      <p>If you upgrade during a paid period, the unused value of your current plan is credited toward the new one. Downgrades take effect when your current paid period ends.</p>
+      <p>After a paid period ends you have a 3-day grace period with full access. After that the account becomes read-only until you pay.</p>
+      <p>Payments are processed by Razorpay. We do not see or keep your card or bank details.</p>
     </Section>
 
-    <Section title="Cancellation & Refund Policy">
-      <p>If for any reason our services do not meet your needs, let us know within <strong>21 days</strong> of your purchase and we will issue you a full refund.</p>
-      <p>You shall have twenty-one (21) days from the date of purchase to determine whether the Purchased Services do not meet your needs. If the Purchased Services do not meet your needs, you must notify GymDesk in writing within twenty-one (21) days and we will refund the corresponding subscription fees via bank transfer, less the cost of any services provided prior to such cancellation.</p>
-      <p>The refund will be processed within twenty-one (21) days of request.</p>
+    <Section title="Your data and your members' data">
+      <p>The member records, payments and attendance you enter belong to you. You are responsible for having the right to hold that information and for using it lawfully. See our Privacy Policy for how we handle it.</p>
+      <p>You can export your data while your account is active or read-only. If an account stays expired for a long time we may delete its data after giving notice to the owner's email.</p>
     </Section>
 
-    <Section title="Health Guidelines">
-      <p><strong>Medical Clearance:</strong> Users must ensure they have obtained medical clearance from a qualified healthcare professional before starting any exercise program, particularly if they have pre-existing health conditions.</p>
-      <p><strong>Physical Preparation:</strong> Users should ensure they are physically capable of participating in any exercise programs and do not have health conditions, injuries, or physical limitations that would prevent them from safely engaging in physical activity.</p>
-      <p><strong>Informed Consent:</strong> Users must acknowledge that they understand the potential risks associated with exercise and are participating freely, taking into account all risks involved.</p>
-      <p><strong>Disclaimer:</strong> GymDesk will not be responsible for any kind of health injuries in cases where relevant health information was not previously disclosed.</p>
+    <Section title="WhatsApp messages">
+      <p>{company.product} can send WhatsApp messages (renewal reminders, dues notices, absence check-ins and an owner summary) to your members through the WhatsApp Business Platform. You confirm that you have your members' permission to message them, and that they can ask to stop. Each plan includes a monthly message allowance. Messages are sent only between 9 am and 9 pm India time. We are not responsible for messages that WhatsApp or the phone network fails to deliver.</p>
     </Section>
 
-    <Section title="Intellectual Property">
-      <p>All content on the GymDesk platform, including but not limited to text, graphics, logos, software, and designs, are the property of GymDesk Technologies Pvt. Ltd. and are protected by applicable intellectual property laws.</p>
-      <p>You may not reproduce, distribute, or create derivative works from any content on our platform without our explicit written permission.</p>
+    <Section title="Acceptable use">
+      <p>Do not use the service for anything unlawful, to send spam, to try to break into other accounts, or to copy or resell the service. We may suspend an account that does this.</p>
     </Section>
 
-    <Section title="Limitation of Liability">
-      <p>GymDesk shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the service, even if GymDesk has been advised of the possibility of such damages.</p>
+    <Section title="Availability and changes">
+      <p>We work to keep the service running but cannot promise it will never be interrupted. We may change features or prices; a price change applies from your next payment and never to a period you have already paid for. We will tell you about material changes to these terms by email or in the app.</p>
     </Section>
 
-    <Section title="Governing Law">
-      <p>These Terms of Service shall be governed by and construed in accordance with the laws of India. Any disputes arising from these terms shall be subject to the exclusive jurisdiction of the courts in India.</p>
+    <Section title="Liability">
+      <p>The service is provided as is. To the extent the law allows, our total liability for any claim is limited to the fees you paid us in the 3 months before the claim. We are not liable for lost profits or indirect loss.</p>
     </Section>
 
-    <Section title="Contact">
-      <p>If you have any questions about these Terms & Conditions, please contact us at <a href="mailto:info@gymdesk.in" className="text-teal-600 hover:underline">info@gymdesk.in</a>.</p>
+    <Section title="Refunds and cancellation">
+      <p>See our <a href="/refund" className="text-teal-600">Refund and Cancellation Policy</a>.</p>
     </Section>
 
-    <div className="mt-10 p-6 bg-gray-50 rounded-2xl border border-gray-100">
-      <h3 className="font-bold text-gray-800 mb-3">Legal Contact</h3>
-      <div className="text-sm text-gray-500 space-y-1">
-        <p><strong>GymDesk Technologies Pvt. Ltd.</strong></p>
-        <p>Email: <a href="mailto:info@gymdesk.in" className="text-teal-600 hover:underline">info@gymdesk.in</a></p>
-        <p>Phone: <a href="tel:+918587885643" className="text-teal-600 hover:underline">+91 85878 85643</a></p>
-      </div>
-    </div>
+    <Section title="Law and contact">
+      <p>These terms are governed by the laws of India. Courts at {company.state} have jurisdiction. Questions: <Contact />.</p>
+    </Section>
   </LegalLayout>
 );
 

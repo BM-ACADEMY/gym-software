@@ -1,76 +1,69 @@
 import LegalLayout from '../../components/public/LegalLayout';
-
-const Section = ({ title, children }) => (
-  <div className="mb-8">
-    <h2 className="text-lg font-bold text-gray-800 mb-3 pb-2 border-b border-gray-100">{title}</h2>
-    <div className="text-gray-600 text-sm leading-relaxed space-y-3">{children}</div>
-  </div>
-);
+import Section, { DraftNotice } from '../../components/public/LegalSection';
+import { company } from '../../config/company';
 
 const Privacy = () => (
   <LegalLayout title="Privacy Policy">
+    <DraftNotice />
     <p className="text-gray-500 text-sm mb-8 bg-teal-50 border border-teal-100 rounded-xl p-4">
-      At GymDesk, one of our main priorities is the privacy of our users. This Privacy Policy document contains types of information that is collected and recorded by GymDesk and how we use it. If you have additional questions or require more information, do not hesitate to contact us.
+      This explains what {company.legalName} ("we") collects when you use {company.product}, why, and what your choices are. It is written with India's Digital Personal Data Protection Act, 2023 in mind.
     </p>
 
-    <Section title="Consent">
-      <p>By using our website, you hereby consent to our Privacy Policy and agree to its terms.</p>
-      <p>This Privacy Policy applies only to our online activities and is valid for visitors to our website with regards to the information that they shared and/or collected. This policy is not applicable to any information collected offline or via channels other than this website.</p>
+    <Section title="Two roles">
+      <p><strong>Gym owners (our customers):</strong> we are the data fiduciary for your account details: your name, email, phone, gym details, GST details and payment history with us.</p>
+      <p><strong>Gym members:</strong> when a gym enters its members into {company.product}, the gym decides what to collect and why, and we process that data on the gym's behalf. If you are a member and want to see, correct or delete your data, ask your gym first. We will help the gym act on your request.</p>
     </Section>
 
-    <Section title="Information We Collect">
-      <p>The personal information that you are asked to provide, and the reasons why you are asked to provide it, will be made clear to you at the point we ask you to provide your personal information.</p>
-      <p>If you contact us directly, we may receive additional information about you such as your name, email address, phone number, the contents of the message and/or attachments you may send us.</p>
-      <p>When you register for an Account, we may ask for your contact information, including items such as name, company name, address, email address, and telephone number.</p>
-    </Section>
-
-    <Section title="How We Use Your Information">
-      <p>We use the information we collect in various ways, including to:</p>
+    <Section title="What we collect">
       <ul className="list-disc pl-5 space-y-1 text-gray-500">
-        <li>Provide, operate, and maintain our website</li>
-        <li>Improve, personalize, and expand our website</li>
-        <li>Understand and analyse how you use our website</li>
-        <li>Develop new products, services, features, and functionality</li>
-        <li>Communicate with you, either directly or through one of our partners, for customer service and marketing purposes</li>
-        <li>Send you emails and notifications</li>
-        <li>Find and prevent fraud</li>
+        <li>Account: name, email, phone, password (stored only as a hash), gym name, state, GST number if given.</li>
+        <li>Gym data entered by the gym: member names, phones, plans, payments, attendance, workout and diet plans, and staff details.</li>
+        <li>Billing with us: plan, amount, GST invoice details, Razorpay payment reference. We never see your card or bank number.</li>
+        <li>Messages: records of WhatsApp messages sent on a gym's behalf and whether they were delivered.</li>
+        <li>Technical: IP address, browser, and basic logs for security and fixing faults.</li>
       </ul>
     </Section>
 
-    <Section title="Log Files">
-      <p>GymDesk follows a standard procedure of using log files. These files log visitors when they visit websites. The information collected by log files includes internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date and time stamp, referring/exit pages, and the number of clicks. These are not linked to any personally identifiable information.</p>
-    </Section>
-
-    <Section title="Cookies and Web Beacons">
-      <p>Like any other website, GymDesk uses cookies. These cookies are used to store information including visitors' preferences and the pages on the website that the visitor accessed or visited. The information is used to optimize the users' experience by customizing our web page content based on visitors' browser type and/or other information.</p>
-    </Section>
-
-    <Section title="Third Party Privacy Policies">
-      <p>GymDesk's Privacy Policy does not apply to other advertisers or websites. We advise you to consult the respective Privacy Policies of these third-party servers for more detailed information. It may include their practices and instructions about how to opt-out of certain options.</p>
-    </Section>
-
-    <Section title="GDPR Data Protection Rights">
-      <p>We would like to make sure you are fully aware of all of your data protection rights. Every user is entitled to the following:</p>
+    <Section title="Why we use it">
       <ul className="list-disc pl-5 space-y-1 text-gray-500">
-        <li><strong>The right to access</strong> – You have the right to request copies of your personal data.</li>
-        <li><strong>The right to rectification</strong> – You have the right to request that we correct any information you believe is inaccurate.</li>
-        <li><strong>The right to erasure</strong> – You have the right to request that we erase your personal data, under certain conditions.</li>
-        <li><strong>The right to restrict processing</strong> – You have the right to request that we restrict the processing of your personal data.</li>
-        <li><strong>The right to data portability</strong> – You have the right to request that we transfer the data we have collected to another organization, or directly to you.</li>
+        <li>To run the service: sign-in, memberships, attendance, reminders, invoices.</li>
+        <li>To take payment and issue GST invoices, and meet tax and legal duties.</li>
+        <li>To keep the service secure and prevent fraud.</li>
+        <li>To answer support requests and tell you about your plan and renewals.</li>
       </ul>
-      <p>If you make a request, we have one month to respond to you. If you would like to exercise any of these rights, please contact us.</p>
+      <p>We do not sell personal data and we do not use members' data for advertising.</p>
     </Section>
 
-    <Section title="Children's Information">
-      <p>GymDesk does not knowingly collect any Personal Identifiable Information from children under the age of 13. If you think that your child provided this kind of information on our website, we strongly encourage you to contact us immediately and we will do our best to promptly remove such information from our records.</p>
+    <Section title="WhatsApp">
+      <p>Gym reminders are sent through the WhatsApp Business Platform (Meta). A member's phone number and the message text are shared with WhatsApp to deliver it. A gym must have the member's permission; members can tell their gym to stop.</p>
+    </Section>
+
+    <Section title="Who else sees it">
+      <p>Service providers that help us run {company.product}: cloud hosting and database, Razorpay for payments, WhatsApp for messages, and an AI service if a gym uses AI-generated workout or diet plans (only the details needed for the plan are sent). We share data with authorities only when the law requires it.</p>
+    </Section>
+
+    <Section title="Keeping and deleting">
+      <p>We keep data while the account is active. Tax records such as invoices are kept as long as the law requires. A gym can ask us to delete its account and data; after that we remove it from live systems and it leaves backups within a limited period.</p>
+    </Section>
+
+    <Section title="Security">
+      <p>Passwords are hashed, traffic is encrypted, each gym's data is separated from other gyms, and access to production is limited. No system is perfectly secure; if a breach affects you we will tell you as the law requires.</p>
+    </Section>
+
+    <Section title="Your rights">
+      <p>You can ask to access, correct or delete your personal data, to withdraw consent, and to complain. Gym owners can write to us. Members should first contact their gym.</p>
+    </Section>
+
+    <Section title="Children">
+      <p>{company.product} is for business owners. A gym that registers a member under 18 is responsible for getting a parent or guardian's consent.</p>
     </Section>
 
     <div className="mt-10 p-6 bg-gray-50 rounded-2xl border border-gray-100">
-      <h3 className="font-bold text-gray-800 mb-3">Contact Us</h3>
+      <h3 className="font-bold text-gray-800 mb-3">Contact</h3>
       <div className="text-sm text-gray-500 space-y-1">
-        <p><strong>GymDesk</strong> — Privacy Department</p>
-        <p>Email: <a href="mailto:info@gymdesk.in" className="text-teal-600 hover:underline">info@gymdesk.in</a></p>
-        <p>Phone: <a href="tel:+918587885643" className="text-teal-600 hover:underline">+91 85878 85643</a></p>
+        <p><strong>{company.legalName}</strong></p>
+        {company.address && <p>{company.address}</p>}
+        {company.email && <p>Email: <a href={`mailto:${company.email}`} className="text-teal-600 hover:underline">{company.email}</a></p>}
       </div>
     </div>
   </LegalLayout>

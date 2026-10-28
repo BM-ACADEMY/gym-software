@@ -1,5 +1,7 @@
 # Deploying GymDesk
 
+> **Current plan (D-17, 28 Oct 2026):** everything runs on the Hostinger VPS. Follow `docs/DEPLOY_VPS.md` and `docs/HOSTING_PLAN.md`. The Railway / Render / Vercel steps below are kept only as a fallback.
+
 Everything the app needs to go live is already wired up in code — this is
 the runbook for the three account-level steps only *you* can do (they need
 your own MongoDB Atlas / Railway or Render / Vercel accounts). Nothing here

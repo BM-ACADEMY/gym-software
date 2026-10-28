@@ -3,7 +3,7 @@
 Status: written, not yet run by a person. Replaces the Railway/Render + Vercel route in `DEPLOYMENT.md` for the pilot.
 Server: Hostinger KVM 2, Ubuntu 24.04, Mumbai, IP 200.141.15.246 (shared with Afra AI OS in the pilot).
 Do this only AFTER the server hardening (`afra-ai-os` runbook `new-server-hardening`, steps 1 to 12) is checked off.
-Before the public launch on 1 Dec, move the products to their own server (decision pending, tier 3).
+The overall plan for all products on this server, port table and when to move are in `docs/HOSTING_PLAN.md` (D-17).
 
 ## What runs where
 - Database: MongoDB Atlas (India region). Not on this server. Allow ONLY this server's IP in Atlas Network Access (replace `0.0.0.0/0`).

@@ -1,6 +1,6 @@
 # Salon, Spa and Barber: scope (one product, three presets)
 
-Address (working): salon.afraventures.in. Owner target: phase 1 invite-only start 13 Nov 2026. Decision D-11 (one product, three presets) is waiting for Mohamed's OK; Claude plans one product. Spelling: "salon".
+Address (working): groom.afraventures.in. Owner target: phase 1 invite-only start 13 Nov 2026. Decision D-11 (one product, three presets) is waiting for Mohamed's OK; Claude plans one product. Spelling: "salon".
 
 ## 1. Owner's problem (source: master plan 4.1)
 Empty slots from no-shows, customers who come once and vanish, staff who take clients away, commission arguments, software that charges per staff login.

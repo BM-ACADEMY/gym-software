@@ -7,13 +7,13 @@ Written 29 Oct 2026. Status: PLAN plus a mock-up screen. Nothing here is built e
 | --- | --- | --- |
 | afraventures.in | Company website: home, about, contact, privacy, terms, refund, grievance, links to each product | Dev A task DOM-4 |
 | fit.afraventures.in | Gym: landing page, sign-up and the app (one site). Its API is on the same name under `/api` | Decided (D, 28 Oct); see question below |
-| salon / mart / dine / cloth / wash / hire .afraventures.in | Same recipe for each product, one name per product, one local port each | Names are drafts (D-08). The hosting plan says `groom` for the salon product; the DNS list says `salon`. Mohamed decides the name, then both files change |
-| admin.afraventures.in | Super Admin for all products (new, section 3) | Plan only |
+| groom / mart / dine / cloth / wash / hire .afraventures.in | Same recipe for each product, one name per product, one local port each | Salon, Spa and Barber product uses the name **groom** (Mohamed, 29 Oct). The other names are still drafts (D-08) |
+| admin.afraventures.in | Super Admin for all products (new, section 3) | Stage 2 started 29 Oct (Mohamed: do not wait for tests): gym summary route and the collector are written |
 | app.afraventures.in, staging.afraventures.in | Afra AI OS (internal sales and lead hub) | Exists, separate |
 | mail.afraventures.in | Sending domain for system email | Runbook V-07 |
 | hire.afraventures.in/share/&lt;secret&gt; | Public client shortlist page | Written |
 | hire.afraventures.in/c/&lt;secret&gt; | Candidate consent and details form (Phase 2 of Hire) | Not built |
-Question for Mohamed/Dev A: the gym decision of 28 Oct also mentions `api.fit.afraventures.in`. The hosting plan serves the API on the same name. Same name is simpler (one certificate, no cross-site settings). Keep `api.fit` only if Dev A has already set it up.
+Decided 29 Oct (Mohamed): the API is served on the same name under `/api`. `api.fit.afraventures.in` is not used unless Dev A has already set it up and tells Claude.
 
 ## 2. What the Super Admin does today
 The gym has its own Super Admin inside the gym app: businesses by status, MRR, trials (extend with a reason), plans, coupons, promo codes, AI and WhatsApp usage with the daily budget stop, billing, support tickets, and the new Products & Launch page. It sees gym data only.
@@ -38,4 +38,4 @@ The gym has its own Super Admin inside the gym app: businesses by status, MRR, t
 - Written, not yet tested: until a person has run it, it is described as a plan.
 
 ## 5. Tasks
-SA-10 (Stage 2 design and summary route in the gym), SA-11 (admin app skeleton), SA-12 (per-product summary route in each product), SA-13 (actions with audit). Start SA-10 when Mohamed says yes and the gym tests are green.
+SA-10 (Stage 2 design and summary route in the gym), SA-11 (admin app skeleton), SA-12 (per-product summary route in each product), SA-13 (actions with audit). Mohamed said on 29 Oct to proceed without waiting for tests. Written: SA-12 gym part (`server/services/adminSummary.js`, route `/api/internal/admin-summary`) and SA-11 collector/aggregator (`apps/admin`). Still to write: the admin screens, admin sign-in with two-step (SA-11b), summary routes for the other products.

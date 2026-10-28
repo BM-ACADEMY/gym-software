@@ -2,6 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const { buildReminders } = require('../services/subscriptionOverview');
+const { buildSummary } = require('../services/adminSummary');
 
 // Server-to-server only (n8n or a cron job). Protected by INTERNAL_API_KEY in
 // the x-internal-key header. Disabled when the key is not set.
@@ -19,6 +20,16 @@ router.get('/billing-reminders', internalAuth, async (req, res) => {
     res.json({ success: true, data: await buildReminders() });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// GET /api/internal/admin-summary: counts and rupee totals for the all-products Super Admin (read only).
+router.get('/admin-summary', internalAuth, async (req, res) => {
+  try {
+    res.json({ success: true, data: await buildSummary() });
+  } catch (error) {
+    console.error('admin-summary failed:', error.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

@@ -20,7 +20,8 @@
    "next": [
     "A-02 server tests, A-03 client build (Dev A)",
     "A-15 run on the new server",
-    "Meta business verification (M-01)"
+    "Meta business verification (M-01)",
+    "Admin summary route for the all-products Super Admin (written, DB test pending)"
    ],
    "blockers": [
     "Server hardening by Mohamed (M-11)",
@@ -39,6 +40,10 @@
     {
      "date": "2026-10-29",
      "text": "Domain, email and website-page list written for Dev A; Meta template list ready for submission"
+    },
+    {
+     "date": "2026-10-29",
+     "text": "Admin summary route and the all-products Super Admin collector written; salon product named groom"
     }
    ],
    "launchChecklist": [
@@ -78,8 +83,8 @@
   },
   {
    "key": "salon",
-   "name": "Salon, Spa, Barber",
-   "address": "salon.afraventures.in",
+   "name": "Salon, Spa, Barber (groom)",
+   "address": "groom.afraventures.in",
    "targetDate": "2026-11-13",
    "stage": "Research and shared billing core written",
    "confidence": "low",

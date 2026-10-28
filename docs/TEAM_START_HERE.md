@@ -35,7 +35,7 @@ Set Status and write results in Notes. Red error text goes in Notes (remove secr
 
 ## 4. Test logins (after staging is up)
 - Dev A creates the test gyms (Gym 1, Gym 2), a Root Admin test login, and test members, then shares them to Dev B and the staff through the password manager.
-- Staging address: `fit.afraventures.in` (app) and `api.fit.afraventures.in` (API) once Dev A finishes task A-05. Not live yet.
+- Staging address: `fit.afraventures.in` (app and API; the API is under `/api` on the same name, decision 29 Oct) once Dev A finishes task A-05. Not live yet.
 - Payments: Razorpay TEST cards only (card 4111 1111 1111 1111, any future date, any CVV).
 - Use fake data only. No real member or lead data on staging.
 

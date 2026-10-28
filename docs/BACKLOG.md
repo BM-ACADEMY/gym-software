@@ -96,7 +96,9 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 | SA-07 | View-as-gym for support: read-only, logged, time-limited | A | 2 | TODO |
 | SA-08 | Audit-log viewer with filters and export | A | 1.5 | TODO |
 | SA-09 | Announcements to all or selected gyms (in-app and email) | B | 1.5 | TODO |
-| SA-10 | Platform team roles: support, finance, read-only | B | 2 | TODO |
+| SA-10 | Super Admin for all products: URL map and 3-stage plan (`docs/SUPER_ADMIN_AND_URLS.md`), mock-up screen shared. Mohamed (29 Oct): proceed, do not wait for tests | M | PLAN + mock-up |
+| SA-11 | Admin app `apps/admin`: summary checker/combiner, collector (https only, key from settings, timeout, no key in logs) and router; screens and two-step sign-in (SA-11b) TODO | M | WRITTEN (6 plain-node checks passed), not yet tested by a person |
+| SA-12 | Per-product summary route `/api/internal/admin-summary` (counts and rupees only, no personal data): gym written with DB test `adminSummary.test.js`; other products add theirs when they have businesses and billing | S | WRITTEN for gym (2 shape checks passed here), DB test not run |
 | SA-11 | Refund and credit note tool with approval (needs CA wording, Tier 3) | B | 3 | TODO |
 | SA-12 | Data export and delete on request (DPDP; lawyer review) | B | 2 | TODO |
 | SA-13 | Trial-abuse and fake sign-up detection | B | 2 | TODO |

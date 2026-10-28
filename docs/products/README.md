@@ -6,7 +6,7 @@ No demo-only or waitlist-only launches. Owner target dates below are Mohamed's; 
 | # | Product | Address (working) | Owner target: phase 1 starts (invite-only, 3 to 10 real businesses) | Scope file |
 | --- | --- | --- | --- | --- |
 | 1 | Gym | fit.afraventures.in | 10 Nov 2026 | `docs/SCOPE.md` |
-| 2 | Salon, Spa, Barber (one product, 3 presets, D-11) | salon.afraventures.in | 13 Nov | `docs/products/salon/SCOPE.md` |
+| 2 | Salon, Spa, Barber (one product, 3 presets, D-11) | groom.afraventures.in | 13 Nov | `docs/products/salon/SCOPE.md` |
 | 3 | Mini Mart / kirana | mart.afraventures.in | 16 Nov | `docs/products/mart/SCOPE.md` |
 | 4 | Restaurant, Cafe and Pub (pub is a mode) | dine.afraventures.in | 19 Nov | `docs/products/dine/SCOPE.md` |
 | 5 | Textile and garment retail | cloth.afraventures.in | 22 Nov | `docs/products/cloth/SCOPE.md` |

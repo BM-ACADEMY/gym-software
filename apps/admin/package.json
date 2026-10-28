@@ -1,0 +1,9 @@
+{
+  "name": "@afra/admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Super Admin for all Afra products (SA-11). Reads counts from each product's admin-summary route. Written, not yet tested by a person.",
+  "main": "src/index.js",
+  "scripts": { "test": "jest" },
+  "license": "UNLICENSED"
+}

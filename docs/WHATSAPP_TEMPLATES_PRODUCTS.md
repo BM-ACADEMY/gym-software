@@ -4,10 +4,10 @@ Written 28 Oct 2026. **Gym templates are in `docs/WHATSAPP_TEMPLATES.md` and are
 
 Customers must have agreed to messages. Marketing templates are prepaid per message (about Rs 1.09, check Meta's price list); utility about Rs 0.145.
 
-## Salon (`salon_`)
-- `salon_appointment_reminder` UTILITY. Params: name, salon, time, phone. Body: Hi {{1}}, a reminder of your appointment at {{2}} on {{3}}. Need to change it? Call {{4}}. Sample: Priya | Glow Salon | Fri 15 Nov, 4 pm | 9876543210
-- `salon_booking_confirmed` UTILITY. Params: name, salon, service, time. Body: Hi {{1}}, your booking at {{2}} for {{3}} is confirmed for {{4}}. Sample: Priya | Glow Salon | haircut | Fri 15 Nov, 4 pm
-- `salon_rebook_nudge` MARKETING. Params: name, salon, phone. Body: Hi {{1}}, it has been a while since your last visit to {{2}}. Call {{3}} to book your next slot.
+## Salon (`groom_`)
+- `groom_appointment_reminder` UTILITY. Params: name, salon, time, phone. Body: Hi {{1}}, a reminder of your appointment at {{2}} on {{3}}. Need to change it? Call {{4}}. Sample: Priya | Glow Salon | Fri 15 Nov, 4 pm | 9876543210
+- `groom_booking_confirmed` UTILITY. Params: name, salon, service, time. Body: Hi {{1}}, your booking at {{2}} for {{3}} is confirmed for {{4}}. Sample: Priya | Glow Salon | haircut | Fri 15 Nov, 4 pm
+- `groom_rebook_nudge` MARKETING. Params: name, salon, phone. Body: Hi {{1}}, it has been a while since your last visit to {{2}}. Call {{3}} to book your next slot.
 
 ## Mart (`mart_`)
 - `mart_credit_reminder` UTILITY. Params: name, shop, amount, phone. Body: Hi {{1}}, Rs {{3}} is pending at {{2}}. Already paid? Please ignore this. Call {{4}} for help. Sample: Ravi | Kumar Stores | 450 | 9876543210

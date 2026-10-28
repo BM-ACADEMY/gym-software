@@ -118,7 +118,7 @@ Rule: nothing here is advertised until it is built, tested by a human and listed
 | AI-08 | Offer and message writer for owners in Tamil, Hindi and English | B | 2 | TODO |
 | PWA-01 | Installable web app (manifest, icons, service worker) so owners can add GymDesk to a phone or computer; data download already exists (1F-03). No app-store accounts needed | L (owner, 28 Oct) | 1.5 | TODO |
 | AI-00 | OpenAI provider layer for all products (D-15): `services/aiProvider.js` (fetch, no new package), `AI_PROVIDER`, `OPENAI_API_KEY`, `AI_MODEL`, `AI_PLAN_MODEL`; `AiUsage` now records model and tokens. Old Anthropic code removed from services (the `@anthropic-ai/sdk` entry stays in `package.json` until Dev A can regenerate the lock file) | L | 1 | WRITTEN (not yet tested: `tests/aiProvider.unit.test.js`, `tests/aiAssistant.test.js`; real model names and `reasoning_effort` unverified) |
-| PRICE-02 | AI call caps by plan from `docs/AI_COST_MODEL.md` (Starter 40, Growth 120, Pro 300). Tier 3: plan limits need Mohamed's OK; `plans.js` unchanged until then | L | 0.2 | WAITING FOR OWNER |
+| PRICE-02 | AI call caps by plan from `docs/AI_COST_MODEL.md` (Starter 40, Growth 120, Pro 300). Tier 3: plan limits need Mohamed's OK; `plans.js` unchanged until then | L | 0.2 | WRITTEN (approved as D-16; `plans.js` and Pricing page changed; not yet tested) |
 | PRICE-01 | Cap on AI workout/diet plan generations per plan per month in `plans.js` (cost model assumes 30 on Growth, 100 on Pro) | L | 0.5 | TODO |
 
 ## Phase 2 and 3

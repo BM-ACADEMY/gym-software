@@ -33,7 +33,7 @@ const PLANS = {
     staffLimit: 2,
     features: { 'ai-plans': false, 'pt-sessions': false, accounts: false, branding: false },
     whatsappPerMonth: 300,
-    aiCallsPerMonth: 60,
+    aiCallsPerMonth: 40,
   },
   growth: {
     key: 'growth',
@@ -45,7 +45,7 @@ const PLANS = {
     staffLimit: 5,
     features: { 'ai-plans': true, 'pt-sessions': true, accounts: true, branding: false },
     whatsappPerMonth: 1000,
-    aiCallsPerMonth: 200,
+    aiCallsPerMonth: 120,
   },
   pro: {
     key: 'pro',
@@ -57,7 +57,7 @@ const PLANS = {
     staffLimit: null,
     features: { 'ai-plans': true, 'pt-sessions': true, accounts: true, branding: true },
     whatsappPerMonth: 3000,
-    aiCallsPerMonth: 600,
+    aiCallsPerMonth: 300,
   },
 };
 

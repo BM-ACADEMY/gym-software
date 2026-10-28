@@ -7,7 +7,6 @@ Mohamed answers in one line. Claude moves answered items to the log in the next 
 
 | ID | Question | Recommendation | If no answer | Blocks | Tier |
 | --- | --- | --- | --- | --- | --- |
-| D-16 | PRICE-02: set monthly AI-call caps to Solo 15, Starter 40, Growth 120, Pro 300 (details in `docs/AI_COST_MODEL.md`) so every approved price stays above its floor with OpenAI costs | Yes | Caps stay as today; Starter and Growth offers and Pro could lose money if a gym used every call | Plans file, pricing page | 3 |
 
 ## Open: Tier 2, proceeding on default (veto any time)
 
@@ -51,3 +50,4 @@ Every task below is a row in the **Dev Task Sheet** (shared doc, devs update Sta
 | 2026-10-28 | D-05 answered: yes, daily autonomous run (scheduled task) on `phase1-autopilot`; never touches `main`, production or real customers | Mohamed |
 | 2026-10-28 | D-14 answered: yes, Afra AI OS is Afra's internal sales and lead hub; not a host for products; no dependency for launch | Mohamed |
 | 2026-10-28 | D-15 answered (changes Claude's recommendation): OpenAI for ALL products. Build one provider layer in `core-ai` (OpenAI default, model names in config) so the model can be changed without code changes. Price model section 14 to be re-run with OpenAI prices. Caps and usage for every product are managed centrally in Super Admin (SA-03 widened to all products) | Mohamed |
+| 2026-10-28 | D-16 approved: monthly AI-call caps Solo 15, Starter 40, Growth 120, Pro 300 (`plans.js` and the pricing page updated; written, not yet tested) | Mohamed |

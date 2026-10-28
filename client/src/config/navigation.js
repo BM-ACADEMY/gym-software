@@ -60,6 +60,7 @@ export const ADMIN_NAV = [
   { key: 'workouts', label: 'Workouts', path: 'workouts', page: 'Workouts', icon: ListChecks },
   { key: 'ai-plans', label: 'AI Plans', path: 'ai-plans', page: 'AIPlans', icon: Sparkles },
   { key: 'accounts', label: 'Accounts', path: 'accounts', page: 'Accounts', icon: Wallet2 },
+  { key: 'payroll', label: 'Staff Payroll', path: 'payroll', page: 'Payroll', icon: Wallet },
   { key: 'trial', label: 'Trial', path: 'trial', page: 'Trial', icon: UserPlus },
   { key: 'billing', label: 'Plan & Billing', path: 'billing', page: 'Billing', icon: CreditCard },
   { key: 'support', label: 'Help & Support', path: 'support', page: 'Support', icon: LifeBuoy },

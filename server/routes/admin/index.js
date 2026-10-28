@@ -28,5 +28,6 @@ router.use('/assistant', require('./assistant'));
 router.use('/export', require('./export'));
 router.use('/retention', require('./retention'));
 router.use('/classes', require('./classes'));
+router.use('/payroll', require('./payroll'));
 
 module.exports = router;

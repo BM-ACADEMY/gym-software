@@ -58,3 +58,9 @@ For each failure: which step, what you expected, what happened, and the red erro
 1. `cd server && npm test -- classBooking` should pass.
 2. Owner: Classes, add a class with 1 seat for tomorrow. Member A books (Booked). Member B books (On waitlist). Member A cancels: Member B becomes Booked and gets a notification.
 3. An expired or frozen member must be refused. Owner cancels the class: members get a notice.
+
+## Extra: staff payroll (Dev A, Staff)
+1. `cd server && npm test -- payroll` should pass (unit and route tests).
+2. Owner, Staff Payroll: set a salary for two staff, record an advance for one, mark some staff attendance, create a draft for a past month. Check loss of pay days, PT commission and the net pay against a calculator.
+3. Change an advance cut, lock the month, try to edit again (must be refused), download a payslip PDF and check it opens.
+4. Starter plan gym must be refused (feature not included). A staff login must not reach payroll.

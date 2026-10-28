@@ -54,6 +54,7 @@ export const ADMIN_NAV = [
   { key: 'ai-plans', label: 'AI Plans', path: 'ai-plans', page: 'AIPlans', icon: Sparkles },
   { key: 'accounts', label: 'Accounts', path: 'accounts', page: 'Accounts', icon: Wallet2 },
   { key: 'trial', label: 'Trial', path: 'trial', page: 'Trial', icon: UserPlus },
+  { key: 'billing', label: 'Plan & Billing', path: 'billing', page: 'Billing', icon: CreditCard },
   { key: 'payment-history', label: 'Payment History', path: 'payment-history', page: 'PaymentHistory', icon: Receipt },
   { key: 'plan-creation', label: 'Plan Creation', path: 'plan-creation', page: 'PlanCreation', icon: Tags },
   { key: 'reports', label: 'Reports & Analytics', path: 'reports', page: 'ReportsAnalytics', icon: BarChart3 },

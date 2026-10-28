@@ -1,25 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/public/Navbar';
 import Footer from '../../components/public/Footer';
-
-// ─── Animated Counter Hook ──────────────────────────────────────────────────
-const useCounter = (target, duration = 2000, start = false) => {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let startTime = null;
-    const step = (timestamp) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * target));
-      if (progress < 1) requestAnimationFrame(step);
-      else setCount(target);
-    };
-    requestAnimationFrame(step);
-  }, [target, duration, start]);
-  return count;
-};
 
 // ─── Feature Block ──────────────────────────────────────────────────────────
 const FeatureBlock = ({ title, description, items, imageIcon, reverse }) => {
@@ -72,54 +54,15 @@ const FeatureBlock = ({ title, description, items, imageIcon, reverse }) => {
   );
 };
 
-// ─── Testimonial Card ───────────────────────────────────────────────────────
-const TestimonialCard = ({ name, role, review }) => (
-  <div className="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 flex flex-col gap-4">
-    <div className="flex gap-1">
-      {[1,2,3,4,5].map(s => <svg key={s} className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>)}
-    </div>
-    <p className="text-gray-600 text-sm leading-relaxed flex-1">"{review}"</p>
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white font-bold text-sm">
-        {name.charAt(0)}
-      </div>
-      <div>
-        <p className="font-semibold text-gray-800 text-sm">{name}</p>
-        <p className="text-gray-400 text-xs">{role}</p>
-      </div>
-    </div>
-  </div>
-);
-
 // ─── Main Landing Page ───────────────────────────────────────────────────────
 const Landing = () => {
-  const [formData, setFormData] = useState({ firstName: '', lastName: '', company: '', phone: '', email: '', password: '' });
-  const statsRef = useRef(null);
-  const [statsVisible, setStatsVisible] = useState(false);
-  const c1 = useCounter(99, 2000, statsVisible);
-  const c2 = useCounter(500, 2200, statsVisible);
-  const c3 = useCounter(1000, 2500, statsVisible);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setStatsVisible(true); }, { threshold: 0.3 });
-    if (statsRef.current) observer.observe(statsRef.current);
-    return () => observer.disconnect();
-  }, []);
 
   const features = [
     { icon: '👥', title: 'Members Management', desc: 'Streamline member profiles, attendance, payments & communication.' },
     { icon: '📱', title: 'Mobile App', desc: 'Members book classes, track progress & view plans from their phones.' },
     { icon: '💬', title: 'WhatsApp Alerts', desc: 'Engage members with automated WhatsApp notifications and updates.' },
-    { icon: '⚖️', title: 'BMI Integration', desc: 'Connect BMI machines for body measurement tracking & analytics.' },
-    { icon: '💰', title: 'Payroll Management', desc: 'Automate staff payroll, trainer commissions and expense tracking.' },
+        { icon: '💰', title: 'Commissions and Expenses', desc: 'Track trainer commissions, PT sessions and gym expenses in one place.' },
     { icon: '🔒', title: 'Data Security', desc: 'OTP login, encrypted storage and IP-based security for your data.' },
-  ];
-
-  const testimonials = [
-    { name: 'Kiran Sharma', role: 'Founder, Iron Peak Gym', review: 'GymDesk transformed how I run my gym. Membership management is effortless and the automated billing saves me hours every week.' },
-    { name: 'Priya Menon', role: 'Owner, FitZone Studio', review: 'The OTP login and WhatsApp alerts are fantastic. My members love getting reminders and my staff loves how easy check-in is.' },
-    { name: 'Rajesh Patel', role: 'Founder, PowerFit Center', review: 'Switching to GymDesk was the best decision. The analytics dashboard gives me insights I never had before. Revenue is up 30%!' },
-    { name: 'Amit Singh', role: 'Founder, Warrior Fitness', review: 'The trainer management and commission tracking alone is worth it. No more spreadsheets! Everything is in one clean dashboard.' },
   ];
 
   const blogs = [
@@ -192,19 +135,6 @@ const Landing = () => {
                   className="relative rounded-2xl shadow-2xl border border-white/10 max-w-lg w-full"
                   style={{ filter: 'hue-rotate(-87deg) saturate(1.15)' }}
                 />
-                {/* Floating badges */}
-                <div className="absolute -top-4 -left-4 bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-2">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  </div>
-                  <div><p className="text-xs font-bold text-gray-800">500+</p><p className="text-xs text-gray-500">Gyms Trusted</p></div>
-                </div>
-                <div className="absolute -bottom-4 -right-4 bg-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-2">
-                  <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm">📈</span>
-                  </div>
-                  <div><p className="text-xs font-bold text-gray-800">99%</p><p className="text-xs text-gray-500">Retention Rate</p></div>
-                </div>
               </div>
             </div>
           </div>
@@ -321,35 +251,22 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ─────────────────────────────────────────────────── */}
+      {/* ── HONEST PROOF: what you get, no made-up numbers ───────────────── */}
       <section className="py-20 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
-            Trusted by <span className="text-teal-600">500+</span> Worldwide Gyms and Fitness Studios
-          </h2>
-          <p className="text-center text-gray-500 mb-12">See what gym owners say about GymDesk</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {testimonials.map((t, i) => <TestimonialCard key={i} {...t} />)}
-          </div>
-        </div>
-      </section>
-
-      {/* ── STATS COUNTER ────────────────────────────────────────────────── */}
-      <section ref={statsRef} className="py-20 bg-gradient-to-r from-teal-900 to-teal-900">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 text-center text-white">
-            <div>
-              <div className="text-5xl font-extrabold text-teal-300">{c1}%</div>
-              <div className="mt-2 text-gray-300 font-medium">Customer Retention Rate</div>
-            </div>
-            <div>
-              <div className="text-5xl font-extrabold text-teal-300">{c2}+</div>
-              <div className="mt-2 text-gray-300 font-medium">Trusted Brands</div>
-            </div>
-            <div>
-              <div className="text-5xl font-extrabold text-teal-300">{c3}+</div>
-              <div className="mt-2 text-gray-300 font-medium">Members Managed</div>
-            </div>
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Built for Indian gyms</h2>
+          <p className="text-gray-500 mb-10">Start free, set up in under an hour, and we remind your members to renew so you don't have to chase them.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+            {[
+              { t: '14 days free', d: 'Try everything. No card needed.' },
+              { t: 'No hidden fees', d: 'We never take a cut of your members\' payments.' },
+              { t: 'Your data stays yours', d: 'Export your members any time.' },
+            ].map((x) => (
+              <div key={x.t} className="rounded-2xl bg-white p-6 border border-gray-100 shadow-sm">
+                <p className="font-bold text-gray-900">{x.t}</p>
+                <p className="text-sm text-gray-500 mt-1">{x.d}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -378,24 +295,14 @@ const Landing = () => {
 
             {/* Right form */}
             <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Schedule a FREE Trial</h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <input className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" placeholder="First Name *" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} />
-                  <input className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" placeholder="Last Name *" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} />
-                </div>
-                <input className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" placeholder="Company / Gym Name *" value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} />
-                <div className="grid grid-cols-2 gap-4">
-                  <input type="tel" className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" placeholder="Phone Number *" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-                  <input type="email" className="px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" placeholder="Email Address *" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-                </div>
-                <Link
-                  to="/register"
-                  className="block w-full text-center py-4 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white font-semibold hover:brightness-110 transition-all shadow-lg shadow-teal-500/20"
-                >
-                  Request a Free Trial →
-                </Link>
-              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Start your 14-day free trial</h3>
+              <p className="text-sm text-gray-500 mb-6">Create your gym in two minutes. No card needed. Add your members, send your first reminder, and see if it saves you time.</p>
+              <Link
+                to="/register"
+                className="block w-full text-center py-4 rounded-xl bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] text-white font-semibold hover:brightness-110 transition-all shadow-lg shadow-teal-500/20"
+              >
+                Start free trial →
+              </Link>
             </div>
           </div>
         </div>

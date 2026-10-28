@@ -8,6 +8,7 @@ const OtpRecord = require('../models/OtpRecord');
 const { generateToken } = require('../utils/jwt');
 const { trialDates } = require('../services/subscription');
 const { TRIAL_DAYS } = require('../config/plans');
+const { sendWelcome } = require('../services/ownerNotices');
 const { generateOtp, sendOtpSms, sendOtpEmail } = require('../utils/otp');
 
 // @desc    Request OTP for Registration (Email or Phone)
@@ -172,6 +173,7 @@ const signup = async (req, res) => {
       throw err;
     }
 
+    sendWelcome({ subscriberId: subscriber._id, email, ownerName, gymName }); // best effort, not awaited
     const token = generateToken({ id: admin._id, role: admin.role, subscriberId: subscriber._id });
     res.status(201).json({
       success: true,

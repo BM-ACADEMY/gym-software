@@ -31,6 +31,7 @@ import {
 
 export const ROOT_ADMIN_NAV = [
   { key: 'dashboard', label: 'Dashboard', path: '', page: 'Dashboard', icon: LayoutDashboard },
+  { key: 'business', label: 'Business Overview', path: 'business', page: 'BusinessOverview', icon: BarChart3 },
   { key: 'subscribers', label: 'Subscriber Management', path: 'subscribers', page: 'Subscribers', icon: Building2 },
   { key: 'plan-creation', label: 'Plan Creation', path: 'plan-creation', page: 'PlanCreation', icon: Tags },
   { key: 'coupons', label: 'Coupons', path: 'coupons', page: 'Coupons', icon: Ticket },

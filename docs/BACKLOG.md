@@ -64,6 +64,15 @@ Progress 28 Oct: 1B-01 to 1B-04 written. `utils/whatsapp.js` sends approved temp
 | 1E-04 | Marketing claims list `docs/MARKETING_CLAIMS.md` | WRITTEN | landing copy matches |
 | 1E-05 | AI cost check after 1 week of use; adjust `aiCallsPerMonth` in `plans.js` | TODO (human data) | |
 
+## Phase 1f: Autopilot and Super Admin (added 28 Oct)
+
+| ID | Task | Status | Acceptance |
+| --- | --- | --- | --- |
+| 1F-01 | Super Admin "Business Overview" page (MRR, gyms by status, trials ending, renewals due, lapsed, latest payments, AI calls, give days with reason) | WRITTEN | `client/src/pages/root-admin/BusinessOverview.jsx` |
+| 1F-02 | Automatic owner emails: welcome, trial ending (3, 1 days), renewal due (7, 1), grace, expired; once each, 10:00 to 20:00 IST; needs SMTP | WRITTEN | `tests/ownerNotices.test.js` not run |
+| 1F-03 | Data export CSV (members, payments, attendance) for owners, works when read-only; promised in Terms and Help | WRITTEN | `tests/export.test.js` not run |
+| 1F-04 | WhatsApp version of owner billing messages | BLOCKED (needs WhatsApp number and approved templates) | |
+
 ## Phase 1d: Test and soft launch
 
 | ID | Task | Status | Acceptance |

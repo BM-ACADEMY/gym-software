@@ -3,6 +3,7 @@ const Admin = require('../models/Admin');
 const SubscriptionPayment = require('../models/SubscriptionPayment');
 const { computeStatus, DAY } = require('./subscription');
 const { getPlan } = require('../config/plans');
+const AiUsage = require('../models/AiUsage');
 
 // Monthly recurring revenue contribution of one paid gym, whole rupees excluding GST.
 const mrrOf = (sub) => {
@@ -46,12 +47,13 @@ const buildOverview = async (now = new Date()) => {
   const lapsed = rows.filter(({ r }) => r.status === 'grace' || r.status === 'expired').map(({ r }) => r);
 
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const [recent, monthAgg] = await Promise.all([
+  const [recent, monthAgg, aiCalls] = await Promise.all([
     SubscriptionPayment.find({ status: 'paid' }).sort({ paidAt: -1 }).limit(10).select('subscriberId planKey cycle total invoiceNo paidAt buyerName'),
     SubscriptionPayment.aggregate([
       { $match: { status: 'paid', paidAt: { $gte: monthStart } } },
       { $group: { _id: null, taxable: { $sum: '$taxable' }, total: { $sum: '$total' }, count: { $sum: 1 } } },
     ]),
+    AiUsage.aggregate([{ $match: { createdAt: { $gte: monthStart } } }, { $group: { _id: '$kind', n: { $sum: 1 } } }]),
   ]);
 
   const newSignups7d = rows.filter(({ s }) => now - s.createdAt <= 7 * DAY).length;
@@ -64,6 +66,7 @@ const buildOverview = async (now = new Date()) => {
     payingGyms: paying,
     newSignups7d,
     collectedThisMonth: monthAgg[0] ? { taxable: monthAgg[0].taxable, withGst: monthAgg[0].total, payments: monthAgg[0].count } : { taxable: 0, withGst: 0, payments: 0 },
+    aiCallsThisMonth: Object.fromEntries(aiCalls.map((x) => [x._id, x.n])),
     trialsEndingSoon,
     renewalsDue,
     lapsed,

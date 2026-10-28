@@ -23,6 +23,35 @@ const FEATURE_LABELS = {
   branding: 'Your own logo and colours',
 };
 
+const ExportData = () => {
+  const [busy, setBusy] = useState('');
+  const [err, setErr] = useState('');
+  const get = async (name) => {
+    setBusy(name); setErr('');
+    try {
+      const res = await apiClient.get(`/admin/export/${name}.csv`, { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${name}.csv`; a.click();
+      URL.revokeObjectURL(url);
+    } catch { setErr('Could not download. Please try again.'); } finally { setBusy(''); }
+  };
+  return (
+    <div className="mt-8 rounded-xl border border-gray-200 bg-white p-5">
+      <h2 className="text-lg font-semibold text-gray-800">Download your data</h2>
+      <p className="mt-1 text-sm text-gray-500">Your data is yours. These files open in Excel and work even after your plan ends.</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {['members', 'payments', 'attendance'].map((n) => (
+          <button key={n} disabled={Boolean(busy)} onClick={() => get(n)} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
+            {busy === n ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}{n[0].toUpperCase() + n.slice(1)}
+          </button>
+        ))}
+      </div>
+      {err && <p className="mt-2 text-sm text-red-600">{err}</p>}
+    </div>
+  );
+};
+
 const Billing = () => {
   const [info, setInfo] = useState(null);
   const [payments, setPayments] = useState([]);
@@ -217,6 +246,7 @@ const Billing = () => {
           </div>
         )}
       </div>
+      <ExportData />
     </div>
   );
 };

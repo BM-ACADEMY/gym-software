@@ -25,5 +25,6 @@ router.use('/onboarding', require('./onboarding'));
 router.use('/subscription', require('./subscription'));
 router.use('/billing', require('./billing'));
 router.use('/assistant', require('./assistant'));
+router.use('/export', require('./export'));
 
 module.exports = router;

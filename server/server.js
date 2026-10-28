@@ -4,6 +4,7 @@ const app = require('./app');
 const { runAllRules } = require('./services/notifications');
 const { runWhatsappAutomations } = require('./services/automations');
 const { runBillingCycle, runMemberAutoRenewals } = require('./services/billing');
+const { runOwnerNotices } = require('./services/ownerNotices');
 
 // Refuse to start in production with unsafe configuration. A weak JWT secret
 // or a missing database URI would otherwise fail silently or insecurely.
@@ -49,3 +50,11 @@ setTimeout(() => {
   tick();
   setInterval(tick, 15 * 60 * 1000);
 }, 20000);
+
+// Billing emails to gym owners (trial ending, renewal due, grace, expired): same
+// 15-minute tick, unique key per email, only 10:00 to 20:00 IST.
+setTimeout(() => {
+  const tick = () => runOwnerNotices().catch((err) => console.error('Owner notices run failed:', err));
+  tick();
+  setInterval(tick, 15 * 60 * 1000);
+}, 30000);

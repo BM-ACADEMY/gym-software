@@ -135,3 +135,19 @@ See `docs/SCOPE.md` section 4.
 ## Open questions
 
 See `docs/SCOPE.md` section 9.
+
+## Phase P: Product suite and shared core (added 28 Oct, owner decision D-09: real products, no waitlist launches)
+
+Scope files: `docs/products/README.md` (index and rules), `CORE.md`, and one `SCOPE.md` per product. Product task IDs (SAL, MRT, DIN, CLO, WSH, HIR) are created from each scope's phase 1 list when its core modules exist. Owner target start dates: Salon 13 Nov, Mart 16 Nov, Dine 19 Nov, Cloth 22 Nov, Wash 25 Nov, Hire 28 Nov. Claude reports date confidence in each Daily Brief.
+
+| ID | Task | Pri | Status |
+| --- | --- | --- | --- |
+| C-01 | Package boundaries, architecture note, no-cross-product-import check | L | TODO |
+| C-02 | `core-pos`: customer, billing/POS (offline), loyalty, inventory, with tests; first user Salon, then Mart | L | TODO |
+| C-03 | Fail-closed tenant plugin, a test per model | L | TODO |
+| C-04 | Move billing, plans, WhatsApp, caps, Super Admin into packages; gym consumes them only after Dev A's first green run | A | TODO |
+| C-05 | Business-type switch and per-product presets | L | TODO |
+| P-R | Research tasks per product (SAL-R1, MRT-R1, DIN-R2, CLO-R1, WSH-R1, HIR-R1): verify competitor features and policies; replace Assumptions in scope files | L | TODO |
+| P-P | Floor-price tables per product (SAL-P1, MRT-P1, DIN-P1, CLO-P1, WSH-P1, HIR-P1), same method as the gym; Mohamed approves (Tier 3) | L | TODO |
+| P-QA | Product QA workbooks and Dev B attack lists per product | L | TODO |
+| P-LAND | Landing page and claims file per product, matching `MARKETING_CLAIMS.md` rules | L | TODO |

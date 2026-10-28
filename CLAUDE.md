@@ -7,6 +7,7 @@ You are continuing a project. Read these in order before doing anything:
 3. `HANDOVER.md`: older notes on the app (the demo-password section was removed on purpose).
 4. `docs/OPERATING_RULES.md`: how you work with Mohamed (decision tiers, never idle, the Daily Brief). Follow it every session.
 5. `docs/DECISIONS.md`: open questions and the decision log. Check it first; do not ask again what is already answered.
+6. `docs/products/README.md`: the other six products (Salon, Mart, Dine, Cloth, Wash, Hire), their scope files and the shared core plan (`CORE.md`).
 
 ## Resume checklist
 

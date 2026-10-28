@@ -3,6 +3,7 @@ import { CalendarSearch, Clock, LogIn, LogOut, QrCode, Search, Users } from 'luc
 import apiClient from '../../api/client';
 import useSuspended from '../../hooks/useSuspended';
 import QrScannerModal from '../../components/QrScannerModal';
+import { useT } from '../../i18n';
 
 const toInputDate = (d) => d.toISOString().slice(0, 10);
 
@@ -26,6 +27,7 @@ const StatCard = ({ label, value, icon: Icon }) => (
 );
 
 const Attendance = () => {
+  const { t } = useT();
   const suspended = useSuspended();
   const [summary, setSummary] = useState({ checkedInToday: 0, currentlyInside: 0 });
   const [records, setRecords] = useState([]);
@@ -137,41 +139,41 @@ const Attendance = () => {
     <div className="p-6 sm:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Attendance</h1>
-          <p className="mt-1 text-gray-500">Check members in and monitor today's floor activity.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('Attendance')}</h1>
+          <p className="mt-1 text-gray-500">{t("Check members in and monitor today's floor activity.")}</p>
         </div>
         <div className="flex gap-2">
           <select value={method} onChange={(e) => setMethod(e.target.value)} className="rounded-xl border border-gray-200 bg-white py-2.5 px-3.5 text-sm outline-none">
-            {METHODS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+            {METHODS.map((m) => <option key={m.value} value={m.value}>{t(m.label)}</option>)}
           </select>
           <button onClick={() => setScannerOpen(true)} disabled={suspended} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500">
-            <QrCode className="h-4 w-4" /> Scan QR
+            <QrCode className="h-4 w-4" /> {t('Scan QR')}
           </button>
         </div>
       </div>
 
-      <QrScannerModal open={scannerOpen} onClose={() => setScannerOpen(false)} onDecode={handleScan} title="Scan member check-in QR" />
+      <QrScannerModal open={scannerOpen} onClose={() => setScannerOpen(false)} onDecode={handleScan} title={t('Scan member check-in QR')} />
 
       {error && <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{error}</div>}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <StatCard label="Checked in today" value={summary.checkedInToday} icon={Users} />
-        <StatCard label="Currently inside" value={summary.currentlyInside} icon={Clock} />
+        <StatCard label={t('Checked in today')} value={summary.checkedInToday} icon={Users} />
+        <StatCard label={t('Currently inside')} value={summary.currentlyInside} icon={Clock} />
       </div>
 
       <div className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <div>
-            <h3 className="font-semibold text-gray-900">Quick check-in</h3>
-            <p className="mt-1 text-xs text-gray-500">Find a member and tap to check them in or out.</p>
+            <h3 className="font-semibold text-gray-900">{t('Quick check-in')}</h3>
+            <p className="mt-1 text-xs text-gray-500">{t('Find a member and tap to check them in or out.')}</p>
           </div>
           <label className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Find member..." className="w-56 rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Find member...')} className="w-56 rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
           </label>
         </div>
         <div className="divide-y divide-gray-100">
-          {members.length === 0 && <p className="px-5 py-6 text-sm text-gray-400">No members found.</p>}
+          {members.length === 0 && <p className="px-5 py-6 text-sm text-gray-400">{t('No members found.')}</p>}
           {members.map((m) => {
             const open = recordFor(m._id);
             const busy = busyId === m._id || busyId === open?._id;
@@ -187,7 +189,7 @@ const Attendance = () => {
                   onClick={() => (open ? checkOut(open._id) : checkIn(m._id))}
                   className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50 ${open ? 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50' : 'bg-teal-600 text-white hover:bg-teal-700'}`}
                 >
-                  {open ? <><LogOut className="h-4 w-4" />Check out</> : <><LogIn className="h-4 w-4" />Check in</>}
+                  {open ? <><LogOut className="h-4 w-4" />{t('Check out')}</> : <><LogIn className="h-4 w-4" />{t('Check in')}</>}
                 </button>
               </div>
             );
@@ -196,17 +198,17 @@ const Attendance = () => {
       </div>
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-100 px-5 py-4"><h3 className="font-semibold text-gray-900">Today's check-ins</h3></div>
+        <div className="border-b border-gray-100 px-5 py-4"><h3 className="font-semibold text-gray-900">{t("Today's check-ins")}</h3></div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-              <tr><th className="px-5 py-3">Member</th><th className="px-5 py-3">Method</th><th className="px-5 py-3">In</th><th className="px-5 py-3">Out</th></tr>
+              <tr><th className="px-5 py-3">{t('Member')}</th><th className="px-5 py-3">{t('Method')}</th><th className="px-5 py-3">{t('In')}</th><th className="px-5 py-3">{t('Out')}</th></tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={4} className="px-5 py-8 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={4} className="px-5 py-8 text-center text-gray-400">{t('Loading...')}</td></tr>
               ) : records.length === 0 ? (
-                <tr><td colSpan={4} className="px-5 py-8 text-center text-gray-400">No check-ins yet today.</td></tr>
+                <tr><td colSpan={4} className="px-5 py-8 text-center text-gray-400">{t('No check-ins yet today.')}</td></tr>
               ) : records.map((r) => (
                 <tr key={r._id}>
                   <td className="px-5 py-3 font-medium text-gray-900">{r.memberId?.name || '—'}</td>
@@ -223,33 +225,33 @@ const Attendance = () => {
       <div className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900">Attendance history</h3>
-            <p className="mt-1 text-xs text-gray-500">Browse check-ins across any date range.</p>
+            <h3 className="font-semibold text-gray-900">{t('Attendance history')}</h3>
+            <p className="mt-1 text-xs text-gray-500">{t('Browse check-ins across any date range.')}</p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
             <label className="text-xs font-medium text-gray-500">
-              From
+              {t('From')}
               <input type="date" value={historyFrom} max={historyTo} onChange={(e) => setHistoryFrom(e.target.value)} className="mt-1 block rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
             </label>
             <label className="text-xs font-medium text-gray-500">
-              To
+              {t('To')}
               <input type="date" value={historyTo} min={historyFrom} max={toInputDate(new Date())} onChange={(e) => setHistoryTo(e.target.value)} className="mt-1 block rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
             </label>
             <button onClick={() => fetchHistory(historyFrom, historyTo)} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">
-              <CalendarSearch className="h-4 w-4" /> Search
+              <CalendarSearch className="h-4 w-4" /> {t('Search')}
             </button>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-              <tr><th className="px-5 py-3">Member</th><th className="px-5 py-3">Date</th><th className="px-5 py-3">Method</th><th className="px-5 py-3">In</th><th className="px-5 py-3">Out</th></tr>
+              <tr><th className="px-5 py-3">{t('Member')}</th><th className="px-5 py-3">{t('Date')}</th><th className="px-5 py-3">{t('Method')}</th><th className="px-5 py-3">{t('In')}</th><th className="px-5 py-3">Out</th></tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {historyLoading ? (
-                <tr><td colSpan={5} className="px-5 py-8 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={5} className="px-5 py-8 text-center text-gray-400">{t('Loading...')}</td></tr>
               ) : historyRecords.length === 0 ? (
-                <tr><td colSpan={5} className="px-5 py-8 text-center text-gray-400">No check-ins in this range.</td></tr>
+                <tr><td colSpan={5} className="px-5 py-8 text-center text-gray-400">{t('No check-ins in this range.')}</td></tr>
               ) : historyRecords.map((r) => (
                 <tr key={r._id}>
                   <td className="px-5 py-3 font-medium text-gray-900">{r.memberId?.name || '—'}</td>

@@ -40,8 +40,10 @@ app.use('/api/member', memberRoutes);
 app.use('/api/payments', webhookRoutes);
 app.use('/api/internal', require('./routes/internal'));
 
+// Uptime monitors call this. 503 when the database connection is down, so an alert fires.
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ success: true, message: 'Server is running' });
+  const dbUp = require('mongoose').connection.readyState === 1;
+  res.status(dbUp ? 200 : 503).json({ success: dbUp, message: dbUp ? 'Server is running' : 'Database is not connected' });
 });
 
 app.use((err, req, res, next) => {

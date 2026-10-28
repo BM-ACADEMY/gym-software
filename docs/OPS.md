@@ -15,7 +15,7 @@ Written, not yet tested. Nothing here is done until a human ticks it.
 - Monthly: repeat the drill.
 
 ## 3. Uptime
-- Add an external monitor (UptimeRobot, BetterStack or similar) on the API health URL and the landing page, every 1 to 5 minutes.
+- Add an external monitor (UptimeRobot, BetterStack or similar) on `GET /api/health` (it checks the database, see below) and the landing page, every 1 to 5 minutes.
 - Alert to Dev A and Mohamed by email and WhatsApp/phone push.
 
 ## 4. Errors

@@ -70,3 +70,6 @@ Live sheet v3 (28 Oct, with due dates; owner shares it): https://docs.google.com
 - Claude reads the live sheet at the start of every session and fixes anything marked Failed first.
 - Every row in the live sheet has a due date (Claude's plan to hit the 10 Nov gym start; the team says if a date is not possible). Dates are assumptions, not promises.
 - Google Drive access here can create files but not edit a sheet's cells. To change rows Claude makes a new version of the sheet and tells Mohamed the new link; the previous link is retired only when Mohamed agrees.
+
+## Product status file (SA-09)
+Every session, before the Daily Brief, update `server/data/productStatus.json`: stage, confidence, done, next, blockers, suggestions, one new line in updates, and tick launch checklist items only when a human has confirmed them. Super Admin > Products & Launch shows it to Mohamed.

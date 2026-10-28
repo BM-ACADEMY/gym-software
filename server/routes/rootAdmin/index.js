@@ -14,6 +14,6 @@ router.use('/support', require('./support'));
 router.use('/request-access', require('./requestAccess'));
 router.use('/settings', require('./settings'));
 router.use('/usage', require('./usage'));
-router.use('/usage', require('./usage'));
+router.use('/products', require('./products'));
 
 module.exports = router;

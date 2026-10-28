@@ -1,0 +1,394 @@
+{
+ "updatedAt": "2026-10-28",
+ "note": "Written by Claude each session. Read only. Everything here is 'written, not yet tested' until a person runs it. Dates are Mohamed's targets; confidence is Claude's estimate (an assumption).",
+ "products": [
+  {
+   "key": "gym",
+   "name": "Gym",
+   "address": "fit.afraventures.in",
+   "targetDate": "2026-11-10",
+   "stage": "Built, waiting for human tests",
+   "confidence": "low",
+   "confidenceNote": "Nothing has been run by a person yet; server tests (A-02) and server hardening (M-11) come first.",
+   "done": [
+    "Members, plans, attendance, billing, WhatsApp reminders, Renewal Copilot, Ask GymDesk on own data",
+    "AI usage screen with a daily budget stop",
+    "Promo and referral codes",
+    "Founder daily brief email",
+    "Deploy guide for the new server"
+   ],
+   "next": [
+    "A-02 server tests, A-03 client build (Dev A)",
+    "A-15 run on the new server",
+    "Meta business verification (M-01)"
+   ],
+   "blockers": [
+    "Server hardening by Mohamed (M-11)",
+    "Old passwords changed (A-01)",
+    "Meta verification not started"
+   ],
+   "suggestions": [
+    "Do the invite-only start with 3 to 5 gyms you know, not an open launch",
+    "Keep AI limits at the approved caps until the first month of real cost is seen"
+   ],
+   "updates": [
+    {
+     "date": "2026-10-28",
+     "text": "Usage screen, budget stop, founder brief, promo codes and CSV import written; sent to the team sheet v3"
+    }
+   ],
+   "launchChecklist": [
+    {
+     "item": "All server tests pass",
+     "done": false
+    },
+    {
+     "item": "Client builds and pages open",
+     "done": false
+    },
+    {
+     "item": "Server hardened",
+     "done": false
+    },
+    {
+     "item": "Live on the new server, health check green",
+     "done": false
+    },
+    {
+     "item": "Old passwords changed",
+     "done": false
+    },
+    {
+     "item": "Meta business verified",
+     "done": false
+    },
+    {
+     "item": "QA workbook gate green",
+     "done": false
+    },
+    {
+     "item": "Landing copy matches what is built",
+     "done": false
+    }
+   ]
+  },
+  {
+   "key": "salon",
+   "name": "Salon, Spa, Barber",
+   "address": "salon.afraventures.in",
+   "targetDate": "2026-11-13",
+   "stage": "Research and shared billing core written",
+   "confidence": "low",
+   "confidenceNote": "Only the shared billing core exists; no Salon app yet.",
+   "done": [
+    "Competitor first pass (RESEARCH.md)",
+    "Shared billing, GST, loyalty and CSV import core (core-pos)"
+   ],
+   "next": [
+    "Mount core-pos in a Salon app",
+    "Appointments and staff commissions",
+    "Floor-price table (SAL-P1)"
+   ],
+   "blockers": [
+    "Core not yet tested by a person",
+    "Product name not decided (D-08)"
+   ],
+   "suggestions": [
+    "Start with barber shops: simplest rules and a clear daily-sales report",
+    "Rebooking reminders are the best autopilot job to sell"
+   ],
+   "updates": [
+    {
+     "date": "2026-10-28",
+     "text": "First research pass done"
+    }
+   ],
+   "launchChecklist": [
+    {
+     "item": "App built",
+     "done": false
+    },
+    {
+     "item": "Billing and GST tested on a phone",
+     "done": false
+    },
+    {
+     "item": "Appointments tested",
+     "done": false
+    },
+    {
+     "item": "Price approved",
+     "done": false
+    },
+    {
+     "item": "QA gate green",
+     "done": false
+    }
+   ]
+  },
+  {
+   "key": "mart",
+   "name": "Mini Mart / kirana",
+   "address": "mart.afraventures.in",
+   "targetDate": "2026-11-16",
+   "stage": "Research and shared billing core written",
+   "confidence": "low",
+   "confidenceNote": "Core written, no Mart app yet.",
+   "done": [
+    "Competitor first pass: billing is cheap or free, so we must sell AI reorder and udhaar",
+    "Offline billing queue, barcode and CSV import for products",
+    "Mock-up screens shared"
+   ],
+   "next": [
+    "Mart app on core-pos",
+    "Udhaar ledger and reminders",
+    "Floor-price table (MRT-P1)"
+   ],
+   "blockers": [
+    "Real phone and scanner test not done",
+    "Free-tier proposal not approved"
+   ],
+   "suggestions": [
+    "Free billing plus paid AI reorder and udhaar is the likely winning shape; needs your yes",
+    "Test with 3 kirana shops before building more"
+   ],
+   "updates": [
+    {
+     "date": "2026-10-28",
+     "text": "CSV import for products written"
+    }
+   ],
+   "launchChecklist": [
+    {
+     "item": "App built",
+     "done": false
+    },
+    {
+     "item": "Offline bills tested with no network",
+     "done": false
+    },
+    {
+     "item": "CSV import tested on a real file",
+     "done": false
+    },
+    {
+     "item": "Price approved",
+     "done": false
+    },
+    {
+     "item": "QA gate green",
+     "done": false
+    }
+   ]
+  },
+  {
+   "key": "dine",
+   "name": "Restaurant, Cafe, Pub",
+   "address": "dine.afraventures.in",
+   "targetDate": "2026-11-19",
+   "stage": "Research written",
+   "confidence": "low",
+   "confidenceNote": "Not started building; aggregator order sync is the biggest gap.",
+   "done": [
+    "Competitor first pass (Petpooja price conflict noted)"
+   ],
+   "next": [
+    "Tables, KOT and menu on core-pos",
+    "Aggregator sync decision",
+    "Floor-price table (DIN-P1)"
+   ],
+   "blockers": [
+    "Zomato and Swiggy integration rules not checked"
+   ],
+   "suggestions": [
+    "Launch for cafes first; full restaurants need aggregator sync",
+    "Ask 5 owners what they pay today"
+   ],
+   "updates": [
+    {
+     "date": "2026-10-28",
+     "text": "First research pass done"
+    }
+   ],
+   "launchChecklist": [
+    {
+     "item": "App built",
+     "done": false
+    },
+    {
+     "item": "KOT flow tested",
+     "done": false
+    },
+    {
+     "item": "Price approved",
+     "done": false
+    },
+    {
+     "item": "QA gate green",
+     "done": false
+    }
+   ]
+  },
+  {
+   "key": "cloth",
+   "name": "Textile and Garment",
+   "address": "cloth.afraventures.in",
+   "targetDate": "2026-11-22",
+   "stage": "Research written",
+   "confidence": "low",
+   "confidenceNote": "Not started building.",
+   "done": [
+    "Competitor first pass (variants claim removed until verified)"
+   ],
+   "next": [
+    "Size and colour variants",
+    "Supplier dues",
+    "Floor-price table (CLO-P1)"
+   ],
+   "blockers": [
+    "Variant needs not confirmed with shops"
+   ],
+   "suggestions": [
+    "Stock ageing and markdown suggestions are the autopilot hook",
+    "Visit 3 shops before fixing the data model"
+   ],
+   "updates": [
+    {
+     "date": "2026-10-28",
+     "text": "First research pass done"
+    }
+   ],
+   "launchChecklist": [
+    {
+     "item": "App built",
+     "done": false
+    },
+    {
+     "item": "Variants tested",
+     "done": false
+    },
+    {
+     "item": "Price approved",
+     "done": false
+    },
+    {
+     "item": "QA gate green",
+     "done": false
+    }
+   ]
+  },
+  {
+   "key": "wash",
+   "name": "Car Wash and Detailing",
+   "address": "wash.afraventures.in",
+   "targetDate": "2026-11-25",
+   "stage": "Scope only",
+   "confidence": "low",
+   "confidenceNote": "Research not done: searches gave no usable prices.",
+   "done": [
+    "Scope file"
+   ],
+   "next": [
+    "Competitor research (WSH-R1)",
+    "Job cards and packages",
+    "Wash-due reminders"
+   ],
+   "blockers": [
+    "No competitor prices found yet"
+   ],
+   "suggestions": [
+    "Ask 3 local washes what they use today before researching further online"
+   ],
+   "updates": [
+    {
+     "date": "2026-10-28",
+     "text": "Research attempt found no usable prices"
+    }
+   ],
+   "launchChecklist": [
+    {
+     "item": "Research done",
+     "done": false
+    },
+    {
+     "item": "App built",
+     "done": false
+    },
+    {
+     "item": "Price approved",
+     "done": false
+    },
+    {
+     "item": "QA gate green",
+     "done": false
+    }
+   ]
+  },
+  {
+   "key": "hire",
+   "name": "Recruitment Agency (AI hiring tool)",
+   "address": "hire.afraventures.in",
+   "targetDate": "2026-11-28",
+   "stage": "Rules written, no screens or server routes yet",
+   "confidence": "low",
+   "confidenceNote": "Rules pass fake-data checks only; no database, no real AI call, no screens.",
+   "done": [
+    "Competitor and data-law first pass",
+    "Duplicate check, resume parse cleaning, fixed-rule ranking, pipeline, offer-drop flags, fee and GST, consent and retention",
+    "Resume parse flow with plan limits and budget stop",
+    "Business autopilot rules and weekly report numbers",
+    "Mock-up screens shared"
+   ],
+   "next": [
+    "Server routes with tests",
+    "PDF and Word text reading",
+    "AI reason for each rank",
+    "Real screens",
+    "Floor-price table (HIR-P1)",
+    "Shared autopilot runner"
+   ],
+   "blockers": [
+    "Lawyer wording for consent, retention, WhatsApp outreach to candidates",
+    "Plan caps are guesses until a real parse is costed",
+    "Meta templates not started"
+   ],
+   "suggestions": [
+    "Pilot with 3 small agencies; sell the client share link and fee tracking, not parsing",
+    "Keep all candidate messages on Suggest until the lawyer confirms wording",
+    "Talk to 5 agencies before fixing the price"
+   ],
+   "updates": [
+    {
+     "date": "2026-10-28",
+     "text": "Research, rules, parse flow, autopilot rules and mock-up screens written"
+    }
+   ],
+   "launchChecklist": [
+    {
+     "item": "Server routes tested",
+     "done": false
+    },
+    {
+     "item": "Parse accuracy checked on 50 real resumes",
+     "done": false
+    },
+    {
+     "item": "Share link cannot be guessed (Dev B)",
+     "done": false
+    },
+    {
+     "item": "Lawyer wording received",
+     "done": false
+    },
+    {
+     "item": "Price approved",
+     "done": false
+    },
+    {
+     "item": "QA gate green",
+     "done": false
+    }
+   ]
+  }
+ ]
+}

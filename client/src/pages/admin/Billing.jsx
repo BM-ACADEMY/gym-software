@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Check, Download, Loader2 } from 'lucide-react';
 import apiClient from '../../api/client';
+import { INDIAN_STATES } from '../../utils/indianStates';
 
 const rupees = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('en-IN') : '-');
@@ -28,6 +29,8 @@ const Billing = () => {
   const [cycle, setCycle] = useState('yearly');
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [stateChoice, setStateChoice] = useState('');
+  const [gstChoice, setGstChoice] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -40,6 +43,16 @@ const Billing = () => {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const saveDetails = async () => {
+    setMessage({ type: '', text: '' });
+    try {
+      await apiClient.patch('/admin/subscription/billing-details', { state: stateChoice, gstNumber: gstChoice });
+      await load();
+    } catch (err) {
+      setMessage({ type: 'error', text: err.response?.data?.message || 'Could not save.' });
+    }
+  };
 
   const pay = async (planKey) => {
     setMessage({ type: '', text: '' });
@@ -128,6 +141,20 @@ const Billing = () => {
         <div className={`rounded-xl px-4 py-3 text-sm font-medium ${message.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>{message.text}</div>
       )}
 
+      {!info.state && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <p className="mb-3 text-sm font-medium text-amber-900">Before you pay, tell us your state. It decides how GST appears on your invoice. Add your GST number if you have one, to claim input credit.</p>
+          <div className="flex flex-wrap gap-3">
+            <select value={stateChoice} onChange={(e) => setStateChoice(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="">Select state</option>
+              {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
+            </select>
+            <input value={gstChoice} onChange={(e) => setGstChoice(e.target.value)} placeholder="GST number (optional)" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <button disabled={!stateChoice} onClick={saveDetails} className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Save</button>
+          </div>
+        </div>
+      )}
+
       <div className="inline-flex rounded-xl bg-gray-100 p-1">
         {['monthly', 'yearly'].map((c) => (
           <button key={c} onClick={() => setCycle(c)} className={`rounded-lg px-4 py-2 text-sm font-semibold ${cycle === c ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}>
@@ -153,7 +180,7 @@ const Billing = () => {
                 ))}
               </ul>
               <button
-                disabled={Boolean(busy) || info.status === 'suspended'}
+                disabled={Boolean(busy) || info.status === 'suspended' || !info.state}
                 onClick={() => pay(p.key)}
                 className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-teal-600 py-3 text-sm font-bold text-white hover:bg-teal-700 disabled:opacity-60"
               >

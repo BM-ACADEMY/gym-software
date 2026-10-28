@@ -4,9 +4,10 @@ import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../store/slices/authSlice';
 import apiClient from '../../api/client';
 import PasswordInput from '../../components/ui/PasswordInput';
+import { INDIAN_STATES } from '../../utils/indianStates';
 
 const SignUp = () => {
-  const [formData, setFormData] = useState({ gymName: '', ownerName: '', email: '', phone: '', password: '' });
+  const [formData, setFormData] = useState({ gymName: '', ownerName: '', email: '', phone: '', state: 'Tamil Nadu', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -81,6 +82,12 @@ const SignUp = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Mobile number</label>
               <input required type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="e.g. 9876543210" className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+              <select required value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all">
+                {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Password (8 or more characters)</label>

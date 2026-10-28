@@ -35,6 +35,7 @@ const streamSubscriptionInvoice = (res, p) => {
   doc.font('Helvetica-Bold').text('Billed to');
   doc.font('Helvetica').text(p.buyerName || 'Gym');
   if (p.buyerGstin) doc.text(`GSTIN: ${p.buyerGstin}`);
+  if (p.buyerState) doc.text(`Place of supply: ${p.buyerState}`);
   doc.moveDown();
 
   doc.font('Helvetica-Bold').text('Description');

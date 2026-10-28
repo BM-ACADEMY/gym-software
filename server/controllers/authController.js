@@ -130,6 +130,7 @@ const signup = async (req, res) => {
     const email = (req.body.email || '').trim().toLowerCase();
     const phone = (req.body.phone || '').replace(/[\s-]/g, '');
     const password = req.body.password || '';
+    const state = (req.body.state || '').trim().slice(0, 60);
 
     if (!gymName || !ownerName || !email || !phone || !password) {
       return res.status(400).json({ success: false, message: 'Please provide gym name, your name, email, phone and a password' });
@@ -152,7 +153,7 @@ const signup = async (req, res) => {
       return res.status(409).json({ success: false, message: 'An account with this email or phone already exists. Please log in.' });
     }
 
-    const subscriber = await Subscriber.create({ gymName, ...trialDates() });
+    const subscriber = await Subscriber.create({ gymName, ...(state ? { state } : {}), ...trialDates() });
     let admin;
     try {
       admin = await Admin.create({

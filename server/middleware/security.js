@@ -57,7 +57,7 @@ const rejectOperatorKeys = (req, res, next) => {
 };
 
 // Credential-style fields must be plain strings (blocks objects and arrays).
-const AUTH_STRING_FIELDS = ['phone', 'email', 'password', 'newPassword', 'currentPassword', 'otp', 'identifier', 'type', 'name', 'gymName', 'ownerName'];
+const AUTH_STRING_FIELDS = ['phone', 'email', 'password', 'newPassword', 'currentPassword', 'otp', 'identifier', 'type', 'name', 'gymName', 'ownerName', 'state'];
 
 const requireStringAuthFields = (req, res, next) => {
   const body = req.body || {};

@@ -9,7 +9,7 @@ const { computeStatus } = require('./subscription');
 const M = require('./billingMath');
 const gateway = require('./paymentGateway');
 
-const gstMode = () => (process.env.BILLING_GST_MODE === 'igst' ? 'igst' : 'cgst_sgst');
+const sellerState = () => process.env.SELLER_STATE || 'Puducherry';
 const invoicePrefix = () => process.env.INVOICE_PREFIX || 'AV';
 
 const fail = (status, message, code) => Object.assign(new Error(message), { status, code });
@@ -45,7 +45,10 @@ const buildQuote = async (subscriberId, planKey, cycle, now = new Date()) => {
     throw fail(402, `You have ${usage.staff} staff logins and ${plan.name} allows ${plan.staffLimit}. Choose a bigger plan.`, 'plan_limit');
   }
 
-  const quote = M.quote({ plan: planKey, cycle, creditRupees: rule.creditRupees, gstMode: gstMode() });
+  if (!subscriber.state) {
+    throw fail(400, 'Please select your state first. It decides how GST is shown on your invoice.', 'state_required');
+  }
+  const quote = M.quote({ plan: planKey, cycle, creditRupees: rule.creditRupees, gstMode: M.gstModeFor(subscriber.state, sellerState()) });
   return { subscriber, rule, quote, plan };
 };
 
@@ -73,6 +76,7 @@ const startCheckout = async (subscriberId, planKey, cycle) => {
     gstMode: quote.gstMode, gstRate: quote.gstRate, provider: order.provider,
     razorpayOrderId: order.orderId, buyerName: subscriber.gymName,
     buyerGstin: subscriber.gstEnabled ? subscriber.gstNumber : undefined,
+    buyerState: subscriber.state,
   });
 
   return { orderId: order.orderId, amount: quote.total, currency: 'INR', keyId: order.keyId || null, provider: order.provider, quote };

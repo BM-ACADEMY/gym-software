@@ -31,6 +31,9 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
         graceDays: GRACE_DAYS,
         currentPlan: plan ? { key: plan.key, name: plan.name, memberLimit: plan.memberLimit, staffLimit: plan.staffLimit, features: plan.features } : null,
         billingCycle: subscriber.billingCycle || null,
+        state: subscriber.state || null,
+        gstNumber: subscriber.gstNumber || null,
+        sellerState: process.env.SELLER_STATE || 'Puducherry',
         usage: { members, staff },
         gstRate: GST_RATE,
         plans: listPlans().map((p) => ({
@@ -60,6 +63,21 @@ const handle = (fn) => async (req, res) => {
 };
 
 const str = (v) => (typeof v === 'string' ? v : '');
+
+// PATCH /api/admin/subscription/billing-details  { state, gstNumber? }
+// Always allowed, even when the gym is locked, so an expired gym can fill this in before paying.
+router.patch('/billing-details', protect, authorize('admin'), handle(async (req, res) => {
+  const state = str(req.body.state).trim().slice(0, 60);
+  const gstNumber = str(req.body.gstNumber).trim().toUpperCase();
+  if (!state) return res.status(400).json({ success: false, message: 'Please select your state' });
+  if (gstNumber && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gstNumber)) {
+    return res.status(400).json({ success: false, message: 'That GST number does not look right' });
+  }
+  const update = { state };
+  if (gstNumber) Object.assign(update, { gstNumber, gstEnabled: true });
+  await Subscriber.updateOne({ _id: req.user.subscriberId }, { $set: update });
+  res.json({ success: true, data: { state, gstNumber: gstNumber || null } });
+}));
 
 // POST /api/admin/subscription/quote  { plan, cycle }
 router.post('/quote', protect, authorize('admin'), handle(async (req, res) => {

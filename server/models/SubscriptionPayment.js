@@ -32,6 +32,7 @@ const schema = new mongoose.Schema(
     // Snapshot of the buyer at purchase time, printed on the invoice.
     buyerName: String,
     buyerGstin: String,
+    buyerState: String,
   },
   { timestamps: true }
 );

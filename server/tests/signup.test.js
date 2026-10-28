@@ -42,7 +42,7 @@ describe('self-serve sign-up and subscription', () => {
   });
 
   test('an expired gym can still read its subscription but cannot write', async () => {
-    const t = await createTenant({ subscriber: { planKey: 'growth', paidUntil: new Date(Date.now() - 10 * 86400000) } });
+    const t = await createTenant({ subscriber: { state: 'Puducherry', planKey: 'growth', paidUntil: new Date(Date.now() - 10 * 86400000) } });
     const read = await request(app).get('/api/admin/subscription').set('Authorization', `Bearer ${t.adminToken}`);
     expect(read.body.data.status).toBe('expired');
     const write = await request(app).post('/api/admin/members').set('Authorization', `Bearer ${t.adminToken}`).send({ name: 'X', phone: '9111111111' });

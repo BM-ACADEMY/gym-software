@@ -24,7 +24,7 @@ describe('subscription billing flow', () => {
   });
 
   test('trial gym pays for Growth monthly: invoice, paid-until and plan are set', async () => {
-    const t = await createTenant({ subscriber: { trialEndsAt: new Date(Date.now() + 3 * 86400000) } });
+    const t = await createTenant({ subscriber: { state: 'Puducherry', trialEndsAt: new Date(Date.now() + 3 * 86400000) } });
     const co = await request(app).post('/api/admin/subscription/checkout').set(auth(t)).send({ plan: 'growth', cycle: 'monthly' });
     expect(co.status).toBe(201);
     expect(co.body.data.amount).toBe(1179);
@@ -43,7 +43,7 @@ describe('subscription billing flow', () => {
   });
 
   test('paying the same order twice does not extend twice or burn a second invoice number', async () => {
-    const t = await createTenant({ subscriber: { trialEndsAt: new Date(Date.now() + 86400000) } });
+    const t = await createTenant({ subscriber: { state: 'Puducherry', trialEndsAt: new Date(Date.now() + 86400000) } });
     const co = await request(app).post('/api/admin/subscription/checkout').set(auth(t)).send({ plan: 'starter', cycle: 'monthly' });
     await Promise.all([
       billing.activate({ orderId: co.body.data.orderId, paymentId: 'pay_1' }),
@@ -61,26 +61,26 @@ describe('subscription billing flow', () => {
 
   test('renewing early extends from the old end date', async () => {
     const end = new Date(Date.now() + 10 * 86400000);
-    const t = await createTenant({ subscriber: { planKey: 'growth', billingCycle: 'monthly', paidUntil: end } });
+    const t = await createTenant({ subscriber: { state: 'Puducherry', planKey: 'growth', billingCycle: 'monthly', paidUntil: end } });
     const co = await request(app).post('/api/admin/subscription/checkout').set(auth(t)).send({ plan: 'growth', cycle: 'monthly' });
     const p = await billing.activate({ orderId: co.body.data.orderId, paymentId: 'pay_2' });
     expect(p.periodStart.getTime()).toBe(end.getTime());
   });
 
   test('downgrade while paid is refused; upgrade gets credit', async () => {
-    const t = await createTenant({ subscriber: { planKey: 'pro', billingCycle: 'monthly', paidUntil: new Date(Date.now() + 15 * 86400000) } });
+    const t = await createTenant({ subscriber: { state: 'Puducherry', planKey: 'pro', billingCycle: 'monthly', paidUntil: new Date(Date.now() + 15 * 86400000) } });
     const down = await request(app).post('/api/admin/subscription/quote').set(auth(t)).send({ plan: 'starter', cycle: 'monthly' });
     expect(down.status).toBe(400);
     expect(down.body.code).toBe('downgrade_later');
 
-    const t2 = await createTenant({ subscriber: { planKey: 'starter', billingCycle: 'monthly', paidUntil: new Date(Date.now() + 15 * 86400000) } });
+    const t2 = await createTenant({ subscriber: { state: 'Puducherry', planKey: 'starter', billingCycle: 'monthly', paidUntil: new Date(Date.now() + 15 * 86400000) } });
     const up = await request(app).post('/api/admin/subscription/quote').set(auth(t2)).send({ plan: 'pro', cycle: 'monthly' });
     expect(up.status).toBe(200);
     expect(up.body.data.quote.credit).toBeGreaterThan(200);
   });
 
   test('webhook: bad signature is rejected, good one activates once, wrong amount fails the order', async () => {
-    const t = await createTenant({ subscriber: { trialEndsAt: new Date(Date.now() + 86400000) } });
+    const t = await createTenant({ subscriber: { state: 'Puducherry', trialEndsAt: new Date(Date.now() + 86400000) } });
     const co = await request(app).post('/api/admin/subscription/checkout').set(auth(t)).send({ plan: 'growth', cycle: 'monthly' });
     const body = (amountPaise) => JSON.stringify({ event: 'payment.captured', payload: { payment: { entity: { id: 'pay_w1', order_id: co.body.data.orderId, amount: amountPaise } } } });
 
@@ -92,7 +92,7 @@ describe('subscription billing flow', () => {
     expect(mismatch.status).toBe(200);
     expect((await SubscriptionPayment.findOne({ razorpayOrderId: co.body.data.orderId })).status).toBe('failed');
 
-    const t2 = await createTenant({ subscriber: { trialEndsAt: new Date(Date.now() + 86400000) } });
+    const t2 = await createTenant({ subscriber: { state: 'Puducherry', trialEndsAt: new Date(Date.now() + 86400000) } });
     const co2 = await request(app).post('/api/admin/subscription/checkout').set(auth(t2)).send({ plan: 'growth', cycle: 'monthly' });
     const ok = JSON.stringify({ event: 'payment.captured', payload: { payment: { entity: { id: 'pay_w2', order_id: co2.body.data.orderId, amount: 117900 } } } });
     for (let i = 0; i < 2; i++) {
@@ -105,7 +105,7 @@ describe('subscription billing flow', () => {
   });
 
   test('invoice PDF downloads for the owner only', async () => {
-    const t = await createTenant({ subscriber: { trialEndsAt: new Date(Date.now() + 86400000) } });
+    const t = await createTenant({ subscriber: { state: 'Puducherry', trialEndsAt: new Date(Date.now() + 86400000) } });
     const co = await request(app).post('/api/admin/subscription/checkout').set(auth(t)).send({ plan: 'pro', cycle: 'yearly' });
     const p = await billing.activate({ orderId: co.body.data.orderId, paymentId: 'pay_3' });
     const pdf = await request(app).get(`/api/admin/subscription/payments/${p._id}/invoice`).set(auth(t));
@@ -117,9 +117,31 @@ describe('subscription billing flow', () => {
     expect(denied.status).toBe(404);
   });
 
+  test('GST: Puducherry gym gets CGST+SGST, other states get IGST, missing state is refused', async () => {
+    const pondy = await createTenant({ subscriber: { state: 'Puducherry', trialEndsAt: new Date(Date.now() + 86400000) } });
+    const q1 = await request(app).post('/api/admin/subscription/quote').set(auth(pondy)).send({ plan: 'growth', cycle: 'monthly' });
+    expect(q1.body.data.quote.cgst).toBe(90);
+    expect(q1.body.data.quote.igst).toBe(0);
+
+    const tn = await createTenant({ subscriber: { state: 'Tamil Nadu', trialEndsAt: new Date(Date.now() + 86400000) } });
+    const q2 = await request(app).post('/api/admin/subscription/quote').set(auth(tn)).send({ plan: 'growth', cycle: 'monthly' });
+    expect(q2.body.data.quote.igst).toBe(180);
+    expect(q2.body.data.quote.cgst).toBe(0);
+    expect(q2.body.data.quote.total).toBe(1179);
+
+    const none = await createTenant({ subscriber: { trialEndsAt: new Date(Date.now() + 86400000) } });
+    const q3 = await request(app).post('/api/admin/subscription/quote').set(auth(none)).send({ plan: 'growth', cycle: 'monthly' });
+    expect(q3.status).toBe(400);
+    expect(q3.body.code).toBe('state_required');
+    const saved = await request(app).patch('/api/admin/subscription/billing-details').set(auth(none)).send({ state: 'Kerala' });
+    expect(saved.status).toBe(200);
+    const q4 = await request(app).post('/api/admin/subscription/quote').set(auth(none)).send({ plan: 'growth', cycle: 'monthly' });
+    expect(q4.body.data.quote.igst).toBe(180);
+  });
+
   test('a gym over the plan member limit cannot buy the smaller plan', async () => {
     const { createMember } = require('./helpers/factories');
-    const t = await createTenant({ subscriber: { trialEndsAt: new Date(Date.now() + 86400000) } });
+    const t = await createTenant({ subscriber: { state: 'Puducherry', trialEndsAt: new Date(Date.now() + 86400000) } });
     for (let i = 0; i < 151; i++) await createMember(t.subscriber);
     const r = await request(app).post('/api/admin/subscription/quote').set(auth(t)).send({ plan: 'starter', cycle: 'monthly' });
     expect(r.status).toBe(402);

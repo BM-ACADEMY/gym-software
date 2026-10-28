@@ -34,6 +34,8 @@ const subscriberSchema = new mongoose.Schema({
   },
   // Global-ready settings. Only INR/GST/India are switched on in Phase 1.
   country: { type: String, default: 'IN' },
+  // Indian state or UT of the gym; decides CGST+SGST (same state as seller) or IGST on invoices.
+  state: { type: String, trim: true },
   currency: { type: String, default: 'INR' },
   timezone: { type: String, default: 'Asia/Kolkata' },
   language: { type: String, enum: ['en', 'ta', 'hi'], default: 'en' },

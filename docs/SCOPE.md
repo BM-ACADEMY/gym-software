@@ -117,6 +117,7 @@ Fallback public date if either slips: 15 Dec 2026.
 | 2026-10-23 | AI is a bonus feature; lead with collections, retention, flat pricing |
 | 2026-10-23 | Live biometric sync waits for a real device and the vendor spec |
 | 2026-10-23 | Build global-ready settings now, sell outside India in Phase 3 |
+| 2026-10-28 | GST on invoices: Puducherry buyers CGST+SGST, other states IGST (Mohamed). SAC code still to confirm with CA |
 | 2026-10-24 | WhatsApp only for messaging in Phase 1; no SMS/DLT. SMS maybe later as backup |
 | 2026-10-24 | Razorpay account already exists; member payments use the gym's own UPI link, not Razorpay Route |
 

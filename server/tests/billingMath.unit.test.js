@@ -71,3 +71,12 @@ describe('purchase rules', () => {
     expect(M.purchaseRule({ status: { status: 'expired' }, currentPlan: 'pro', paidUntil: ahead(-10), newPlan: 'starter', now }).startMode).toBe('now');
   });
 });
+
+describe('GST place of supply', () => {
+  test('same state is CGST+SGST, other state is IGST, unknown is IGST', () => {
+    expect(M.gstModeFor('Puducherry', 'Puducherry')).toBe('cgst_sgst');
+    expect(M.gstModeFor('  puducherry ', 'Puducherry')).toBe('cgst_sgst');
+    expect(M.gstModeFor('Tamil Nadu', 'Puducherry')).toBe('igst');
+    expect(M.gstModeFor('', 'Puducherry')).toBe('igst');
+  });
+});

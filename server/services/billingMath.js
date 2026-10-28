@@ -69,4 +69,9 @@ const purchaseRule = ({ status, currentPlan, currentCycle, paidUntil, newPlan, n
   return { startMode: 'now', creditRupees: prorationCredit({ plan: currentPlan, cycle: currentCycle || 'monthly', paidUntil, now }) };
 };
 
-module.exports = { DAY, CYCLES, RANK, listPrice, quote, prorationCredit, addPeriod, fyOf, invoiceNumber, purchaseRule };
+// GST place of supply: same state as the seller means CGST + SGST, any other
+// state means IGST. Puducherry has its own SGST, so it behaves like a state.
+const normState = (v) => String(v || '').trim().toLowerCase().replace(/\s+/g, ' ');
+const gstModeFor = (buyerState, sellerState) => (normState(buyerState) && normState(buyerState) === normState(sellerState) ? 'cgst_sgst' : 'igst');
+
+module.exports = { normState, gstModeFor, DAY, CYCLES, RANK, listPrice, quote, prorationCredit, addPeriod, fyOf, invoiceNumber, purchaseRule };

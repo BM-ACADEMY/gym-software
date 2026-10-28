@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import apiClient from '../../api/client';
+import { useT } from '../../i18n';
 
-const Row = ({ m, label, onSend, state }) => (
+const Row = ({ m, label, onSend, state }) => {
+  const { t } = useT();
+  return (
   <li className="flex flex-wrap items-center gap-2 py-2.5 text-sm">
     <span className="font-medium text-gray-800">{m.name}</span>
     <span className="text-xs text-gray-500">{m.phone}</span>
@@ -14,13 +17,15 @@ const Row = ({ m, label, onSend, state }) => (
         className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
         title={m.canMessage ? '' : 'No phone number, or WhatsApp is switched off for this member'}
       >
-        {state?.ok ? 'Sent' : state?.busy ? 'Sending…' : 'Send WhatsApp'}
+        {state?.ok ? t('Sent') : state?.busy ? t('Sending…') : t('Send WhatsApp')}
       </button>
     </span>
   </li>
-);
+  );
+};
 
 const AtRisk = () => {
+  const { t } = useT();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [state, setState] = useState({});
@@ -45,20 +50,20 @@ const AtRisk = () => {
   return (
     <div className="space-y-5 max-w-3xl">
       <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h2 className="text-lg font-semibold text-gray-800">Not coming lately <span className="text-gray-400">({data.absent.length})</span></h2>
-        <p className="text-sm text-gray-500">Active members with no check-in for 10 days or more. One tap sends a friendly check-in on WhatsApp (counts toward your monthly messages).</p>
-        {data.absent.length === 0 ? <p className="mt-3 text-sm text-gray-400">Everyone is coming. Nice.</p> : (
+        <h2 className="text-lg font-semibold text-gray-800">{t('Not coming lately')} <span className="text-gray-400">({data.absent.length})</span></h2>
+        <p className="text-sm text-gray-500">{t('Active members with no check-in for 10 days or more. One tap sends a friendly check-in on WhatsApp (counts toward your monthly messages).')}</p>
+        {data.absent.length === 0 ? <p className="mt-3 text-sm text-gray-400">{t('Everyone is coming. Nice.')}</p> : (
           <ul className="mt-2 divide-y divide-gray-100">
-            {data.absent.map((m) => <Row key={m.id} m={m} label={`${m.days} days away`} state={state[m.id]} onSend={(x) => send(x, 'absent')} />)}
+            {data.absent.map((m) => <Row key={m.id} m={m} label={t('{n} days away', { n: m.days })} state={state[m.id]} onSend={(x) => send(x, 'absent')} />)}
           </ul>
         )}
       </div>
       <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h2 className="text-lg font-semibold text-gray-800">Recently lapsed <span className="text-gray-400">({data.lapsed.length})</span></h2>
-        <p className="text-sm text-gray-500">Memberships that ended in the last 30 days. A win-back message works best in the first week.</p>
-        {data.lapsed.length === 0 ? <p className="mt-3 text-sm text-gray-400">None right now.</p> : (
+        <h2 className="text-lg font-semibold text-gray-800">{t('Recently lapsed')} <span className="text-gray-400">({data.lapsed.length})</span></h2>
+        <p className="text-sm text-gray-500">{t('Memberships that ended in the last 30 days. A win-back message works best in the first week.')}</p>
+        {data.lapsed.length === 0 ? <p className="mt-3 text-sm text-gray-400">{t('None right now.')}</p> : (
           <ul className="mt-2 divide-y divide-gray-100">
-            {data.lapsed.map((m) => <Row key={m.id} m={m} label={`ended ${m.daysSinceEnd} days ago`} state={state[m.id]} onSend={(x) => send(x, 'lapsed')} />)}
+            {data.lapsed.map((m) => <Row key={m.id} m={m} label={t('ended {n} days ago', { n: m.daysSinceEnd })} state={state[m.id]} onSend={(x) => send(x, 'lapsed')} />)}
           </ul>
         )}
       </div>

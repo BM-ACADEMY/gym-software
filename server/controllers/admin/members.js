@@ -204,6 +204,7 @@ const resolvePlanAndTrainer = async (req, body) => {
 const createMember = async (req, res) => {
   try {
     const { name, phone, email, photo, gender, goal, medicalNotes, status } = req.body;
+    const deviceUserId = typeof req.body.deviceUserId === 'string' ? req.body.deviceUserId.trim().slice(0, 40) : undefined;
     if (!name) {
       return res.status(400).json({ success: false, message: 'Member name is required' });
     }
@@ -230,6 +231,7 @@ const createMember = async (req, res) => {
       gender,
       goal,
       medicalNotes,
+      ...(deviceUserId ? { deviceUserId } : {}),
       status: status && STATUS_VALUES.includes(status) ? status : 'active',
       ...planTrainerFields,
     });
@@ -262,6 +264,7 @@ const updateMember = async (req, res) => {
     if (gender !== undefined) member.gender = gender;
     if (goal !== undefined) member.goal = goal;
     if (medicalNotes !== undefined) member.medicalNotes = medicalNotes;
+    if (typeof req.body.deviceUserId === 'string') member.deviceUserId = req.body.deviceUserId.trim().slice(0, 40);
     if (status !== undefined && STATUS_VALUES.includes(status)) member.status = status;
 
     // A restricted sub-admin may not hand a member off to someone else.

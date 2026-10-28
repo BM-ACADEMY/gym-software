@@ -7,7 +7,7 @@ import PermissionMatrix from '../../components/PermissionMatrix';
 import { SUBADMIN_TEMPLATES } from '../../config/navigation';
 import useSuspended from '../../hooks/useSuspended';
 
-const emptyForm = { name: '', phone: '', email: '', password: '', template: 'custom', permissions: {} };
+const emptyForm = { name: '', phone: '', email: '', deviceUserId: '', password: '', template: 'custom', permissions: {} };
 
 const StaffManagement = () => {
   const suspended = useSuspended();
@@ -41,7 +41,7 @@ const StaffManagement = () => {
   const openCreate = () => { setEditingId(null); setForm(emptyForm); setModalOpen(true); };
   const openEdit = (member) => {
     setEditingId(member._id);
-    setForm({ name: member.name, phone: member.phone || '', email: member.email || '', password: '', template: member.template, permissions: member.permissions || {} });
+    setForm({ name: member.name, phone: member.phone || '', email: member.email || '', deviceUserId: member.deviceUserId || '', password: '', template: member.template, permissions: member.permissions || {} });
     setModalOpen(true);
   };
 
@@ -50,7 +50,7 @@ const StaffManagement = () => {
     setSaving(true);
     setError('');
     try {
-      const payload = { name: form.name, phone: form.phone || undefined, email: form.email || undefined, template: form.template, permissions: form.permissions };
+      const payload = { name: form.name, phone: form.phone || undefined, email: form.email || undefined, deviceUserId: form.deviceUserId, template: form.template, permissions: form.permissions };
       if (form.password) payload.password = form.password;
 
       if (editingId) {
@@ -168,6 +168,10 @@ const StaffManagement = () => {
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Name</label>
             <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Biometric / card ID on your device (optional)</label>
+            <input value={form.deviceUserId} onChange={(e) => setForm({ ...form, deviceUserId: e.target.value })} placeholder="e.g. 7" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

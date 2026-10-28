@@ -4,6 +4,7 @@ const router = express.Router();
 router.use('/dashboard', require('./dashboard'));
 router.use('/members', require('./members'));
 router.use('/attendance', require('./attendance'));
+router.use('/staff-attendance', require('./staffAttendance'));
 router.use('/payment', require('./payment'));
 router.use('/subadmins', require('./subadmins'));
 router.use('/trainers', require('./trainers'));

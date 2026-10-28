@@ -45,6 +45,8 @@ export const ADMIN_NAV = [
   { key: 'dashboard', label: 'Dashboard', path: '', page: 'Dashboard', icon: LayoutDashboard },
   { key: 'members', label: 'Members', path: 'members', page: 'Members', icon: Users },
   { key: 'import', label: 'Import Members', path: 'import', page: 'ImportMembers', icon: UserPlus },
+  { key: 'device-log', label: 'Import Device Log', path: 'device-log', page: 'DeviceLogImport', icon: CalendarCheck },
+  { key: 'staff-attendance', label: 'Staff Attendance', path: 'staff-attendance', page: 'StaffAttendance', icon: UserCog },
   { key: 'attendance', label: 'Attendance', path: 'attendance', page: 'Attendance', icon: CalendarCheck },
   { key: 'payment', label: 'Payment', path: 'payment', page: 'Payment', icon: CreditCard },
   { key: 'staff', label: 'Sub-Admin / Staff', path: 'staff', page: 'StaffManagement', icon: UserCog },

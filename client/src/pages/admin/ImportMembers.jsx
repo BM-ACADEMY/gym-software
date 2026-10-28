@@ -1,29 +1,8 @@
 import { useState } from 'react';
 import { Upload, Download, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import apiClient from '../../api/client';
-import { parseCsv, TEMPLATE_CSV } from '../../utils/csv';
-
-// Excel dates come back as Date objects. Adding 12 hours before reading the UTC
-// date gives the right calendar day whether the library used local or UTC midnight.
-const dateToText = (d) => {
-  const x = new Date(d.getTime() + 12 * 60 * 60 * 1000);
-  return `${String(x.getUTCDate()).padStart(2, '0')}/${String(x.getUTCMonth() + 1).padStart(2, '0')}/${x.getUTCFullYear()}`;
-};
-
-const readFile = async (file) => {
-  if (/\.xlsx$/i.test(file.name)) {
-    const { default: readXlsxFile } = await import('read-excel-file');
-    const table = await readXlsxFile(file);
-    if (table.length < 2) return [];
-    const headers = table[0].map((h) => String(h ?? '').trim());
-    return table.slice(1).map((r) => Object.fromEntries(headers.map((h, i) => {
-      const v = r[i];
-      return [h, v instanceof Date ? dateToText(v) : v ?? ''];
-    })));
-  }
-  if (/\.csv$/i.test(file.name)) return parseCsv(await file.text());
-  throw new Error('Please choose an Excel (.xlsx) or CSV file. Old .xls files: open in Excel and Save As .xlsx.');
-};
+import { TEMPLATE_CSV } from '../../utils/csv';
+import { readSpreadsheet } from '../../utils/spreadsheet';
 
 const downloadTemplate = () => {
   const url = URL.createObjectURL(new Blob([TEMPLATE_CSV], { type: 'text/csv' }));
@@ -49,7 +28,7 @@ const ImportMembers = () => {
     setFileName(file.name);
     setBusy(true);
     try {
-      const parsed = await readFile(file);
+      const parsed = await readSpreadsheet(file);
       if (!parsed.length) throw new Error('The file has no member rows.');
       setRows(parsed);
       const { data } = await apiClient.post('/admin/members/import', { rows: parsed, commit: false });

@@ -25,6 +25,7 @@ const emptyForm = {
   gender: '',
   goal: '',
   medicalNotes: '',
+  deviceUserId: '',
   planId: '',
   assignedSubAdminId: '',
 };
@@ -94,6 +95,7 @@ const Members = () => {
       gender: member.gender || '',
       goal: member.goal || '',
       medicalNotes: member.medicalNotes || '',
+      deviceUserId: member.deviceUserId || '',
       planId: member.planId?._id || '',
       assignedSubAdminId: member.assignedSubAdminId?._id || '',
     });
@@ -255,6 +257,9 @@ const Members = () => {
                   <input value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} placeholder="e.g. Fat loss" className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
                 </label>
               </div>
+              <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Biometric / card ID on your device (optional)</span>
+                <input value={form.deviceUserId} onChange={(e) => setForm({ ...form, deviceUserId: e.target.value })} placeholder="e.g. 101" className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
+              </label>
               <label className="block"><span className="mb-1.5 block text-sm font-medium text-gray-700">Medical notes</span>
                 <textarea value={form.medicalNotes} onChange={(e) => setForm({ ...form, medicalNotes: e.target.value })} rows={2} className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
               </label>

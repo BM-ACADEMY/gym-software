@@ -13,4 +13,7 @@ function checkCap(plan, kind, usedThisMonth) {
   const cap = p[f];
   return { ok: usedThisMonth < cap, cap, used: usedThisMonth, left: Math.max(0, cap - usedThisMonth) };
 }
-module.exports = { PLANS, checkCap };
+// Shape the shared billing core (packages/core-billing) wants. Yearly = 10 months, like the gym (Assumption, not approved).
+const billingPlans = () => Object.fromEntries(Object.entries(PLANS).map(([key, p]) => [key, { key, name: key[0].toUpperCase() + key.slice(1), monthly: p.price, yearly: p.price * 10, currency: p.currency }]));
+const BILLING = { gstRate: 18, graceDays: 3, trialDays: 14, trialPlanKey: 'growth', ranks: { starter: 0, growth: 1, pro: 2 } };
+module.exports = { PLANS, checkCap, billingPlans, BILLING };

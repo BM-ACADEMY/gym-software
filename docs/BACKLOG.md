@@ -89,7 +89,7 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 | --- | --- | --- | --- | --- |
 | SA-03 | AI and WhatsApp usage with caps and alerts for every business in every product, plus a platform daily budget stop and token/rupee cost from `AiUsage` (ties to 1E-05, D-13, D-15) | L | 3 | WRITTEN (not yet tested): services/aiBudget.js, Root Admin API + screen (AI & WhatsApp Usage), tests aiBudget.unit (checked in plain node) and usageBudget (DB, not run). Default daily budget Rs 500 is an assumption |
 | SA-04 | Founder daily brief by email (MRR, new and lost gyms, failed payments, tickets, AI cost, risks) | L | 2 | WRITTEN (not yet tested): services/founderBrief.js, server.js tick, tests founderBrief.unit (plain node) and founderBrief (DB, not run). Needs FOUNDER_EMAIL and SMTP on the server |
-| SA-05 | Promo and referral code screen in Root Admin (API exists) | L | 1.5 | TODO |
+| SA-05 | Promo and referral code screen in Root Admin (API exists) | L | 1.5 | WRITTEN (not yet tested): client page Promo & Referral Codes with a floor-price warning; API and tests already existed (promoCodes.test.js). Needs a screen test by Staff |
 | SA-01 | Gym health score and churn-risk list from usage signals, with an automatic nudge to the owner | A | 3 | TODO |
 | SA-02 | Support inbox with AI triage, reply drafts, auto-answer from help articles, SLA timers | A | 3 | TODO |
 | SA-06 | Plan and limit overrides and feature flags per gym, each with a logged reason | A | 2 | TODO |

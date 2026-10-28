@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Gauge,
+  Percent,
   Users,
   CalendarCheck,
   CreditCard,
@@ -37,6 +38,7 @@ export const ROOT_ADMIN_NAV = [
   { key: 'business', label: 'Business Overview', path: 'business', page: 'BusinessOverview', icon: BarChart3 },
   { key: 'subscribers', label: 'Subscriber Management', path: 'subscribers', page: 'Subscribers', icon: Building2 },
   { key: 'plan-creation', label: 'Plan Creation', path: 'plan-creation', page: 'PlanCreation', icon: Tags },
+  { key: 'promo-codes', label: 'Promo & Referral Codes', path: 'promo-codes', page: 'PromoCodes', icon: Percent },
   { key: 'coupons', label: 'Coupons', path: 'coupons', page: 'Coupons', icon: Ticket },
   { key: 'analytics', label: 'Analytics', path: 'analytics', page: 'Analytics', icon: BarChart3 },
   { key: 'usage', label: 'AI & WhatsApp Usage', path: 'usage', page: 'Usage', icon: Gauge },

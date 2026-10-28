@@ -26,6 +26,8 @@ Shared foundation for all of them: `docs/products/CORE.md`. Nothing in a product
 7. One WhatsApp number (Afra Ventures) at the start, template names prefixed by product (D-12).
 8. Every claim in a scope file is tagged Fact (with source), Assumption, or Decision.
 
+9. Business autopilot (watch, act, report for the owner) follows `docs/products/AUTOPILOT.md`: suggest by default, auto-send only when the owner switches a job on.
+
 ## Common phase structure (same as the gym)
 
 - Phase 1: the scope file's "Phase 1 must-have" list. Gate: product QA workbook all P1 pass, Dev B attack suite clean, 3 to 10 invited businesses.

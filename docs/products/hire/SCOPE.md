@@ -25,6 +25,8 @@ Slow sourcing, resumes in WhatsApp and Excel, lost follow-ups, candidates who dr
 10. Placement fee and invoice tracking, GST invoices (core), payment reminders to clients.
 11. Duplicate detection by phone/email; CSV import/export; Ask your business; Tamil/Hindi/English; PWA.
 
+12. **Autopilot (priority)**: morning list per recruiter, candidate nudges, interview reminders, offer watch, stale-job alerts, fee reminders, Friday client update, Monday agency report. Rules in `apps/hire/src/autopilot.js`; levels and guardrails in `docs/products/AUTOPILOT.md`.
+
 ## 4. Phase 2
 Job-board posting and email-inbox capture, candidate self-service form link, calendar sync, team targets and incentives, client portal login, background-verification partner links.
 

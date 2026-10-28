@@ -153,3 +153,5 @@ Scope files: `docs/products/README.md` (index and rules), `CORE.md`, and one `SC
 | P-P | Floor-price tables per product (SAL-P1, MRT-P1, DIN-P1, CLO-P1, WSH-P1, HIR-P1), same method as the gym; Mohamed approves (Tier 3) | L | TODO |
 | P-QA | Product QA workbooks and Dev B attack lists per product | L | TODO |
 | P-LAND | Landing page and claims file per product, matching `MARKETING_CLAIMS.md` rules | L | TODO |
+
+| DEP-01 | Gym on the Hostinger VPS: runbook `docs/DEPLOY_VPS.md` (nginx, systemd, certbot, Atlas allowlist, single instance) | WRITTEN (not run); waits for server hardening step 12 |

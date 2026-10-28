@@ -230,4 +230,11 @@ export default {
   "e.g. Annual plan renewal": "जैसे सालाना प्लान रिन्यूअल",
   "Remaining balance": "बाकी राशि",
   "Amount (₹)": "राशि (₹)",
+  "Entrance Poster": "एंट्री पोस्टर",
+  "Print this and stick it at your entrance. Members scan it, sign in and tap Check in.": "इसे प्रिंट करके एंट्री पर लगाएं। मेंबर स्कैन करेंगे, साइन इन करेंगे और चेक-इन दबाएंगे।",
+  "Print poster": "पोस्टर प्रिंट करें",
+  "Scan to check in": "चेक-इन के लिए स्कैन करें",
+  "Scan the code with your phone camera": "फोन कैमरे से कोड स्कैन करें",
+  "Sign in with your phone number": "अपने फोन नंबर से साइन इन करें",
+  "Tap Check in": "चेक-इन दबाएं",
 };

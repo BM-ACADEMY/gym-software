@@ -230,4 +230,11 @@ export default {
   "e.g. Annual plan renewal": "உதா. ஆண்டுத் திட்டப் புதுப்பிப்பு",
   "Remaining balance": "மீதமுள்ள தொகை",
   "Amount (₹)": "தொகை (₹)",
+  "Entrance Poster": "நுழைவாயில் போஸ்டர்",
+  "Print this and stick it at your entrance. Members scan it, sign in and tap Check in.": "இதை அச்சிட்டு நுழைவாயிலில் ஒட்டுங்கள். உறுப்பினர்கள் ஸ்கேன் செய்து, உள்நுழைந்து, செக்-இன் தொடுவார்கள்.",
+  "Print poster": "போஸ்டரை அச்சிடு",
+  "Scan to check in": "செக்-இன் செய்ய ஸ்கேன் செய்யுங்கள்",
+  "Scan the code with your phone camera": "உங்கள் போன் கேமராவால் குறியீட்டை ஸ்கேன் செய்யுங்கள்",
+  "Sign in with your phone number": "உங்கள் தொலைபேசி எண்ணுடன் உள்நுழையுங்கள்",
+  "Tap Check in": "செக்-இன் தொடுங்கள்",
 };

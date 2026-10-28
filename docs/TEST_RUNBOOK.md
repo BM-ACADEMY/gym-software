@@ -64,3 +64,7 @@ For each failure: which step, what you expected, what happened, and the red erro
 2. Owner, Staff Payroll: set a salary for two staff, record an advance for one, mark some staff attendance, create a draft for a past month. Check loss of pay days, PT commission and the net pay against a calculator.
 3. Change an advance cut, lock the month, try to edit again (must be refused), download a payslip PDF and check it opens.
 4. Starter plan gym must be refused (feature not included). A staff login must not reach payroll.
+
+## Extra: entrance poster (Dev A, Staff)
+1. Set `CLIENT_URL` on the server. `cd server && npm test -- poster` should pass.
+2. Owner, Entrance Poster: print it (or save as PDF). Scan with a phone: it must open the sign-in page. A member signs in and taps Check in.

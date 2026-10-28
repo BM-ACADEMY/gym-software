@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Gauge,
   Users,
   CalendarCheck,
   CreditCard,
@@ -38,6 +39,7 @@ export const ROOT_ADMIN_NAV = [
   { key: 'plan-creation', label: 'Plan Creation', path: 'plan-creation', page: 'PlanCreation', icon: Tags },
   { key: 'coupons', label: 'Coupons', path: 'coupons', page: 'Coupons', icon: Ticket },
   { key: 'analytics', label: 'Analytics', path: 'analytics', page: 'Analytics', icon: BarChart3 },
+  { key: 'usage', label: 'AI & WhatsApp Usage', path: 'usage', page: 'Usage', icon: Gauge },
   { key: 'billing', label: 'Billing & Invoices', path: 'billing', page: 'Billing', icon: Receipt },
   { key: 'support', label: 'Support / Tickets', path: 'support', page: 'Support', icon: LifeBuoy },
   { key: 'request-access', label: 'Request Access', path: 'request-access', page: 'RequestAccess', icon: KeyRound },

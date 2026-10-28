@@ -5,6 +5,7 @@ import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { downloadFile } from '../../utils/downloadFile';
 import useSuspended from '../../hooks/useSuspended';
+import { useT } from '../../i18n';
 
 const STATUS_TONE = { pending: 'gray', partial: 'amber', paid: 'green', overdue: 'red', refunded: 'blue' };
 const METHODS = ['cash', 'upi', 'card'];
@@ -14,6 +15,7 @@ const emptyForm = { memberId: '', amount: '', amountNow: '', method: 'cash', cat
 const installmentForm = { amount: '', method: 'cash', note: '' };
 
 const Payment = () => {
+  const { t } = useT();
   const suspended = useSuspended();
   const [summary, setSummary] = useState({ collectedToday: 0, collectedTodayCount: 0, pendingDues: 0, pendingDuesCount: 0 });
   const [payments, setPayments] = useState([]);
@@ -108,11 +110,11 @@ const Payment = () => {
     <div className="p-6 sm:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Payment</h1>
-          <p className="mt-1 text-gray-500">Record collections and track dues.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('Payment')}</h1>
+          <p className="mt-1 text-gray-500">{t('Record collections and track dues.')}</p>
         </div>
         <button disabled={suspended} onClick={openForm} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500">
-          <Plus className="h-4 w-4" /> Record payment
+          <Plus className="h-4 w-4" /> {t('Record payment')}
         </button>
       </div>
 
@@ -120,29 +122,29 @@ const Payment = () => {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between"><p className="text-sm font-medium text-gray-500">Collected today</p><IndianRupee className="h-5 w-5 text-teal-600" /></div>
+          <div className="flex items-center justify-between"><p className="text-sm font-medium text-gray-500">{t('Collected today')}</p><IndianRupee className="h-5 w-5 text-teal-600" /></div>
           <p className="mt-2 text-3xl font-bold text-gray-950">₹{summary.collectedToday.toLocaleString()}</p>
-          <p className="mt-1 text-xs text-gray-500">{summary.collectedTodayCount} transaction{summary.collectedTodayCount === 1 ? '' : 's'}</p>
+          <p className="mt-1 text-xs text-gray-500">{summary.collectedTodayCount === 1 ? t('1 transaction') : t('{n} transactions', { n: summary.collectedTodayCount })}</p>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between"><p className="text-sm font-medium text-gray-500">Pending dues</p><Receipt className="h-5 w-5 text-amber-600" /></div>
+          <div className="flex items-center justify-between"><p className="text-sm font-medium text-gray-500">{t('Pending dues')}</p><Receipt className="h-5 w-5 text-amber-600" /></div>
           <p className="mt-2 text-3xl font-bold text-gray-950">₹{summary.pendingDues.toLocaleString()}</p>
-          <p className="mt-1 text-xs text-gray-500">{summary.pendingDuesCount} invoice{summary.pendingDuesCount === 1 ? '' : 's'}</p>
+          <p className="mt-1 text-xs text-gray-500">{summary.pendingDuesCount === 1 ? t('1 invoice') : t('{n} invoices', { n: summary.pendingDuesCount })}</p>
         </div>
       </div>
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-100 px-5 py-4"><h3 className="font-semibold text-gray-900">Recent payments</h3></div>
+        <div className="border-b border-gray-100 px-5 py-4"><h3 className="font-semibold text-gray-900">{t('Recent payments')}</h3></div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-              <tr><th className="px-5 py-3">Member</th><th className="px-5 py-3">Invoice</th><th className="px-5 py-3">Total</th><th className="px-5 py-3">Paid</th><th className="px-5 py-3">Balance</th><th className="px-5 py-3">Status</th><th className="px-5 py-3"></th></tr>
+              <tr><th className="px-5 py-3">{t('Member')}</th><th className="px-5 py-3">{t('Invoice')}</th><th className="px-5 py-3">{t('Total')}</th><th className="px-5 py-3">{t('Paid')}</th><th className="px-5 py-3">{t('Balance')}</th><th className="px-5 py-3">{t('Status')}</th><th className="px-5 py-3"></th></tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400">{t('Loading...')}</td></tr>
               ) : payments.length === 0 ? (
-                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400">No payments recorded yet.</td></tr>
+                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400">{t('No payments recorded yet.')}</td></tr>
               ) : payments.map((p) => (
                 <tr key={p._id}>
                   <td className="px-5 py-4 font-medium text-gray-900">{p.memberId?.name || '—'}</td>
@@ -153,18 +155,18 @@ const Payment = () => {
                   <td className="px-5 py-4">
                     <Badge tone={STATUS_TONE[p.effectiveStatus] || 'gray'}>
                       {p.effectiveStatus === 'overdue' && <AlertTriangle className="mr-1 inline h-3 w-3" />}
-                      {p.effectiveStatus}
+                      {t(p.effectiveStatus[0].toUpperCase() + p.effectiveStatus.slice(1))}
                     </Badge>
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
                       {['pending', 'partial'].includes(p.status) && (
-                        <button disabled={suspended} onClick={() => { setInstallmentTarget(p); setInstForm(installmentForm); }} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">Add installment</button>
+                        <button disabled={suspended} onClick={() => { setInstallmentTarget(p); setInstForm(installmentForm); }} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">{t('Add installment')}</button>
                       )}
                       {p.status === 'paid' && (
-                        <button disabled={suspended} onClick={() => refund(p)} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">Refund</button>
+                        <button disabled={suspended} onClick={() => refund(p)} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">{t('Refund')}</button>
                       )}
-                      <button onClick={() => downloadFile(apiClient, `/admin/payment/${p._id}/invoice.pdf`, `${p.invoiceNumber || p._id}.pdf`)} title="Download invoice" className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"><Download className="h-4 w-4" /></button>
+                      <button onClick={() => downloadFile(apiClient, `/admin/payment/${p._id}/invoice.pdf`, `${p.invoiceNumber || p._id}.pdf`)} title={t('Download invoice')} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"><Download className="h-4 w-4" /></button>
                     </div>
                   </td>
                 </tr>
@@ -174,69 +176,69 @@ const Payment = () => {
         </div>
       </div>
 
-      <Modal open={formOpen} onClose={() => setFormOpen(false)} title="Record payment" footer={
+      <Modal open={formOpen} onClose={() => setFormOpen(false)} title={t('Record payment')} footer={
         <>
-          <button onClick={() => setFormOpen(false)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button type="submit" form="payment-form" disabled={saving || suspended} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? 'Saving...' : 'Confirm payment'}</button>
+          <button onClick={() => setFormOpen(false)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">{t('Cancel')}</button>
+          <button type="submit" form="payment-form" disabled={saving || suspended} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? t('Saving...') : t('Confirm payment')}</button>
         </>
       }>
         <form id="payment-form" onSubmit={submitPayment} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Member</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('Member')}</label>
             <select required value={form.memberId} onChange={(e) => setForm({ ...form, memberId: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm">
-              <option value="">Select a member</option>
+              <option value="">{t('Select a member')}</option>
               {members.map((m) => <option key={m._id} value={m._id}>{m.name}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Total amount due (₹)</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('Total amount due (₹)')}</label>
               <input required type="number" min="1" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm" />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Paying now (₹)</label>
-              <input type="number" min="0" value={form.amountNow} onChange={(e) => setForm({ ...form, amountNow: e.target.value })} placeholder="Same as total" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm" />
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('Paying now (₹)')}</label>
+              <input type="number" min="0" value={form.amountNow} onChange={(e) => setForm({ ...form, amountNow: e.target.value })} placeholder={t('Same as total')} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Method</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('Method')}</label>
               <select value={form.method} onChange={(e) => setForm({ ...form, method: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm capitalize">
                 {METHODS.map((m) => <option key={m} value={m}>{m.toUpperCase()}</option>)}
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Due date (optional)</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('Due date (optional)')}</label>
               <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm" />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">For</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('For')}</label>
             <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm">
-              {CATEGORIES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              {CATEGORIES.map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Note</label>
-            <input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="e.g. Annual plan renewal" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm" />
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('Note')}</label>
+            <input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder={t('e.g. Annual plan renewal')} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm" />
           </div>
         </form>
       </Modal>
 
-      <Modal open={!!installmentTarget} onClose={() => setInstallmentTarget(null)} title={`Add installment — ${installmentTarget?.memberId?.name || ''}`} footer={
+      <Modal open={!!installmentTarget} onClose={() => setInstallmentTarget(null)} title={`${t('Add installment')} — ${installmentTarget?.memberId?.name || ''}`} footer={
         <>
-          <button onClick={() => setInstallmentTarget(null)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button type="submit" form="installment-form" disabled={saving || suspended} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? 'Saving...' : 'Record installment'}</button>
+          <button onClick={() => setInstallmentTarget(null)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">{t('Cancel')}</button>
+          <button type="submit" form="installment-form" disabled={saving || suspended} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? t('Saving...') : t('Record installment')}</button>
         </>
       }>
         <form id="installment-form" onSubmit={submitInstallment} className="space-y-4">
-          <p className="text-sm text-gray-500">Remaining balance: ₹{installmentTarget?.balanceDue?.toLocaleString()}</p>
+          <p className="text-sm text-gray-500">{t('Remaining balance')}: ₹{installmentTarget?.balanceDue?.toLocaleString()}</p>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Amount (₹)</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('Amount (₹)')}</label>
             <input required type="number" min="1" value={instForm.amount} onChange={(e) => setInstForm({ ...instForm, amount: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Method</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('Method')}</label>
             <select value={instForm.method} onChange={(e) => setInstForm({ ...instForm, method: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm capitalize">
               {METHODS.map((m) => <option key={m} value={m}>{m.toUpperCase()}</option>)}
             </select>

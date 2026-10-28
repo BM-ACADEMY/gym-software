@@ -9,7 +9,7 @@ Slow sourcing, resumes in WhatsApp and Excel, lost follow-ups, candidates who dr
 | Item | Type | Detail |
 | --- | --- | --- |
 | Zoho Recruit, CEIPAL, iSmartRecruit, greytHR Recruit at Rs 1,500 to 4,700 per recruiter a month | Source | factoHR via master plan |
-| Per-seat pricing hurts small agencies; sourcing and outreach automation is the pain | Source/Assumption | Master plan reading; interview 5 agencies (task HIR-R1) |
+| Per-seat pricing hurts small agencies; sourcing and outreach automation is the pain | Source/Assumption | First pass 28 Oct (`RESEARCH.md`): Zoho charges per recruiter ($30/60/90); Recruitkar sells AI screening and WhatsApp from Rs 999 a month; resume parsing is free at Zoho. Parsing is not the edge; client share page, offer-drop flags, fee tracking and flat team price are. Agency interviews still open (HIR-R1) |
 | Resume data is personal data (Digital Personal Data Protection Act applies) | Assumption to confirm | Lawyer to confirm consent and retention wording (Tier 3) |
 
 ## 3. Phase 1 must-have

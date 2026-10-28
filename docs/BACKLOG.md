@@ -149,7 +149,7 @@ Scope files: `docs/products/README.md` (index and rules), `CORE.md`, and one `SC
 | C-03 | Fail-closed tenant plugin, a test per model | L | TODO |
 | C-04 | Move billing, plans, WhatsApp, caps, Super Admin into packages; gym consumes them only after Dev A's first green run | A | TODO |
 | C-05 | Business-type switch and per-product presets | L | TODO |
-| P-R | Research tasks per product (SAL-R1, MRT-R1, DIN-R2, CLO-R1, WSH-R1, HIR-R1): verify competitor features and policies; replace Assumptions in scope files | L | PARTIAL: SAL-R1, MRT-R1, DIN-R2 and CLO-R1 first passes done (`docs/products/{salon,mart,dine,cloth}/RESEARCH.md`; vendor pricing pages and owner interviews still open); WSH, HIR TODO |
+| P-R | Research tasks per product (SAL-R1, MRT-R1, DIN-R2, CLO-R1, WSH-R1, HIR-R1): verify competitor features and policies; replace Assumptions in scope files | L | PARTIAL: SAL-R1, MRT-R1, DIN-R2, CLO-R1 and HIR-R1 first passes done (`docs/products/{salon,mart,dine,cloth,hire}/RESEARCH.md`; vendor pricing pages and owner interviews still open); WSH TODO |
 | P-P | Floor-price tables per product (SAL-P1, MRT-P1, DIN-P1, CLO-P1, WSH-P1, HIR-P1), same method as the gym; Mohamed approves (Tier 3) | L | TODO |
 | P-QA | Product QA workbooks and Dev B attack lists per product | L | TODO |
 | P-LAND | Landing page and claims file per product, matching `MARKETING_CLAIMS.md` rules | L | TODO |

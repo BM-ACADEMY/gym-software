@@ -1,0 +1,24 @@
+# Hire (AI hiring tool for recruitment agencies): competitor research (HIR-R1, first pass)
+
+Date: 28 Oct 2026. Pages read through the web tool. **Source** = the page says it; **Assumption** = my reading. Vendor pages are marketing. The DPDP part is a vendor blog and is NOT legal advice (lawyer item stays Tier 3).
+
+## What I read
+| Page | What it says | Tag |
+| --- | --- | --- |
+| Zoho Recruit, Staffing Agency Edition (Zoho help page) | Free plan (basic candidate management, job posting on own site, **resume parsing**, limited customisation). Standard $30, Professional $60, Enterprise $90 **per recruiter per month** (dollar sign, no currency code). Standard: premium job boards, resume inbox, hiring pipeline, candidate pre-screening. Professional: analytics, SMS. **Client portal only on Enterprise.** WhatsApp not mentioned. Only Professional and Enterprise allow unlimited records. | Source |
+| Recruitkar (Capterra listing; built for small companies in India) | INR, usage-based, monthly: Free Rs 0 (50 credits); Starter Rs 999 (400 credits: 400 resume screenings, 1,600 sourced candidates, 2 AI voice interviews, 400 outreach emails); Growth Rs 2,499 (1,500 screenings, 6,000 sourced, 10 voice interviews; team permissions, audit log); Pro Rs 6,999; Enterprise Rs 17,999. **AI resume screening, built-in WhatsApp outreach, email sequences, AI voice calls**, pipeline "New" to "Hired". No client portal mentioned; the page does not mention agencies. | Source |
+| Earlier evidence in the scope file | Zoho Recruit, CEIPAL, iSmartRecruit, greytHR Recruit at Rs 1,500 to 4,700 per recruiter a month (factoHR) | Source, not re-verified; the Zoho page above shows dollars, so the rupee figure is a conversion or a partner price |
+| RippleHire blog on the DPDP Act and hiring (vendor blog, not legal advice) | Explicit, freely given consent before processing candidate data, withdrawable; a privacy notice with purposes, retention and rights; consent must cover the specific use, including AI tools; delete when the hiring purpose ends, indefinite storage not allowed, example of keeping unsuccessful profiles 6 to 12 months; candidates can access, correct and erase data; reasonable security; breach reporting to the Data Protection Board; fines up to Rs 250 crore. The page does not discuss an employment exemption. | Source |
+
+## What this means for Hire (Assumption unless marked)
+1. **AI resume parsing is already free or cheap.** Zoho gives parsing on its free plan; Recruitkar gives AI screening, WhatsApp outreach and AI voice calls from Rs 999 a month. Parsing alone is not a reason to switch. Our edge has to be what the two pages do not show: a **client share page** (Zoho puts the client portal on its top plan; Recruitkar does not list one), **offer-drop warnings**, **placement-fee and GST invoice tracking** and **flat price per agency with unlimited recruiters** (Zoho charges per recruiter). None of this is proven to be missing elsewhere; it is only absent from the pages read.
+2. **Our draft flat price (Rs 999 / 1,999 / 3,999 a month) is in the same range as Recruitkar's Rs 999 / 2,499 / 6,999 usage plans.** We are not clearly cheaper for one recruiter; we are cheaper for a team of three or more against Zoho Professional ($60 each). HIR-P1 must show the break-even team size. Not approved.
+3. **Recruitkar proves the AI-credit model sells in India**: screenings, sourced candidates and voice interviews counted as credits. Our per-plan caps on resumes parsed and ranking runs (D-13, D-16 pattern) are the same idea and keep our cost safe.
+4. **AI voice interviews and sourcing** (Recruitkar) are out of scope for us: the repo rule is no autonomous AI voice calling, and sourcing needs data we do not have. Do not match them.
+5. **Candidate data rules shape the build** (Assumption pending lawyer): store consent source and date per candidate; a retention date with an automatic "delete or renew consent" list (6 to 12 months for unsuccessful candidates is a vendor example, not a rule); export and delete on request; the privacy page and claims file must say resume text is sent to OpenAI (D-15). These go into the first build, not after.
+6. **WhatsApp outreach to candidates** is marketing-category and prepaid; only to candidates with consent or inside a reply window. Lawyer wording needed (Tier 3). Until then outreach is limited to candidates who messaged first or gave consent through the share form.
+
+## Not yet done (HIR-R1 stays open)
+- Read pricing pages of CEIPAL, iSmartRecruit, greytHR Recruit, Recruiterflow, Naukri RMS; record price and date.
+- Interview 5 small agencies (Mohamed or agents): how many recruiters, where resumes arrive, how clients get updates, what they pay, biggest delay.
+- Lawyer: DPDP consent, retention, WhatsApp outreach and AI use on resumes (Tier 3).

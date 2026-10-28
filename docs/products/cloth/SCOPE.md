@@ -25,6 +25,7 @@ Money stuck in unsold sizes and colours, big swings around festivals and seasons
 10. Loyalty points (core), festival offers to past buyers (prepaid marketing messages).
 11. **Festival and season forecast** from last year's sales: Phase 1 is a simple rule (last year's same-window sales plus growth percent the owner sets); AI explanation on top. Needs one year of data, which new shops will not have, so import of past sales (Excel) is part of set-up.
 12. Daily report, staff attendance and salary, expenses, day-end closing, Ask your business, Tamil/Hindi/English, PWA, CSV export.
+14. **CSV import** (items with opening stock, customers with opening balance or points) with a preview before saving: written in `packages/core-pos` (written, not yet tested).
 
 ## 4. Phase 2
 Fabric by metre with roll tracking, multi-branch/godown transfer, e-way bill help, tailoring workshop workflow, direct thermal/label printer, marketplace listing export.

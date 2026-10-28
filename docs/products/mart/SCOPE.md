@@ -28,6 +28,7 @@ Thin margins, expiry and dead stock, udhaar (credit) that never returns, supplie
 11. Daily report: sales, profit by category, cash vs UPI, low stock, udhaar due. Owner WhatsApp summary.
 12. Staff attendance and salary (core), expenses, day-end cash closing.
 13. Ask your business (AI on own data). English, Tamil, Hindi; PWA; CSV export.
+14. **CSV import** (items with opening stock, customers with opening balance or points) with a preview before saving: written in `packages/core-pos` (written, not yet tested).
 
 ## 4. Phase 2
 Weighing-scale integration, WhatsApp catalogue and order taking for regulars, supplier rate comparison, direct thermal printer, multi-branch, e-way/GST filing help (CA review), delivery planning.

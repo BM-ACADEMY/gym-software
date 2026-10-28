@@ -28,6 +28,7 @@ Food cost creeping up unseen, wastage, aggregator commission, staff theft, slow 
 9. Staff attendance, shifts, salary (core), expenses, day-end cash closing, owner WhatsApp summary.
 10. Leakage alerts: voids, bill edits, heavy discounts, cash short.
 11. Ask your business; English, Tamil, Hindi; PWA; CSV export.
+14. **CSV import** (items with opening stock, customers with opening balance or points) with a preview before saving: written in `packages/core-pos` (written, not yet tested).
 
 ## 4. Phase 1 must-have (Pub/Bar mode, same app)
 1. Each drink is a recipe with a measure (peg, ml); every sale deducts from bottle stock; daily variance report (sold vs opened).

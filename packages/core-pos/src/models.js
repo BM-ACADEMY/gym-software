@@ -20,7 +20,7 @@ module.exports = (mongoose) => {
   const PosItem = define('PosItem', {
     tenantId: T, kind: { type: String, enum: ['item', 'service'], default: 'item' },
     name: { type: String, required: true, trim: true, maxlength: 120 }, sku: { type: String, trim: true }, barcode: { type: String, trim: true },
-    price: { type: Number, required: true, min: 0 }, currency: { type: String, default: 'INR' }, gstRate: { type: Number, default: 0 },
+    price: { type: Number, required: true, min: 0 }, cost: Number, unit: { type: String, trim: true, maxlength: 20 }, category: { type: String, trim: true, maxlength: 60 }, hsn: { type: String, trim: true, maxlength: 12 }, currency: { type: String, default: 'INR' }, gstRate: { type: Number, default: 0 },
     trackStock: { type: Boolean, default: false }, qty: { type: Number, default: 0 }, reorderLevel: Number,
     expiresAt: Date, isActive: { type: Boolean, default: true },
   }, [[{ tenantId: 1, barcode: 1 }, { unique: true, partialFilterExpression: { barcode: { $type: 'string' } } }], [{ tenantId: 1, name: 1 }, {}]]);

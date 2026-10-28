@@ -90,6 +90,33 @@ describe('core-pos routes', () => {
     expect((await request(app).post('/pos/customers').set(as(B)).send({ name: 'Three', phone: '9000000111' })).status).toBe(201);
   });
 
+  test('CSV import: preview changes nothing, commit saves, existing items are skipped, other business unaffected', async () => {
+    const csv = 'Item Name,Selling Price,GST,Opening Stock\nImport Rice,52,5,30\nImport Dal,160,5,10\nBad Row,abc,5,1\n';
+    const prev = await request(app).post('/pos/import/items').set(as(A)).send({ csv });
+    expect(prev.status).toBe(200);
+    expect(prev.body.data.committed).toBe(false); expect(prev.body.data.willAdd).toBe(2); expect(prev.body.data.errors).toHaveLength(1);
+    expect((await request(app).get('/pos/items').set(as(A))).body.data.some((i) => i.name === 'Import Rice')).toBe(false);
+    const done = await request(app).post('/pos/import/items').set(as(A)).send({ csv, commit: true });
+    expect(done.body.data.added).toBe(2);
+    const rice = (await request(app).get('/pos/items').set(as(A))).body.data.find((i) => i.name === 'Import Rice');
+    expect(rice.qty).toBe(30); expect(rice.trackStock).toBe(true);
+    const again = await request(app).post('/pos/import/items').set(as(A)).send({ csv, commit: true });
+    expect(again.body.data.added).toBe(0); expect(again.body.data.skipped).toHaveLength(2);
+    expect((await request(app).get('/pos/items').set(as(B))).body.data.some((i) => i.name === 'Import Rice')).toBe(false);
+  });
+
+  test('CSV import of customers keeps opening udhaar and points; needs sign-in', async () => {
+    expect((await request(app).post('/pos/import/customers').send({ csv: 'name\nx' })).status).toBe(401);
+    const csv = 'Customer Name,Mobile,Udhaar,Points\nAsha Import,9876511111,250,60\n';
+    const r = await request(app).post('/pos/import/customers').set(as(A)).send({ csv, commit: true });
+    expect(r.body.data.added).toBe(1);
+    const found = (await request(app).get('/pos/customers?q=9876511111').set(as(A))).body.data[0];
+    expect(found.creditDue).toBe(250);
+    expect((await request(app).get(`/pos/customers/${found._id}`).set(as(A))).body.data.points).toBe(60);
+    const dup = await request(app).post('/pos/import/customers').set(as(A)).send({ csv, commit: true });
+    expect(dup.body.data.added).toBe(0);
+  });
+
   test('stock movement, low-stock and expiry reports', async () => {
     const item = (await request(app).post('/pos/items').set(as(B)).send({ name: 'Cream', price: 80, trackStock: true, qty: 2, reorderLevel: 5, expiresAt: new Date(Date.now() + 10 * 86400000) })).body.data;
     expect((await request(app).post(`/pos/items/${item._id}/stock`).set(as(B)).send({ type: 'sale', qty: 5 })).status).toBe(400);

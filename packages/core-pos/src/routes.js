@@ -5,6 +5,7 @@ const bill = require('./bill');
 const loyalty = require('./loyalty');
 const stock = require('./stock');
 const makeModels = require('./models');
+const csv = require('./csvImport');
 
 const fyOf = (date) => {
   const ist = new Date(new Date(date).getTime() + 5.5 * 3600000);
@@ -79,6 +80,51 @@ module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['a
   router.get('/reports/expiring', wrap(async (req, res, tid) => {
     const items = await M.PosItem.find({ tenantId: tid, trackStock: true, isActive: true, expiresAt: { $ne: null } }).lean();
     res.json({ success: true, data: stock.expiring(items, new Date(), Math.min(Number(req.query.days) || 30, 365)) });
+  }));
+
+
+  // ---- CSV import (preview first, then save). Send at most 1000 rows per request; the screen splits bigger files. ----
+  router.post('/import/items', wrap(async (req, res, tid) => {
+    const parsed = csv.parseItems(str(req.body.csv, 600000));
+    const commit = req.body.commit === true;
+    const existing = new Set();
+    if (parsed.ok.length) {
+      const found = await M.PosItem.find({ tenantId: tid, $or: [{ barcode: { $in: parsed.ok.map((r) => r.barcode).filter(Boolean) } }, { name: { $in: parsed.ok.map((r) => r.name) } }] }).select('name barcode').lean();
+      found.forEach((f) => { if (f.barcode) existing.add(`b:${f.barcode}`); existing.add(`n:${f.name.toLowerCase()}`); });
+    }
+    const toAdd = []; const skipped = [];
+    for (const r of parsed.ok) {
+      if ((r.barcode && existing.has(`b:${r.barcode}`)) || existing.has(`n:${r.name.toLowerCase()}`)) skipped.push({ row: r._row, message: `"${r.name}" is already in your item list. Not changed.` });
+      else toAdd.push(r);
+    }
+    let added = 0;
+    if (commit) {
+      for (const r of toAdd) {
+        const { _row, ...rest } = r;
+        const doc = await M.PosItem.create({ tenantId: tid, kind: 'item', ...rest, trackStock: rest.qty > 0 || rest.reorderLevel != null });
+        if (rest.qty > 0) await M.PosStockMove.create({ tenantId: tid, itemId: doc._id, type: 'opening', qty: rest.qty, reason: 'CSV import', by: req.user.id });
+        added += 1;
+      }
+    }
+    res.json({ success: true, data: { committed: commit, willAdd: toAdd.length, added, skipped, errors: parsed.errors, columnsRead: Object.values(parsed.map), preview: toAdd.slice(0, 5) } });
+  }));
+
+  router.post('/import/customers', wrap(async (req, res, tid) => {
+    const parsed = csv.parseCustomers(str(req.body.csv, 600000));
+    const commit = req.body.commit === true;
+    const have = new Set((await M.PosCustomer.find({ tenantId: tid, phone: { $in: parsed.ok.map((r) => r.phone).filter(Boolean) } }).select('phone').lean()).map((c) => c.phone));
+    const toAdd = []; const skipped = [];
+    for (const r of parsed.ok) { if (r.phone && have.has(r.phone)) skipped.push({ row: r._row, message: `${r.phone} is already a customer. Not changed.` }); else toAdd.push(r); }
+    let added = 0;
+    if (commit) {
+      for (const r of toAdd) {
+        const { _row, credit, points, ...rest } = r;
+        const c = await M.PosCustomer.create({ tenantId: tid, ...rest, creditDue: credit || 0 });
+        if (points > 0) await M.PosLoyalty.create({ tenantId: tid, customerId: c._id, points, reason: 'opening' });
+        added += 1;
+      }
+    }
+    res.json({ success: true, data: { committed: commit, willAdd: toAdd.length, added, skipped, errors: parsed.errors, columnsRead: Object.values(parsed.map), preview: toAdd.slice(0, 5) } });
   }));
 
   // ---- bills ----

@@ -15,6 +15,7 @@ Empty slots from no-shows, customers who come once and vanish, staff who take cl
 
 ## 3. Presets
 Salon (hair, skin, nails), Spa (long services, rooms, therapist slots, packages), Barber/Grooming (fast walk-in queue, short services, shaving/beard add-ons). Preset sets the service list, durations, GST/SAC defaults, queue vs appointment default and message wording.
+14. **CSV import** (items with opening stock, customers with opening balance or points) with a preview before saving: written in `packages/core-pos` (written, not yet tested).
 
 ## 4. Phase 1 must-have (invite-only start)
 1. Sign-up, 14-day trial, business-type pick, preset pre-fills services (core).

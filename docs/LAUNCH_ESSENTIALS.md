@@ -12,7 +12,8 @@ Written 29 Oct 2026. Domain and email are in `docs/DOMAIN_AND_EMAIL_SETUP.md`. L
 | Switch to live keys only after the CA check (M-04) and the test pass | M + D |
 | Each new product uses the same account; add its plan ids when its pricing is approved (Tier 3) | later |
 
-## 2. Support from day one
+## 2. Support from day one (decided 29 Oct)
+- Human phone support 10 am to 6 pm IST. AI help assistant 24 hours for how-to questions only: it answers from the help articles, says plainly it is an AI, never promises a refund, a fix or a date, and offers to create a ticket. Billing, refund, data deletion and complaints go to a person (next working day). The assistant is written but not yet tested by a person; do not advertise "24x7 support" until it is. Its AI use counts against the plan cap and the daily budget stop.
 - support@afraventures.in and one WhatsApp support number (can be the same business number, shown on every page). 
 - A shared inbox that two people can read; agree who answers within one working day.
 - The in-app Help & Support ticket list (already built) is checked daily; the Daily Brief lists open tickets.
@@ -30,4 +31,4 @@ A native speaker reads every customer-facing message and screen once before laun
 Per product, 3 to 10 real businesses before "started". Mohamed keeps a list: business, owner, phone, product, date asked, said yes, date started, feedback. Claude suggests who to ask first and writes the one-page invite and a 10-minute test script for each owner. Gym first: 3 to 5 you know personally.
 
 ## 6. Values Dev A sets in the gym app environment (names only; values from Mohamed)
-Client build: `VITE_SUPPORT_EMAIL=support@afraventures.in`, `VITE_SUPPORT_PHONE`, `VITE_COMPANY_ADDRESS`, `VITE_COMPANY_LEGAL_NAME`, `VITE_REFUND_DAYS`. Server: SMTP settings, `FOUNDER_EMAIL`, `AI_DAILY_BUDGET_INR`. Anything left empty is not shown on public pages.
+Client build: `VITE_SUPPORT_EMAIL=support@afraventures.in`, `VITE_SUPPORT_PHONE`, `VITE_COMPANY_ADDRESS` (78, Lenin Street, Kosapalayam, Puducherry - 605013, India), `VITE_COMPANY_LEGAL_NAME`, `VITE_REFUND_DAYS`. Refund money reaches the customer in 7 to 14 working days after approval (Mohamed). Server: SMTP settings, `FOUNDER_EMAIL`, `AI_DAILY_BUDGET_INR`. Anything left empty is not shown on public pages.

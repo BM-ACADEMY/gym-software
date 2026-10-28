@@ -3,13 +3,13 @@
 DRAFT written 29 Oct 2026 by Claude. Not legal advice. The lawyer must review and approve every page before it goes live (Mohamed reports the lawyer is engaged; file the written approval). Fill the [brackets] from the Meta business account so names match exactly. The gym app already has its own Privacy and Terms pages (`client/src/pages/public/`); the other products reuse their structure.
 
 ## Home (short)
-[Company legal name] builds simple business software for small Indian businesses: gyms, salons, shops, restaurants, cloth stores, car washes and recruitment agencies. Registered office: [address]. Contact: hello@afraventures.in. Products are in invite-only testing; each product page lists exactly what works today.
+[Company legal name] builds simple business software for small Indian businesses: gyms, salons, shops, restaurants, cloth stores, car washes and recruitment agencies. Registered office: 78, Lenin Street, Kosapalayam, Puducherry - 605013, India (Mohamed gave this on 29 Oct; check it matches the certificates exactly). Contact: hello@afraventures.in. Products are in invite-only testing; each product page lists exactly what works today.
 
 ## Contact and grievance
-Support: support@afraventures.in, [support phone], Monday to Saturday, [hours] IST. Grievance officer: [name], privacy@afraventures.in. We reply within [2 working days] and resolve within [15 days] (lawyer to confirm the periods).
+Support: support@afraventures.in, [support phone]. Grievance officer: [name], privacy@afraventures.in. Phone support 10 am to 6 pm IST, Monday to Saturday [confirm days]. An AI help assistant answers how-to questions at any hour; billing, refund and data requests are answered by a person on the next working day. We reply within [2 working days] and resolve within [15 days] (lawyer to confirm the periods).
 
 ## Privacy Policy (company level, all products)
-1. **Who we are.** [Legal name], [address]. We are the data fiduciary for our customers' account data. For data a business enters about its own customers, members or candidates, the business decides why it is collected and we process it for them.
+1. **Who we are.** [Legal name], 78, Lenin Street, Kosapalayam, Puducherry - 605013, India. We are the data fiduciary for our customers' account data. For data a business enters about its own customers, members or candidates, the business decides why it is collected and we process it for them.
 2. **What we collect.** Account details (name, email, phone, business name, GST number), the business data you enter, billing records (we never see card or bank numbers; Razorpay handles payment), message delivery records, and technical logs (IP address, browser) for security.
 3. **Why.** To run the service, take payment and issue GST invoices, keep it secure, give support, and meet legal duties. We do not sell personal data or use it for advertising.
 4. **WhatsApp.** Messages go through the WhatsApp Business Platform (Meta), which receives the phone number and message text. Businesses must have the person's permission to message them. Anyone can tell the business to stop; the business must then stop.
@@ -26,7 +26,7 @@ Support: support@afraventures.in, [support phone], Monday to Saturday, [hours] I
 Who may use the service; trial and paid plans; GST invoices; monthly or yearly prepaid billing; what happens when payment fails (access locks, data kept for [30] days); acceptable use (no spam, no messaging people without permission, no unlawful data); messages and AI are tools, the business remains responsible for what it sends and decides; availability without a guarantee during early testing; liability limits; governing law and courts: [Puducherry / lawyer to confirm]; changes to terms.
 
 ## Refund and Cancellation
-Cancel any time from the app; access continues to the end of the paid period. First payment refund window: [7 days, Mohamed to confirm; the gym app reads `VITE_REFUND_DAYS`]. Refunds go to the original payment method in [5 to 7 working days]. Message credits and taxes follow the lawyer's wording.
+Cancel any time from the app; access continues to the end of the paid period. First payment refund window: [7 days, Mohamed to confirm; the gym app reads `VITE_REFUND_DAYS`]. Approved refunds reach the original payment method within 7 to 14 working days (Mohamed, 29 Oct). The window to ask for a first-payment refund is still [7 days, Mohamed to confirm]. Message credits and taxes follow the lawyer's wording.
 
 ## Rule for every product page
 Each product page lists only features a person has seen working (`docs/MARKETING_CLAIMS.md`). A feature in progress is labelled "coming soon" or left out. No customer names, ratings or numbers that are not real.

@@ -52,6 +52,7 @@ export const ADMIN_NAV = [
   { key: 'staff-attendance', label: 'Staff Attendance', path: 'staff-attendance', page: 'StaffAttendance', icon: UserCog },
   { key: 'attendance', label: 'Attendance', path: 'attendance', page: 'Attendance', icon: CalendarCheck },
   { key: 'poster', label: 'Entrance Poster', path: 'poster', page: 'Poster', icon: QrCode },
+  { key: 'copilot', label: 'Renewal Copilot', path: 'copilot', page: 'Copilot', icon: Sparkles },
   { key: 'at-risk', label: 'Win Back Members', path: 'at-risk', page: 'AtRisk', icon: Megaphone },
   { key: 'payment', label: 'Payment', path: 'payment', page: 'Payment', icon: CreditCard },
   { key: 'staff', label: 'Sub-Admin / Staff', path: 'staff', page: 'StaffManagement', icon: UserCog },

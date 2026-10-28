@@ -23,6 +23,8 @@ Rule: say only what the code does today. Update this list when a feature ships o
 - Menus in English, Tamil and Hindi (some screens still English).
 
 ## Do NOT say yet
+
+- "Renewal Copilot" (daily list of who to contact, with a ready message in English, Tamil and Hindi): written 28 Oct, not yet tested by a person. After Dev A and the staff pass it, we may say: "Every morning, see who is about to leave and send a ready message from your own WhatsApp in one tap." Do not say it sends messages by itself (automatic sends need Meta approval) and do not say the AI picks who to contact (the ranking is rules; AI only rewrites the wording).
 - Live sync with biometric machines, door control, mobile apps on the app stores, class booking, payroll, multi-branch, member AutoPay, "No 1 in India", customer counts, testimonials.
 
 ## Suggested headline options (Mohamed to choose)

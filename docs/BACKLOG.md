@@ -10,7 +10,7 @@ Days are estimates for Claude-written code, excluding human test time.
 | --- | --- | --- | --- |
 | P0-01 | Security fixes on `pilot-security-fixes` (commit 21cba9c) | WRITTEN | `npm test` passes incl. `tests/pilotSecurity.test.js`; Security and Tenant suites green on staging |
 | P0-02 | Make GitHub repo private, change every password that was in HANDOVER.md | TODO (human) | Old passwords fail |
-| P0-03 | Production env set from `server/.env.example`; paid hosting; Atlas backups, one restore tested | TODO (human) | Restore drill done |
+| P0-03 | Production env set from `server/.env.example`; paid hosting; Atlas backups, one restore tested | TODO (human); guide in `docs/OPS.md` | Restore drill done |
 | P0-04 | Log the 25 failed P1 tests from the QA workbook as bugs | TODO (human) | Bug Log filled |
 | P0-05 | Razorpay exists (get test keys via Dev A, confirm company name + GST). Apply for WhatsApp Business API (separate GymDesk number). CA check on GST invoices. No SMS/DLT | TODO (human) | WhatsApp application submitted; test keys saved in Settings |
 

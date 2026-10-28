@@ -10,7 +10,7 @@ Thin margins, expiry and dead stock, udhaar (credit) that never returns, supplie
 | --- | --- | --- |
 | About 13 million kirana stores, about 1.4 million digitised | Source | Commmerce briefing citing AICPDF, via master plan |
 | Competitors Vyapar, myBillBook, Zoho Books, GoFrugal, Busy; tools from about Rs 2,000 to 20,000 a year | Source | Commmerce 2026 roundup, via master plan |
-| Billing is solved; AI reorder, expiry clearance, udhaar recovery, WhatsApp are not | Source/Assumption | Master plan reading; verify per competitor in Lane E task MRT-R1 |
+| Billing is solved; AI reorder, expiry clearance, udhaar recovery, WhatsApp are not | Source/Assumption | First pass 28 Oct (`RESEARCH.md`): billing is cheap or free (Swipe free plan, others about Rs 800 to 5,400 a year) and offline billing exists at competitors; the AI and udhaar parts were not on the pages read. Per-vendor feature pages still open (MRT-R1) |
 | Only 3 to 13 percent of kiranas tech-enabled in an old estimate | Source | RedSeer via Quartz; old data |
 | Billing must work with weak internet | Assumption | Field-agent feedback needed |
 
@@ -36,7 +36,7 @@ Weighing-scale integration, WhatsApp catalogue and order taking for regulars, su
 Bill photo reading is the costly call (vision). Per-plan monthly cap on bill photos; fallback is manual entry. Daily platform budget stop applies.
 
 ## 6. Pricing (draft, not approved)
-Rs 149 / 299 / 499 draft ladder. A kirana can trial and quit easily, so the cost per shop must be measured in week one. Claude produces a mart floor-price table (task MRT-P1) before 16 Nov. Tier 3: Mohamed approves.
+Rs 149 / 299 / 499 draft ladder. First research pass says billing-only competitors cost Rs 0 to 5,400 a year, so this ladder is not cheaper on billing; a free entry tier with paid AI/WhatsApp is the proposal for MRT-P1 (not approved). A kirana can trial and quit easily, so the cost per shop must be measured in week one. Claude produces a mart floor-price table (task MRT-P1) before 16 Nov. Tier 3: Mohamed approves.
 
 ## 7. External dependencies
 Meta templates `mart_*`; a real barcode scanner, phone and thermal printer for testing (Dev task); CA on GST bill formats for composition dealers (Tier 3).

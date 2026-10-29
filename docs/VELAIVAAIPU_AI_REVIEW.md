@@ -7,6 +7,9 @@ Repo read: https://github.com/BM-ACADEMY/CT_Jobportal (shallow copy, read only; 
 - Free public assessment: `GET /api/assessments/public` makes the AI write a fresh 10-question set on every start (`controllers/assessmentController.js`, `buildSet`). **Student answers are scored by code and never sent to the AI** (good for privacy and cost).
 - Other AI features (resume review, candidate matching, job tools) call the same helper from `userController.js`, `applicationController.js`, `jobController.js`, `requestController.js`.
 
+## Update 29 Oct (Kamarudeen)
+A separate OpenRouter key was given to the Velaivaaipu developer and a spending limit was set on it (amount not stated; suggested $1 at the start). To confirm: the site's server settings use this new key and the old shared key is gone from them.
+
 ## Findings, most important first
 1. **Public start has no sign-in, no daily cap and no site-wide cap.** The only limit is 40 starts per 15 minutes per IP address (`routes/assessmentRoutes.js`), held in memory (`middlewares/rateLimit.js`), so it resets on restart. One address could make about 3,800 AI calls a day; many addresses have no limit. Rough worst case from ONE address: Rs 1,000+ a day (Assumption: about Rs 0.3 per start).
 2. **A fresh AI set is made every time,** even when stored sets for the same skill and level exist. Stored sets are used only when the AI fails.

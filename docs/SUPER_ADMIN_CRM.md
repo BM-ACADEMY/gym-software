@@ -63,6 +63,9 @@ Everything is in the activity log. Suggested wording avoids unproven claims (`do
 6. CRM-06 suggestions on the autopilot runner; templates through WhatsApp after Meta approval.
 7. CRM-07 reports.
 
+## 5b. Account-facts shape each product must send (CRM-03, server-to-server, behind the internal key)
+One object per business account: `product`, `businessName`, `ownerName`, `ownerPhone`, `ownerEmail`, `contactConsent` (true only if the owner agreed to be contacted; the product records when and how), `createdAt`, `lastActiveAt`, `status` (computed by core-billing from dates: status, daysLeft, endsAt). Nothing about the business's own customers, members or candidates. The sales list (`apps/admin/src/salesList.js`) turns this into the daily CSV for the Lead Hub.
+
 ## 6. Open for Mohamed (not blocking)
 - Approve account-level facts from each product into Super Admin (default yes).
 - Done: Mohamed has a sales team. People will change (telecaller or BD), so access is granted per person in the Lead Hub, never fixed in code. Brand split decided: one "AFRA Products" brand (D-21).

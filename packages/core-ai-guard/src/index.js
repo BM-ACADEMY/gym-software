@@ -1,9 +1,10 @@
 'use strict';
 // Decides, BEFORE any AI call, whether a public visitor may use AI right now. No network, no database: the store is passed in.
-// Order: cached answer (free) -> money stop -> per-user daily limit -> per-IP daily limit -> allow.
+// Order: cached answer (free) -> money stop -> whole-site daily count (optional) -> per-user daily limit -> per-IP daily limit -> allow.
+// requireUser:false is for anonymous public pages (for example starting a free test that makes the AI write questions): then only the IP and site-wide limits apply.
 // A "no" is never an error for the visitor: the site shows its normal result without AI feedback (see FALLBACK_TEXT).
 const crypto = require('crypto');
-const DEFAULTS = { perUserPerDay: 3, perIpPerDay: 20, cacheDays: 30 };
+const DEFAULTS = { perUserPerDay: 3, perIpPerDay: 20, cacheDays: 30, requireUser: true, globalPerDay: null };
 const FALLBACK_TEXT = { budget: 'AI feedback is resting for today. Your score is saved. Please try again tomorrow.', user_limit: 'You have used today\'s AI feedback. Your score is saved. Come back tomorrow for more.', ip_limit: 'Too many requests from this network today. Your score is saved. Please try again tomorrow.', not_signed_in: 'Please sign in to get AI feedback.' };
 
 const istDay = (now) => new Date(now.getTime() + 5.5 * 3600000).toISOString().slice(0, 10);
@@ -15,20 +16,22 @@ const ipKey = (ip) => crypto.createHash('sha256').update(String(ip || 'unknown')
 function createGuard({ store, limits = {}, now = () => new Date() }) {
   const L = { ...DEFAULTS, ...limits };
   async function check({ userId, ip, cacheParts }) {
-    if (!userId) return { allow: false, reason: 'not_signed_in', message: FALLBACK_TEXT.not_signed_in };
+    if (!userId && L.requireUser) return { allow: false, reason: 'not_signed_in', message: FALLBACK_TEXT.not_signed_in };
     const ck = cacheParts ? cacheKey(cacheParts) : null;
     if (ck) { const hit = await store.cacheGet(ck); if (hit != null) return { allow: false, cached: true, value: hit, reason: 'cached' }; }
     const sp = await store.spendToday();
     if (sp.costInr >= sp.budgetInr) return { allow: false, reason: 'budget', message: FALLBACK_TEXT.budget, cacheKey: ck };
     const day = istDay(now());
-    const uk = `u:${userId}:${day}`; const ik = `i:${ipKey(ip)}:${day}`;
-    if ((await store.get(uk)) >= L.perUserPerDay) return { allow: false, reason: 'user_limit', message: FALLBACK_TEXT.user_limit, cacheKey: ck };
+    const uk = userId ? `u:${userId}:${day}` : null; const ik = `i:${ipKey(ip)}:${day}`; const gk = `g:${day}`;
+    if (L.globalPerDay != null && (await store.get(gk)) >= L.globalPerDay) return { allow: false, reason: 'site_limit', message: FALLBACK_TEXT.budget, cacheKey: ck };
+    if (uk && (await store.get(uk)) >= L.perUserPerDay) return { allow: false, reason: 'user_limit', message: FALLBACK_TEXT.user_limit, cacheKey: ck };
     if ((await store.get(ik)) >= L.perIpPerDay) return { allow: false, reason: 'ip_limit', message: FALLBACK_TEXT.ip_limit, cacheKey: ck };
-    return { allow: true, cacheKey: ck, userKey: uk, ipKey: ik };
+    return { allow: true, cacheKey: ck, userKey: uk, ipKey: ik, globalKey: gk };
   }
   // Call after the AI call has been made (success or not: we may have paid). Saves the answer for next time when given.
   async function record(decision, { value } = {}) {
-    await store.incr(decision.userKey, istDay(now())); await store.incr(decision.ipKey, istDay(now()));
+    if (decision.userKey) await store.incr(decision.userKey, istDay(now()));
+    await store.incr(decision.ipKey, istDay(now())); await store.incr(decision.globalKey, istDay(now()));
     if (decision.cacheKey && value != null) await store.cacheSet(decision.cacheKey, value, L.cacheDays);
   }
   return { check, record, limits: L };

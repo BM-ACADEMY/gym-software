@@ -29,4 +29,12 @@ describe('AI guard for public sites', () => {
     const store = memoryStore({ budgetInr: 10, costInr: 10 }); const g = createGuard({ store, now });
     await store.cacheSet(cacheKey(parts('hello')), 'cached feedback'); const d = await g.check({ userId: 'u1', ip: 'x', cacheParts: parts('hello') }); expect(d.cached).toBe(true);
   });
+
+  test('anonymous public pages: IP and whole-site daily limits, no user needed', async () => {
+    const store = memoryStore(); const g = createGuard({ store, now, limits: { requireUser: false, perIpPerDay: 2, globalPerDay: 3 } });
+    for (const ip of ['1.1.1.1', '1.1.1.1', '2.2.2.2']) { const d = await g.check({ ip }); expect(d.allow).toBe(true); await g.record(d); }
+    expect((await g.check({ ip: '1.1.1.1' })).reason).toBe('site_limit'); // site total 3 reached before the IP check
+    const g2 = createGuard({ store: memoryStore(), now, limits: { requireUser: false, perIpPerDay: 1 } });
+    await g2.record(await g2.check({ ip: '5.5.5.5' })); expect((await g2.check({ ip: '5.5.5.5' })).reason).toBe('ip_limit'); expect((await g2.check({ ip: '6.6.6.6' })).allow).toBe(true);
+  });
 });

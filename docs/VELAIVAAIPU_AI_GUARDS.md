@@ -1,6 +1,6 @@
 # AI on Velaivaaipu (public site, free student assessments): requirements and how to add the guards
 
-Status: requirements written 29 Oct; nothing is built in the Velaivaaipu site. Its code is in a separate repository that this session has not seen (the repo list shows `BM-ACADEMY/CT_Jobportal`, which looks like CoreTalents; Kamarudeen to confirm which repo is Velaivaaipu). Facts from Kamarudeen: the site is public, has many free assessments for students, and keeps its code separate from Afra AI OS.
+Status: requirements written 29 Oct; nothing is built in the Velaivaaipu site. Its code is `BM-ACADEMY/CT_Jobportal` (confirmed by Kamarudeen) and was read on 29 Oct: see `docs/VELAIVAAIPU_AI_REVIEW.md` for what the code really does and the fix list (the free test makes the AI write questions; student answers are scored by code and never sent to the AI). Use this file for the general requirements and the anonymous mode of the guard.
 
 ## Why guards come first
 A public site lets anyone trigger AI, so cost is set by visitors, not by us. One bug or one script could use the whole key.

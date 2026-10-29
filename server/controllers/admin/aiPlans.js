@@ -3,6 +3,7 @@ const Member = require('../../models/Member');
 const Subscriber = require('../../models/Subscriber');
 const AuditLog = require('../../models/AuditLog');
 const { generateWorkoutDietPlan } = require('../../services/ai');
+const { planGenerationLimit, checkGenerationQuota } = require('../../services/aiPlanCap');
 const { logAudit } = require('../../utils/auditLog');
 
 const getModulePermission = (subAdmin, moduleKey) =>
@@ -41,17 +42,22 @@ const generatePlan = async (req, res) => {
     const { member, error } = await assertOwnMember(req, memberId);
     if (error) return res.status(error.status).json({ success: false, message: error.message });
 
-    // Quota: only enforced for a 'count'-type feature with a numeric value —
-    // an unlimited/toggle feature has no value and skips this entirely.
-    if (req.planFeature.value !== undefined) {
+    // Quota (PRICE-01). New gyms: the cap comes from config/plans.js (aiPlansPerMonth).
+    // Legacy gyms on the old DB plan system: the old 'count' feature value, if it has one.
+    // Unlimited or toggle-only legacy features have no value and skip this.
+    const subscriber = await Subscriber.findById(req.user.subscriberId);
+    const codeLimit = planGenerationLimit(subscriber);
+    const limit = codeLimit !== undefined ? codeLimit : req.planFeature.value;
+    if (limit !== undefined) {
       const used = await AuditLog.countDocuments({
         subscriberId: req.user.subscriberId,
         module: 'ai-plans',
         action: 'generate',
         timestamp: { $gte: monthStart() },
       });
-      if (used >= req.planFeature.value) {
-        return res.status(403).json({ success: false, message: `Monthly AI plan generation limit reached (${req.planFeature.value}/mo). Upgrade your plan for more.` });
+      const quota = checkGenerationQuota(limit, used);
+      if (!quota.allowed) {
+        return res.status(403).json({ success: false, message: quota.message });
       }
     }
 
@@ -67,7 +73,6 @@ const generatePlan = async (req, res) => {
     const isSubAdmin = req.user.role === 'subadmin';
     let needsReview = false;
     if (isSubAdmin) {
-      const subscriber = await Subscriber.findById(req.user.subscriberId).select('aiPlanReviewRequired');
       needsReview = subscriber?.aiPlanReviewRequired !== false;
     }
 

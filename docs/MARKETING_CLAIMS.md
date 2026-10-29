@@ -1,9 +1,9 @@
 # What we may say in marketing
 
-Rule: say only what the code does today. Update this list when a feature ships or is removed. Last checked 28 Oct 2026 (written, not yet tested by a person).
+Rule: say only what the code does today. Update this list when a feature ships or is removed. Last checked 29 Oct 2026 (written, not yet tested by a person).
 
 ## AI: allowed wording
-- "AI workout and diet plans for each member" (Growth and Pro). A trainer or owner reviews before sharing. Plans are a starting point, not medical advice.
+- "AI workout and diet plans for each member" (Growth and Pro, within a monthly limit: proposed 30 on Growth and 100 on Pro, not yet approved by Mohamed, so do not print the numbers). A trainer or owner reviews before sharing. Plans are a starting point, not medical advice.
 - "AI weekly summary of your gym with 3 things to act on" (all plans, within the monthly AI allowance).
 - "Ask GymDesk: an AI assistant that answers how-to questions from our help articles" (all plans, within the allowance).
 - "Your members' names and phone numbers are never sent to the AI for the weekly summary or the assistant." (True for those two. AI plans do send the member's goal, equipment and health notes.)
@@ -13,7 +13,7 @@ Rule: say only what the code does today. Update this list when a feature ships o
 - "AI predicts who will quit" (it is a simple score, shown as risk, not a prediction model).
 - "AI chatbot on WhatsApp for your members" (not built).
 - "AI replies to your members" or "AI writes your WhatsApp messages" (messages use fixed approved templates).
-- "Unlimited AI" (each plan has a monthly allowance).
+- "Unlimited AI" or "unlimited AI plans" (each plan has a monthly allowance for questions and a monthly limit on plan generations).
 
 ## Other claims that are true now
 - 14-day free trial, no card. Plans are prepaid, no auto-renewal.

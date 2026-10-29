@@ -2,6 +2,8 @@
 // limits and features (replaces the DB-driven PlatformPlan/PlanFeature for
 // new gyms; legacy pilot gyms that still have platformPlanId keep working).
 // aiCallsPerMonth caps the Ask GymDesk assistant + dashboard insights (a guess, tune from real cost).
+// aiPlansPerMonth caps AI workout/diet plan generations (PRICE-01; 30 and 100 are the numbers the
+// cost model in docs/AI_COST_MODEL.md assumes. Proposed, needs Mohamed's OK because it is a plan limit).
 // Prices are whole rupees EXCLUDING GST. Yearly = 10 months.
 // Change a price here, deploy, done.
 
@@ -22,6 +24,7 @@ const PLANS = {
     features: { 'ai-plans': false, 'pt-sessions': false, accounts: false, branding: false },
     whatsappPerMonth: 0, // no WhatsApp: every message costs us money
     aiCallsPerMonth: 15,
+    aiPlansPerMonth: 0,
   },
   starter: {
     key: 'starter',
@@ -34,6 +37,7 @@ const PLANS = {
     features: { 'ai-plans': false, 'pt-sessions': false, accounts: false, branding: false },
     whatsappPerMonth: 300,
     aiCallsPerMonth: 40,
+    aiPlansPerMonth: 0,
   },
   growth: {
     key: 'growth',
@@ -46,6 +50,7 @@ const PLANS = {
     features: { 'ai-plans': true, 'pt-sessions': true, accounts: true, branding: false },
     whatsappPerMonth: 1000,
     aiCallsPerMonth: 120,
+    aiPlansPerMonth: 30,
   },
   pro: {
     key: 'pro',
@@ -58,6 +63,7 @@ const PLANS = {
     features: { 'ai-plans': true, 'pt-sessions': true, accounts: true, branding: true },
     whatsappPerMonth: 3000,
     aiCallsPerMonth: 300,
+    aiPlansPerMonth: 100,
   },
 };
 

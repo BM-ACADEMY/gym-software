@@ -17,7 +17,9 @@ const listMyAttendance = async (req, res) => {
   try {
     const records = await Attendance.find({ memberId: req.user.id }).sort({ checkedInAt: -1 }).limit(200);
     const streak = computeStreak(records.map((r) => r.checkedInAt));
-    res.status(200).json({ success: true, message: 'Attendance fetched successfully', data: { records, streak } });
+    const member = await Member.findById(req.user.id);
+    const status = member ? getEffectiveStatus(member) : 'expired';
+    res.status(200).json({ success: true, message: 'Attendance fetched successfully', data: { records, streak, status } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error' });

@@ -28,11 +28,35 @@ const getSubscription = async (req, res) => {
   }
 };
 
+// @desc    Create a checkout order for renewing the current plan, or switch to a new one
+// @route   POST /api/member/subscription-plan/checkout
+const checkoutPlan = async (req, res) => {
+  try {
+    const { planId } = req.body;
+    const member = await Member.findById(req.user.id);
+    if (!member) return res.status(404).json({ success: false, message: 'Member not found' });
+
+    const targetPlanId = planId || member.planId;
+    if (!targetPlanId) return res.status(400).json({ success: false, message: 'No plan selected' });
+
+    const plan = await GymPlan.findOne({ _id: targetPlanId, subscriberId: req.user.subscriberId, isActive: true });
+    if (!plan) return res.status(404).json({ success: false, message: 'Plan not found' });
+
+    const { createOrder } = require('../../services/paymentGateway');
+    const order = await createOrder({ amount: plan.price, receipt: `plan_${member._id}_${Date.now()}` });
+
+    res.status(200).json({ success: true, data: order });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 // @desc    Renew the current plan, or switch to a new one (upgrade/downgrade/trial-to-paid)
 // @route   POST /api/member/subscription-plan/renew
 const renewSubscription = async (req, res) => {
   try {
-    const { planId } = req.body;
+    const { planId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
     const member = await Member.findById(req.user.id);
     if (!member) {
@@ -47,6 +71,22 @@ const renewSubscription = async (req, res) => {
     const plan = await GymPlan.findOne({ _id: targetPlanId, subscriberId: req.user.subscriberId, isActive: true });
     if (!plan) {
       return res.status(404).json({ success: false, message: 'Plan not found' });
+    }
+
+    if (plan.price > 0 && razorpay_order_id && razorpay_payment_id && razorpay_signature) {
+      const { getConfig, verifyRazorpayCheckoutSignature } = require('../../services/paymentGateway');
+      const config = await getConfig();
+      if (config.provider === 'razorpay') {
+        const valid = verifyRazorpayCheckoutSignature({
+          orderId: razorpay_order_id,
+          paymentId: razorpay_payment_id,
+          signature: razorpay_signature,
+          keySecret: config.keySecret,
+        });
+        if (!valid) {
+          return res.status(400).json({ success: false, message: 'Payment verification failed' });
+        }
+      }
     }
 
     const now = new Date();
@@ -72,7 +112,7 @@ const renewSubscription = async (req, res) => {
 // @route   POST /api/member/subscription-plan/freeze
 const freezeSubscription = async (req, res) => {
   try {
-    const { days, reason } = req.body;
+    const { endDate, reason } = req.body;
 
     const member = await Member.findById(req.user.id).populate('planId');
     if (!member) {
@@ -83,16 +123,25 @@ const freezeSubscription = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Your plan does not allow freezing' });
     }
 
-    const freezeDays = Number(days) || 0;
-    if (freezeDays <= 0 || freezeDays > member.planId.maxFreezeDays) {
-      return res.status(400).json({
-        success: false,
-        message: `Freeze must be between 1 and ${member.planId.maxFreezeDays} days`,
-      });
+    if (!endDate) {
+      return res.status(400).json({ success: false, message: 'End date is required' });
     }
 
     const startedAt = new Date();
-    const endsAt = new Date(startedAt.getTime() + freezeDays * 24 * 60 * 60 * 1000);
+    const endsAt = new Date(endDate);
+
+    if (endsAt <= startedAt) {
+      return res.status(400).json({ success: false, message: 'End date must be in the future' });
+    }
+
+    const freezeDays = Math.ceil((endsAt - startedAt) / (1000 * 60 * 60 * 24));
+
+    if (freezeDays <= 0 || freezeDays > member.planId.maxFreezeDays) {
+      return res.status(400).json({
+        success: false,
+        message: `Freeze must be no more than ${member.planId.maxFreezeDays} days (up to ${new Date(startedAt.getTime() + member.planId.maxFreezeDays * 24 * 60 * 60 * 1000).toLocaleDateString()})`,
+      });
+    }
 
     member.freezeHistory.push({ startedAt, endsAt, reason });
     member.status = 'frozen';
@@ -124,4 +173,4 @@ const unfreezeSubscription = async (req, res) => {
   }
 };
 
-module.exports = { getSubscription, renewSubscription, freezeSubscription, unfreezeSubscription };
+module.exports = { getSubscription, checkoutPlan, renewSubscription, freezeSubscription, unfreezeSubscription };

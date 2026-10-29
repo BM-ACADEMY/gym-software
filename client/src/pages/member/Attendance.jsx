@@ -84,6 +84,7 @@ const Attendance = () => {
   const [error, setError] = useState('');
   const [checkingIn, setCheckingIn] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [memberStatus, setMemberStatus] = useState('active');
 
   const fetchAttendance = async () => {
     try {
@@ -91,6 +92,7 @@ const Attendance = () => {
       const res = await apiClient.get('/member/attendance');
       setRecords(res.data.data.records);
       setStreak(res.data.data.streak);
+      setMemberStatus(res.data.data.status);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load attendance');
     } finally {
@@ -119,8 +121,8 @@ const Attendance = () => {
   return (
     <Page>
       <PageHeader eyebrow="Customer workspace" title="Session attendance" description="Track your gym visits in one place." actions={
-        <Button onClick={checkIn} disabled={checkingIn || !!openToday || suspended}>
-          <LogIn className="h-4 w-4" /> {openToday ? 'Already checked in' : checkingIn ? 'Checking in...' : 'Check in now'}
+        <Button onClick={checkIn} disabled={checkingIn || !!openToday || suspended || memberStatus === 'frozen'}>
+          <LogIn className="h-4 w-4" /> {memberStatus === 'frozen' ? 'Account Frozen' : openToday ? 'Already checked in' : checkingIn ? 'Checking in...' : 'Check in now'}
         </Button>
       } />
 

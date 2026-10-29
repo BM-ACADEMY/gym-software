@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   getSubscription,
+  checkoutPlan,
   renewSubscription,
   freezeSubscription,
   unfreezeSubscription,
@@ -11,6 +12,7 @@ const { protect, authorize } = require('../../middleware/auth');
 router.use(protect, authorize('member'));
 
 router.get('/', getSubscription);
+router.post('/checkout', checkoutPlan);
 router.post('/renew', renewSubscription);
 router.post('/freeze', freezeSubscription);
 router.post('/unfreeze', unfreezeSubscription);

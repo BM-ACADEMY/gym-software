@@ -13,7 +13,16 @@ const SystemSettings = require('../models/SystemSettings');
 // dev-only secret so the dummy flow still works end-to-end without setup.
 const DUMMY_SECRET = 'dummy-gateway-dev-secret-not-for-production';
 
-const getConfig = async () => SystemSettings.getSetting('payment_gateway', { provider: '', keyId: '', keySecret: '' });
+const getConfig = async () => {
+  const config = await SystemSettings.getSetting('payment_gateway', { provider: '', keyId: '', keySecret: '' });
+  if (config.provider === 'razorpay' && config.keyId && config.keySecret) {
+    return config;
+  }
+  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    return { provider: 'razorpay', keyId: process.env.RAZORPAY_KEY_ID, keySecret: process.env.RAZORPAY_KEY_SECRET };
+  }
+  return config;
+};
 
 const getSecret = async () => {
   const config = await getConfig();

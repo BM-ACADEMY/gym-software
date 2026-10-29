@@ -14,12 +14,14 @@ const PTSessions = () => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ date: '', time: '' });
   const [saving, setSaving] = useState(false);
+  const [memberStatus, setMemberStatus] = useState('active');
 
   const fetchSessions = async () => {
     try {
       setLoading(true);
       const res = await apiClient.get('/member/pt-sessions');
       setSessions(res.data.data);
+      setMemberStatus(res.data.status);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load PT sessions');
     } finally {
@@ -57,7 +59,7 @@ const PTSessions = () => {
 
   return (
     <Page>
-      <PageHeader eyebrow="Customer workspace" title="PT sessions" description="Request slots with your trainer, cancel or reschedule ahead of time." actions={<Button onClick={() => setOpen(true)} disabled={suspended}><CalendarPlus className="h-4 w-4" />Request session</Button>} />
+      <PageHeader eyebrow="Customer workspace" title="PT sessions" description="Request slots with your trainer, cancel or reschedule ahead of time." actions={<Button onClick={() => setOpen(true)} disabled={suspended || memberStatus === 'frozen'}><CalendarPlus className="h-4 w-4" />{memberStatus === 'frozen' ? 'Account Frozen' : 'Request session'}</Button>} />
       {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       <Card className="overflow-hidden">

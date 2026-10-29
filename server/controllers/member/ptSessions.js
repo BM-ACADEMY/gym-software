@@ -10,7 +10,9 @@ const POLICY_WINDOW_HOURS = 2;
 const listMySessions = async (req, res) => {
   try {
     const sessions = await PTSession.find({ memberId: req.user.id }).populate('subAdminId', 'name').sort({ scheduledAt: -1 });
-    res.status(200).json({ success: true, message: 'PT sessions fetched successfully', data: sessions });
+    const member = await Member.findById(req.user.id);
+    const status = member ? member.status : 'expired';
+    res.status(200).json({ success: true, message: 'PT sessions fetched successfully', data: sessions, status });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error' });

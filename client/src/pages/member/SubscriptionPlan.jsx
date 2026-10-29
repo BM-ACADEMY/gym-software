@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Snowflake, RefreshCw, Sparkles } from 'lucide-react';
 import apiClient from '../../api/client';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import useSuspended from '../../hooks/useSuspended';
+import { selectCurrentUser } from '../../store/slices/authSlice';
+import { openRazorpayCheckout } from '../../utils/razorpay';
 
 const STATUS_TONE = {
   active: 'green',
@@ -21,13 +24,14 @@ const daysRemaining = (expiresAt) => {
 };
 
 const SubscriptionPlan = () => {
+  const user = useSelector(selectCurrentUser);
   const suspended = useSuspended();
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
   const [freezeOpen, setFreezeOpen] = useState(false);
-  const [freezeDays, setFreezeDays] = useState('');
+  const [freezeEndDate, setFreezeEndDate] = useState('');
   const [freezeReason, setFreezeReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -54,14 +58,45 @@ const SubscriptionPlan = () => {
 
   const handleRenew = async (planId) => {
     setActionLoading(true);
+    let isRazorpay = false;
     try {
+      const checkoutRes = await apiClient.post('/member/subscription-plan/checkout', { planId });
+      const order = checkoutRes.data.data;
+      isRazorpay = order.provider === 'razorpay';
+
+      if (isRazorpay) {
+        await openRazorpayCheckout({
+          order,
+          description: `Plan Renewal`,
+          prefill: { name: user?.name, contact: user?.phone, email: user?.email },
+          onSuccess: async (response) => {
+            try {
+              const res = await apiClient.post('/member/subscription-plan/renew', { 
+                planId, 
+                ...response
+              });
+              showToast(res.data.message);
+              await fetchSubscription();
+            } catch (err) {
+              showToast(err.response?.data?.message || 'Payment verification failed', 'error');
+            } finally {
+              setActionLoading(false);
+            }
+          },
+          onDismiss: () => setActionLoading(false),
+        });
+        return;
+      }
+
       const res = await apiClient.post('/member/subscription-plan/renew', { planId });
       showToast(res.data.message);
       await fetchSubscription();
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to renew', 'error');
     } finally {
-      setActionLoading(false);
+      if (!isRazorpay) {
+        setActionLoading(false);
+      }
     }
   };
 
@@ -70,12 +105,12 @@ const SubscriptionPlan = () => {
     setActionLoading(true);
     try {
       const res = await apiClient.post('/member/subscription-plan/freeze', {
-        days: Number(freezeDays),
+        endDate: freezeEndDate,
         reason: freezeReason,
       });
       showToast(res.data.message);
       setFreezeOpen(false);
-      setFreezeDays('');
+      setFreezeEndDate('');
       setFreezeReason('');
       await fetchSubscription();
     } catch (err) {
@@ -254,9 +289,9 @@ const SubscriptionPlan = () => {
         <form id="freeze-form" onSubmit={handleFreeze} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Days to freeze {plan ? `(max ${plan.maxFreezeDays})` : ''}
+              Freeze end date {plan ? `(max ${plan.maxFreezeDays} days from today)` : ''}
             </label>
-            <input required type="number" min="1" max={plan?.maxFreezeDays} value={freezeDays} onChange={(e) => setFreezeDays(e.target.value)} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+            <input required type="date" min={new Date().toISOString().split('T')[0]} value={freezeEndDate} onChange={(e) => setFreezeEndDate(e.target.value)} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Reason (optional)</label>

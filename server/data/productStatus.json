@@ -9,10 +9,11 @@
       "targetDate": "2026-11-10",
       "stage": "Built, waiting for human tests",
       "confidence": "low",
-      "confidenceNote": "Nothing has been run by a person yet; server tests (A-02) and server hardening (M-11) come first.",
+      "confidenceNote": "Nothing has been run by a person yet (team sheet all 'Not started' on 29 Oct); server tests (A-02), Meta verification and server hardening (M-11) come first.",
       "done": [
         "Members, plans, attendance, billing, WhatsApp reminders, Renewal Copilot, Ask GymDesk on own data",
         "AI usage screen with a daily budget stop",
+        "Monthly limit on AI plan generations per plan (proposed 30 Growth, 100 Pro; needs your OK)",
         "Promo and referral codes",
         "Founder daily brief email",
         "Deploy guide for the new server"
@@ -48,6 +49,10 @@
         {
           "date": "2026-10-29",
           "text": "Autopilot section added to this product scope (watches, acts, reports; suggest-only by default). Shared billing core written and available."
+        },
+        {
+          "date": "2026-10-29",
+          "text": "Limit on AI plan generations per month written (Growth 30, Pro 100, proposed); not yet tested"
         }
       ],
       "launchChecklist": [
@@ -95,7 +100,8 @@
       "confidenceNote": "Only the shared billing core exists; no Salon app yet.",
       "done": [
         "Competitor first pass (RESEARCH.md)",
-        "Shared billing, GST, loyalty and CSV import core (core-pos)"
+        "Shared billing, GST, loyalty and CSV import core (core-pos)",
+        "Salon, spa and barber presets as data (menus, report packs, queue vs appointment)"
       ],
       "next": [
         "Mount core-pos in a Salon app",
@@ -104,7 +110,8 @@
       ],
       "blockers": [
         "Core not yet tested by a person",
-        "Product name not decided (D-08)"
+        "Product name not decided (D-08)",
+        "Floor-price method (master plan section 14) not in the repo"
       ],
       "suggestions": [
         "Start with barber shops: simplest rules and a clear daily-sales report",
@@ -118,6 +125,10 @@
         {
           "date": "2026-10-29",
           "text": "Autopilot section added to this product scope (watches, acts, reports; suggest-only by default). Shared billing core written and available."
+        },
+        {
+          "date": "2026-10-29",
+          "text": "Shared tenant guard and business-type presets (salon, spa, barber) written in core-server; not yet tested by a person"
         }
       ],
       "launchChecklist": [
@@ -211,7 +222,8 @@
       "confidence": "low",
       "confidenceNote": "Not started building; aggregator order sync is the biggest gap.",
       "done": [
-        "Competitor first pass (Petpooja price conflict noted)"
+        "Competitor first pass (Petpooja price conflict noted)",
+        "Restaurant, cafe and pub presets as data"
       ],
       "next": [
         "Tables, KOT and menu on core-pos",
@@ -311,19 +323,22 @@
       "name": "Car Wash and Detailing",
       "address": "wash.afraventures.in",
       "targetDate": "2026-11-25",
-      "stage": "Scope only",
+      "stage": "Scope and first research pass",
       "confidence": "low",
-      "confidenceNote": "Research not done: searches gave no usable prices.",
+      "confidenceNote": "First research pass found only garage tools (Rs 399 to 799, billing period unclear); no app built; owner interviews not done.",
       "done": [
-        "Scope file"
+        "Scope file",
+        "First competitor pass (docs/products/wash/RESEARCH.md)",
+        "Car wash and detailing presets as data"
       ],
       "next": [
-        "Competitor research (WSH-R1)",
+        "Talk to 3 local washes (WSH-R1 remainder)",
         "Job cards and packages",
         "Wash-due reminders"
       ],
       "blockers": [
-        "No competitor prices found yet"
+        "Photo storage needs a paid cloud storage account (cost not yet in the model)",
+        "Floor-price method not in the repo"
       ],
       "suggestions": [
         "Ask 3 local washes what they use today before researching further online"
@@ -336,6 +351,10 @@
         {
           "date": "2026-10-29",
           "text": "Autopilot section added to this product scope (watches, acts, reports; suggest-only by default). Shared billing core written and available."
+        },
+        {
+          "date": "2026-10-29",
+          "text": "First research pass written: Indian tools found are garage software, no wash-first tool seen yet (weak evidence)"
         }
       ],
       "launchChecklist": [

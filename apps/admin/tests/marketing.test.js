@@ -16,7 +16,7 @@ describe('marketing items', () => {
   });
 });
 describe('suggestions', () => {
-  const facts = { products: [{ product: 'hire', state: 'live', businesses: { total: 5, paying: 1, trial: 4, grace: 0, expired: 2 }, endingSoon: [{ kind: 'trial', daysLeft: 2 }, { kind: 'trial', daysLeft: 9 }], signups7d: 0, targetDate: iso(10) }], totals: { aiCostTodayInr: 90, aiBudgetInr: 100 } };
+  const facts = { products: [{ product: 'hire', state: 'ok', businesses: { total: 5, paying: 1, trial: 4, grace: 0, expired: 2, signups7d: 0 }, endingSoon: [{ kind: 'trial', daysLeft: 2 }, { kind: 'trial', daysLeft: 9 }], targetDate: iso(10) }], totals: { aiCostTodayInr: 90, aiBudgetInr: 100 } };
   const cal = [{ id: 'diwali', name: 'Diwali', date: iso(4) }, { id: 'far', name: 'Far event', date: iso(60) }];
   test('rules fire and carry reasons; far events ignored', () => {
     const s = M.suggest(facts, cal, now); const keys = s.map((x) => x.key.split(':')[0]);
@@ -31,7 +31,7 @@ describe('suggestions', () => {
   test('suggestions hold no personal data fields', () => { expect(Object.keys(M.suggest(facts, cal, now)[0]).join()).not.toMatch(/phone|email|name/); });
 });
 describe('today brief and push', () => {
-  const items = M.suggest({ products: [{ product: 'hire', state: 'live', businesses: { expired: 1 }, endingSoon: [{ kind: 'trial', daysLeft: 1 }], signups7d: 0 }], totals: { aiCostTodayInr: 90, aiBudgetInr: 100 } }, [{ id: 'a', name: 'A', date: iso(1) }, { id: 'b', name: 'B', date: iso(3) }], now);
+  const items = M.suggest({ products: [{ product: 'hire', state: 'ok', businesses: { expired: 1, signups7d: 0 }, endingSoon: [{ kind: 'trial', daysLeft: 1 }] }], totals: { aiCostTodayInr: 90, aiBudgetInr: 100 } }, [{ id: 'a', name: 'A', date: iso(1) }, { id: 'b', name: 'B', date: iso(3) }], now);
   test('brief is at most 5, most urgent first', () => { const b = M.todayBrief(items, now); expect(b.length).toBe(5); expect(b[0].priority).toBe('decision_today'); expect(M.todayBrief(items, now, 2).length).toBe(2); });
   test('push: only decisions today, not in quiet hours, max 3 a day', () => {
     expect(M.pushPlan(items, { now }).send.length).toBe(3); expect(M.pushPlan(items, { now, sentToday: 3 }).reason).toBe('daily_limit');

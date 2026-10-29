@@ -6,7 +6,7 @@ function setup() {
   const routes = {}; const router = { use() {}, get: (p, h) => (routes['GET ' + p] = h), post: (p, h) => (routes['POST ' + p] = h), delete: (p, h) => (routes['DELETE ' + p] = h), put: (p, h) => (routes['PUT ' + p] = h) };
   const audits = [];
   createMarketingRouter({ express: { Router: () => router }, protect: 1, authorize: () => 2, store, audit: (a) => audits.push(a), now: () => new Date('2026-11-02T04:30:00Z'),
-    getFacts: async () => ({ products: [{ product: 'hire', state: 'live', businesses: { expired: 2 }, endingSoon: [{ kind: 'trial', daysLeft: 1 }], signups7d: 0 }], totals: {} }) });
+    getFacts: async () => ({ products: [{ product: 'hire', state: 'ok', businesses: { expired: 2, signups7d: 0 }, endingSoon: [{ kind: 'trial', daysLeft: 1 }] }], totals: {} }) });
   const call = async (key, role, { params = {}, body = {}, query = {} } = {}) => { let out = { c: 200 }; const res = { status(c) { out.c = c; return this; }, json(b) { out.b = b; } }; await routes[key]({ user: { id: 'u1', role }, params, body, query }, res); return out; };
   return { call, items, audits };
 }

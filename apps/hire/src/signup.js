@@ -18,10 +18,14 @@ async function signUp(input, { store, hash, billing, now = new Date(), termsVers
   if (!state) throw err('SIGNUP_STATE', 'Select your state. It decides how GST shows on your invoice.');
   if (password.length < MIN_PASSWORD) throw err('SIGNUP_PASSWORD', `Password must be at least ${MIN_PASSWORD} characters.`);
   if (!input.acceptTerms) throw err('SIGNUP_TERMS', 'Please accept the terms and privacy policy to continue.');
+  const phone = String((input && input.phone) || '').replace(/[^\d+]/g, '');
+  const salesContactOk = input.salesContactOk === true;
+  if (salesContactOk && !/^\+?\d{10,15}$/.test(phone)) throw err('SIGNUP_PHONE', 'Enter a phone number we can call you on, or untick the call option.');
+  if (phone && !/^\+?\d{10,15}$/.test(phone)) throw err('SIGNUP_PHONE', 'That phone number does not look right.');
   if (await store.findUserByEmail(email)) throw err('SIGNUP_EXISTS', 'An account with this email already exists. Sign in instead.');
   const { trialEndsAt } = billing.trialDates(now);
   const tenant = await store.createTenant({ agencyName, state, trialEndsAt, createdAt: now, termsAcceptedAt: now, termsVersion: termsVersion || null, currency: 'INR' });
-  const user = await store.createUser({ tenantId: tenant.id, name: ownerName, email, role: 'admin', passwordHash: await hash(password), failedLogins: 0, createdAt: now });
+  const user = await store.createUser({ tenantId: tenant.id, name: ownerName, email, role: 'admin', phone: phone || undefined, salesContactOk, salesContactAt: salesContactOk ? now : undefined, passwordHash: await hash(password), failedLogins: 0, createdAt: now });
   return { tenantId: tenant.id, userId: user.id, trialEndsAt };
 }
 

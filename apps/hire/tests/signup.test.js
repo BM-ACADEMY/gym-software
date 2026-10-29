@@ -32,3 +32,12 @@ describe('Hire sign-in', () => {
     expect((await signIn({ email: 'ravi@example.com', password: 'longenough1' }, later)).userId).toBe('u0');
   });
 });
+describe('Hire sign-up contact permission', () => {
+  test('call permission needs a phone; saved only when exactly true', async () => {
+    const s = mk(); const d = { store: s, hash, billing, now };
+    await expect(signUp({ ...ok, salesContactOk: true }, d)).rejects.toMatchObject({ code: 'SIGNUP_PHONE' });
+    await expect(signUp({ ...ok, phone: '12' }, d)).rejects.toMatchObject({ code: 'SIGNUP_PHONE' });
+    await signUp({ ...ok, phone: '98765 43210', salesContactOk: true }, d); expect(s.users[0].salesContactOk).toBe(true); expect(s.users[0].phone).toBe('9876543210');
+    const s2 = mk(); await signUp({ ...ok, salesContactOk: 'yes' }, { store: s2, hash, billing, now }); expect(s2.users[0].salesContactOk).toBe(false);
+  });
+});

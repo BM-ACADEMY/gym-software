@@ -7,6 +7,7 @@ const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createHireRouter, createSharePublicRouter } = require('./routes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
+const { createInternalRouter } = require('./internalRoutes');
 
 function missingSettings(env) {
   const out = [];
@@ -43,6 +44,7 @@ function createApp({ express, mongoose, env = process.env, ai }) {
   app.use('/api/hire/auth', createAuthRouter({ express, mongoose, billing, secret, termsVersion: env.HIRE_TERMS_VERSION }));
   // Public client share page: token only, no sign-in.
   app.use('/api/hire-share', createSharePublicRouter({ express, mongoose }));
+  app.use('/api/internal', createInternalRouter({ express, mongoose, billing, key: env.INTERNAL_API_KEY, dailyBudgetInr: Number(env.HIRE_DAILY_AI_BUDGET_INR) || 300 }));
   const protect = sessionMiddleware(secret, M);
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));
   app.use('/api/hire', createHireRouter({

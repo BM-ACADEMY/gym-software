@@ -20,7 +20,7 @@ function makeStore(M) {
     updateUser: async (id, patch) => { await M.User.updateOne({ _id: id }, { $set: patch }); },
   };
 }
-const KNOWN = { SIGNUP_NAME: 400, SIGNUP_OWNER: 400, SIGNUP_EMAIL: 400, SIGNUP_STATE: 400, SIGNUP_PASSWORD: 400, SIGNUP_TERMS: 400, SIGNUP_EXISTS: 409, LOGIN_BAD: 401, LOGIN_LOCKED: 429 };
+const KNOWN = { SIGNUP_NAME: 400, SIGNUP_OWNER: 400, SIGNUP_EMAIL: 400, SIGNUP_STATE: 400, SIGNUP_PASSWORD: 400, SIGNUP_PHONE: 400, SIGNUP_TERMS: 400, SIGNUP_EXISTS: 409, LOGIN_BAD: 401, LOGIN_LOCKED: 429 };
 
 function createAuthRouter({ express, mongoose, billing, secret, termsVersion }) {
   if (!secret || secret.length < 32) throw new Error('HIRE_SESSION_SECRET must be at least 32 characters');

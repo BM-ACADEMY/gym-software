@@ -33,7 +33,7 @@ const wake = (items, now = new Date()) => items.map((i) => (i.status === 'snooze
 const daysUntil = (d, now) => Math.ceil((new Date(d).getTime() - now.getTime()) / DAY);
 const dayKey = (d) => new Date(d).toISOString().slice(0, 10);
 
-// facts: { products:[{product,state,targetDate?,businesses:{total,paying,trial,grace,expired},endingSoon:[{kind,daysLeft}],signups7d?}], totals:{aiCostTodayInr,aiBudgetInr} }
+// facts = the combined summary from aggregate.combine: { products:[{product,state:'ok'|...,targetDate?,businesses:{total,paying,trial,grace,expired,signups7d},endingSoon:[{kind,daysLeft}]}], totals:{aiCostTodayInr,aiBudgetInr} }
 // calendar: [{id,name,date,products?:[...]}] edited by Kamarudeen (dates are never hard-coded here).
 function suggest(facts, calendar, now = new Date()) {
   const out = []; const add = (o) => out.push(validateItem({ source: 'rule', ...o }));
@@ -43,7 +43,7 @@ function suggest(facts, calendar, now = new Date()) {
     if (ending) add({ key: `trial_ending:${name}:${dayKey(now)}`, title: `${ending} ${name} trial${ending > 1 ? "s" : ""} ending within 3 days: send the contact list to the sales team`, reason: `${ending} businesses on a ${name} trial have 3 days or less left (count from the product, no names here).`, product: name, channel: 'call', priority: 'decision_today', owner: 'sales', due: now });
     const expired = p.businesses && p.businesses.expired;
     if (expired > 0) add({ key: `winback:${name}:${dayKey(now).slice(0, 7)}`, title: `Win-back push for ${expired} expired ${name} account${expired > 1 ? 's' : ''}`, reason: `${expired} accounts have expired. A short win-back message or call this month can bring some back.`, product: name, channel: 'whatsapp_channel', priority: 'this_week', due: new Date(now.getTime() + 3 * DAY) });
-    if (p.state === 'live' && p.signups7d === 0) add({ key: `no_signups:${name}:${dayKey(now)}`, title: `No ${name} sign-ups in 7 days: plan one post and one outreach`, reason: `The product is live and 0 businesses signed up in the last 7 days.`, product: name, channel: 'instagram', priority: 'this_week', due: new Date(now.getTime() + 2 * DAY) });
+    if (p.state === 'ok' && p.businesses && p.businesses.signups7d === 0) add({ key: `no_signups:${name}:${dayKey(now)}`, title: `No ${name} sign-ups in 7 days: plan one post and one outreach`, reason: `The product is live and 0 businesses signed up in the last 7 days.`, product: name, channel: 'instagram', priority: 'this_week', due: new Date(now.getTime() + 2 * DAY) });
     if (p.targetDate) { const d = daysUntil(p.targetDate, now); if (d >= 0 && d <= 14) add({ key: `launch:${name}:${dayKey(p.targetDate)}`, title: `Prepare launch posts for ${name} (launch target in ${d} day${d === 1 ? '' : 's'})`, reason: `Launch target is ${dayKey(p.targetDate)}. Only claim what a person has seen working.`, product: name, channel: 'instagram', priority: d <= 3 ? 'decision_today' : 'this_week', due: new Date(new Date(p.targetDate).getTime() - 3 * DAY) }); }
   }
   for (const e of calendar || []) {

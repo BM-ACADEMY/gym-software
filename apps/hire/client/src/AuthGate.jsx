@@ -30,7 +30,7 @@ export default function AuthGate({ children }) {
 
 function Form({ onDone }) {
   const [mode, setMode] = useState('login');
-  const [f, setF] = useState({ agencyName: '', ownerName: '', email: '', state: '', password: '', acceptTerms: false });
+  const [f, setF] = useState({ agencyName: '', ownerName: '', email: '', state: '', password: '', phone: '', salesContactOk: false, acceptTerms: false });
   const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
   const submit = async (e) => {
@@ -44,9 +44,11 @@ function Form({ onDone }) {
       {signup && <><label>Agency name<input style={field} value={f.agencyName} onChange={set('agencyName')} autoComplete="organization" required /></label>
         <label>Your name<input style={field} value={f.ownerName} onChange={set('ownerName')} autoComplete="name" required /></label></>}
       <label>Email<input style={field} type="email" value={f.email} onChange={set('email')} autoComplete="email" required /></label>
+      {signup && <label>Mobile number (optional)<input style={field} type="tel" value={f.phone} onChange={set('phone')} autoComplete="tel" inputMode="tel" /></label>}
       {signup && <label>State (decides how GST shows on your invoice)
         <select style={field} value={f.state} onChange={set('state')} required><option value="">Select…</option>{STATES.map((s) => <option key={s}>{s}</option>)}</select></label>}
       <label>Password{signup ? ' (10 or more characters)' : ''}<input style={field} type="password" value={f.password} onChange={set('password')} autoComplete={signup ? 'new-password' : 'current-password'} required /></label>
+      {signup && <label style={{ display: 'block', marginBottom: 14 }}><input type="checkbox" checked={f.salesContactOk} onChange={set('salesContactOk')} /> It is OK for the Afra team to call or message me about my trial and plan (you can say stop any time)</label>}
       {signup && <label style={{ display: 'block', marginBottom: 14 }}><input type="checkbox" checked={f.acceptTerms} onChange={set('acceptTerms')} /> I accept the <a href="https://afraventures.in/terms" target="_blank" rel="noreferrer">terms</a> and <a href="https://afraventures.in/privacy" target="_blank" rel="noreferrer">privacy policy</a></label>}
       {error && <p role="alert" style={{ color: '#b00020' }}>{error}</p>}
       <button type="submit" disabled={busy} style={{ padding: '10px 18px', fontSize: 16 }}>{busy ? 'Please wait…' : signup ? 'Create account' : 'Sign in'}</button>

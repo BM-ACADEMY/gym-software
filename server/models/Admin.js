@@ -39,7 +39,10 @@ const adminSchema = new mongoose.Schema({
   // Feeds the AI churn-risk flag's "login activity" signal (Root Admin Dashboard).
   lastLoginAt: {
     type: Date
-  }
+  },
+  // Owner agreed that Afra's team may call or message about their plan (trial, renewal, help). Off until the owner says yes.
+  salesContactOk: { type: Boolean, default: false },
+  salesContactAt: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Admin', adminSchema);

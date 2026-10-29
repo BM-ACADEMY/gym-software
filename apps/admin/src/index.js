@@ -1,1 +1,1 @@
-module.exports = { ...require('./aggregate'), ...require('./collect'), ...require('./routes'), ...require('./marketingRoutes'), marketing: require('./marketing') };
+module.exports = { ...require('./aggregate'), ...require('./collect'), ...require('./routes'), ...require('./marketingRoutes'), ...require('./salesRoutes'), marketing: require('./marketing'), salesList: require('./salesList') };

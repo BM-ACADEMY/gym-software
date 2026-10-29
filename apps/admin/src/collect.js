@@ -22,4 +22,30 @@ async function collectOne(cfg, { fetchImpl = fetch, timeoutMs = 8000, now = () =
   finally { clearTimeout(t); }
 }
 const collectAll = (configs, opts) => Promise.all(configs.map((c) => collectOne(c, opts)));
-module.exports = { readConfig, collectOne, collectAll };
+
+// Account-level facts for the sales list (owner contact + status). Each item is cut down to the agreed fields and sizes,
+// so a product cannot send extra data by mistake. Failures are named by product only (no URL, no key, no body).
+const STATUSES = ['trial', 'active', 'grace', 'expired', 'suspended'];
+const txt = (v, n) => String(v == null ? '' : v).slice(0, n);
+function cleanAccount(a, product) {
+  if (!a || typeof a !== 'object' || !a.status || !STATUSES.includes(a.status.status)) return null;
+  const left = Number(a.status.daysLeft);
+  return { product, businessName: txt(a.businessName, 120), ownerName: txt(a.ownerName, 80), ownerPhone: txt(a.ownerPhone, 25), ownerEmail: txt(a.ownerEmail, 120), contactConsent: a.contactConsent === true,
+    createdAt: a.createdAt || null, lastActiveAt: a.lastActiveAt || null, status: { status: a.status.status, daysLeft: Number.isFinite(left) ? left : null, endsAt: a.status.endsAt || null } };
+}
+async function collectAccounts(configs, { fetchImpl = fetch, timeoutMs = 10000 } = {}) {
+  const accounts = []; const failed = [];
+  await Promise.all(configs.map(async (cfg) => {
+    if (!cfg.url || !cfg.key) { failed.push(cfg.product); return; }
+    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetchImpl(cfg.url + '/api/internal/admin-accounts', { headers: { 'x-internal-key': cfg.key }, signal: ctrl.signal });
+      if (!res.ok) { failed.push(cfg.product); return; }
+      const body = await res.json(); const list = body && Array.isArray(body.data) ? body.data : null;
+      if (!list) { failed.push(cfg.product); return; }
+      for (const a of list.slice(0, 5000)) { const c = cleanAccount(a, cfg.product); if (c) accounts.push(c); }
+    } catch (e) { failed.push(cfg.product); } finally { clearTimeout(t); }
+  }));
+  return { accounts, failed: failed.sort() };
+}
+module.exports = { readConfig, collectOne, collectAll, collectAccounts, cleanAccount };

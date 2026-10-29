@@ -7,6 +7,7 @@ const makeModels = require('./models');
 const C = require('./candidate');
 const { validateParsed } = require('./parse');
 const { rankCandidates } = require('./rank');
+const { addReasons } = require('./reasonService');
 const pipeline = require('./pipeline');
 const { placementFee, dueDate } = require('./fees');
 const { checkCap } = require('./plans');
@@ -175,8 +176,9 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
     if (!cap.ok) return fail(res, 429, 'Monthly ranking limit reached for your plan.');
     const cands = await M.Candidate.find({ tenantId: tid, reviewed: true, doNotContact: { $ne: true } }).limit(500);
     const ranked = rankCandidates(toPlain(job), cands.map((c) => ({ ...toPlain(c), id: String(c._id) }))).slice(0, 20);
-    await M.UsageLog.create({ tenantId: tid, kind: 'rank', model: 'rules' });
-    res.json({ success: true, data: ranked, remaining: cap.left - 1 });
+    const withReasons = await addReasons(toPlain(job), ranked, { ai, budget });
+    await M.UsageLog.create({ tenantId: tid, kind: 'rank', model: withReasons.model || 'rules', inTokens: withReasons.usage && withReasons.usage.inTokens, outTokens: withReasons.usage && withReasons.usage.outTokens });
+    res.json({ success: true, data: withReasons.items, remaining: cap.left - 1 });
   }));
 
   // ---- pipeline ----

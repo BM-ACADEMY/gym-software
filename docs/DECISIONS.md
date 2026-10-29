@@ -71,3 +71,12 @@ Every task below is a row in the team task sheet (`docs/TEAM_TASK_SHEET.xlsx`, o
 ## D-21 (29 Oct): sales leads for Afra's products
 - One Afra AI OS brand "AFRA Products" for all product sales and renewals; product and stage in `campaign`. People are telecaller or BD and will change; access granted per person, not fixed in code.
 - Afra AI OS session must still log it in its own decisions and plan before building.
+
+## D-22 (29 Oct): AI provider is OpenRouter, not OpenAI (supersedes the OpenAI part of D-15)
+- Fact (Kamarudeen, 29 Oct): Aakash bought OpenRouter, not an OpenAI account.
+- Code change (written, not yet tested with a real key): `server/services/aiProvider.js` now accepts `AI_PROVIDER=openrouter`. It uses `OPENROUTER_API_KEY` (server settings only), base URL `https://openrouter.ai/api/v1` (Assumption: verify on first call), and requires `AI_MODEL` and `AI_PLAN_MODEL` to be set to OpenRouter model names. Claude does not guess model names. OpenAI mode still works unchanged. Gym, Hire and every product that calls `complete()` pick this up with no other change.
+- Privacy default: each request asks OpenRouter for zero-data-retention endpoints only (`provider.zdr: true`, from OpenRouter's ZDR page). If a chosen model has no such endpoint the call will fail; Dev A tells Kamarudeen before anyone sets `AI_OPENROUTER_ZDR=off`.
+- Money: the daily AI budget uses a price table keyed by model name; OpenRouter models not in the table are priced at the safe-side fallback, so spend figures are estimates until Dev A adds the real per-token prices of the chosen models (`server/services/aiBudget.js`; Hire uses flat Rs per million tokens settings). Check the real spend on OpenRouter's dashboard against our figures after the first day.
+- Open for Kamarudeen and the lawyer: Hire sends resume text (personal data) to an outside AI service. The privacy notice must say so, including that the service may process data outside India. Lawyer to confirm wording. Hire AI parsing stays off until then (set no key) unless Kamarudeen decides otherwise.
+- Open for Dev A: which models Aakash wants for AI_MODEL (cheap, fast) and AI_PLAN_MODEL (better), and a spending cap set in the OpenRouter account itself as a second guard.
+

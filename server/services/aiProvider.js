@@ -4,7 +4,9 @@
 // Uses Node's built-in fetch, so there is no new npm package to install.
 //
 // Environment (names only, see .env.example):
-//   OPENAI_API_KEY      secret, set on the host only
+//   OPENAI_API_KEY      secret, set on the host only (AI_PROVIDER=openai)
+//   OPENROUTER_API_KEY  secret, set on the host only (AI_PROVIDER=openrouter; AI_MODEL and AI_PLAN_MODEL are then required, e.g. vendor/model names from OpenRouter)
+//   AI_OPENROUTER_ZDR   'off' to stop asking OpenRouter for zero-data-retention endpoints (default: on)
 //   AI_PROVIDER         'openai' (default). Anything else switches AI off.
 //   AI_MODEL            small model for Ask / insights (default gpt-5.4-nano)
 //   AI_PLAN_MODEL       standard model for workout/diet plans (default gpt-5.4-mini)
@@ -19,10 +21,20 @@ const DEFAULT_SMALL = 'gpt-5.4-nano';
 const DEFAULT_STANDARD = 'gpt-5.4-mini';
 
 const provider = () => String(process.env.AI_PROVIDER || 'openai').toLowerCase();
-const isEnabled = () => provider() === 'openai' && Boolean(process.env.OPENAI_API_KEY);
-const smallModel = () => process.env.AI_MODEL || DEFAULT_SMALL;
-const standardModel = () => process.env.AI_PLAN_MODEL || DEFAULT_STANDARD;
-const baseUrl = () => (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, '');
+const isRouter = () => provider() === 'openrouter';
+const apiKey = () => (isRouter() ? process.env.OPENROUTER_API_KEY : process.env.OPENAI_API_KEY);
+// OpenRouter has no safe default model name here (names look like vendor/model and change), so both model settings must be given.
+const isEnabled = () => (provider() === 'openai' && Boolean(process.env.OPENAI_API_KEY))
+  || (isRouter() && Boolean(process.env.OPENROUTER_API_KEY) && Boolean(process.env.AI_MODEL) && Boolean(process.env.AI_PLAN_MODEL));
+const smallModel = () => process.env.AI_MODEL || (isRouter() ? '' : DEFAULT_SMALL);
+const standardModel = () => process.env.AI_PLAN_MODEL || (isRouter() ? '' : DEFAULT_STANDARD);
+const baseUrl = () => (isRouter()
+  ? (process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1')
+  : (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1')).replace(/\/+$/, '');
+const headers = () => ({
+  'Content-Type': 'application/json', Authorization: `Bearer ${apiKey()}`,
+  ...(isRouter() ? { 'X-Title': 'Afra', ...(process.env.OPENROUTER_REFERER ? { 'HTTP-Referer': process.env.OPENROUTER_REFERER } : {}) } : {}),
+});
 
 // Builds the request body. Pure, so it is unit tested without any network.
 const buildBody = ({ model, system, user, maxTokens }) => {
@@ -35,6 +47,9 @@ const buildBody = ({ model, system, user, maxTokens }) => {
     max_completion_tokens: maxTokens,
   };
   if (process.env.AI_REASONING_EFFORT) body.reasoning_effort = process.env.AI_REASONING_EFFORT;
+  // Through OpenRouter, only send prompts to endpoints that do not keep or train on them (zero data retention).
+  // Switch off with AI_OPENROUTER_ZDR=off only if no endpoint is found for the chosen model (then tell Kamarudeen).
+  if (isRouter() && process.env.AI_OPENROUTER_ZDR !== 'off') body.provider = { zdr: true };
   return body;
 };
 
@@ -60,7 +75,7 @@ const complete = async ({ system, user, maxTokens = 400, model, timeoutMs = 2000
     try {
       const res = await fetch(`${baseUrl()}/chat/completions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+        headers: headers(),
         body: JSON.stringify(buildBody({ model: useModel, system, user, maxTokens })),
         signal: ctrl.signal,
       });

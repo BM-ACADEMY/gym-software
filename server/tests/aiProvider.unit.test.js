@@ -63,4 +63,22 @@ describe('aiProvider', () => {
     global.fetch = jest.fn(async () => ({ ok: false, status: 400, json: async () => ({ error: 'secret echo' }) }));
     await expect(p.complete({ user: 'q' })).rejects.toThrow(/HTTP 400$/);
   });
+
+  test('OpenRouter: needs its own key and both model names; no model guessed; zero-retention asked by default', () => {
+    for (const k of ['OPENAI_API_KEY', 'AI_MODEL', 'AI_PLAN_MODEL', 'OPENROUTER_API_KEY', 'AI_OPENROUTER_ZDR', 'OPENROUTER_BASE_URL']) delete process.env[k];
+    process.env.AI_PROVIDER = 'openrouter';
+    expect(p.isEnabled()).toBe(false);
+    process.env.OPENROUTER_API_KEY = 'k'; expect(p.isEnabled()).toBe(false); // no model names yet
+    process.env.AI_MODEL = 'vendor/small'; expect(p.isEnabled()).toBe(false);
+    process.env.AI_PLAN_MODEL = 'vendor/standard'; expect(p.isEnabled()).toBe(true);
+    process.env.OPENAI_API_KEY = 'other'; delete process.env.OPENROUTER_API_KEY; expect(p.isEnabled()).toBe(false); // an OpenAI key does not turn OpenRouter on
+    process.env.OPENROUTER_API_KEY = 'k';
+    expect(p.buildBody({ model: 'm', user: 'U', maxTokens: 5 }).provider).toEqual({ zdr: true });
+    process.env.AI_OPENROUTER_ZDR = 'off'; expect(p.buildBody({ model: 'm', user: 'U', maxTokens: 5 }).provider).toBeUndefined();
+  });
+
+  test('OpenAI mode is unchanged: no provider block in the body', () => {
+    process.env.AI_PROVIDER = 'openai'; delete process.env.AI_OPENROUTER_ZDR;
+    expect(p.buildBody({ model: 'm', user: 'U', maxTokens: 5 }).provider).toBeUndefined();
+  });
 });

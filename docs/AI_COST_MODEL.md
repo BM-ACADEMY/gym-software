@@ -1,4 +1,6 @@
-# AI cost model for all products (OpenAI, decision D-15)
+# AI cost model for all products (OpenAI prices below; the account is OpenRouter since D-22, see note)
+
+> **Update 29 Oct (D-22):** the purchased account is OpenRouter, not OpenAI. The OpenAI prices below are reference only. Real prices come from the chosen models' pages on OpenRouter; OpenRouter may add its own fee, which Dev A must read from OpenRouter's pricing page (not checked here). Until Dev A fills real prices into `server/services/aiBudget.js`, spend shown in the app is an estimate.
 
 Written 28 Oct 2026. Replaces the AI rows of master plan section 14, which assumed Anthropic. Rupees at Rs 88 per dollar.
 

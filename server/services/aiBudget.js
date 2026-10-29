@@ -12,6 +12,9 @@ const PRICES = {
   'gpt-5.4-nano': { in: 0.2, out: 1.25 },
   'gpt-5.4-mini': { in: 0.75, out: 4.5 },
   'gpt-5.6-terra': { in: 2, out: 12 },
+  // OpenRouter model names (D-22). Assumption: OpenAI's list price for gpt-4o-mini ($0.15 in, $0.60 out per 1M tokens) from memory;
+  // Dev A must check the model page on OpenRouter and correct these. OpenRouter may add a fee on credit purchases, not counted here.
+  'openai/gpt-4o-mini': { in: 0.15, out: 0.6 },
 };
 const FALLBACK_PRICE = { in: 2, out: 12 };
 

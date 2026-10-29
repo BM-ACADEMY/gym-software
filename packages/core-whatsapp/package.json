@@ -1,0 +1,1 @@
+{ "name": "@afra/core-whatsapp", "version": "0.1.0", "private": true, "main": "src/afraTemplates.js", "description": "Afra's own WhatsApp templates to business owners (B2B): welcome, trial, payment, renewal, support. Definitions only; no sending, no network.", "license": "UNLICENSED" }

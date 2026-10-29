@@ -3,16 +3,18 @@
 Format of an open item: question, Claude's recommendation, default if no answer, what it blocks, tier (see `OPERATING_RULES.md`).
 Mohamed answers in one line. Claude moves answered items to the log in the next commit.
 
-## Open: needs Mohamed (updated 28 Oct, after his first answers)
+## Open: needs Mohamed (updated 29 Oct)
 
 | ID | Question | Recommendation | If no answer | Blocks | Tier |
 | --- | --- | --- | --- | --- | --- |
+| D-22 | Monthly limit on AI workout/diet plan generations (PRICE-01): Growth 30, Pro 100, Solo and Starter 0 (feature off) | Yes (these are the numbers `docs/AI_COST_MODEL.md` assumes) | Stays in code on the branch only; nothing is deployed | Gym floor price at full use; Pricing page wording | 3 |
+| D-23 | Floor-price method for the six new products: need master plan section 14 (overheads, margin, safety factor) | Send the file | No shop price table; prices stay drafts | Price approval for Salon, Mart, Dine, Cloth, Wash, Hire | 3 |
 
 ## Open: Tier 2, proceeding on default (veto any time)
 
 | ID | Item | Default being used |
 | --- | --- | --- |
-| D-06 | Refund window for the first payment | 7 days, first payment only (`VITE_REFUND_DAYS`); legal pages stay drafts until a lawyer reviews |
+| D-06 | Refund window for the first payment | 7 days, first payment only (`VITE_REFUND_DAYS`); legal pages stay drafts until a lawyer reviews them |
 | D-07 | Business rules R01 to R30 in the QA workbook | Claude proposes safe defaults in a table for Mohamed to scan; none go live without the QA gate |
 | D-08 | Product name | Working name GymDesk (candidate RepSetu); interim address fit.afraventures.in; final name after the launch gate |
 
@@ -69,4 +71,3 @@ Every task below is a row in the team task sheet (`docs/TEAM_TASK_SHEET.xlsx`, o
 ## D-21 (29 Oct): sales leads for Afra's products
 - One Afra AI OS brand "AFRA Products" for all product sales and renewals; product and stage in `campaign`. People are telecaller or BD and will change; access granted per person, not fixed in code.
 - Afra AI OS session must still log it in its own decisions and plan before building.
-

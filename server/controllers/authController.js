@@ -164,6 +164,8 @@ const signup = async (req, res) => {
         phone,
         passwordHash: await bcrypt.hash(password, 10),
         lastLoginAt: new Date(),
+        // Off unless the owner ticked the box (a real true only).
+        ...(req.body.salesContactOk === true ? { salesContactOk: true, salesContactAt: new Date() } : {}),
       });
     } catch (err) {
       await Subscriber.deleteOne({ _id: subscriber._id }); // no orphan gym if the owner insert fails

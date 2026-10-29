@@ -87,6 +87,7 @@ export default {
   "Creating your gym...": "உங்கள் ஜிம் உருவாக்கப்படுகிறது...",
   "Start 14-day free trial": "14 நாள் இலவச சோதனையைத் தொடங்கு",
   "Already have an account?": "ஏற்கனவே கணக்கு உள்ளதா?",
+  "OK to call or WhatsApp me about my trial and plan. You can change this any time in Settings.": "எனது சோதனை மற்றும் திட்டம் பற்றி என்னை அழைக்கலாம் அல்லது WhatsApp செய்யலாம். இதை எப்போது வேண்டுமானாலும் Settings-ல் மாற்றலாம்.",
   "No card needed. By continuing you agree to our": "கார்டு தேவையில்லை. தொடர்வதன் மூலம் நீங்கள் எங்கள்",
   "Terms": "விதிமுறைகள்",
   "and": "மற்றும்",

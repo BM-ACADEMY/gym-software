@@ -87,6 +87,7 @@ export default {
   "Creating your gym...": "आपका जिम बन रहा है...",
   "Start 14-day free trial": "14 दिन का फ्री ट्रायल शुरू करें",
   "Already have an account?": "पहले से खाता है?",
+  "OK to call or WhatsApp me about my trial and plan. You can change this any time in Settings.": "मेरे ट्रायल और प्लान के बारे में मुझे कॉल या WhatsApp कर सकते हैं। आप इसे कभी भी Settings में बदल सकते हैं।",
   "No card needed. By continuing you agree to our": "कार्ड की ज़रूरत नहीं। आगे बढ़ने पर आप हमारी",
   "Terms": "शर्तों",
   "and": "और",

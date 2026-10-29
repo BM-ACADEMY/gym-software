@@ -355,6 +355,68 @@
             "equals": "skipped"
           }
         }
+      ],
+      "canAdd": true,
+      "searchable": false,
+      "toolbar": [
+        {
+          "label": "Find new suggestions",
+          "method": "POST",
+          "path": "/marketing/refresh",
+          "done": "Checked."
+        }
+      ],
+      "fields": [
+        {
+          "key": "title",
+          "label": "What to do",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Why",
+          "type": "textarea",
+          "required": true
+        },
+        {
+          "key": "channel",
+          "label": "Channel",
+          "type": "select",
+          "required": true,
+          "options": [
+            "instagram",
+            "youtube",
+            "whatsapp_channel",
+            "website",
+            "email",
+            "call",
+            "other"
+          ]
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            {
+              "value": "decision_today",
+              "label": "Decide today"
+            },
+            {
+              "value": "this_week",
+              "label": "This week"
+            },
+            {
+              "value": "later",
+              "label": "Later"
+            }
+          ]
+        },
+        {
+          "key": "due",
+          "label": "Due date",
+          "type": "date"
+        }
       ]
     },
     "calendar": {
@@ -371,6 +433,29 @@
           "key": "date",
           "label": "Date",
           "type": "date"
+        }
+      ],
+      "canAdd": true,
+      "searchable": false,
+      "fields": [
+        {
+          "key": "name",
+          "label": "Event (festival, launch, campaign)",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "DELETE",
+          "path": "/marketing/calendar/:id",
+          "confirm": "Tap again to remove"
         }
       ]
     }

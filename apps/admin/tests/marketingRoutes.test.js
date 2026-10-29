@@ -3,7 +3,7 @@ function setup() {
   const items = []; const cal = [];
   const store = { list: async () => items.slice(), get: async (id) => items.find((i) => i.id === id) || null, insert: async (i) => { const x = { id: 'id' + (items.length + 100000), ...i }; items.push(x); return x; },
     update: async (id, p) => Object.assign(items.find((i) => i.id === id), p), keys: async () => items.map((i) => i.key).filter(Boolean), calendar: async () => cal, setCalendar: async (e) => { cal.length = 0; cal.push(...e); } };
-  const routes = {}; const router = { use() {}, get: (p, h) => (routes['GET ' + p] = h), post: (p, h) => (routes['POST ' + p] = h), put: (p, h) => (routes['PUT ' + p] = h) };
+  const routes = {}; const router = { use() {}, get: (p, h) => (routes['GET ' + p] = h), post: (p, h) => (routes['POST ' + p] = h), delete: (p, h) => (routes['DELETE ' + p] = h), put: (p, h) => (routes['PUT ' + p] = h) };
   const audits = [];
   createMarketingRouter({ express: { Router: () => router }, protect: 1, authorize: () => 2, store, audit: (a) => audits.push(a), now: () => new Date('2026-11-02T04:30:00Z'),
     getFacts: async () => ({ products: [{ product: 'hire', state: 'live', businesses: { expired: 2 }, endingSoon: [{ kind: 'trial', daysLeft: 1 }], signups7d: 0 }], totals: {} }) });
@@ -36,5 +36,13 @@ describe('marketing routes', () => {
     expect((await s.call('PUT /calendar', 'root_admin', { body: { events: [{ id: 'd', name: 'Diwali' }] } })).c).toBe(400);
     expect((await s.call('PUT /calendar', 'root_admin', { body: { events: [{ id: 'd', name: 'Diwali', date: '2026-11-08' }] } })).c).toBe(200);
     expect((await s.call('GET /calendar', 'marketing')).b.data.length).toBe(1);
+  });
+  test('calendar add and remove one event (what the screen uses)', async () => {
+    const s = setup(); expect((await s.call('POST /calendar', 'marketing', { body: { name: 'Pongal', date: '2027-01-14' } })).c).toBe(403);
+    expect((await s.call('POST /calendar', 'root_admin', { body: { name: 'P' } })).c).toBe(400);
+    const a = await s.call('POST /calendar', 'root_admin', { body: { name: 'Pongal', date: '2027-01-14' } }); expect(a.c).toBe(201);
+    expect((await s.call('DELETE /calendar/:id', 'marketing', { params: { id: a.b.data.id } })).c).toBe(403);
+    expect((await s.call('DELETE /calendar/:id', 'root_admin', { params: { id: 'nope' } })).c).toBe(404);
+    expect((await s.call('DELETE /calendar/:id', 'root_admin', { params: { id: a.b.data.id } })).c).toBe(200); expect((await s.call('GET /calendar', 'root_admin')).b.data.length).toBe(0);
   });
 });

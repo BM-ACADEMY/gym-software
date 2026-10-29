@@ -45,6 +45,21 @@ function createMarketingRouter({ express, protect, authorize, store, getFacts, a
     audit({ who: actor(req), action: 'marketing.refresh', count: added.length }); res.json({ success: true, added: added.length });
   }));
   router.get('/calendar', wrap(async (req, res) => res.json({ success: true, data: await store.calendar() })));
+  // Add or remove one event (what the screen uses). The owner only.
+  router.post('/calendar', wrap(async (req, res) => {
+    if (!isOwner(req)) return fail(res, 403, 'Only the owner can do this.');
+    const b = req.body || {}; const name = String(b.name || '').trim().slice(0, 80); const date = new Date(b.date);
+    if (name.length < 2 || isNaN(date)) return fail(res, 400, 'Give the event a name and a date.');
+    const list = await store.calendar(); if (list.length >= 200) return fail(res, 400, 'Too many events. Remove old ones first.');
+    const ev = { id: 'ev' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, date, products: [] };
+    await store.setCalendar([...list, ev]); audit({ who: actor(req), action: 'marketing.calendar_add', ref: ev.id }); res.status(201).json({ success: true, data: ev });
+  }));
+  router.delete('/calendar/:id', wrap(async (req, res) => {
+    if (!isOwner(req)) return fail(res, 403, 'Only the owner can do this.');
+    const list = await store.calendar(); const next = list.filter((e) => e.id !== req.params.id);
+    if (next.length === list.length) return fail(res, 404, 'Not found.');
+    await store.setCalendar(next); audit({ who: actor(req), action: 'marketing.calendar_remove', ref: req.params.id }); res.json({ success: true });
+  }));
   router.put('/calendar', wrap(async (req, res) => {
     if (!isOwner(req)) return fail(res, 403, 'Only the owner can do this.');
     const ev = (req.body && req.body.events); if (!Array.isArray(ev) || ev.length > 200) return fail(res, 400, 'Send a list of events.');

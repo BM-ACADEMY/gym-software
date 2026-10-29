@@ -25,6 +25,11 @@ export default function ResourceScreen({ def, api, title }) {
       setEditing(null); setMsg('Saved.'); reload();
     } catch (err) { setMsg((err.response && err.response.data && err.response.data.message) || 'Could not save.'); }
   };
+  // Buttons above the list that act on the whole list (for example "Find new suggestions"), described by def.toolbar.
+  const runToolbar = async (a) => {
+    try { const r = await api[(a.method || 'POST').toLowerCase()](a.path, a.body || {}); setMsg(typeof r.added === 'number' ? `${a.done || 'Done.'} ${r.added} new.` : (a.done || 'Done.')); reload(); }
+    catch (err) { setMsg((err.response && err.response.data && err.response.data.message) || 'That did not work.'); }
+  };
   const runAction = async (a, row) => {
     const key = a.label + idOf(row);
     if (a.confirm && confirm !== key) { setConfirm(key); return; } // second tap confirms, inside the page (no pop-up)
@@ -42,7 +47,8 @@ export default function ResourceScreen({ def, api, title }) {
         <h2>{title || def.label}</h2>
         <div className="adm-tools">
           {def.searchable !== false && <input aria-label="Search" placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} />}
-          {def.fields && !def.readOnly && <button type="button" className="adm-btn main" onClick={() => open({})}>Add</button>}
+          {(def.toolbar || []).map((a) => <button key={a.label} type="button" className="adm-btn" onClick={() => runToolbar(a)}>{a.label}</button>)}
+          {def.fields && (!def.readOnly || def.canAdd) && <button type="button" className="adm-btn main" onClick={() => open({})}>Add</button>}
         </div>
       </header>
       {msg && <p role="status" className="adm-note">{msg}</p>}

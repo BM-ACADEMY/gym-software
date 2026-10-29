@@ -1,20 +1,378 @@
 {
   "product": "admin",
   "title": "Afra Super Admin",
-  "navData": { "overview": "/overview" },
+  "navData": {
+    "overview": "/overview"
+  },
   "nav": [
-    { "key": "overview", "label": "Overview", "screen": "stats", "stats": "overview" },
-    { "key": "product", "label": "Product", "screen": "stats", "stats": "product", "from": { "source": "overview", "path": "products", "idKey": "product", "labelKey": "product" } }
+    {
+      "key": "today",
+      "label": "Today",
+      "screen": "resource",
+      "resource": "today"
+    },
+    {
+      "key": "todo",
+      "label": "Marketing to-do",
+      "screen": "resource",
+      "resource": "todo"
+    },
+    {
+      "key": "calendar",
+      "label": "Calendar",
+      "screen": "resource",
+      "resource": "calendar"
+    },
+    {
+      "key": "overview",
+      "label": "Overview",
+      "screen": "stats",
+      "stats": "overview",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
+      "key": "product",
+      "label": "Product",
+      "screen": "stats",
+      "stats": "product",
+      "from": {
+        "source": "overview",
+        "path": "products",
+        "idKey": "product",
+        "labelKey": "product"
+      },
+      "roles": [
+        "root_admin"
+      ]
+    }
   ],
   "stats": {
-    "overview": { "label": "All products", "endpoint": "/overview", "refreshMs": 60000, "attention": "attention",
+    "overview": {
+      "label": "All products",
+      "endpoint": "/overview",
+      "refreshMs": 60000,
+      "attention": "attention",
       "cards": [
-        { "label": "Businesses", "path": "totals.businesses", "type": "number" }, { "label": "Paying", "path": "totals.paying", "type": "number" }, { "label": "On trial", "path": "totals.trial", "type": "number" },
-        { "label": "MRR", "path": "totals.mrr", "type": "money" }, { "label": "Open tickets", "path": "totals.openTickets", "type": "number" },
-        { "label": "AI spent today", "path": "totals.aiCostTodayInr", "type": "money" }, { "label": "AI daily budget", "path": "totals.aiBudgetInr", "type": "money" }, { "label": "WhatsApp today", "path": "totals.whatsappSentToday", "type": "number" }],
-      "tables": [{ "label": "By product", "rows": "products", "columns": [{ "key": "product", "label": "Product" }, { "key": "state", "label": "State", "type": "pill" }, { "key": "businesses.total", "label": "Businesses", "type": "number" }, { "key": "businesses.paying", "label": "Paying", "type": "number" }, { "key": "mrr", "label": "MRR", "type": "money" }, { "key": "openTickets", "label": "Tickets", "type": "number" }] }] },
-    "product": { "label": "Product", "endpoint": "/overview", "refreshMs": 60000,
-      "tables": [{ "label": "Products shown (filtered by the menu choice)", "rows": "products", "columns": [{ "key": "product", "label": "Product" }, { "key": "state", "label": "State", "type": "pill" }, { "key": "businesses.trial", "label": "Trial", "type": "number" }, { "key": "businesses.grace", "label": "Grace", "type": "number" }, { "key": "businesses.expired", "label": "Expired", "type": "number" }, { "key": "ai.callsToday", "label": "AI calls today", "type": "number" }, { "key": "ai.costTodayInr", "label": "AI cost today", "type": "money" }, { "key": "whatsappSentToday", "label": "WhatsApp today", "type": "number" }] },
-        { "label": "Ending soon", "rows": "products.0.endingSoon", "empty": "Nothing ending soon.", "columns": [{ "key": "name", "label": "Business" }, { "key": "kind", "label": "Type", "type": "pill" }, { "key": "daysLeft", "label": "Days left", "type": "number" }] }] }
+        {
+          "label": "Businesses",
+          "path": "totals.businesses",
+          "type": "number"
+        },
+        {
+          "label": "Paying",
+          "path": "totals.paying",
+          "type": "number"
+        },
+        {
+          "label": "On trial",
+          "path": "totals.trial",
+          "type": "number"
+        },
+        {
+          "label": "MRR",
+          "path": "totals.mrr",
+          "type": "money"
+        },
+        {
+          "label": "Open tickets",
+          "path": "totals.openTickets",
+          "type": "number"
+        },
+        {
+          "label": "AI spent today",
+          "path": "totals.aiCostTodayInr",
+          "type": "money"
+        },
+        {
+          "label": "AI daily budget",
+          "path": "totals.aiBudgetInr",
+          "type": "money"
+        },
+        {
+          "label": "WhatsApp today",
+          "path": "totals.whatsappSentToday",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "By product",
+          "rows": "products",
+          "columns": [
+            {
+              "key": "product",
+              "label": "Product"
+            },
+            {
+              "key": "state",
+              "label": "State",
+              "type": "pill"
+            },
+            {
+              "key": "businesses.total",
+              "label": "Businesses",
+              "type": "number"
+            },
+            {
+              "key": "businesses.paying",
+              "label": "Paying",
+              "type": "number"
+            },
+            {
+              "key": "mrr",
+              "label": "MRR",
+              "type": "money"
+            },
+            {
+              "key": "openTickets",
+              "label": "Tickets",
+              "type": "number"
+            }
+          ]
+        }
+      ]
+    },
+    "product": {
+      "label": "Product",
+      "endpoint": "/overview",
+      "refreshMs": 60000,
+      "tables": [
+        {
+          "label": "Products shown (filtered by the menu choice)",
+          "rows": "products",
+          "columns": [
+            {
+              "key": "product",
+              "label": "Product"
+            },
+            {
+              "key": "state",
+              "label": "State",
+              "type": "pill"
+            },
+            {
+              "key": "businesses.trial",
+              "label": "Trial",
+              "type": "number"
+            },
+            {
+              "key": "businesses.grace",
+              "label": "Grace",
+              "type": "number"
+            },
+            {
+              "key": "businesses.expired",
+              "label": "Expired",
+              "type": "number"
+            },
+            {
+              "key": "ai.callsToday",
+              "label": "AI calls today",
+              "type": "number"
+            },
+            {
+              "key": "ai.costTodayInr",
+              "label": "AI cost today",
+              "type": "money"
+            },
+            {
+              "key": "whatsappSentToday",
+              "label": "WhatsApp today",
+              "type": "number"
+            }
+          ]
+        },
+        {
+          "label": "Ending soon",
+          "rows": "products.0.endingSoon",
+          "empty": "Nothing ending soon.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Business"
+            },
+            {
+              "key": "kind",
+              "label": "Type",
+              "type": "pill"
+            },
+            {
+              "key": "daysLeft",
+              "label": "Days left",
+              "type": "number"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resources": {
+    "today": {
+      "label": "Today",
+      "endpoint": "/marketing/today",
+      "readOnly": true,
+      "empty": "Nothing needs you today.",
+      "columns": [
+        {
+          "key": "title",
+          "label": "What"
+        },
+        {
+          "key": "reason",
+          "label": "Why"
+        },
+        {
+          "key": "product",
+          "label": "Product"
+        },
+        {
+          "key": "channel",
+          "label": "Channel",
+          "type": "pill"
+        },
+        {
+          "key": "due",
+          "label": "Due",
+          "type": "date"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Approve",
+          "method": "POST",
+          "path": "/marketing/items/:id/approve",
+          "when": {
+            "key": "status",
+            "equals": "suggested"
+          }
+        },
+        {
+          "label": "Snooze 3 days",
+          "method": "POST",
+          "path": "/marketing/items/:id/snooze",
+          "when": {
+            "key": "status",
+            "equals": "suggested"
+          }
+        },
+        {
+          "label": "Skip",
+          "method": "POST",
+          "path": "/marketing/items/:id/skip",
+          "when": {
+            "key": "status",
+            "equals": "suggested"
+          }
+        },
+        {
+          "label": "Done",
+          "method": "POST",
+          "path": "/marketing/items/:id/done",
+          "when": {
+            "key": "status",
+            "equals": "approved"
+          }
+        }
+      ]
+    },
+    "todo": {
+      "label": "Marketing to-do",
+      "endpoint": "/marketing/items",
+      "readOnly": true,
+      "empty": "No items yet. The owner can press Find new suggestions.",
+      "columns": [
+        {
+          "key": "title",
+          "label": "What"
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "pill"
+        },
+        {
+          "key": "channel",
+          "label": "Channel",
+          "type": "pill"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "pill"
+        },
+        {
+          "key": "due",
+          "label": "Due",
+          "type": "date"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Approve",
+          "method": "POST",
+          "path": "/marketing/items/:id/approve",
+          "when": {
+            "key": "status",
+            "equals": "suggested"
+          }
+        },
+        {
+          "label": "Skip",
+          "method": "POST",
+          "path": "/marketing/items/:id/skip",
+          "when": {
+            "key": "status",
+            "equals": "suggested"
+          }
+        },
+        {
+          "label": "Done",
+          "method": "POST",
+          "path": "/marketing/items/:id/done",
+          "when": {
+            "key": "status",
+            "equals": "approved"
+          }
+        },
+        {
+          "label": "Bring back",
+          "method": "POST",
+          "path": "/marketing/items/:id/reopen",
+          "when": {
+            "key": "status",
+            "equals": "skipped"
+          }
+        }
+      ]
+    },
+    "calendar": {
+      "label": "Calendar",
+      "endpoint": "/marketing/calendar",
+      "readOnly": true,
+      "empty": "No dates yet. Add festivals and launches (the owner edits this list).",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Event"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        }
+      ]
+    }
   }
 }

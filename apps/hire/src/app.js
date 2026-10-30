@@ -8,6 +8,7 @@ const makeModels = require('./models');
 const { createHireRouter, createSharePublicRouter } = require('./routes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 const { createInternalRouter } = require('./internalRoutes');
+const { runUnscoped } = require('../../../packages/core-server/src');
 
 function missingSettings(env) {
   const out = [];
@@ -23,7 +24,7 @@ function makeBudget(M, env, now = () => new Date()) {
   return { isStopped: async () => {
     try {
       const d = now(); const start = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0) - 5.5 * 3600000);
-      const rows = await M.UsageLog.aggregate([{ $match: { createdAt: { $gte: start } } }, { $group: { _id: null, i: { $sum: '$inTokens' }, o: { $sum: '$outTokens' } } }]);
+      const rows = await runUnscoped('daily AI budget counts every agency together', () => M.UsageLog.aggregate([{ $match: { createdAt: { $gte: start } } }, { $group: { _id: null, i: { $sum: '$inTokens' }, o: { $sum: '$outTokens' } } }]));
       const r = rows[0] || { i: 0, o: 0 };
       return (r.i * pin + r.o * pout) / 1e6 >= daily;
     } catch (e) { console.warn('Hire AI budget check failed, AI kept off for safety'); return true; }

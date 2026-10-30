@@ -43,10 +43,27 @@ const scopeFilter = (existing, field, ctx) => {
 };
 
 // Aggregation pipelines get a leading $match so the tenant is applied before anything else.
-const scopePipeline = (pipeline, field, ctx) => {
+// Mongoose does not cast values inside an aggregation pipeline, so a tenant field stored as an ObjectId needs castId
+// (for example (v) => new mongoose.Types.ObjectId(v)); without it the leading $match would compare a string and match nothing.
+const scopePipeline = (pipeline, field, ctx, castId) => {
   if (!ctx) throw new TenantScopeError(`Aggregate on a tenant model ran outside any tenant context (field ${field})`);
   if (ctx.unscoped) return pipeline;
-  return [{ $match: { [field]: ctx.tenantId } }, ...pipeline];
+  return [{ $match: { [field]: castId ? castId(ctx.tenantId) : ctx.tenantId } }, ...pipeline];
+};
+
+// An update must not move a record to another tenant. Refuses any update that names the tenant field (top level or inside
+// an operator) or a pipeline-style update that mentions it. Unscoped jobs are exempt.
+const UPDATE_OPS = ['$set', '$setOnInsert', '$unset', '$rename', '$inc', '$min', '$max', '$mul', '$currentDate', '$push', '$pull', '$addToSet', '$pop'];
+const assertUpdateKeepsTenant = (update, field, ctx) => {
+  if (!ctx) throw new TenantScopeError(`Update on a tenant model ran outside any tenant context (field ${field})`);
+  if (ctx.unscoped || update === undefined || update === null) return;
+  if (Array.isArray(update)) { if (JSON.stringify(update).includes(`"${field}"`)) throw new TenantScopeError(`An update pipeline may not touch ${field}`); return; }
+  if (Object.prototype.hasOwnProperty.call(update, field)) throw new TenantScopeError(`An update may not change ${field}`);
+  for (const op of UPDATE_OPS) {
+    const body = update[op];
+    if (body && typeof body === 'object' && Object.prototype.hasOwnProperty.call(body, field)) throw new TenantScopeError(`An update may not change ${field}`);
+    if (op === '$rename' && body && Object.values(body).includes(field)) throw new TenantScopeError(`An update may not change ${field}`);
+  }
 };
 
 // A new document: fill the tenant if empty, refuse a different one.
@@ -58,28 +75,43 @@ const scopeDocument = (doc, field, ctx) => {
   if (String(cur) !== ctx.tenantId) throw new TenantScopeError(`Document ${field} does not match the current tenant`);
 };
 
+const UPDATE_HOOKS = ['findOneAndUpdate', 'findOneAndReplace', 'updateOne', 'updateMany', 'replaceOne'];
 const QUERY_HOOKS = ['find', 'findOne', 'countDocuments', 'estimatedDocumentCount', 'findOneAndUpdate', 'findOneAndDelete', 'findOneAndReplace',
   'updateOne', 'updateMany', 'replaceOne', 'deleteOne', 'deleteMany', 'distinct'];
 
-// Mongoose plugin. Usage: schema.plugin(tenantPlugin, { field: 'subscriberId' }) on every tenant model.
+// Mongoose plugin. Usage: schema.plugin(tenantPlugin, { field: 'subscriberId', castId }) on every tenant model.
+// castId is needed only when the tenant field is an ObjectId (see scopePipeline). Hooks accept both the callback style
+// (next, args) and the promise style (args) so a Mongoose upgrade does not silently turn them off (Assumption: verify in the first run).
 const tenantPlugin = (schema, options = {}) => {
   const field = options.field || 'subscriberId';
+  const castId = options.castId;
   schema.statics.__afraTenantField = field; // lets the per-model check see that the plugin is applied
   for (const name of QUERY_HOOKS) {
     schema.pre(name, function tenantQueryHook() {
-      const next = scopeFilter(this.getFilter ? this.getFilter() : this.getQuery(), field, currentContext());
+      const ctx = currentContext();
+      const next = scopeFilter(this.getFilter ? this.getFilter() : this.getQuery(), field, ctx);
       if (this.setQuery) this.setQuery(next); else this._conditions = next;
+      if (UPDATE_HOOKS.includes(name) && this.getUpdate) assertUpdateKeepsTenant(this.getUpdate(), field, ctx);
     });
   }
   schema.pre('aggregate', function tenantAggregateHook() {
-    const next = scopePipeline(this.pipeline(), field, currentContext());
+    const next = scopePipeline(this.pipeline(), field, currentContext(), castId);
     this.pipeline().splice(0, this.pipeline().length, ...next);
   });
   schema.pre('save', function tenantSaveHook() { scopeDocument(this, field, currentContext()); });
-  schema.pre('insertMany', function tenantInsertManyHook(next, docs) {
+  schema.pre('insertMany', function tenantInsertManyHook(a, b) {
+    const docs = typeof a === 'function' ? b : a;
     const ctx = currentContext();
     for (const d of (Array.isArray(docs) ? docs : [docs])) scopeDocument(d, field, ctx);
-    next();
+    if (typeof a === 'function') a();
+  });
+  // bulkWrite sends raw operations that skip the query hooks, so it is refused inside a tenant; use normal queries,
+  // or runUnscoped with a reason for a job that really must.
+  schema.pre('bulkWrite', function tenantBulkWriteHook(a) {
+    const ctx = currentContext();
+    if (!ctx) throw new TenantScopeError(`bulkWrite on a tenant model ran outside any tenant context (field ${field})`);
+    if (!ctx.unscoped) throw new TenantScopeError('bulkWrite is not allowed inside a tenant context; use runUnscoped with a reason');
+    if (typeof a === 'function') a();
   });
 };
 
@@ -90,4 +122,4 @@ const modelsMissingTenantScope = (models, globalModels = []) => {
   return Object.keys(models).filter((n) => !allowed.has(n) && !(models[n] && models[n].schema && models[n].schema.statics && models[n].schema.statics.__afraTenantField));
 };
 
-module.exports = { TenantScopeError, runWithTenant, runUnscoped, currentContext, currentTenantId, scopeFilter, scopePipeline, scopeDocument, tenantPlugin, modelsMissingTenantScope, QUERY_HOOKS };
+module.exports = { TenantScopeError, runWithTenant, runUnscoped, currentContext, currentTenantId, scopeFilter, scopePipeline, scopeDocument, assertUpdateKeepsTenant, tenantPlugin, modelsMissingTenantScope, QUERY_HOOKS, UPDATE_HOOKS };

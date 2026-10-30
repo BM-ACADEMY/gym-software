@@ -3,6 +3,7 @@
 //   GET /admin-summary   counts and rupee totals (contract version 1, same as the gym)
 //   GET /admin-accounts  agency owner contact + plan status for the sales list (CRM-03). Contains phone/email: no-store, never logged.
 const crypto = require('crypto');
+const { runUnscoped } = require('../../../packages/core-server/src');
 const DAY = 86400000;
 
 const keyOk = (given, key) => { const g = String(given || ''); return Boolean(key) && key.length >= 24 && g.length === key.length && crypto.timingSafeEqual(Buffer.from(g), Buffer.from(key)); };
@@ -32,7 +33,7 @@ function createInternalRouter({ express, mongoose, billing, key, dailyBudgetInr 
   router.get('/admin-summary', async (req, res) => {
     try {
       const now = new Date(); const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-      const [tenants, usage] = await Promise.all([M.Tenant.find({}).limit(5000).lean(), M.UsageLog.aggregate([{ $match: { createdAt: { $gte: start } } }, { $group: { _id: null, n: { $sum: 1 }, i: { $sum: '$inTokens' }, o: { $sum: '$outTokens' } } }])]);
+      const [tenants, usage] = await Promise.all([M.Tenant.find({}).limit(5000).lean(), runUnscoped('Super Admin summary: AI use of all agencies, counts only', () => M.UsageLog.aggregate([{ $match: { createdAt: { $gte: start } } }, { $group: { _id: null, n: { $sum: 1 }, i: { $sum: '$inTokens' }, o: { $sum: '$outTokens' } } }]))]);
       const u = usage[0] || { n: 0, i: 0, o: 0 };
       res.json({ success: true, data: shapeSummary({ tenants, billing, aiCallsToday: u.n, aiCostTodayInr: Math.round(((u.i || 0) * prices.in + (u.o || 0) * prices.out) / 1e4) / 100, budgetInr: dailyBudgetInr, now }) });
     } catch (e) { console.error('hire admin-summary failed:', e.message); res.status(500).json({ success: false, message: 'Server error' }); }
@@ -40,7 +41,7 @@ function createInternalRouter({ express, mongoose, billing, key, dailyBudgetInr 
   router.get('/admin-accounts', async (req, res) => {
     try {
       res.set('Cache-Control', 'no-store'); const now = new Date();
-      const [tenants, owners] = await Promise.all([M.Tenant.find({}).limit(5000).lean(), M.User.find({ role: 'admin' }).sort({ createdAt: 1 }).select('tenantId name email lastLoginAt').lean()]);
+      const [tenants, owners] = await Promise.all([M.Tenant.find({}).limit(5000).lean(), runUnscoped('Super Admin sales list: first owner of every agency (key-protected, audited by the admin app)', () => M.User.find({ role: 'admin' }).sort({ createdAt: 1 }).select('tenantId name email lastLoginAt').lean())]);
       const first = new Map(); for (const o of owners) { const k = String(o.tenantId); if (!first.has(k)) first.set(k, o); }
       res.json({ success: true, data: tenants.map((t) => shapeAccount({ tenant: t, owner: first.get(String(t._id)), billing, now })) });
     } catch (e) { console.error('hire admin-accounts failed:', e.message); res.status(500).json({ success: false, message: 'Server error' }); }

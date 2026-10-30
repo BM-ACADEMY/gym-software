@@ -3,6 +3,7 @@
 //   app.use('/api/hire-share', createSharePublicRouter({ express, mongoose }));   // no sign-in: the secret link is the key
 // Every query filters by tenantId. protect/authorize/ai/budget are injected so this package imports no product code.
 const crypto = require('crypto');
+const { runWithTenant, runUnscoped } = require('../../../packages/core-server/src');
 const makeModels = require('./models');
 const C = require('./candidate');
 const { validateParsed } = require('./parse');
@@ -277,16 +278,18 @@ function num(v) { return v === '' || v === null || v === undefined ? undefined :
 function createSharePublicRouter({ express, mongoose }) {
   const router = express.Router();
   const M = makeModels(mongoose);
-  const clientOf = async (token) => (typeof token === 'string' && /^[0-9a-f]{48}$/.test(token) ? M.Client.findOne({ shareToken: token }) : null);
+  const clientOf = async (token) => (typeof token === 'string' && /^[0-9a-f]{48}$/.test(token) ? runUnscoped('public share link: find the client by its secret token', () => M.Client.findOne({ shareToken: token })) : null);
   router.get('/:token', async (req, res) => {
     try {
       const client = await clientOf(req.params.token);
       if (!client) return res.status(404).json({ success: false, message: 'This link is not valid.' });
+      return await runWithTenant(String(client.tenantId), async () => {
       const jobs = await M.Job.find({ tenantId: client.tenantId, clientId: client._id }).lean();
       const entries = await M.Entry.find({ tenantId: client.tenantId, jobId: { $in: jobs.map((j) => j._id) }, stage: { $in: ['submitted', 'interview', 'offer', 'joined'] } }).lean();
       const cands = await M.Candidate.find({ tenantId: client.tenantId, _id: { $in: entries.map((e) => e.candidateId) } }).lean();
       const byId = {}; cands.forEach((c) => { byId[String(c._id)] = c; });
       res.json({ success: true, data: { client: client.name, jobs: jobs.map((j) => ({ id: String(j._id), title: j.title, candidates: entries.filter((e) => String(e.jobId) === String(j._id)).map((e) => { const c = byId[String(e.candidateId)] || {}; return { entryId: String(e._id), name: c.name, skills: c.skills, experienceYears: c.experienceYears, currentTitle: c.currentTitle, location: c.location, note: e.note, stage: e.stage, decision: e.clientDecision || null }; }) })) } });
+      });
     } catch (err) { console.error('Share route failed:', err.message); res.status(500).json({ success: false, message: 'Server error' }); }
   });
   router.post('/:token/entries/:entryId/decision', async (req, res) => {
@@ -295,10 +298,12 @@ function createSharePublicRouter({ express, mongoose }) {
       if (!client) return res.status(404).json({ success: false, message: 'This link is not valid.' });
       const d = req.body && req.body.decision;
       if (!['interested', 'rejected'].includes(d)) return res.status(400).json({ success: false, message: 'Choose interested or rejected.' });
+      return await runWithTenant(String(client.tenantId), async () => {
       const jobIds = (await M.Job.find({ tenantId: client.tenantId, clientId: client._id }).select('_id').lean()).map((j) => j._id);
       const e = await M.Entry.findOneAndUpdate({ _id: req.params.entryId, tenantId: client.tenantId, jobId: { $in: jobIds }, stage: { $in: ['submitted', 'interview', 'offer'] } }, { $set: { clientDecision: d } }, { new: true });
       if (!e) return res.status(404).json({ success: false, message: 'Candidate not found.' });
       res.json({ success: true });
+      });
     } catch (err) { res.status(400).json({ success: false, message: 'Check the link.' }); }
   });
   return router;

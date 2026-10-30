@@ -44,6 +44,7 @@ function createMarketingRouter({ express, protect, authorize, store, getFacts, a
     const added = []; for (const s of sug) added.push(await store.insert({ ...s, createdAt: now(), createdBy: 'rules' }));
     audit({ who: actor(req), action: 'marketing.refresh', count: added.length }); res.json({ success: true, added: added.length });
   }));
+  router.get('/plan', wrap(async (req, res) => res.json({ success: true, data: M.weekPlan(await woken(), await store.calendar(), await getFacts().catch(() => null), now()) })));
   router.get('/calendar', wrap(async (req, res) => res.json({ success: true, data: await store.calendar() })));
   // Add or remove one event (what the screen uses). The owner only.
   router.post('/calendar', wrap(async (req, res) => {

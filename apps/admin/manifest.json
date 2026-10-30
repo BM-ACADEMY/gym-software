@@ -24,6 +24,12 @@
       "resource": "calendar"
     },
     {
+      "key": "plan",
+      "label": "Week plan",
+      "screen": "resource",
+      "resource": "plan"
+    },
+    {
       "key": "overview",
       "label": "Overview",
       "screen": "stats",
@@ -456,6 +462,42 @@
           "method": "DELETE",
           "path": "/marketing/calendar/:id",
           "confirm": "Tap again to remove"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Week plan",
+      "endpoint": "/marketing/plan",
+      "readOnly": true,
+      "searchable": false,
+      "empty": "Nothing planned. Press Find new suggestions on the Marketing to-do page.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "weekday",
+          "label": ""
+        },
+        {
+          "key": "title",
+          "label": "What"
+        },
+        {
+          "key": "product",
+          "label": "Product"
+        },
+        {
+          "key": "channel",
+          "label": "Channel",
+          "type": "pill"
+        },
+        {
+          "key": "kind",
+          "label": "Type",
+          "type": "pill"
         }
       ]
     }

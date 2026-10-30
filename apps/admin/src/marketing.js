@@ -70,4 +70,27 @@ function pushPlan(items, { sentToday = 0, now = new Date(), maxPerDay = 3, quiet
   const room = Math.max(0, maxPerDay - sentToday);
   return { send: items.filter((i) => i.status === 'suggested' && i.priority === 'decision_today' && !i.pushedAt).slice(0, room), reason: room ? null : 'daily_limit' };
 }
-module.exports = { validateItem, move, wake, suggest, newOnly, todayBrief, pushPlan, STATUSES, CHANNELS, PRIORITY };
+
+// Week plan (SA-14): a draft of who-posts-what for the next 7 days (IST). Nothing is stored, posted or sent;
+// it is rebuilt from open items, the calendar and live products each time the page opens. At most 2 slots a day, none on Sunday.
+const IST = 5.5 * 3600000;
+const istDay = (d) => new Date(new Date(d).getTime() + IST).toISOString().slice(0, 10);
+const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+function weekPlan(items, calendar, facts, now = new Date(), { perDay = 2, days = 7 } = {}) {
+  const dates = []; for (let i = 0; i < days; i++) dates.push(istDay(now.getTime() + i * DAY));
+  const weekday = (k) => WEEKDAY[new Date(k + 'T00:00:00Z').getUTCDay()];
+  const slots = Object.fromEntries(dates.map((k) => [k, []]));
+  const put = (k, row) => { if (weekday(k) === 'Sun' || slots[k].length >= perDay) return false; slots[k].push({ day: k, weekday: weekday(k), ...row }); return true; };
+  const place = (from, row) => { for (const k of dates.filter((d) => d >= from)) if (put(k, row)) return true; return false; };
+  // 1. festivals and launches fall on their own day when there is room
+  for (const e of calendar || []) { const k = istDay(e.date); if (dates.includes(k)) place(k, { kind: 'festival', title: `Post for ${e.name}`, product: (e.products && e.products.length === 1) ? e.products[0] : null, channel: 'instagram', itemId: null }); }
+  // 2. open items, most urgent first, on their due day or the next free day
+  const open = wake(items || [], now).filter((i) => i.status === 'suggested' || i.status === 'approved')
+    .sort((a, b) => PRIORITY[a.priority] - PRIORITY[b.priority] || (a.due ? new Date(a.due).getTime() : Infinity) - (b.due ? new Date(b.due).getTime() : Infinity));
+  const covered = new Set();
+  for (const i of open) { if (i.channel === 'call') continue; const from = i.due ? istDay(i.due) : dates[0]; if (place(from < dates[0] ? dates[0] : from, { kind: 'item', title: i.title, product: i.product, channel: i.channel, itemId: i.id || null, status: i.status })) covered.add(i.product); }
+  // 3. one routine post a week for each live product that has nothing else this week
+  for (const p of (facts && facts.products) || []) if (p.state === 'ok' && !covered.has(p.product)) place(dates[1] || dates[0], { kind: 'weekly_post', title: `One ${p.product} post this week (tip, story or short video; only what a person has seen working)`, product: p.product, channel: 'instagram', itemId: null });
+  return Object.values(slots).flat().filter(Boolean).map((r, n) => ({ id: `plan:${r.day}:${n}`, ...r }));
+}
+module.exports = { weekPlan, validateItem, move, wake, suggest, newOnly, todayBrief, pushPlan, STATUSES, CHANNELS, PRIORITY };

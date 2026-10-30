@@ -22,7 +22,7 @@ Total: 34 templates. Today's batch is 16.
 
 ## Open questions for Dev A and Kamarudeen (facts needed, not guessed)
 1. Which WhatsApp business account and number sends batch 1a (a shop's message to its member) and batch 1b (Afra to the owner)? Is one Afra account enough for all shops, or does each shop need its own number? Answer decides how batch 2 is set up. (Assumption: one Afra number to start; to check with Meta's rules for tech providers.)
-2. Support phone number to put in the {{phone}} values: Kamarudeen gives it on 30 Oct.
+2. Support phone number for the {{phone}} values: +91 78269 97187 (digits for config: 917826997187). Confirm with Dev A that it is the number that sends and receives WhatsApp.
 3. Tamil and Hindi: same names with `_ta` / `_hi`, after a native reader checks the wording.
 
 ## What "applied" means today

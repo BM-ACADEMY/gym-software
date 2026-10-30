@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-29",
+  "updatedAt": "2026-10-30",
   "note": "Written by Claude each session. Read only. Everything here is 'written, not yet tested' until a person runs it. Dates are Mohamed's targets; confidence is Claude's estimate (an assumption).",
   "products": [
     {
@@ -9,7 +9,7 @@
       "targetDate": "2026-11-10",
       "stage": "Built, waiting for human tests",
       "confidence": "low",
-      "confidenceNote": "Nothing has been run by a person yet (team sheet all 'Not started' on 29 Oct); server tests (A-02), Meta verification and server hardening (M-11) come first.",
+      "confidenceNote": "Team sheet 30 Oct: A-02 server tests 'Bugs fixed - Pass' and A-03 client build 'Pass', but no fixes appear on the branch and the Notes are empty. Still not started: passwords (A-01), staging (A-15), Meta verification (M-01), CA check (M-04), WhatsApp templates (M-13). Moves to MEDIUM when the server is up and Meta verification has started.",
       "done": [
         "Members, plans, attendance, billing, WhatsApp reminders, Renewal Copilot, Ask GymDesk on own data",
         "AI usage screen with a daily budget stop",
@@ -25,9 +25,10 @@
         "Admin summary route for the all-products Super Admin (written, DB test pending)"
       ],
       "blockers": [
-        "Server hardening by Mohamed (M-11)",
-        "Old passwords changed (A-01)",
-        "Meta verification not started"
+        "Meta business verification not started (M-01)",
+        "Gym not yet on the new server (A-15); server hardening M-11 in progress",
+        "Old passwords not yet changed (A-01)",
+        "A-02 fixes not pushed to the branch"
       ],
       "suggestions": [
         "Do the invite-only start with 3 to 5 gyms you know, not an open launch",
@@ -53,6 +54,10 @@
         {
           "date": "2026-10-29",
           "text": "Limit on AI plan generations per month written (Growth 30, Pro 100, proposed); not yet tested"
+        },
+        {
+          "date": "2026-10-30",
+          "text": "Sheet read: A-02 and A-03 marked Pass. Nothing new written for the gym today; its launch items were already written."
         }
       ],
       "launchChecklist": [
@@ -245,6 +250,10 @@
         {
           "date": "2026-10-29",
           "text": "Autopilot section added to this product scope (watches, acts, reports; suggest-only by default). Shared billing core written and available."
+        },
+        {
+          "date": "2026-10-30",
+          "text": "Research second pass: Posist has no public price and is a chain product; no INR price found for Torqus or Gofrugal."
         }
       ],
       "launchChecklist": [
@@ -297,6 +306,10 @@
         {
           "date": "2026-10-29",
           "text": "Autopilot section added to this product scope (watches, acts, reports; suggest-only by default). Shared billing core written and available."
+        },
+        {
+          "date": "2026-10-30",
+          "text": "Research second pass: Vyapar and myBillBook cost about Rs 3,400 to 4,000 a year; Marg is a different segment."
         }
       ],
       "launchChecklist": [
@@ -425,6 +438,10 @@
         {
           "date": "2026-10-29",
           "text": "Sign-up with 14-day trial, sign-in with lock, signed session cookie and read-only rule for expired plans written (not yet tested by a person). Billing now uses the shared core."
+        },
+        {
+          "date": "2026-10-30",
+          "text": "Fail-closed tenant guard switched on for Hire as the pilot (every query must run inside the agency; crossings are named and give a reason). Written, not yet tested; Dev B attack B-H1 is the proof."
         }
       ],
       "launchChecklist": [

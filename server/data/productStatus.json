@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-30",
+  "updatedAt": "2026-10-31",
   "note": "Written by Claude each session. Read only. Everything here is 'written, not yet tested' until a person runs it. Dates are Mohamed's targets; confidence is Claude's estimate (an assumption).",
   "products": [
     {
@@ -58,6 +58,10 @@
         {
           "date": "2026-10-30",
           "text": "Sheet read: A-02 and A-03 marked Pass. Nothing new written for the gym today; its launch items were already written."
+        },
+        {
+          "date": "2026-10-31",
+          "text": "Sheet read: every row still Not started, no failures reported. Nothing new for the gym; launch items already written."
         }
       ],
       "launchChecklist": [
@@ -134,6 +138,10 @@
         {
           "date": "2026-10-29",
           "text": "Shared tenant guard and business-type presets (salon, spa, barber) written in core-server; not yet tested by a person"
+        },
+        {
+          "date": "2026-10-31",
+          "text": "Part returns written in the shared shop core (refund by line and quantity; points and pay-later reversed). Not yet tested by a person."
         }
       ],
       "launchChecklist": [
@@ -193,6 +201,10 @@
         {
           "date": "2026-10-29",
           "text": "Autopilot section added to this product scope (watches, acts, reports; suggest-only by default). Shared billing core written and available."
+        },
+        {
+          "date": "2026-10-31",
+          "text": "Part returns written in the shared shop core (refund by line and quantity; points and pay-later reversed). Not yet tested by a person."
         }
       ],
       "launchChecklist": [

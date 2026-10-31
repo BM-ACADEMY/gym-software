@@ -6,6 +6,7 @@ const loyalty = require('./loyalty');
 const stock = require('./stock');
 const makeModels = require('./models');
 const csv = require('./csvImport');
+const returns = require('./returns');
 
 const fyOf = (date) => {
   const ist = new Date(new Date(date).getTime() + 5.5 * 3600000);
@@ -208,10 +209,31 @@ module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['a
     res.json({ success: true, data: doc });
   }));
 
-  // Whole-bill return: puts stock back and reverses points and pay-later. (Part returns come later.)
+  // Part return: pick lines and quantities. Safe to double-click: the bill is only changed if nobody returned anything in between.
+  router.post('/bills/:id/return-lines', wrap(async (req, res, tid) => {
+    const doc = await M.PosBill.findOne({ _id: req.params.id, tenantId: tid });
+    if (!doc) return fail(res, 404, 'Bill not found');
+    if (doc.status === 'returned') return fail(res, 409, 'Bill already returned.');
+    const p = returns.plan({ bill: doc.toObject(), items: req.body && req.body.items, returnedQty: doc.returnedQty });
+    const done = await M.PosBill.findOneAndUpdate(
+      { _id: doc._id, tenantId: tid, status: { $ne: 'returned' }, returnedQty: doc.returnedQty },
+      { $set: { returnedQty: p.nextReturnedQty, returnedAmount: p.returnedAmount, ...(p.fullyReturned ? { status: 'returned' } : {}) } });
+    if (!done) return fail(res, 409, 'The bill changed while you were saving. Open it again.');
+    for (const s of p.stockBack) {
+      const r = await M.PosItem.findOneAndUpdate({ _id: s.itemId, tenantId: tid, trackStock: true }, { $inc: { qty: s.qty } });
+      if (r) await M.PosStockMove.create({ tenantId: tid, itemId: s.itemId, type: 'return_in', qty: s.qty, billId: doc._id, by: req.user.id });
+    }
+    if (doc.customerId) {
+      if (p.points) await M.PosLoyalty.create({ tenantId: tid, customerId: doc.customerId, points: p.points, reason: 'part_return', billId: doc._id });
+      if (p.creditReduction) await M.PosCustomer.updateOne({ _id: doc.customerId, tenantId: tid }, { $inc: { creditDue: -p.creditReduction } });
+    }
+    res.json({ success: true, data: { refund: p.refund, cashBack: p.cashBack, creditReduction: p.creditReduction, pointsBack: p.loyaltyBack, fullyReturned: p.fullyReturned } });
+  }));
+
+  // Whole-bill return: puts stock back and reverses points and pay-later. If some lines were already part-returned, use the line return for the rest.
   router.post('/bills/:id/return', wrap(async (req, res, tid) => {
-    const doc = await M.PosBill.findOneAndUpdate({ _id: req.params.id, tenantId: tid, status: { $ne: 'returned' } }, { $set: { status: 'returned' } }, { returnDocument: 'before' });
-    if (!doc) return fail(res, 409, 'Bill not found or already returned.');
+    const doc = await M.PosBill.findOneAndUpdate({ _id: req.params.id, tenantId: tid, status: { $ne: 'returned' }, returnedAmount: { $in: [0, null] } }, { $set: { status: 'returned' } }, { returnDocument: 'before' });
+    if (!doc) return fail(res, 409, 'Bill not found, already returned, or partly returned (return the remaining lines instead).');
     for (const l of doc.lines) {
       if (!l.itemId) continue;
       const r = await M.PosItem.findOneAndUpdate({ _id: l.itemId, tenantId: tid, trackStock: true }, { $inc: { qty: l.qty } });

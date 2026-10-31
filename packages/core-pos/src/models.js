@@ -43,6 +43,7 @@ module.exports = (mongoose) => {
     received: Number, change: Number, credit: Number, due: Number,
     status: { type: String, enum: ['paid', 'partial', 'unpaid', 'credit', 'returned'], required: true },
     pointsEarned: { type: Number, default: 0 }, pointsUsed: { type: Number, default: 0 },
+    returnedQty: { type: [Number], default: [] }, returnedAmount: { type: Number, default: 0 }, // part returns (returns.js)
     clientId: { type: String }, // set by an offline device so a retry never creates a second bill
     by: Schema.Types.ObjectId,
   }, [[{ tenantId: 1, number: 1 }, { unique: true }], [{ tenantId: 1, createdAt: -1 }, {}],

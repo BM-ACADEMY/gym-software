@@ -30,6 +30,24 @@
       "resource": "plan"
     },
     {
+      "key": "renewals",
+      "label": "Renewals",
+      "screen": "resource",
+      "resource": "renewals",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
+      "key": "accounts",
+      "label": "Accounts",
+      "screen": "resource",
+      "resource": "accounts",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
       "key": "overview",
       "label": "Overview",
       "screen": "stats",
@@ -498,6 +516,98 @@
           "key": "kind",
           "label": "Type",
           "type": "pill"
+        }
+      ]
+    },
+    "renewals": {
+      "label": "Renewals and follow-ups",
+      "endpoint": "/accounts/renewals",
+      "readOnly": true,
+      "empty": "No account needs a follow-up right now.",
+      "columns": [
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "pill"
+        },
+        {
+          "key": "business",
+          "label": "Business"
+        },
+        {
+          "key": "owner",
+          "label": "Owner"
+        },
+        {
+          "key": "status",
+          "label": "Plan status",
+          "type": "pill"
+        },
+        {
+          "key": "daysLeft",
+          "label": "Days left",
+          "type": "number"
+        },
+        {
+          "key": "stage",
+          "label": "What to do",
+          "type": "pill"
+        },
+        {
+          "key": "canContact",
+          "label": "OK to call",
+          "type": "pill"
+        },
+        {
+          "key": "joined",
+          "label": "Joined",
+          "type": "date"
+        }
+      ]
+    },
+    "accounts": {
+      "label": "All accounts",
+      "endpoint": "/accounts/list",
+      "readOnly": true,
+      "empty": "No accounts yet, or the products are not connected.",
+      "columns": [
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "pill"
+        },
+        {
+          "key": "business",
+          "label": "Business"
+        },
+        {
+          "key": "owner",
+          "label": "Owner"
+        },
+        {
+          "key": "status",
+          "label": "Plan status",
+          "type": "pill"
+        },
+        {
+          "key": "daysLeft",
+          "label": "Days left",
+          "type": "number"
+        },
+        {
+          "key": "stage",
+          "label": "What to do",
+          "type": "pill"
+        },
+        {
+          "key": "canContact",
+          "label": "OK to call",
+          "type": "pill"
+        },
+        {
+          "key": "joined",
+          "label": "Joined",
+          "type": "date"
         }
       ]
     }

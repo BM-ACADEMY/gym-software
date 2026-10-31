@@ -2,7 +2,7 @@
 // Super Admin server (SA-11). FAILS CLOSED: until a real sign-in with two-step verification is plugged into
 // `auth` (task SA-11b), every route answers 503. This file never invents a weak login.
 const express = require('express');
-const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, collectAccounts } = require('./src');
+const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, collectAccounts } = require('./src');
 
 const app = express();
 app.disable('x-powered-by');
@@ -20,6 +20,7 @@ if (auth && typeof auth.protect === 'function' && typeof auth.authorize === 'fun
     const getFacts = async () => combine(await collectAll(readConfig()));
     app.use('/api/admin/marketing', createMarketingRouter({ express, protect: auth.protect, authorize: auth.authorize, store: makeMongoStore(mongoose), getFacts, audit: (a) => console.log('audit', JSON.stringify(a)) }));
   }
+  app.use('/api/admin/accounts', createAccountsRouter({ express, protect: auth.protect, authorize: auth.authorize, getAccounts: () => collectAccounts(readConfig()), audit: (a) => console.log('audit', JSON.stringify(a)) }));
   app.use('/api/admin/sales', createSalesRouter({ express, protect: auth.protect, authorize: auth.authorize, getAccounts: () => collectAccounts(readConfig()), audit: (a) => console.log('audit', JSON.stringify(a)) }));
   app.use('/api/admin', createAdminRouter({ express, protect: auth.protect, authorize: auth.authorize, collectAll, readConfig }));
 } else {

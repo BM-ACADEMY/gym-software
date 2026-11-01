@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-31",
+  "updatedAt": "2026-11-01",
   "note": "Written by Claude each session. Read only. Everything here is 'written, not yet tested' until a person runs it. Dates are Mohamed's targets; confidence is Claude's estimate (an assumption).",
   "products": [
     {
@@ -62,6 +62,10 @@
         {
           "date": "2026-10-31",
           "text": "Sheet read: every row still Not started, no failures reported. Nothing new for the gym; launch items already written."
+        },
+        {
+          "date": "2026-11-01",
+          "text": "Team sheet read: every row Not started, no failures. No new gym code today; waiting on Dev A tests and staging"
         }
       ],
       "launchChecklist": [
@@ -110,7 +114,8 @@
       "done": [
         "Competitor first pass (RESEARCH.md)",
         "Shared billing, GST, loyalty and CSV import core (core-pos)",
-        "Salon, spa and barber presets as data (menus, report packs, queue vs appointment)"
+        "Salon, spa and barber presets as data (menus, report packs, queue vs appointment)",
+        "Thermal receipt text for 58 mm and 80 mm printers (shared shop billing; written, not yet tested)"
       ],
       "next": [
         "Mount core-pos in a Salon app",
@@ -142,6 +147,10 @@
         {
           "date": "2026-10-31",
           "text": "Part returns written in the shared shop core (refund by line and quantity; points and pay-later reversed). Not yet tested by a person."
+        },
+        {
+          "date": "2026-11-01",
+          "text": "Thermal receipt renderer written for the shared shop billing (7 checks in plain node); PDF bill and a real printer test still to do"
         }
       ],
       "launchChecklist": [
@@ -178,7 +187,8 @@
       "done": [
         "Competitor first pass: billing is cheap or free, so we must sell AI reorder and udhaar",
         "Offline billing queue, barcode and CSV import for products",
-        "Mock-up screens shared"
+        "Mock-up screens shared",
+        "Thermal receipt text for 58 mm and 80 mm printers (shared shop billing; written, not yet tested)"
       ],
       "next": [
         "Mart app on core-pos",
@@ -205,6 +215,10 @@
         {
           "date": "2026-10-31",
           "text": "Part returns written in the shared shop core (refund by line and quantity; points and pay-later reversed). Not yet tested by a person."
+        },
+        {
+          "date": "2026-11-01",
+          "text": "Thermal receipt renderer written for the shared shop billing (7 checks in plain node); PDF bill and a real printer test still to do"
         }
       ],
       "launchChecklist": [
@@ -350,11 +364,12 @@
       "targetDate": "2026-11-25",
       "stage": "Scope and first research pass",
       "confidence": "low",
-      "confidenceNote": "First research pass found only garage tools (Rs 399 to 799, billing period unclear); no app built; owner interviews not done.",
+      "confidenceNote": "Two research passes found only garage or general billing tools (Rs 349 to 799, some periods unclear); no app built; owner interviews not done.",
       "done": [
         "Scope file",
         "First competitor pass (docs/products/wash/RESEARCH.md)",
-        "Car wash and detailing presets as data"
+        "Car wash and detailing presets as data",
+        "Second competitor pass 1 Nov: still only garage and general billing tools; myBillBook Rs 349 to 399 a month"
       ],
       "next": [
         "Talk to 3 local washes (WSH-R1 remainder)",
@@ -380,6 +395,10 @@
         {
           "date": "2026-10-29",
           "text": "First research pass written: Indian tools found are garage software, no wash-first tool seen yet (weak evidence)"
+        },
+        {
+          "date": "2026-11-01",
+          "text": "Second research pass: AllWheels and myBillBook read; no monthly wash pass seen"
         }
       ],
       "launchChecklist": [

@@ -266,4 +266,8 @@ export default {
   "Copy the message": "செய்தியை நகலெடு",
   "Copied": "நகலெடுக்கப்பட்டது",
   "These are drafts. Nothing is sent for you.": "இவை வரைவுகள் மட்டுமே. உங்களுக்காக எதுவும் அனுப்பப்படாது.",
+  "Put GymDesk on your phone": "GymDesk-ஐ உங்கள் போனில் வைக்கவும்",
+  "On iPhone: tap Share, then Add to Home Screen.": "iPhone: Share தொட்டு, பின் Add to Home Screen தேர்வு செய்யுங்கள்.",
+  "On Android: tap the browser menu, then Install app or Add to Home screen.": "Android: உலாவி மெனுவைத் தொட்டு, Install app அல்லது Add to Home screen தேர்வு செய்யுங்கள்.",
+  "Install now": "இப்போது நிறுவு",
 };

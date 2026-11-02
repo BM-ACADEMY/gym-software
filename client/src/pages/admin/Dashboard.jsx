@@ -6,6 +6,7 @@ import OnboardingChecklist from '../../components/layout/OnboardingChecklist';
 import AiInsightsCard from '../../components/layout/AiInsightsCard';
 import WeeklyCoachCard from '../../components/layout/WeeklyCoachCard';
 import MarketingIdeasCard from '../../components/layout/MarketingIdeasCard';
+import InstallHint from '../../components/layout/InstallHint';
 
 const StatCard = ({ label, value, helper, icon: Icon, tone = 'teal' }) => {
   const tones = { teal: 'bg-teal-50 text-teal-700', amber: 'bg-amber-50 text-amber-700', blue: 'bg-blue-50 text-blue-700', violet: 'bg-violet-50 text-violet-700' };
@@ -44,6 +45,7 @@ const Dashboard = () => {
       </div>
 
       <div className="mt-6"><OnboardingChecklist /></div>
+      <div className="mt-6"><InstallHint /></div>
       <div className="mt-6"><WeeklyCoachCard /></div>
       <div className="mt-6"><MarketingIdeasCard /></div>
       <div className="mt-6"><AiInsightsCard /></div>

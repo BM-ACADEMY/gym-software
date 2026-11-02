@@ -16,3 +16,8 @@ const api = { get: (p, params) => call('GET', p, null, params), post: (p, b) => 
 
 const consent = window.location.pathname.match(/^\/consent\/([0-9a-f]{48})$/); // candidates open this without signing in
 createRoot(document.getElementById('root')).render(consent ? <ConsentPage token={consent[1]} /> : <AuthGate><AdminShell manifest={manifest} api={api} /></AuthGate>);
+
+// Installable web app (same method as the gym, PWA-01). Production only. The service worker never stores /api calls.
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => { /* installing is optional */ }); });
+}

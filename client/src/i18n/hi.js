@@ -266,4 +266,8 @@ export default {
   "Copy the message": "संदेश कॉपी करें",
   "Copied": "कॉपी हो गया",
   "These are drafts. Nothing is sent for you.": "ये केवल ड्राफ्ट हैं। आपके लिए कुछ नहीं भेजा जाता।",
+  "Put GymDesk on your phone": "GymDesk को अपने फोन पर रखें",
+  "On iPhone: tap Share, then Add to Home Screen.": "iPhone: Share दबाएं, फिर Add to Home Screen चुनें।",
+  "On Android: tap the browser menu, then Install app or Add to Home screen.": "Android: ब्राउज़र मेनू दबाएं, फिर Install app या Add to Home screen चुनें।",
+  "Install now": "अभी इंस्टॉल करें",
 };

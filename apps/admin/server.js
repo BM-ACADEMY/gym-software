@@ -2,7 +2,7 @@
 // Super Admin server (SA-11). FAILS CLOSED: until a real sign-in with two-step verification is plugged into
 // `auth` (task SA-11b), every route answers 503. This file never invents a weak login.
 const express = require('express');
-const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createPushRouter, makePushStore, makeAiBudget, makeSender, collectAccounts } = require('./src');
+const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createHealthRouter, createPushRouter, makePushStore, makeAiBudget, makeSender, collectAccounts } = require('./src');
 
 const app = express();
 app.disable('x-powered-by');
@@ -31,6 +31,7 @@ if (auth && typeof auth.protect === 'function' && typeof auth.authorize === 'fun
     const every = Number(process.env.PUSH_AUTORUN_MINUTES || 0); // 0 = only when the owner presses Send now
     if (send && every >= 5) setInterval(() => pushRouter.run().catch((e) => console.error('push run failed:', e.message)), every * 60000).unref();
   }
+  app.use('/api/admin/health', createHealthRouter({ express, protect: auth.protect, authorize: auth.authorize, getAccounts: () => collectAccounts(readConfig()), audit: (a) => console.log('audit', JSON.stringify(a)) }));
   app.use('/api/admin/accounts', createAccountsRouter({ express, protect: auth.protect, authorize: auth.authorize, getAccounts: () => collectAccounts(readConfig()), audit: (a) => console.log('audit', JSON.stringify(a)) }));
   app.use('/api/admin/sales', createSalesRouter({ express, protect: auth.protect, authorize: auth.authorize, getAccounts: () => collectAccounts(readConfig()), audit: (a) => console.log('audit', JSON.stringify(a)) }));
   app.use('/api/admin', createAdminRouter({ express, protect: auth.protect, authorize: auth.authorize, collectAll, readConfig }));

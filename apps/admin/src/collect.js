@@ -27,11 +27,12 @@ const collectAll = (configs, opts) => Promise.all(configs.map((c) => collectOne(
 // so a product cannot send extra data by mistake. Failures are named by product only (no URL, no key, no body).
 const STATUSES = ['trial', 'active', 'grace', 'expired', 'suspended'];
 const txt = (v, n) => String(v == null ? '' : v).slice(0, n);
+const cnt = (v) => (Number.isFinite(Number(v)) && Number(v) >= 0 ? Math.min(Math.floor(Number(v)), 1e7) : 0);
 function cleanAccount(a, product) {
   if (!a || typeof a !== 'object' || !a.status || !STATUSES.includes(a.status.status)) return null;
   const left = Number(a.status.daysLeft);
   return { product, businessName: txt(a.businessName, 120), ownerName: txt(a.ownerName, 80), ownerPhone: txt(a.ownerPhone, 25), ownerEmail: txt(a.ownerEmail, 120), contactConsent: a.contactConsent === true,
-    createdAt: a.createdAt || null, lastActiveAt: a.lastActiveAt || null, status: { status: a.status.status, daysLeft: Number.isFinite(left) ? left : null, endsAt: a.status.endsAt || null } };
+    createdAt: a.createdAt || null, lastActiveAt: a.lastActiveAt || null, usage: { members: cnt(a.usage && a.usage.members), checkins14: cnt(a.usage && a.usage.checkins14) }, status: { status: a.status.status, daysLeft: Number.isFinite(left) ? left : null, endsAt: a.status.endsAt || null } };
 }
 async function collectAccounts(configs, { fetchImpl = fetch, timeoutMs = 10000 } = {}) {
   const accounts = []; const failed = [];

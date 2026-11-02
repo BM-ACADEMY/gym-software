@@ -48,6 +48,15 @@
       ]
     },
     {
+      "key": "health",
+      "label": "Gym health",
+      "screen": "resource",
+      "resource": "health",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
       "key": "overview",
       "label": "Overview",
       "screen": "stats",
@@ -622,6 +631,56 @@
           "key": "joined",
           "label": "Joined",
           "type": "date"
+        }
+      ]
+    },
+    "health": {
+      "label": "Gym health",
+      "endpoint": "/health/list",
+      "readOnly": true,
+      "empty": "No accounts yet, or the products are not connected.",
+      "columns": [
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "pill"
+        },
+        {
+          "key": "business",
+          "label": "Business"
+        },
+        {
+          "key": "level",
+          "label": "Health",
+          "type": "pill"
+        },
+        {
+          "key": "health",
+          "label": "Score",
+          "type": "number"
+        },
+        {
+          "key": "plan",
+          "label": "Plan",
+          "type": "pill"
+        },
+        {
+          "key": "members",
+          "label": "Members",
+          "type": "number"
+        },
+        {
+          "key": "checkins14",
+          "label": "Check-ins (14 days)",
+          "type": "number"
+        },
+        {
+          "key": "why",
+          "label": "Why"
+        },
+        {
+          "key": "nudge",
+          "label": "Suggested help"
         }
       ]
     }

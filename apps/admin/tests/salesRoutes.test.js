@@ -5,7 +5,9 @@ describe('collectAccounts', () => {
   test('keeps only agreed fields, drops junk, names failed products only', async () => {
     const fetchImpl = async (url, o) => { expect(o.headers['x-internal-key'].length).toBe(30); return { ok: true, json: async () => ({ data: [acct({ salary: 99999, members: ['x'] }), { status: { status: 'weird' } }, null] }) }; };
     const r = await collectAccounts(cfg, { fetchImpl }); expect(r.accounts.length).toBe(1); expect(r.failed.join()).toBe('hire');
-    expect(Object.keys(r.accounts[0]).join()).toBe('product,businessName,ownerName,ownerPhone,ownerEmail,contactConsent,createdAt,lastActiveAt,status'); expect('salary' in r.accounts[0]).toBe(false);
+    expect(Object.keys(r.accounts[0]).join()).toBe('product,businessName,ownerName,ownerPhone,ownerEmail,contactConsent,createdAt,lastActiveAt,usage,status'); expect('salary' in r.accounts[0]).toBe(false);
+    expect(r.accounts[0].usage).toEqual({ members: 0, checkins14: 0 }); // counts only; junk or negative numbers become 0
+    expect(cleanAccount(acct({ usage: { members: '40', checkins14: -5, extra: 'x' } }), 'gym').usage).toEqual({ members: 40, checkins14: 0 });
   });
   test('errors do not leak the url or key; consent must be exactly true', async () => {
     const r = await collectAccounts([cfg[0]], { fetchImpl: async () => { throw new Error('boom https://fit.example.com ' + 'k'.repeat(30)); } });

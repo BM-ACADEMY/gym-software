@@ -1,9 +1,10 @@
 # Next 3 days (from 2 Nov 2026)
+Updated 2 Nov night: PWA-02 done (written); store app skipped for now (D-26), so no store work in any list.
 
 ## Claude (no waiting on approvals or tests)
 Done 2 Nov, written and not yet tested by a person: AI-05, AI-04, SA-01, SA-08, SA-09, AP-02 (gym card, Hire route), AI-08 part (Tamil, Hindi drafts).
 Next, in order:
-1. Hire screen for marketing ideas (AP-02) and show Super Admin announcements inside gym and Hire (SA-09 read side).
+1. Phone-install tests are with the staff (4 rows PWA-T1 to T4). Hire screen for marketing ideas (AP-02) and show Super Admin announcements inside gym and Hire (SA-09 read side).
 2. CRM-07 reports (sign-up, trial to paid, renewal %) from account facts, counts only.
 3. SA-13 trial-abuse flags from counts (many sign-ups, zero use), no personal data.
 4. SA-14 MRR and retention analytics, once a daily snapshot of counts is stored.

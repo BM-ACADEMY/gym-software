@@ -92,3 +92,6 @@ Every task below is a row in the team task sheet (`docs/TEAM_TASK_SHEET.xlsx`, o
 
 ## D-25 (2 Nov): web app and phone app
 Kamarudeen agreed: (1) no Play Store or App Store app until **10 paying gyms** are live. **Reminder trigger:** every Daily Brief shows "Paying gyms: n of 10" (from Super Admin counts); when it reaches 10, the Brief's first line asks Kamarudeen whether to wrap the web app for Google Play (about 2 to 3 days of work; Apple later). (2) Team tests the home-screen install on a real Android phone and an iPhone. (3) A "Put GymDesk on your phone" hint is on the owner dashboard (hide button; hidden once installed). (4) Hire and Super Admin are installable the same way (manifest, icons, service worker that never stores /api calls). Store fees quoted earlier were from memory, not checked.
+
+## D-26 (2 Nov, night): no native app for now
+Kamarudeen: skip the Google Play / App Store app for now. The web app and home-screen install (PWA-02) are the only app form. No store work is planned or scheduled. The Daily Brief line "Paying gyms: n of 10" stays only as a reminder to ask again; it starts no work. Replaces the store part of D-25.

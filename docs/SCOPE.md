@@ -59,7 +59,7 @@ Phase 2 (about 4 weeks after launch):
 Phase 3 (from about March 2027): Stripe and USD, local payment methods by country, VAT templates,
 more languages (Arabic RTL, Spanish, Indonesian), regional price lists, second data region if required.
 
-Not planned: white-label mobile app stores, POS, BMI devices, multi-branch (add later at +50% per branch).
+Not planned: a store app (Google Play / App Store) of our own (D-26, 2 Nov: skipped for now; the installable web app is enough); white-label mobile app stores, POS, BMI devices, multi-branch (add later at +50% per branch).
 
 ## 5. Timeline and gates (built with Claude, stretch target)
 

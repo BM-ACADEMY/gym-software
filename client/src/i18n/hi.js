@@ -262,4 +262,8 @@ export default {
   "Rewritten with AI": "AI से दोबारा लिखा गया",
   "Nobody needs a message right now. Nice.": "अभी किसी को संदेश की जरूरत नहीं। बढ़िया।",
   "AI rewrites left this month: {n}": "इस महीने बचे AI रीराइट: {n}",
+  "Ideas to bring in members": "नए सदस्य लाने के विचार",
+  "Copy the message": "संदेश कॉपी करें",
+  "Copied": "कॉपी हो गया",
+  "These are drafts. Nothing is sent for you.": "ये केवल ड्राफ्ट हैं। आपके लिए कुछ नहीं भेजा जाता।",
 };

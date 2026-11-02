@@ -262,4 +262,8 @@ export default {
   "Rewritten with AI": "AI மூலம் மாற்றப்பட்டது",
   "Nobody needs a message right now. Nice.": "இப்போது யாருக்கும் செய்தி தேவையில்லை. நன்று.",
   "AI rewrites left this month: {n}": "இந்த மாதம் மீதமுள்ள AI மாற்றங்கள்: {n}",
+  "Ideas to bring in members": "உறுப்பினர்களைக் கொண்டுவர யோசனைகள்",
+  "Copy the message": "செய்தியை நகலெடு",
+  "Copied": "நகலெடுக்கப்பட்டது",
+  "These are drafts. Nothing is sent for you.": "இவை வரைவுகள் மட்டுமே. உங்களுக்காக எதுவும் அனுப்பப்படாது.",
 };

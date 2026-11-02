@@ -32,5 +32,6 @@ router.use('/payroll', require('./payroll'));
 router.use('/poster', require('./poster'));
 router.use('/copilot', require('./copilot'));
 router.use('/coach', require('./coach'));
+router.use('/marketing-ideas', require('./marketingIdeas'));
 
 module.exports = router;

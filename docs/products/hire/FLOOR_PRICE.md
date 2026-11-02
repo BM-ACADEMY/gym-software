@@ -1,6 +1,6 @@
 # Hire floor-price table (HIR-P1, draft 1, 2 Nov 2026)
 
-Status: written for Kamarudeen's decision (Tier 3). Not approved. Every number marked Assumption is a guess until one real parse is costed.
+Status: **decision taken 2 Nov (D-24): outreach prepaid only, Pro 1,000 parses; prices still not approved until the real model price is read.** Every number marked Assumption is a guess until one real parse is costed.
 Floor = the lowest monthly price at which one agency using its whole plan still leaves a 25 percent margin on the variable cost.
 Method (same idea as the gym AI part in `docs/AI_COST_MODEL.md`): floor = (AI cost x 10 safety + WhatsApp cost) / 0.75. The gym's fixed overhead part (master plan section 14) is not in this repo, so it is **not** included here.
 

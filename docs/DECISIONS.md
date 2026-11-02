@@ -83,3 +83,9 @@ Every task below is a row in the team task sheet (`docs/TEAM_TASK_SHEET.xlsx`, o
 - Guard: the platform daily AI budget defaults to Rs 500, which would let a bug burn the whole 10 USD balance in two days. Recommend Dev A sets it to Rs 50 in Root Admin and `HIRE_DAILY_AI_BUDGET_INR=50` until real use is known. Also set a limit inside the OpenRouter account.
 - Risk to check on the first call: if OpenRouter has no zero-retention endpoint for this model the call fails with a "no endpoints" style error; Dev A reports it to Kamarudeen before turning the setting off.
 
+
+## D-24 (2 Nov): Hire outreach, assistant routing call, Hire two-step sign-in, refund window (Kamarudeen said "yes for all" to Claude's recommendations)
+1. **Hire outreach is prepaid packs only, none included in any plan.** Pro resume reading cut from 2,000 to 1,000 a month until the real AI price is known. Code: `apps/hire/src/plans.js` (`outreachPerMonth` 0, Pro `parsesPerMonth` 1000; test `plans.test.js`). Prepaid packs are not built, so Hire cannot send candidate outreach yet (it is suggest-only anyway). Prices stay drafts (Tier 3) until Dev A reads the real model price. Basis: `docs/products/hire/FLOOR_PRICE.md`.
+2. **The assistant's routing call is logged but not counted against the owner's monthly AI limit.** Its money still counts toward the platform daily budget; routing is capped at twice the plan limit a month as an abuse guard. Code: `server/services/aiAssist.js`, new usage kind `routing` (`models/AiUsage.js`); test `aiAssistant.test.js` updated. Written, not yet run (needs Dev A's database).
+3. **Hire agency two-step sign-in: optional at launch, off by default, encouraged.** Compulsory later if the lawyer says so (M-15). Nothing to build now: the setting already stays off.
+4. **Refund window: 7 days** (the draft), lawyer to confirm on the refund page.

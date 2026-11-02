@@ -39,14 +39,20 @@ describe('Ask GymDesk + insights', () => {
     expect(await AiUsage.countDocuments({ subscriberId: t.subscriber._id })).toBe(0);
   });
 
-  test('with a key it asks the model, records a routing use + an answer use, and sends only articles + the question', async () => {
+  test('with a key it asks the model, logs a routing use (not counted) + an answer use, and sends only articles + the question', async () => {
     mockKeyOn = true;
     // 1st call: AI-02 data-question router (no report fits). 2nd call: the answer.
     mockCreate.mockResolvedValueOnce(reply('{"tool":"none"}')).mockResolvedValueOnce(reply('Go to Import Members and upload your Excel file.'));
     const r = await ask(auth(t), 'how do I import members');
     expect(r.body.data.source).toBe('ai');
     expect(r.body.data.answer).toMatch(/Import Members/);
-    expect(await AiUsage.countDocuments({ subscriberId: t.subscriber._id, kind: 'assistant' })).toBe(2);
+    expect(await AiUsage.countDocuments({ subscriberId: t.subscriber._id, kind: 'assistant' })).toBe(1);
+    expect(await AiUsage.countDocuments({ subscriberId: t.subscriber._id, kind: 'routing' })).toBe(1);
+    const aiAssist = require('../services/aiAssist');
+    const u = await aiAssist.usage(t.subscriber);
+    expect(u.used).toBe(1); // the routing call is logged but not counted against the monthly limit
+    expect(u.routed).toBe(1);
+    expect(r.body.data.remaining).toBe(u.remaining);
     const row = await AiUsage.findOne({ subscriberId: t.subscriber._id, kind: 'assistant' });
     expect(row.inTokens).toBe(100);
     expect(row.model).toBe('test-small');

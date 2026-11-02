@@ -94,12 +94,14 @@ const capFor = (subscriber, now = new Date()) => {
 };
 
 const usage = async (subscriber, now = new Date()) => {
-  // Plan generation has its own monthly limit (plan features), so it is not counted here.
-  const used = await AiUsage.countDocuments({ subscriberId: subscriber._id, kind: { $ne: 'plan' }, createdAt: { $gte: monthStartUtc(now) } });
+  // Plan generation has its own monthly limit (plan features), and the small routing call that picks a report is only logged
+  // (its money still counts toward the platform daily budget), so neither is counted here (decision 2 Nov, Kamarudeen).
+  const used = await AiUsage.countDocuments({ subscriberId: subscriber._id, kind: { $nin: ['plan', 'routing'] }, createdAt: { $gte: monthStartUtc(now) } });
   const cap = capFor(subscriber, now);
   // Platform daily budget reached: no AI anywhere today; rule-based answers carry on.
   const budgetStopped = await aiBudget.isStopped(now);
-  return { used, cap, remaining: budgetStopped ? 0 : Math.max(0, cap - used), budgetStopped };
+  const routed = await AiUsage.countDocuments({ subscriberId: subscriber._id, kind: 'routing', createdAt: { $gte: monthStartUtc(now) } });
+  return { used, cap, remaining: budgetStopped ? 0 : Math.max(0, cap - used), budgetStopped, routed };
 };
 
 // ---------- model call ----------
@@ -119,15 +121,13 @@ const ask = async (subscriber, question, now = new Date()) => {
   // Questions about the gym's own numbers: answered from this gym's data by our code.
   // Keywords are free; the AI only picks which report to run (no member data is sent to it).
   try {
-    const data = await askData.tryAnswer(subscriber, q, { canUseAi: u.remaining > 0, now });
+    const data = await askData.tryAnswer(subscriber, q, { canUseAi: u.remaining > 0 && u.routed < u.cap * 2, now }); // routing is free for the owner but capped at twice the plan limit a month
     if (data && data.usedAi) {
-      await AiUsage.create({ subscriberId: subscriber._id, kind: 'assistant', model: data.model, ...data.usage });
+      await AiUsage.create({ subscriberId: subscriber._id, kind: 'routing', model: data.model, ...data.usage });
     }
     if (data && data.answer) {
-      const left = data.usedAi ? u.remaining - 1 : u.remaining;
-      return { status: 200, data: { answer: data.answer, source: 'data', remaining: left, articles: [] } };
+      return { status: 200, data: { answer: data.answer, source: 'data', remaining: u.remaining, articles: [] } };
     }
-    if (data && data.usedAi) u.remaining = Math.max(0, u.remaining - 1);
   } catch (err) {
     console.warn('Ask on own data failed, using help articles:', err.message);
   }

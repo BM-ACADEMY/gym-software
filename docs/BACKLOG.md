@@ -114,7 +114,7 @@ Rule: nothing here is advertised until it is built, tested by a human and listed
 | AI-02 | Ask GymDesk on your own data via safe read-only tools (dues, expiring, absent, collections) | L (owner, 28 Oct) | 3 | WRITTEN (not yet tested): server/services/askData.js, tests askData.unit.test.js (pure, checked with plain node) and askData.test.js (DB, not run) |
 | AI-03 | Register import from a photo or PDF of the paper register, with preview and correction | A | 3 | TODO |
 | AI-04 | Churn risk that explains why, plus an automatic win-back sequence | A | 3 | TODO |
-| AI-05 | Weekly owner coach: 3 actions with expected rupee impact, then tracks whether they were done (upgrade of 1E-02) | A | 2 | TODO |
+| AI-05 | Weekly owner coach: 3 actions with rupees at stake, then tracks whether they were done (upgrade of 1E-02). **Written:** rules `server/services/ownerCoachRules.js` (no AI, free, same answer every time; rupees = member count x the gym's own median monthly plan fee, shown as "up to"/at stake, never a promise; none shown if the gym has no usable plan), service and model `OwnerCoach` (made once per IST week), `GET /api/admin/coach`, dashboard card `WeeklyCoachCard`. Progress = Renewal Copilot "contacted" taps this week (done at half the target) | A | 2 | WRITTEN, not yet tested by a person (7 plain-node rule checks passed here; `server/tests/ownerCoach.test.js` needs Dev A's database)
 | AI-06 | WhatsApp assistant for members (timings, dues, class booking); blocked until WhatsApp is live | B | 4 | BLOCKED |
 | AI-07 | Anomaly alerts: heavy discounts, proxy check-ins, cash that does not match | B | 3 | TODO |
 | AI-08 | Offer and message writer for owners in Tamil, Hindi and English | B | 2 | TODO |

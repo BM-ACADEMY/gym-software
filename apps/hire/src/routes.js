@@ -10,6 +10,7 @@ const { validateParsed } = require('./parse');
 const { rankCandidates } = require('./rank');
 const { addReasons } = require('./reasonService');
 const pipeline = require('./pipeline');
+const marketingIdeas = require('./marketingIdeas');
 const { placementFee, dueDate } = require('./fees');
 const { checkCap } = require('./plans');
 const { parseResume } = require('./resumeService');
@@ -273,6 +274,11 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
     const doc = await M.AutopilotSettings.findOneAndUpdate({ tenantId: tid }, { $set: set }, { new: true, upsert: true });
     await M.ActivityLog.create({ tenantId: tid, job: 'settings', level: 'owner', action: 'changed', text: `Autopilot settings changed by ${String(req.user && req.user.id || 'user')}` });
     res.json({ success: true, data: toPlain(doc) });
+  }));
+  router.get('/marketing-ideas', wrap(async (req, res, tid) => {
+    const [jobs, entries, clients] = await Promise.all([M.Job.find({ tenantId: tid }).lean(), M.Entry.find({ tenantId: tid }).select('jobId stage').lean(), M.Client.find({ tenantId: tid }).select('name').lean()]);
+    res.set('Cache-Control', 'no-store');
+    res.json({ success: true, data: { ideas: marketingIdeas.buildIdeas({ jobs: jobs.map((j) => ({ ...j, id: String(j._id) })), entries, clients: clients.map((c) => ({ ...c, id: String(c._id) })) }) } });
   }));
   router.get('/reports/weekly', wrap(async (req, res, tid) => {
     const to = new Date(); const from = new Date(to.getTime() - 7 * 864e5);

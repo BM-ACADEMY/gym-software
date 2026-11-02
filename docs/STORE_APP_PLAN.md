@@ -44,3 +44,13 @@ Start S3/S4 only when: gym is live on its domain, PWA tests pass, privacy policy
 
 ## 7. What Claude does now (no waiting)
 Draft the store listing text (S5, English and Tamil), the `assetlinks.json` template and a Bubblewrap checklist for Dev A. Nothing is built or submitted.
+
+## 8. How to apply for the D-U-N-S number (step S1, Kamarudeen)
+Source: Apple, "D-U-N-S Number" support page (developer.apple.com/support/D-U-N-S/). Free. Up to 5 business days from Dun & Bradstreet (D&B), then up to 2 business days for Apple to receive it.
+1. Keep ready: the company's **exact legal name** as on the Certificate of Incorporation (not a brand name like GymDesk or Afra), the registered office address, a mailing address, your work phone and a work email on the company domain, and the incorporation papers (certificate, PAN) as PDF or photo.
+2. Open Apple's D-U-N-S lookup tool (developer.apple.com/enroll/duns-lookup) and search the company name. If it is listed, copy the 9-digit number and stop here.
+3. If it is not listed, use the option in the same tool to send your details to D&B for a free number. Fill in the legal name, address and contact exactly as in the papers.
+4. A D&B person may call or email: business type, number of employees, registration papers. Answer from the same details. Reply the same day.
+5. Wait up to 5 business days (rushing is not possible). If more than two weeks pass, email D&B through the link on Apple's page.
+6. Wait 2 more business days, then enroll in the Apple program as an organization when ready (not before the gate in section 6).
+Notes: do not pay any agent who offers to "get a D-U-N-S" quickly; the route above is free. If the tool says "not listed as a legal entity", send D&B the registration documents. The Google Play organization account also asks for a D-U-N-S number (Unchecked, recalled).

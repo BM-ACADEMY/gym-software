@@ -5,7 +5,7 @@ jest.mock('../utils/whatsapp', () => ({
 }));
 
 const db = require('./helpers/db');
-const { createTenant, createMember } = require('./helpers/factories');
+const { createTenant, createMember: createMemberRaw } = require('./helpers/factories');
 const { sendTemplate } = require('../utils/whatsapp');
 const { runWhatsappAutomations } = require('../services/automations');
 const Notification = require('../models/Notification');
@@ -15,6 +15,9 @@ const Subscriber = require('../models/Subscriber');
 const DAY = 86400000;
 // 11:00 IST
 const now = new Date('2026-12-01T05:30:00Z');
+// Members are created at the test clock, not the real one, so the absence rule
+// (10+ days since joining) doesn't depend on today's date.
+const createMember = (sub, o = {}) => createMemberRaw(sub, { createdAt: now, ...o });
 
 describe('WhatsApp automations', () => {
   beforeAll(async () => { await db.connect(); });

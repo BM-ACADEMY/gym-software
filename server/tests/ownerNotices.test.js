@@ -33,7 +33,7 @@ describe('runOwnerNotices', () => {
   beforeEach(() => sendEmail.mockClear());
 
   test('emails a trial-ending owner once, even if the job runs twice', async () => {
-    const t = await createTenant({ subscriber: { trialEndsAt: new Date(now.getTime() + 3 * DAY - 1000) } });
+    const t = await createTenant({ subscriber: { trialEndsAt: new Date(now.getTime() + 3 * DAY - 1000) }, admin: { email: `owner0@test.com` } });
     const a = await runOwnerNotices(now);
     const b = await runOwnerNotices(now);
     expect(a.sent).toBeGreaterThanOrEqual(1);
@@ -52,7 +52,7 @@ describe('runOwnerNotices', () => {
 
   test('when email is not configured nothing is marked sent, so it retries later', async () => {
     sendEmail.mockResolvedValue({ success: false, demo: true });
-    const t = await createTenant({ subscriber: { trialEndsAt: new Date(now.getTime() + 1 * DAY - 1000) } });
+    const t = await createTenant({ subscriber: { trialEndsAt: new Date(now.getTime() + 1 * DAY - 1000) }, admin: { email: `owner2@test.com` } });
     await runOwnerNotices(now);
     expect(await BillingNotice.countDocuments({ subscriberId: t.subscriber._id })).toBe(0);
     sendEmail.mockResolvedValue({ success: true, demo: false });

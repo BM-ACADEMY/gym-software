@@ -37,8 +37,8 @@ describe('self-serve sign-up and subscription', () => {
     expect(res.status).toBe(200);
     expect(res.body.data.status).toBe('trial');
     expect(res.body.data.currentPlan.key).toBe('growth');
-    expect(res.body.data.plans).toHaveLength(3);
-    expect(res.body.data.plans[1].monthly.total).toBe(1179);
+    expect(res.body.data.plans).toHaveLength(4);
+    expect(res.body.data.plans[2].monthly.total).toBe(1179);
   });
 
   test('an expired gym can still read its subscription but cannot write', async () => {

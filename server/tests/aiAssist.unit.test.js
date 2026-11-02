@@ -56,7 +56,7 @@ describe('monthly AI cap by plan', () => {
   const paid = (planKey) => ({ planKey, paidUntil: new Date(now.getTime() + 20 * 86400000) });
   test('each plan has a cap and bigger plans get more', () => {
     const caps = ['solo', 'starter', 'growth', 'pro'].map((k) => capFor(paid(k), now));
-    expect(caps).toEqual([15, 60, 200, 600]);
+    expect(caps).toEqual([15, 40, 120, 300]);
   });
   test('legacy gyms on the old plan system get the default cap', () => {
     expect(capFor({ platformPlanId: 'x' }, now)).toBe(200);

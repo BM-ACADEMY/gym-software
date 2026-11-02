@@ -21,12 +21,12 @@ describe('device log import and staff attendance', () => {
   afterAll(async () => { await db.clearDatabase(); await db.closeDatabase(); });
 
   const rows = [
-    { 'User ID': '101', 'Date/Time': '2026-12-01 06:00:10' },
-    { 'User ID': '101', 'Date/Time': '2026-12-01 06:05:00' },
-    { 'User ID': '101', 'Date/Time': '2026-12-02 06:00:00' },
-    { 'User ID': '7', 'Date/Time': '2026-12-01 09:01:00' },
-    { 'User ID': '7', 'Date/Time': '2026-12-01 18:10:00' },
-    { 'User ID': '999', 'Date/Time': '2026-12-01 07:00:00' },
+    { 'User ID': '101', 'Date/Time': '2026-09-01 06:00:10' },
+    { 'User ID': '101', 'Date/Time': '2026-09-01 06:05:00' },
+    { 'User ID': '101', 'Date/Time': '2026-09-02 06:00:00' },
+    { 'User ID': '7', 'Date/Time': '2026-09-01 09:01:00' },
+    { 'User ID': '7', 'Date/Time': '2026-09-01 18:10:00' },
+    { 'User ID': '999', 'Date/Time': '2026-09-01 07:00:00' },
   ];
 
   test('preview counts without saving; commit saves; running again adds nothing', async () => {
@@ -41,7 +41,7 @@ describe('device log import and staff attendance', () => {
     const done = await request(app).post('/api/admin/attendance/device-log').set(auth(t)).send({ rows, commit: true });
     expect(done.status).toBe(201);
     expect(await Attendance.countDocuments({ subscriberId: t.subscriber._id, method: 'biometric' })).toBe(2);
-    const day = await StaffAttendance.findOne({ subscriberId: t.subscriber._id, staffId: staff._id, date: '2026-12-01' });
+    const day = await StaffAttendance.findOne({ subscriberId: t.subscriber._id, staffId: staff._id, date: '2026-09-01' });
     expect(day.status).toBe('present');
     expect(day.outAt).toBeTruthy();
 
@@ -54,23 +54,23 @@ describe('device log import and staff attendance', () => {
   test('never matches another gym\'s member with the same device ID', async () => {
     const other = await createTenant();
     await createMember(other.subscriber, { name: 'Other', deviceUserId: '555' });
-    const r = await request(app).post('/api/admin/attendance/device-log').set(auth(t)).send({ rows: [{ 'User ID': '555', 'Date/Time': '2026-12-03 06:00:00' }], commit: true });
+    const r = await request(app).post('/api/admin/attendance/device-log').set(auth(t)).send({ rows: [{ 'User ID': '555', 'Date/Time': '2026-09-03 06:00:00' }], commit: true });
     expect(r.body.data.memberCheckIns).toBe(0);
     expect(r.body.data.unmatchedCount).toBe(1);
   });
 
   test('staff attendance: mark leave, list the day, month totals, bad input refused', async () => {
-    const put = await request(app).put('/api/admin/staff-attendance').set(auth(t)).send({ staffId: String(staff._id), date: '2026-12-02', status: 'leave' });
+    const put = await request(app).put('/api/admin/staff-attendance').set(auth(t)).send({ staffId: String(staff._id), date: '2026-09-02', status: 'leave' });
     expect(put.status).toBe(200);
-    const list = await request(app).get('/api/admin/staff-attendance?date=2026-12-02').set(auth(t));
+    const list = await request(app).get('/api/admin/staff-attendance?date=2026-09-02').set(auth(t));
     expect(list.body.data.staff[0].record.status).toBe('leave');
-    const month = await request(app).get('/api/admin/staff-attendance/month?month=2026-12').set(auth(t));
+    const month = await request(app).get('/api/admin/staff-attendance/month?month=2026-09').set(auth(t));
     const mine = month.body.data.rows.find((r) => String(r.id) === String(staff._id));
     expect(mine.present).toBe(1);
     expect(mine.leave).toBe(1);
     expect((await request(app).put('/api/admin/staff-attendance').set(auth(t)).send({ staffId: String(staff._id), date: '2999-01-01', status: 'present' })).status).toBe(400);
-    expect((await request(app).put('/api/admin/staff-attendance').set(auth(t)).send({ staffId: String(staff._id), date: '2026-12-02', status: 'holiday' })).status).toBe(400);
+    expect((await request(app).put('/api/admin/staff-attendance').set(auth(t)).send({ staffId: String(staff._id), date: '2026-09-02', status: 'holiday' })).status).toBe(400);
     const otherGym = await createTenant();
-    expect((await request(app).put('/api/admin/staff-attendance').set(auth(otherGym)).send({ staffId: String(staff._id), date: '2026-12-02', status: 'present' })).status).toBe(404);
+    expect((await request(app).put('/api/admin/staff-attendance').set(auth(otherGym)).send({ staffId: String(staff._id), date: '2026-09-02', status: 'present' })).status).toBe(404);
   });
 });

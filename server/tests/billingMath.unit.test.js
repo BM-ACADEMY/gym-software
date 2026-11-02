@@ -7,7 +7,7 @@ const ahead = (d) => new Date(now.getTime() + d * M.DAY);
 describe('quote and GST', () => {
   test('growth monthly: 999 + 18% = 1179, split 90/90', () => {
     expect(M.quote({ plan: 'growth', cycle: 'monthly' })).toEqual({
-      base: 999, credit: 0, taxable: 999, gst: 180, cgst: 90, sgst: 90, igst: 0, total: 1179, gstMode: 'cgst_sgst', gstRate: 18, currency: 'INR',
+      base: 999, credit: 0, discount: 0, taxable: 999, gst: 180, cgst: 90, sgst: 90, igst: 0, total: 1179, gstMode: 'cgst_sgst', gstRate: 18, currency: 'INR',
     });
   });
   test('igst puts all GST on one line, same total', () => {

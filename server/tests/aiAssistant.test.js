@@ -39,17 +39,18 @@ describe('Ask GymDesk + insights', () => {
     expect(await AiUsage.countDocuments({ subscriberId: t.subscriber._id })).toBe(0);
   });
 
-  test('with a key it asks the model, records one use, and sends only articles + the question', async () => {
+  test('with a key it asks the model, records a routing use + an answer use, and sends only articles + the question', async () => {
     mockKeyOn = true;
-    mockCreate.mockResolvedValue(reply('Go to Import Members and upload your Excel file.'));
+    // 1st call: AI-02 data-question router (no report fits). 2nd call: the answer.
+    mockCreate.mockResolvedValueOnce(reply('{"tool":"none"}')).mockResolvedValueOnce(reply('Go to Import Members and upload your Excel file.'));
     const r = await ask(auth(t), 'how do I import members');
     expect(r.body.data.source).toBe('ai');
     expect(r.body.data.answer).toMatch(/Import Members/);
-    expect(await AiUsage.countDocuments({ subscriberId: t.subscriber._id, kind: 'assistant' })).toBe(1);
+    expect(await AiUsage.countDocuments({ subscriberId: t.subscriber._id, kind: 'assistant' })).toBe(2);
     const row = await AiUsage.findOne({ subscriberId: t.subscriber._id, kind: 'assistant' });
     expect(row.inTokens).toBe(100);
     expect(row.model).toBe('test-small');
-    const arg = mockCreate.mock.calls[0][0];
+    const arg = mockCreate.mock.calls[1][0];
     expect(arg.system).toMatch(/ONLY from the help articles/);
     expect(arg.user).toBe('how do I import members');
   });
@@ -68,7 +69,7 @@ describe('Ask GymDesk + insights', () => {
     mockKeyOn = true;
     const solo = await createTenant({ subscriber: { planKey: 'solo', paidUntil: new Date(Date.now() + 20 * DAY) } });
     await AiUsage.insertMany(Array.from({ length: 15 }, () => ({ subscriberId: solo.subscriber._id, kind: 'assistant' })));
-    const r = await ask(auth(solo), 'how do I pay and renew');
+    const r = await ask(auth(solo), 'how do I pay for my gym plan');
     expect(r.body.data.source).toBe('articles');
     expect(r.body.data.remaining).toBe(0);
     expect(mockCreate).not.toHaveBeenCalled();

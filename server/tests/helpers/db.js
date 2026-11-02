@@ -8,6 +8,10 @@ const connect = async () => {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(process.env.MONGODB_TEST_URI);
   }
+  // The previous suite dropped the database, so unique indexes (idempotency,
+  // one-per-day guards) are rebuilt in the background. Wait for them so a
+  // test can't run before the constraint it relies on exists.
+  await Promise.all(Object.values(mongoose.models).map((m) => m.init()));
 };
 
 const clearDatabase = async () => {

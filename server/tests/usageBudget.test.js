@@ -67,7 +67,7 @@ describe('SA-03 usage screen and daily AI budget', () => {
     const r = await ask(t, 'how do I add a member?');
     expect(r.status).toBe(200);
     expect(mockComplete).not.toHaveBeenCalled();
-    expect(r.body.source).toBe('articles');
+    expect(r.body.data.source).toBe('articles');
   });
 
   test('with budget available AI is used again', async () => {
@@ -75,7 +75,7 @@ describe('SA-03 usage screen and daily AI budget', () => {
     await request(app).put('/api/root-admin/usage/budget').set(rootAuth()).send({ dailyInr: 100000 });
     mockComplete.mockResolvedValue({ text: 'Open Members and tap Add.', usage: { inTokens: 100, outTokens: 10 }, model: 'gpt-5.4-nano' });
     const r = await ask(other, 'how do I add a member?');
-    expect(r.body.source).toBe('ai');
+    expect(r.body.data.source).toBe('ai');
     expect(mockComplete).toHaveBeenCalled();
   });
 });

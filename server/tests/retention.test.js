@@ -21,10 +21,10 @@ describe('At-risk list and one-tap messages', () => {
     await db.connect();
     a = await createTenant({ subscriber: { whatsappEnabled: true, planKey: 'growth', paidUntil: new Date(Date.now() + 20 * DAY) } });
     b = await createTenant({ subscriber: { whatsappEnabled: true, planKey: 'growth', paidUntil: new Date(Date.now() + 20 * DAY) } });
-    absent = await createMember(a.subscriber, { name: 'Absent Ann', phone: '9000000031', expiresAt: new Date(Date.now() + 30 * DAY) });
+    absent = (await createMember(a.subscriber, { name: 'Absent Ann', phone: '9000000031', expiresAt: new Date(Date.now() + 30 * DAY) })).member;
     const Member = require('../models/Member');
     await Member.collection.updateOne({ _id: absent._id }, { $set: { createdAt: new Date(Date.now() - 40 * DAY) } });
-    lapsed = await createMember(a.subscriber, { name: 'Lapsed Lee', phone: '9000000032', expiresAt: new Date(Date.now() - 5 * DAY) });
+    lapsed = (await createMember(a.subscriber, { name: 'Lapsed Lee', phone: '9000000032', expiresAt: new Date(Date.now() - 5 * DAY) })).member;
     await createMember(b.subscriber, { name: 'Other Gym Person', phone: '9000000033', expiresAt: new Date(Date.now() - 5 * DAY) });
   });
   afterAll(async () => { await db.clearDatabase(); await db.closeDatabase(); });
@@ -52,7 +52,7 @@ describe('At-risk list and one-tap messages', () => {
 
   test('a Solo gym (0 WhatsApp messages) cannot send', async () => {
     const solo = await createTenant({ subscriber: { whatsappEnabled: true, planKey: 'solo', paidUntil: new Date(Date.now() + 20 * DAY) } });
-    const m = await createMember(solo.subscriber, { phone: '9000000034', expiresAt: new Date(Date.now() - 3 * DAY) });
+    const m = (await createMember(solo.subscriber, { phone: '9000000034', expiresAt: new Date(Date.now() - 3 * DAY) })).member;
     const now = new Date();
     if (!R.inSendWindow(now)) return; // outside 9 to 21 IST the route refuses earlier; covered by the window test below
     const r = await request(app).post('/api/admin/retention/message').set(auth(solo)).send({ memberId: String(m._id), kind: 'lapsed' });

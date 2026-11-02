@@ -35,22 +35,22 @@ describe('Ask GymDesk on own data', () => {
     await createMember(other.subscriber, { name: 'Secret Person', expiresAt: future(3) });
     const r = await ask(t, 'who is expiring in 7 days?');
     expect(r.status).toBe(200);
-    expect(r.body.source).toBe('data');
-    expect(r.body.answer).toContain('Ravi Kumar');
-    expect(r.body.answer).not.toContain('Secret Person');
+    expect(r.body.data.source).toBe('data');
+    expect(r.body.data.answer).toContain('Ravi Kumar');
+    expect(r.body.data.answer).not.toContain('Secret Person');
     expect(mockComplete).not.toHaveBeenCalled();
     expect(await AiUsage.countDocuments({ subscriberId: t.subscriber._id })).toBe(0);
   });
 
   test('dues are scoped to this gym', async () => {
-    const m = await createMember(t.subscriber, { name: 'Dues Dan' });
-    const o = await createMember(other.subscriber, { name: 'Other Dues' });
+    const m = (await createMember(t.subscriber, { name: 'Dues Dan' })).member;
+    const o = (await createMember(other.subscriber, { name: 'Other Dues' })).member;
     await Payment.create({ subscriberId: t.subscriber._id, memberId: m._id, amount: 1000, amountPaid: 200, method: 'cash', status: 'partial', dueDate: new Date(Date.now() - 5 * DAY) });
     await Payment.create({ subscriberId: other.subscriber._id, memberId: o._id, amount: 5000, method: 'cash', status: 'pending', dueDate: new Date(Date.now() - 5 * DAY) });
     const r = await ask(t, 'show pending dues');
-    expect(r.body.answer).toContain('Dues Dan');
-    expect(r.body.answer).toContain('800');
-    expect(r.body.answer).not.toContain('Other Dues');
+    expect(r.body.data.answer).toContain('Dues Dan');
+    expect(r.body.data.answer).toContain('800');
+    expect(r.body.data.answer).not.toContain('Other Dues');
   });
 
   test('AI routes an unmatched question; only the typed question is sent; counts toward cap', async () => {
@@ -58,7 +58,7 @@ describe('Ask GymDesk on own data', () => {
     await createMember(t.subscriber, { name: 'Private Name', phone: '9000000001' });
     mockComplete.mockResolvedValue({ text: '{"tool":"member_count"}', usage: { inTokens: 50, outTokens: 5 }, model: 'test-small' });
     const r = await ask(t, 'give me the headcount please');
-    expect(r.body.source).toBe('data');
+    expect(r.body.data.source).toBe('data');
     const sent = JSON.stringify(mockComplete.mock.calls[0][0]);
     expect(sent).not.toContain('Private Name');
     expect(sent).not.toContain('9000000001');
@@ -71,6 +71,6 @@ describe('Ask GymDesk on own data', () => {
     mockComplete.mockResolvedValue({ text: '{"tool":"dropDatabase"}', usage: { inTokens: 1, outTokens: 1 }, model: 'test-small' });
     const r = await ask(t, 'xyzzy plugh');
     expect(r.status).toBe(200);
-    expect(r.body.source).not.toBe('data');
+    expect(r.body.data.source).not.toBe('data');
   });
 });

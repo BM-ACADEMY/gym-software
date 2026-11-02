@@ -2,7 +2,7 @@
 // Super Admin server (SA-11). FAILS CLOSED: until a real sign-in with two-step verification is plugged into
 // `auth` (task SA-11b), every route answers 503. This file never invents a weak login.
 const express = require('express');
-const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, collectAccounts } = require('./src');
+const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createPushRouter, makePushStore, makeSender, collectAccounts } = require('./src');
 
 const app = express();
 app.disable('x-powered-by');
@@ -18,7 +18,16 @@ if (auth && typeof auth.protect === 'function' && typeof auth.authorize === 'fun
   if (process.env.MONGODB_URI) {
     const mongoose = require('mongoose');
     const getFacts = async () => combine(await collectAll(readConfig()));
-    app.use('/api/admin/marketing', createMarketingRouter({ express, protect: auth.protect, authorize: auth.authorize, store: makeMongoStore(mongoose), getFacts, audit: (a) => console.log('audit', JSON.stringify(a)) }));
+    const marketingStore = makeMongoStore(mongoose);
+    app.use('/api/admin/marketing', createMarketingRouter({ express, protect: auth.protect, authorize: auth.authorize, store: marketingStore, getFacts, audit: (a) => console.log('audit', JSON.stringify(a)) }));
+    // Phone alerts: stay closed unless the three VAPID settings are in the server settings file (see docs/ADMIN_PUSH_SETUP.md).
+    const { VAPID_PUBLIC_KEY: vPub, VAPID_PRIVATE_KEY: vPriv, VAPID_SUBJECT: vSub } = process.env;
+    let send = null;
+    if (vPub && vPriv && vSub) { try { send = makeSender(require('web-push'), { subject: vSub, publicKey: vPub, privateKey: vPriv }); } catch (e) { console.error('Phone alerts not started:', e.message); } }
+    const pushRouter = createPushRouter({ express, protect: auth.protect, authorize: auth.authorize, store: makePushStore(mongoose), marketingStore, send, publicKey: send ? vPub : null, audit: (a) => console.log('audit', JSON.stringify(a)) });
+    app.use('/api/admin/push', pushRouter);
+    const every = Number(process.env.PUSH_AUTORUN_MINUTES || 0); // 0 = only when the owner presses Send now
+    if (send && every >= 5) setInterval(() => pushRouter.run().catch((e) => console.error('push run failed:', e.message)), every * 60000).unref();
   }
   app.use('/api/admin/accounts', createAccountsRouter({ express, protect: auth.protect, authorize: auth.authorize, getAccounts: () => collectAccounts(readConfig()), audit: (a) => console.log('audit', JSON.stringify(a)) }));
   app.use('/api/admin/sales', createSalesRouter({ express, protect: auth.protect, authorize: auth.authorize, getAccounts: () => collectAccounts(readConfig()), audit: (a) => console.log('audit', JSON.stringify(a)) }));

@@ -13,3 +13,25 @@ const call = async (method, path, body, params) => {
 const api = { get: (p, params) => call('GET', p, null, params), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p) };
 
 createRoot(document.getElementById('root')).render(<AdminShell manifest={manifest} api={api} />);
+
+// Phone alerts: a small button turns them on for this phone or browser. Does nothing if the server has no alert keys.
+(async () => {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const k = await api.get('/push/key').catch(() => null); if (!k || !k.data) return;
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    const existing = await reg.pushManager.getSubscription(); if (existing) return;
+    const b = document.createElement('button'); b.textContent = 'Turn on phone alerts';
+    b.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:50;padding:10px 14px;border-radius:10px;border:1px solid #999;background:#fff;font:14px system-ui';
+    b.onclick = async () => {
+      try {
+        if ((await Notification.requestPermission()) !== 'granted') { b.textContent = 'Alerts blocked in this browser'; return; }
+        const raw = atob(k.data.publicKey.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(k.data.publicKey.length / 4) * 4, '='));
+        const key = Uint8Array.from(raw, (c) => c.charCodeAt(0));
+        const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+        await api.post('/push/subscribe', { subscription: sub.toJSON() }); b.remove();
+      } catch (e) { b.textContent = 'Could not turn on alerts'; }
+    };
+    document.body.appendChild(b);
+  } catch (e) { /* alerts are optional */ }
+})();

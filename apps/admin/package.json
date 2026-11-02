@@ -5,5 +5,6 @@
   "description": "Super Admin for all Afra products (SA-11). Reads counts from each product's admin-summary route. Written, not yet tested by a person.",
   "main": "src/index.js",
   "scripts": { "test": "jest" },
+  "dependencies": { "web-push": "3.6.7" },
   "license": "UNLICENSED"
 }

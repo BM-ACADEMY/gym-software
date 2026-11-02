@@ -57,6 +57,15 @@
       ]
     },
     {
+      "key": "announcements",
+      "label": "Announcements",
+      "screen": "resource",
+      "resource": "announcements",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
       "key": "audit",
       "label": "Audit trail",
       "screen": "resource",
@@ -725,6 +734,67 @@
         {
           "key": "reason",
           "label": "Note"
+        }
+      ],
+      "toolbar": []
+    },
+    "announcements": {
+      "label": "Announcements",
+      "endpoint": "/announcements",
+      "canAdd": true,
+      "readOnly": true,
+      "empty": "No notices yet. Add one to show a short message inside the products.",
+      "columns": [
+        {
+          "key": "title",
+          "label": "Title"
+        },
+        {
+          "key": "body",
+          "label": "Message"
+        },
+        {
+          "key": "products",
+          "label": "Shown in",
+          "type": "tags"
+        },
+        {
+          "key": "endsAt",
+          "label": "Ends",
+          "type": "date"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "DELETE",
+          "path": "/announcements/:id",
+          "confirm": true,
+          "done": "Removed."
+        }
+      ],
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title (short)",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Message (no links, no names)",
+          "type": "textarea",
+          "required": true
+        },
+        {
+          "key": "endsAt",
+          "label": "Show until (up to 30 days)",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "products",
+          "label": "Products (fit, groom, mart, dine, cloth, wash, hire; empty means all)",
+          "type": "tags"
         }
       ],
       "toolbar": []

@@ -2,7 +2,7 @@
 // Super Admin server (SA-11). FAILS CLOSED: until a real sign-in with two-step verification is plugged into
 // `auth` (task SA-11b), every route answers 503. This file never invents a weak login.
 const express = require('express');
-const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createHealthRouter, createAuditRouter, makeAuditStore, createPushRouter, makePushStore, makeAiBudget, makeSender, collectAccounts } = require('./src');
+const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createHealthRouter, createAuditRouter, makeAuditStore, createAnnouncementsRouter, createPublicAnnouncementsRouter, makeAnnouncementStore, createPushRouter, makePushStore, makeAiBudget, makeSender, collectAccounts } = require('./src');
 
 const app = express();
 app.disable('x-powered-by');
@@ -23,6 +23,9 @@ if (auth && typeof auth.protect === 'function' && typeof auth.authorize === 'fun
     const getFacts = async () => combine(await collectAll(readConfig()));
     const auditStore = makeAuditStore(mongoose); saveAudit = auditStore.record;
     app.use('/api/admin/audit', createAuditRouter({ express, protect: auth.protect, authorize: auth.authorize, store: auditStore, audit }));
+    const annStore = makeAnnouncementStore(mongoose);
+    app.use('/api/admin/announcements', createAnnouncementsRouter({ express, protect: auth.protect, authorize: auth.authorize, store: annStore, audit }));
+    app.use('/api/announcements', createPublicAnnouncementsRouter({ express, store: annStore }));
     const marketingStore = makeMongoStore(mongoose);
     // AI wording stays off unless the shared AI settings exist (AI_PROVIDER and key); it has its own small daily rupee stop.
     let aiForWording = null; try { const a = require('../../server/services/aiProvider'); if (a.isEnabled()) aiForWording = a; } catch (e) { /* AI is optional */ }

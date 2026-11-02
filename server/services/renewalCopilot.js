@@ -94,11 +94,12 @@ const getToday = async (sub, { lang, now = new Date(), limit = 15 } = {}) => {
   };
 };
 
-const markDone = async (sub, memberId, kind, userId) => {
+const markDone = async (sub, memberId, kind, userId, step) => {
   if (!C.KINDS.includes(kind)) return { status: 400, message: 'Choose a valid reason.' };
+  const stepNum = kind === 'lapsed' && [1, 2, 3].includes(Number(step)) ? Number(step) : undefined; // win-back step (AI-04)
   const member = await Member.findOne({ _id: memberId, subscriberId: sub._id }).select('_id').lean().catch(() => null);
   if (!member) return { status: 404, message: 'Member not found' };
-  await CopilotAction.create({ subscriberId: sub._id, memberId: member._id, kind, actedBy: userId });
+  await CopilotAction.create({ subscriberId: sub._id, memberId: member._id, kind, actedBy: userId, ...(stepNum ? { step: stepNum } : {}) });
   return { status: 200 };
 };
 

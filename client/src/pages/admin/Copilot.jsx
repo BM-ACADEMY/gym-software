@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import apiClient from '../../api/client';
 import { useT } from '../../i18n';
+import ChurnRiskPanel from '../../components/layout/ChurnRiskPanel';
 
 const KIND_LABEL = { renew: 'Renew', lapsed: 'Win back', dues: 'Dues', absent: 'Check in' };
 const KIND_COLOR = { renew: 'bg-teal-50 text-teal-700', lapsed: 'bg-amber-50 text-amber-700', dues: 'bg-red-50 text-red-700', absent: 'bg-blue-50 text-blue-700' };
@@ -91,6 +92,7 @@ const Copilot = () => {
           </div>
         </div>
       ))}
+      <ChurnRiskPanel />
       {s.notShown > 0 && <p className="text-xs text-gray-400">{t('{n} more members are not shown. Contact these first.', { n: s.notShown })}</p>}
     </div>
   );

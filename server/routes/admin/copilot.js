@@ -3,6 +3,7 @@ const router = express.Router();
 const { protect, authorize } = require('../../middleware/auth');
 const Subscriber = require('../../models/Subscriber');
 const copilot = require('../../services/renewalCopilot');
+const churn = require('../../services/churnRisk');
 const { logAudit } = require('../../utils/auditLog');
 
 router.use(protect, authorize('admin'));
@@ -22,14 +23,27 @@ router.get('/today', async (req, res) => {
   }
 });
 
+// GET /api/admin/copilot/risk?lang=en|ta|hi : members who may leave (with reasons) and the next win-back step due
+router.get('/risk', async (req, res) => {
+  try {
+    const sub = await gym(req);
+    if (!sub) return res.status(404).json({ success: false, message: 'Gym not found' });
+    res.set('Cache-Control', 'no-store');
+    res.json({ success: true, data: await churn.getRisk(sub, { lang: typeof req.query.lang === 'string' ? req.query.lang : undefined }) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // POST /api/admin/copilot/done { memberId, kind }  (owner tapped WhatsApp / marked contacted)
 router.post('/done', async (req, res) => {
   try {
-    const { memberId, kind } = req.body || {};
+    const { memberId, kind, step } = req.body || {};
     if (typeof memberId !== 'string' || typeof kind !== 'string') return res.status(400).json({ success: false, message: 'Choose a member and a reason.' });
     const sub = await gym(req);
     if (!sub) return res.status(404).json({ success: false, message: 'Gym not found' });
-    const r = await copilot.markDone(sub, memberId, kind, req.user.id);
+    const r = await copilot.markDone(sub, memberId, kind, req.user.id, step);
     if (r.status !== 200) return res.status(r.status).json({ success: false, message: r.message });
     await logAudit({ subscriberId: sub._id, actingRole: 'admin', actingUserId: req.user.id, module: 'copilot', action: `contacted:${kind}`, targetId: memberId });
     res.json({ success: true });

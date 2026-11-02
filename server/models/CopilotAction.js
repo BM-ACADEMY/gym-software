@@ -6,6 +6,7 @@ const copilotActionSchema = new mongoose.Schema({
   subscriberId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscriber', required: true },
   memberId: { type: mongoose.Schema.Types.ObjectId, ref: 'Member', required: true },
   kind: { type: String, enum: ['renew', 'lapsed', 'dues', 'absent'], required: true },
+  step: { type: Number, min: 1, max: 3 }, // win-back step (AI-04), only for kind 'lapsed'
   actedBy: { type: mongoose.Schema.Types.ObjectId },
   createdAt: { type: Date, default: Date.now },
 });

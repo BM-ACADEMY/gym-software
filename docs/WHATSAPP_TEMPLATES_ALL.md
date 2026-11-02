@@ -28,3 +28,6 @@ Total: 34 templates. Today's batch is 16.
 ## What "applied" means today
 - Batch 1a wording is also in the gym's server code and already used by the gym.
 - Batch 1b is defined in code as data with tests, but nothing sends it yet. Sending needs: the trial and billing events (shared billing core), the sales hand-off, and Meta approval. Tracked as WA-03 in `docs/BACKLOG.md`.
+
+## Status log
+- 2 Nov 2026: Kamarudeen reports the templates are **under review** at Meta (which batches and each template status not yet given; Dev A to report per template).

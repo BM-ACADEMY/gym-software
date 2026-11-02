@@ -49,3 +49,8 @@ At typical use (40 percent of caps) the tech cost per gym a month is about Solo 
 - Per-plan monthly AI caps live in each product's plan file; the same `AiUsage` collection and provider layer serve all products.
 - Super Admin shows usage per business and per product (SA-03), a platform daily budget stop (to be built: when the day's token total passes a set limit, AI switches to the free fallback), and the real token and rupee cost per call.
 - Hard backstop outside our code: a monthly spend limit in the OpenAI dashboard (Dev Task A-11).
+
+## Correction, 2 Nov 2026: the assistant's routing call
+Dev A's test fix (A-02) showed that a question the keyword matcher cannot place makes one extra, very small AI call first (`server/services/askData.js`, routing: about 300 tokens in, at most 60 out, small model), then the normal answer call. Questions the keywords can place use no routing call.
+- **Money:** the extra call costs a few paise on the small model (Assumption: about Rs 0.01 to 0.02 before the 10 times safety factor). The earlier note that assistant questions "cost about double" was wrong; the cost effect is small.
+- **Cap:** each routed question writes two usage rows, so it uses 2 of the plan's monthly AI calls, not 1. Starter's cap of 40 (proposed) is therefore 20 to 40 questions depending on how many are routed. Kamarudeen to decide (Tier 3, with PRICE-02): count the routing call against the cap, or log it without counting.

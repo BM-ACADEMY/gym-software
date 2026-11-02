@@ -1,0 +1,12 @@
+DRAFT. NOT APPROVED. This text must not be shown to a real candidate until the lawyer has approved it in writing and the approval is filed (task M-15).
+
+{agency} would like to keep your details (name, phone, email, work history and skills) so it can tell you about jobs that may suit you.
+
+What we do with your details:
+- {agency} keeps them for the time set in its privacy notice and then deletes them or asks you again.
+- Only {agency} and the employers it submits you to can see them. Your phone number and email are not shown to employers until you agree to a submission.
+- You can ask {agency} to delete your details or stop contacting you at any time.
+
+Optional: you agree that a computer program (an AI service that may run outside India) may read your resume text to fill in your profile and match you to jobs. You can say no and still be considered.
+
+[Lawyer to confirm: purpose wording, retention period, where the AI service runs, how to reach the grievance contact, and whether a guardian's consent is needed for under 18.]

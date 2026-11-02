@@ -6,6 +6,7 @@ const { makeBilling } = require('../../../packages/core-billing/src');
 const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createHireRouter, createSharePublicRouter } = require('./routes');
+const { createConsentFormRouter, makeConsentStore } = require('./consentForm');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 const { createInternalRouter } = require('./internalRoutes');
 const { runUnscoped } = require('../../../packages/core-server/src');
@@ -45,6 +46,8 @@ function createApp({ express, mongoose, env = process.env, ai }) {
   app.use('/api/hire/auth', createAuthRouter({ express, mongoose, billing, secret, termsVersion: env.HIRE_TERMS_VERSION }));
   // Public client share page: token only, no sign-in.
   app.use('/api/hire-share', createSharePublicRouter({ express, mongoose }));
+  // Candidate consent form: stays closed (503) until the lawyer-approved notice is in place and HIRE_CONSENT_NOTICE_VERSION is set.
+  app.use('/api/hire-consent', createConsentFormRouter({ express, store: makeConsentStore(mongoose), env }));
   app.use('/api/internal', createInternalRouter({ express, mongoose, billing, key: env.INTERNAL_API_KEY, dailyBudgetInr: Number(env.HIRE_DAILY_AI_BUDGET_INR) || 300 }));
   const protect = sessionMiddleware(secret, M);
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));

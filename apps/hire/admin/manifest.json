@@ -2,56 +2,644 @@
   "product": "hire",
   "title": "Hire",
   "nav": [
-    { "key": "today", "label": "Today", "screen": "stats", "stats": "today" },
-    { "key": "pipeline", "label": "Pipeline", "screen": "resource", "resource": "entries" },
-    { "key": "candidates", "label": "Candidates", "screen": "resource", "resource": "candidates" },
-    { "key": "jobs", "label": "Jobs", "screen": "resource", "resource": "jobs" },
-    { "key": "clients", "label": "Clients", "screen": "resource", "resource": "clients" },
-    { "key": "fees", "label": "Fees", "screen": "resource", "resource": "fees" },
-    { "key": "report", "label": "Weekly report", "screen": "stats", "stats": "weekly" },
-    { "key": "autopilot", "label": "Autopilot", "screen": "settings", "settings": "autopilot", "roles": ["admin"] }
+    {
+      "key": "today",
+      "label": "Today",
+      "screen": "stats",
+      "stats": "today"
+    },
+    {
+      "key": "pipeline",
+      "label": "Pipeline",
+      "screen": "resource",
+      "resource": "entries"
+    },
+    {
+      "key": "candidates",
+      "label": "Candidates",
+      "screen": "resource",
+      "resource": "candidates"
+    },
+    {
+      "key": "jobs",
+      "label": "Jobs",
+      "screen": "resource",
+      "resource": "jobs"
+    },
+    {
+      "key": "clients",
+      "label": "Clients",
+      "screen": "resource",
+      "resource": "clients"
+    },
+    {
+      "key": "fees",
+      "label": "Fees",
+      "screen": "resource",
+      "resource": "fees"
+    },
+    {
+      "key": "report",
+      "label": "Weekly report",
+      "screen": "stats",
+      "stats": "weekly"
+    },
+    {
+      "key": "autopilot",
+      "label": "Autopilot",
+      "screen": "settings",
+      "settings": "autopilot",
+      "roles": [
+        "admin"
+      ]
+    }
   ],
   "stats": {
-    "today": { "label": "Needs you today", "endpoint": "/autopilot/today", "refreshMs": 120000,
-      "tables": [{ "label": "Things to do", "rows": "", "empty": "All clear. Nothing needs you right now.",
-        "columns": [{ "key": "text", "label": "What" }, { "key": "job", "label": "Type", "type": "pill" }, { "key": "level", "label": "Autopilot", "type": "pill" }] }] },
-    "weekly": { "label": "Last 7 days", "endpoint": "/reports/weekly",
+    "today": {
+      "label": "Needs you today",
+      "endpoint": "/autopilot/today",
+      "refreshMs": 120000,
+      "tables": [
+        {
+          "label": "Things to do",
+          "rows": "",
+          "empty": "All clear. Nothing needs you right now.",
+          "columns": [
+            {
+              "key": "text",
+              "label": "What"
+            },
+            {
+              "key": "job",
+              "label": "Type",
+              "type": "pill"
+            },
+            {
+              "key": "level",
+              "label": "Autopilot",
+              "type": "pill"
+            }
+          ]
+        }
+      ]
+    },
+    "weekly": {
+      "label": "Last 7 days",
+      "endpoint": "/reports/weekly",
       "cards": [
-        { "label": "Sent to clients", "path": "submitted", "type": "number" }, { "label": "Interviews", "path": "interviews", "type": "number" },
-        { "label": "Offers", "path": "offers", "type": "number" }, { "label": "Joined", "path": "joined", "type": "number" }, { "label": "Dropped", "path": "dropped", "type": "number" },
-        { "label": "Fees invoiced", "path": "feesInvoiced", "type": "money" }, { "label": "Fees paid", "path": "feesPaid", "type": "money" }, { "label": "Fees overdue", "path": "feesOverdue", "type": "money" }] }
+        {
+          "label": "Sent to clients",
+          "path": "submitted",
+          "type": "number"
+        },
+        {
+          "label": "Interviews",
+          "path": "interviews",
+          "type": "number"
+        },
+        {
+          "label": "Offers",
+          "path": "offers",
+          "type": "number"
+        },
+        {
+          "label": "Joined",
+          "path": "joined",
+          "type": "number"
+        },
+        {
+          "label": "Dropped",
+          "path": "dropped",
+          "type": "number"
+        },
+        {
+          "label": "Fees invoiced",
+          "path": "feesInvoiced",
+          "type": "money"
+        },
+        {
+          "label": "Fees paid",
+          "path": "feesPaid",
+          "type": "money"
+        },
+        {
+          "label": "Fees overdue",
+          "path": "feesOverdue",
+          "type": "money"
+        }
+      ]
+    }
   },
   "resources": {
-    "entries": { "label": "Pipeline", "endpoint": "/entries", "readOnly": true, "empty": "No candidates are in a job yet.",
-      "columns": [{ "key": "candidate", "label": "Candidate" }, { "key": "job", "label": "Job" }, { "key": "stage", "label": "Stage", "type": "pill" }, { "key": "stageAt", "label": "Since", "type": "date" }, { "key": "clientDecision", "label": "Client says", "type": "pill" }],
+    "entries": {
+      "label": "Pipeline",
+      "endpoint": "/entries",
+      "readOnly": true,
+      "empty": "No candidates are in a job yet.",
+      "columns": [
+        {
+          "key": "candidate",
+          "label": "Candidate"
+        },
+        {
+          "key": "job",
+          "label": "Job"
+        },
+        {
+          "key": "stage",
+          "label": "Stage",
+          "type": "pill"
+        },
+        {
+          "key": "stageAt",
+          "label": "Since",
+          "type": "date"
+        },
+        {
+          "key": "clientDecision",
+          "label": "Client says",
+          "type": "pill"
+        }
+      ],
       "actions": [
-        { "label": "Screened", "method": "POST", "path": "/entries/:id/move", "body": { "to": "screened" }, "when": { "key": "stage", "equals": "sourced" } },
-        { "label": "Send to client", "method": "POST", "path": "/entries/:id/move", "body": { "to": "submitted" }, "when": { "key": "stage", "equals": "screened" } },
-        { "label": "Interview", "method": "POST", "path": "/entries/:id/move", "body": { "to": "interview" }, "when": { "key": "stage", "equals": "submitted" } },
-        { "label": "Offer made", "method": "POST", "path": "/entries/:id/move", "body": { "to": "offer" }, "when": { "key": "stage", "equals": "interview" } },
-        { "label": "Joined", "method": "POST", "path": "/entries/:id/move", "body": { "to": "joined" }, "when": { "key": "stage", "equals": "offer" }, "confirm": "Tap again: candidate has joined" }
-      ] },
-    "candidates": { "label": "Candidates", "endpoint": "/candidates", "empty": "No candidates yet. Upload a resume or add one by hand.",
-      "columns": [{ "key": "name", "label": "Name" }, { "key": "phone", "label": "Phone", "type": "phone" }, { "key": "currentTitle", "label": "Title" }, { "key": "experienceYears", "label": "Years", "type": "number" }, { "key": "skills", "label": "Skills", "type": "tags" }, { "key": "reviewed", "label": "Checked", "type": "bool" }],
-      "fields": [{ "key": "name", "label": "Name", "required": true, "max": 120 }, { "key": "phone", "label": "Phone", "type": "phone" }, { "key": "email", "label": "Email", "type": "email" }, { "key": "location", "label": "Location", "max": 80 }, { "key": "currentTitle", "label": "Current title", "max": 80 }, { "key": "currentCompany", "label": "Current company", "max": 80 }, { "key": "experienceYears", "label": "Years of experience", "type": "number", "min": 0, "max": 60 }, { "key": "noticeDays", "label": "Notice period (days)", "type": "number", "min": 0, "max": 365 }, { "key": "expectedCtc", "label": "Expected pay per year", "type": "money", "min": 0 }, { "key": "skills", "label": "Skills (comma separated)", "type": "tags" }],
-      "actions": [{ "label": "Withdraw consent", "method": "POST", "path": "/candidates/:id/withdraw-consent", "confirm": "Tap again: stop contacting", "done": "Consent withdrawn." }, { "label": "Delete", "method": "DELETE", "path": "/candidates/:id", "confirm": "Tap again to delete for good", "done": "Deleted." }] },
-    "jobs": { "label": "Jobs", "endpoint": "/jobs", "empty": "No jobs yet.",
-      "columns": [{ "key": "title", "label": "Job" }, { "key": "location", "label": "Location" }, { "key": "openings", "label": "Openings", "type": "number" }, { "key": "status", "label": "Status", "type": "pill" }, { "key": "lastSubmissionAt", "label": "Last sent", "type": "date" }],
-      "fields": [{ "key": "title", "label": "Job title", "required": true, "max": 120 }, { "key": "location", "label": "Location", "max": 80 }, { "key": "openings", "label": "Openings", "type": "number", "min": 1, "max": 500 }, { "key": "mustSkills", "label": "Must-have skills", "type": "tags" }, { "key": "niceSkills", "label": "Nice-to-have skills", "type": "tags" }, { "key": "minExperience", "label": "Min years", "type": "number", "min": 0 }, { "key": "maxExperience", "label": "Max years", "type": "number", "min": 0 }, { "key": "maxCtc", "label": "Max pay per year", "type": "money", "min": 0 }, { "key": "maxNoticeDays", "label": "Max notice (days)", "type": "number", "min": 0 }],
-      "actions": [] },
-    "clients": { "label": "Clients", "endpoint": "/clients", "empty": "No clients yet.",
-      "columns": [{ "key": "name", "label": "Client" }, { "key": "contactName", "label": "Contact" }, { "key": "feeType", "label": "Fee type", "type": "pill" }, { "key": "feeValue", "label": "Fee", "type": "number" }, { "key": "hasShareLink", "label": "Share link on", "type": "bool" }],
-      "fields": [{ "key": "name", "label": "Client name", "required": true, "max": 120 }, { "key": "contactName", "label": "Contact person", "max": 120 }, { "key": "feeType", "label": "Fee type", "type": "select", "options": [{ "value": "percent", "label": "Percent of yearly pay" }, { "value": "flat", "label": "Flat amount" }] }, { "key": "feeValue", "label": "Fee value", "type": "number", "min": 0 }, { "key": "guaranteeDays", "label": "Guarantee days", "type": "number", "min": 0, "max": 365 }],
-      "actions": [{ "label": "New share link", "method": "POST", "path": "/clients/:id/share-link", "done": "New link made. The old link no longer works." }, { "label": "Switch link off", "method": "DELETE", "path": "/clients/:id/share-link", "confirm": "Tap again: client loses access", "done": "Link switched off." }] },
-    "fees": { "label": "Placement fees", "endpoint": "/fees", "readOnly": true, "searchable": false, "empty": "No fees yet. A fee is raised after a candidate joins.",
-      "columns": [{ "key": "fee", "label": "Fee", "type": "money" }, { "key": "gst", "label": "GST", "type": "money" }, { "key": "total", "label": "Total", "type": "money" }, { "key": "dueDate", "label": "Due", "type": "date" }, { "key": "status", "label": "Status", "type": "pill" }],
-      "actions": [{ "label": "Mark paid", "method": "POST", "path": "/fees/:id/paid", "when": { "key": "status", "equals": "due" }, "done": "Marked paid." }, { "label": "Mark paid", "method": "POST", "path": "/fees/:id/paid", "when": { "key": "status", "equals": "overdue" }, "done": "Marked paid." }] }
+        {
+          "label": "Screened",
+          "method": "POST",
+          "path": "/entries/:id/move",
+          "body": {
+            "to": "screened"
+          },
+          "when": {
+            "key": "stage",
+            "equals": "sourced"
+          }
+        },
+        {
+          "label": "Send to client",
+          "method": "POST",
+          "path": "/entries/:id/move",
+          "body": {
+            "to": "submitted"
+          },
+          "when": {
+            "key": "stage",
+            "equals": "screened"
+          }
+        },
+        {
+          "label": "Interview",
+          "method": "POST",
+          "path": "/entries/:id/move",
+          "body": {
+            "to": "interview"
+          },
+          "when": {
+            "key": "stage",
+            "equals": "submitted"
+          }
+        },
+        {
+          "label": "Offer made",
+          "method": "POST",
+          "path": "/entries/:id/move",
+          "body": {
+            "to": "offer"
+          },
+          "when": {
+            "key": "stage",
+            "equals": "interview"
+          }
+        },
+        {
+          "label": "Joined",
+          "method": "POST",
+          "path": "/entries/:id/move",
+          "body": {
+            "to": "joined"
+          },
+          "when": {
+            "key": "stage",
+            "equals": "offer"
+          },
+          "confirm": "Tap again: candidate has joined"
+        }
+      ]
+    },
+    "candidates": {
+      "label": "Candidates",
+      "endpoint": "/candidates",
+      "empty": "No candidates yet. Upload a resume or add one by hand.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "currentTitle",
+          "label": "Title"
+        },
+        {
+          "key": "experienceYears",
+          "label": "Years",
+          "type": "number"
+        },
+        {
+          "key": "skills",
+          "label": "Skills",
+          "type": "tags"
+        },
+        {
+          "key": "reviewed",
+          "label": "Checked",
+          "type": "bool"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "email"
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "max": 80
+        },
+        {
+          "key": "currentTitle",
+          "label": "Current title",
+          "max": 80
+        },
+        {
+          "key": "currentCompany",
+          "label": "Current company",
+          "max": 80
+        },
+        {
+          "key": "experienceYears",
+          "label": "Years of experience",
+          "type": "number",
+          "min": 0,
+          "max": 60
+        },
+        {
+          "key": "noticeDays",
+          "label": "Notice period (days)",
+          "type": "number",
+          "min": 0,
+          "max": 365
+        },
+        {
+          "key": "expectedCtc",
+          "label": "Expected pay per year",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "skills",
+          "label": "Skills (comma separated)",
+          "type": "tags"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Get consent link",
+          "method": "POST",
+          "path": "/candidates/:id/consent-link",
+          "done": "Link ready."
+        },
+        {
+          "label": "Withdraw consent",
+          "method": "POST",
+          "path": "/candidates/:id/withdraw-consent",
+          "confirm": "Tap again: stop contacting",
+          "done": "Consent withdrawn."
+        },
+        {
+          "label": "Delete",
+          "method": "DELETE",
+          "path": "/candidates/:id",
+          "confirm": "Tap again to delete for good",
+          "done": "Deleted."
+        }
+      ]
+    },
+    "jobs": {
+      "label": "Jobs",
+      "endpoint": "/jobs",
+      "empty": "No jobs yet.",
+      "columns": [
+        {
+          "key": "title",
+          "label": "Job"
+        },
+        {
+          "key": "location",
+          "label": "Location"
+        },
+        {
+          "key": "openings",
+          "label": "Openings",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        },
+        {
+          "key": "lastSubmissionAt",
+          "label": "Last sent",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "title",
+          "label": "Job title",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "max": 80
+        },
+        {
+          "key": "openings",
+          "label": "Openings",
+          "type": "number",
+          "min": 1,
+          "max": 500
+        },
+        {
+          "key": "mustSkills",
+          "label": "Must-have skills",
+          "type": "tags"
+        },
+        {
+          "key": "niceSkills",
+          "label": "Nice-to-have skills",
+          "type": "tags"
+        },
+        {
+          "key": "minExperience",
+          "label": "Min years",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "maxExperience",
+          "label": "Max years",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "maxCtc",
+          "label": "Max pay per year",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "maxNoticeDays",
+          "label": "Max notice (days)",
+          "type": "number",
+          "min": 0
+        }
+      ],
+      "actions": []
+    },
+    "clients": {
+      "label": "Clients",
+      "endpoint": "/clients",
+      "empty": "No clients yet.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Client"
+        },
+        {
+          "key": "contactName",
+          "label": "Contact"
+        },
+        {
+          "key": "feeType",
+          "label": "Fee type",
+          "type": "pill"
+        },
+        {
+          "key": "feeValue",
+          "label": "Fee",
+          "type": "number"
+        },
+        {
+          "key": "hasShareLink",
+          "label": "Share link on",
+          "type": "bool"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Client name",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "contactName",
+          "label": "Contact person",
+          "max": 120
+        },
+        {
+          "key": "feeType",
+          "label": "Fee type",
+          "type": "select",
+          "options": [
+            {
+              "value": "percent",
+              "label": "Percent of yearly pay"
+            },
+            {
+              "value": "flat",
+              "label": "Flat amount"
+            }
+          ]
+        },
+        {
+          "key": "feeValue",
+          "label": "Fee value",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "guaranteeDays",
+          "label": "Guarantee days",
+          "type": "number",
+          "min": 0,
+          "max": 365
+        }
+      ],
+      "actions": [
+        {
+          "label": "New share link",
+          "method": "POST",
+          "path": "/clients/:id/share-link",
+          "done": "New link made. The old link no longer works."
+        },
+        {
+          "label": "Switch link off",
+          "method": "DELETE",
+          "path": "/clients/:id/share-link",
+          "confirm": "Tap again: client loses access",
+          "done": "Link switched off."
+        }
+      ]
+    },
+    "fees": {
+      "label": "Placement fees",
+      "endpoint": "/fees",
+      "readOnly": true,
+      "searchable": false,
+      "empty": "No fees yet. A fee is raised after a candidate joins.",
+      "columns": [
+        {
+          "key": "fee",
+          "label": "Fee",
+          "type": "money"
+        },
+        {
+          "key": "gst",
+          "label": "GST",
+          "type": "money"
+        },
+        {
+          "key": "total",
+          "label": "Total",
+          "type": "money"
+        },
+        {
+          "key": "dueDate",
+          "label": "Due",
+          "type": "date"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Mark paid",
+          "method": "POST",
+          "path": "/fees/:id/paid",
+          "when": {
+            "key": "status",
+            "equals": "due"
+          },
+          "done": "Marked paid."
+        },
+        {
+          "label": "Mark paid",
+          "method": "POST",
+          "path": "/fees/:id/paid",
+          "when": {
+            "key": "status",
+            "equals": "overdue"
+          },
+          "done": "Marked paid."
+        }
+      ]
+    }
   },
   "settings": {
-    "autopilot": { "label": "Autopilot", "endpoint": "/autopilot/settings",
+    "autopilot": {
+      "label": "Autopilot",
+      "endpoint": "/autopilot/settings",
       "intro": "Choose what Hire does for you. Suggest means it prepares the action and you tap to approve. Nothing is sent to a candidate or client unless you pick Send automatically for that job.",
-      "levels": [{ "value": "off", "label": "Off" }, { "value": "suggest", "label": "Suggest (you approve)" }, { "value": "auto_internal", "label": "Remind my team only" }, { "value": "auto_send", "label": "Send automatically" }],
-      "jobs": [{ "key": "candidate_nudge", "label": "Nudge quiet candidates" }, { "key": "interview_reminder", "label": "Interview reminders" }, { "key": "offer_watch", "label": "Offer drop warnings" }, { "key": "stale_job", "label": "Jobs with no candidate sent" }, { "key": "fee_reminder", "label": "Unpaid fee reminders" }, { "key": "retention", "label": "Candidate data review" }],
-      "numbers": [{ "key": "dailySendLimit", "label": "Most messages per day", "min": 0, "max": 500, "default": 30 }, { "key": "quietFrom", "label": "Quiet hours start (hour, 0-23)", "min": 0, "max": 23, "default": 21 }, { "key": "quietTo", "label": "Quiet hours end (hour, 0-23)", "min": 0, "max": 23, "default": 8 }] }
+      "levels": [
+        {
+          "value": "off",
+          "label": "Off"
+        },
+        {
+          "value": "suggest",
+          "label": "Suggest (you approve)"
+        },
+        {
+          "value": "auto_internal",
+          "label": "Remind my team only"
+        },
+        {
+          "value": "auto_send",
+          "label": "Send automatically"
+        }
+      ],
+      "jobs": [
+        {
+          "key": "candidate_nudge",
+          "label": "Nudge quiet candidates"
+        },
+        {
+          "key": "interview_reminder",
+          "label": "Interview reminders"
+        },
+        {
+          "key": "offer_watch",
+          "label": "Offer drop warnings"
+        },
+        {
+          "key": "stale_job",
+          "label": "Jobs with no candidate sent"
+        },
+        {
+          "key": "fee_reminder",
+          "label": "Unpaid fee reminders"
+        },
+        {
+          "key": "retention",
+          "label": "Candidate data review"
+        }
+      ],
+      "numbers": [
+        {
+          "key": "dailySendLimit",
+          "label": "Most messages per day",
+          "min": 0,
+          "max": 500,
+          "default": 30
+        },
+        {
+          "key": "quietFrom",
+          "label": "Quiet hours start (hour, 0-23)",
+          "min": 0,
+          "max": 23,
+          "default": 21
+        },
+        {
+          "key": "quietTo",
+          "label": "Quiet hours end (hour, 0-23)",
+          "min": 0,
+          "max": 23,
+          "default": 8
+        }
+      ]
+    }
   }
 }

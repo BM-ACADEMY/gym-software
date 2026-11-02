@@ -27,7 +27,7 @@ export default function ResourceScreen({ def, api, title }) {
   };
   // Buttons above the list that act on the whole list (for example "Find new suggestions"), described by def.toolbar.
   const runToolbar = async (a) => {
-    try { const r = await api[(a.method || 'POST').toLowerCase()](a.path, a.body || {}); setMsg(typeof r.added === 'number' ? `${a.done || 'Done.'} ${r.added} new.` : (a.done || 'Done.')); reload(); }
+    try { const r = await api[(a.method || 'POST').toLowerCase()](a.path, a.body || {}); setMsg(typeof r.message === 'string' && r.message && r.success ? r.message : typeof r.added === 'number' ? `${a.done || 'Done.'} ${r.added} new.` : (a.done || 'Done.')); reload(); }
     catch (err) { setMsg((err.response && err.response.data && err.response.data.message) || 'That did not work.'); }
   };
   const runAction = async (a, row) => {

@@ -23,6 +23,7 @@ module.exports = (mongoose) => {
     source: String, reviewed: { type: Boolean, default: false }, doNotContact: { type: Boolean, default: false },
     consent: { source: String, at: Date, purposeAi: Boolean, noticeVersion: String, withdrawnAt: Date },
     lastActivityAt: Date, lastCandidateMessageAt: Date,
+    consentLinkHash: { type: String, index: true }, consentLinkExpires: Date, consentLinkUsedAt: Date,
   }, [[{ tenantId: 1, phone: 1 }, { unique: true, partialFilterExpression: { phone: { $type: 'string' } } }], [{ tenantId: 1, email: 1 }, {}]]);
   const Client = define('HireClient', { tenantId: T, name: { type: String, required: true, maxlength: 120 }, contactName: String, feeType: { type: String, enum: ['percent', 'flat'], default: 'percent' }, feeValue: Number, guaranteeDays: { type: Number, default: 30 }, shareToken: { type: String, index: true } });
   const Job = define('HireJob', { tenantId: T, clientId: Schema.Types.ObjectId, title: { type: String, required: true }, location: String, openings: { type: Number, default: 1 }, mustSkills: [String], niceSkills: [String], minExperience: Number, maxExperience: Number, maxCtc: Number, maxNoticeDays: Number, status: { type: String, enum: ['open', 'on_hold', 'filled', 'closed'], default: 'open' }, lastSubmissionAt: Date });

@@ -16,6 +16,7 @@ const { parseResume } = require('./resumeService');
 const autopilot = require('./autopilot');
 const consent = require('./consent');
 const extract = require('./extract');
+const consentForm = require('./consentForm');
 
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const monthStart = () => { const n = new Date(); return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), 1)); };
@@ -106,6 +107,14 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
     const c = await M.Candidate.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: set }, { new: true });
     if (!c) return fail(res, 404, 'Candidate not found');
     res.json({ success: true, data: toPlain(c) });
+  }));
+  // One-time link the agency sends to the candidate (by hand; nothing is sent from here). Only the hash is stored; the link is shown once.
+  router.post('/candidates/:id/consent-link', wrap(async (req, res, tid) => {
+    const token = consentForm.newToken(); const expires = new Date(Date.now() + consentForm.LINK_DAYS * 864e5);
+    const c = await M.Candidate.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: { consentLinkHash: consentForm.hash(token), consentLinkExpires: expires, consentLinkUsedAt: null } }, { new: true });
+    if (!c) return fail(res, 404, 'Candidate not found');
+    res.set('Cache-Control', 'no-store');
+    res.json({ success: true, message: `Send this link to the candidate yourself (works once, ${consentForm.LINK_DAYS} days): https://${req.get('host')}/consent/${token}`, data: { path: `/consent/${token}`, expiresAt: expires } });
   }));
   router.post('/candidates/:id/withdraw-consent', wrap(async (req, res, tid) => {
     const c = await M.Candidate.findOneAndUpdate({ _id: req.params.id, tenantId: tid, consent: { $ne: null } }, { $set: { 'consent.withdrawnAt': new Date(), doNotContact: true } }, { new: true });

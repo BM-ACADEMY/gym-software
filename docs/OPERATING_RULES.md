@@ -47,7 +47,7 @@ If a Tier 3 answer has not come in 48 hours and it blocks the launch path, it go
 3. **For the team:** Dev A, Dev B, Staff 1 and 2 tasks with the exact commands and what to look for.
 4. **Next 2 days:** what Claude will do without asking.
 5. **Numbers:** tests written / run / passing, launch-date confidence (high, medium, low and why), AI cost per gym when data exists.
-6. **Paying gyms: n of 10** (counts only). Reminder only (D-26: store app skipped for now); at 10, ask Kamarudeen once whether to revisit it.
+6. **Paying gyms: n of 10** (counts only). At 10, ask Kamarudeen once whether to bring forward the store app gate (D-27, STORE_APP_PLAN.md).
 
 ## 5. Evidence rules (do not relax)
 

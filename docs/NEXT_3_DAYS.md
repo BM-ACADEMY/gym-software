@@ -1,5 +1,5 @@
 # Next 3 days (from 2 Nov 2026)
-Updated 2 Nov night: PWA-02 done (written); store app skipped for now (D-26), so no store work in any list.
+Updated 2 Nov night: PWA-02 done (written); store app now PLANNED (docs/STORE_APP_PLAN.md, D-27); building waits for its gate.
 
 ## Claude (no waiting on approvals or tests)
 Done 2 Nov, written and not yet tested by a person: AI-05, AI-04, SA-01, SA-08, SA-09, AP-02 (gym card, Hire route), AI-08 part (Tamil, Hindi drafts).
@@ -9,7 +9,8 @@ Next, in order:
 3. SA-13 trial-abuse flags from counts (many sign-ups, zero use), no personal data.
 4. SA-14 MRR and retention analytics, once a daily snapshot of counts is stored.
 5. AI-07 anomaly alerts (heavy discounts, cash mismatch) as rules first.
-6. Anything Dev A or the staff report from tests: always first.
+6. Store app: draft the listing text (English, Tamil), assetlinks template and Bubblewrap checklist for Dev A (STORE_APP_PLAN S5).
+7. Anything Dev A or the staff report from tests: always first.
 
 ## Cannot start without a person
 - SA-06, SA-07: Kamarudeen's decisions (`docs/SUPER_ADMIN_SUPPORT_TOOLS.md`).

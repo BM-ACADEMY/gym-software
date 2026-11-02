@@ -95,3 +95,6 @@ Kamarudeen agreed: (1) no Play Store or App Store app until **10 paying gyms** a
 
 ## D-26 (2 Nov, night): no native app for now
 Kamarudeen: skip the Google Play / App Store app for now. The web app and home-screen install (PWA-02) are the only app form. No store work is planned or scheduled. The Daily Brief line "Paying gyms: n of 10" stays only as a reminder to ask again; it starts no work. Replaces the store part of D-25.
+
+## D-27 (2 Nov, night): store app is planned (D-26 withdrawn)
+Kamarudeen changed his mind: "Let's plan for it". Plan in `docs/STORE_APP_PLAN.md`: Android first (Trusted Web Activity), iPhone later (Capacitor), register as the Pvt Ltd (organization), owners' apps only, no plan purchase inside the app at first. Gate and costs there. D-26 (skip) no longer applies. Open for Kamarudeen: apply for the D-U-N-S number (S1); confirm the date or gate.

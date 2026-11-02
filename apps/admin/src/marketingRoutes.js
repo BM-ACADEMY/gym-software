@@ -3,11 +3,12 @@
 // Roles: root_admin does everything; marketing (DM team) can read, mark done and add drafts, but not approve, skip or refresh.
 // store: { list(), get(id), insert(item), update(id, patch), keys(), calendar(), setCalendar(events) }
 const M = require('./marketing');
+const { addWording } = require('./aiWording');
 const ACTIONS = { approve: 'approved', skip: 'skipped', snooze: 'snoozed', done: 'done', reopen: 'suggested' };
 const DM_ACTIONS = new Set(['done']);
 const ID = /^[0-9a-zA-Z_-]{6,40}$/;
 
-function createMarketingRouter({ express, protect, authorize, store, getFacts, audit = () => {}, now = () => new Date() }) {
+function createMarketingRouter({ express, protect, authorize, store, getFacts, ai = null, aiBudget = null, audit = () => {}, now = () => new Date() }) {
   const router = express.Router();
   router.use(protect, authorize('root_admin', 'marketing'));
   const fail = (res, c, m) => res.status(c).json({ success: false, message: m });
@@ -45,6 +46,13 @@ function createMarketingRouter({ express, protect, authorize, store, getFacts, a
     audit({ who: actor(req), action: 'marketing.refresh', count: added.length }); res.json({ success: true, added: added.length });
   }));
   router.get('/plan', wrap(async (req, res) => res.json({ success: true, data: M.weekPlan(await woken(), await store.calendar(), await getFacts().catch(() => null), now()) })));
+  // Owner presses "Write clearer wording (AI)": rule items only, counts only, budget-checked; the plain wording stays if anything fails.
+  router.post('/ai-wording', wrap(async (req, res) => {
+    if (!isOwner(req)) return fail(res, 403, 'Only the owner can do this.');
+    if (!ai || !aiBudget) return fail(res, 404, 'AI wording is not set up on the server yet.');
+    const r = await addWording({ ai, budget: aiBudget, store }, { now: now() });
+    audit({ who: actor(req), action: 'marketing.ai_wording', updated: r.updated, reason: r.reason }); res.json({ success: true, data: r });
+  }));
   router.get('/calendar', wrap(async (req, res) => res.json({ success: true, data: await store.calendar() })));
   // Add or remove one event (what the screen uses). The owner only.
   router.post('/calendar', wrap(async (req, res) => {
@@ -74,7 +82,7 @@ function createMarketingRouter({ express, protect, authorize, store, getFacts, a
 // Mongoose store for the admin app's own data (not product tenant data).
 function makeMongoStore(mongoose) {
   const { Schema } = mongoose;
-  const Item = mongoose.models.AdminMarketingItem || mongoose.model('AdminMarketingItem', new Schema({ key: { type: String, index: true }, title: String, reason: String, product: String, channel: String, priority: String, due: Date, owner: String, source: String, status: String, snoozeUntil: Date, changedAt: Date, changedBy: String, pushedAt: Date, createdBy: String }, { timestamps: true }));
+  const Item = mongoose.models.AdminMarketingItem || mongoose.model('AdminMarketingItem', new Schema({ key: { type: String, index: true }, title: String, reason: String, product: String, channel: String, priority: String, due: Date, owner: String, source: String, status: String, snoozeUntil: Date, changedAt: Date, changedBy: String, pushedAt: Date, aiTitle: String, aiNote: String, aiAt: Date, createdBy: String }, { timestamps: true }));
   const Cal = mongoose.models.AdminMarketingCalendar || mongoose.model('AdminMarketingCalendar', new Schema({ _id: String, events: [Schema.Types.Mixed] }));
   const plain = (d) => d && { ...d.toObject(), id: String(d._id) };
   return {

@@ -317,6 +317,14 @@
           "label": "What"
         },
         {
+          "key": "aiTitle",
+          "label": "Clearer wording (AI)"
+        },
+        {
+          "key": "aiNote",
+          "label": "Tip (AI)"
+        },
+        {
           "key": "owner",
           "label": "Owner",
           "type": "pill"
@@ -388,6 +396,12 @@
           "method": "POST",
           "path": "/marketing/refresh",
           "done": "Checked."
+        },
+        {
+          "label": "Write clearer wording (AI)",
+          "method": "POST",
+          "path": "/marketing/ai-wording",
+          "done": "Done. Open items now show clearer wording where AI could write it."
         }
       ],
       "fields": [

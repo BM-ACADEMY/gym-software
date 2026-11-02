@@ -2,7 +2,7 @@
 // Super Admin server (SA-11). FAILS CLOSED: until a real sign-in with two-step verification is plugged into
 // `auth` (task SA-11b), every route answers 503. This file never invents a weak login.
 const express = require('express');
-const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createPushRouter, makePushStore, makeSender, collectAccounts } = require('./src');
+const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createPushRouter, makePushStore, makeAiBudget, makeSender, collectAccounts } = require('./src');
 
 const app = express();
 app.disable('x-powered-by');
@@ -19,7 +19,9 @@ if (auth && typeof auth.protect === 'function' && typeof auth.authorize === 'fun
     const mongoose = require('mongoose');
     const getFacts = async () => combine(await collectAll(readConfig()));
     const marketingStore = makeMongoStore(mongoose);
-    app.use('/api/admin/marketing', createMarketingRouter({ express, protect: auth.protect, authorize: auth.authorize, store: marketingStore, getFacts, audit: (a) => console.log('audit', JSON.stringify(a)) }));
+    // AI wording stays off unless the shared AI settings exist (AI_PROVIDER and key); it has its own small daily rupee stop.
+    let aiForWording = null; try { const a = require('../../server/services/aiProvider'); if (a.isEnabled()) aiForWording = a; } catch (e) { /* AI is optional */ }
+    app.use('/api/admin/marketing', createMarketingRouter({ express, protect: auth.protect, authorize: auth.authorize, store: marketingStore, getFacts, ai: aiForWording, aiBudget: aiForWording ? makeAiBudget(mongoose) : null, audit: (a) => console.log('audit', JSON.stringify(a)) }));
     // Phone alerts: stay closed unless the three VAPID settings are in the server settings file (see docs/ADMIN_PUSH_SETUP.md).
     const { VAPID_PUBLIC_KEY: vPub, VAPID_PRIVATE_KEY: vPriv, VAPID_SUBJECT: vSub } = process.env;
     let send = null;

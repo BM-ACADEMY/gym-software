@@ -8,7 +8,7 @@ const MarketingIdeasCard = () => {
   const { t } = useT();
   const [ideas, setIdeas] = useState([]);
   const [copied, setCopied] = useState('');
-  useEffect(() => { apiClient.get('/admin/marketing-ideas').then((r) => setIdeas((r.data.data && r.data.data.ideas) || [])).catch(() => {}); }, []);
+  useEffect(() => { apiClient.get('/admin/marketing-ideas', { params: { lang: (() => { try { return localStorage.getItem('gymdesk_lang') || 'en'; } catch { return 'en'; } })() } }).then((r) => setIdeas((r.data.data && r.data.data.ideas) || [])).catch(() => {}); }, []);
   if (!ideas.length) return null;
   const copy = async (i) => { try { await navigator.clipboard.writeText(i.draft); setCopied(i.kind); } catch { setCopied(''); } };
   return (

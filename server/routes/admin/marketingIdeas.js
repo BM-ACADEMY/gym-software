@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
     if (!sub) return res.status(404).json({ success: false, message: 'Gym not found' });
     const [stats, plans] = await Promise.all([aiAssist.gatherStats(sub._id), GymPlan.find({ subscriberId: sub._id }).select('price durationDays').limit(50).lean()]);
     res.set('Cache-Control', 'no-store');
-    res.json({ success: true, data: { ideas: R.buildIdeas(stats, coachRules.monthlyFee(plans)) } });
+    res.json({ success: true, data: { ideas: R.buildIdeas(stats, coachRules.monthlyFee(plans), new Date(), ['ta', 'hi'].includes(req.query.lang) ? req.query.lang : 'en') } });
   } catch (error) { console.error(error); res.status(500).json({ success: false, message: 'Server error' }); }
 });
 module.exports = router;

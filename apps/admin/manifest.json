@@ -57,6 +57,15 @@
       ]
     },
     {
+      "key": "audit",
+      "label": "Audit trail",
+      "screen": "resource",
+      "resource": "audit",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
       "key": "overview",
       "label": "Overview",
       "screen": "stats",
@@ -683,6 +692,42 @@
           "label": "Suggested help"
         }
       ]
+    },
+    "audit": {
+      "label": "Audit trail",
+      "endpoint": "/audit/list",
+      "readOnly": true,
+      "empty": "Nothing recorded yet. Actions you and the DM team take in Super Admin appear here.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "who",
+          "label": "Who"
+        },
+        {
+          "key": "action",
+          "label": "What",
+          "type": "pill"
+        },
+        {
+          "key": "ref",
+          "label": "Item"
+        },
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "number"
+        },
+        {
+          "key": "reason",
+          "label": "Note"
+        }
+      ],
+      "toolbar": []
     }
   }
 }

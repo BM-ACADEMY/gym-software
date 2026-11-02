@@ -94,7 +94,7 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 | SA-02 | Support inbox with AI triage, reply drafts, auto-answer from help articles, SLA timers | A | 3 | TODO |
 | SA-06 | Plan and limit overrides and feature flags per gym, each with a logged reason | A | 2 | TODO |
 | SA-07 | View-as-gym for support: read-only, logged, time-limited | A | 2 | TODO |
-| SA-08 | Audit-log viewer with filters and export | A | 1.5 | TODO |
+| SA-08 | Audit-log viewer with filters and export. **Written:** every Super Admin route action is saved to the database as who, what and a number or short reference (`apps/admin/src/auditStore.js`; names, phones, emails and message text are dropped), owner-only `GET /api/admin/audit/list` (filters action, who, from, to) and `/export.csv` (formula-safe), reading and exporting are themselves recorded, nav page "Audit trail". Needs `MONGODB_URI` on the admin server. **Not included yet:** sign-in events (lockouts, failed codes) stay in the sign-in module's own file `ADMIN_AUDIT_FILE` | A | 1.5 | WRITTEN, not yet tested by a person (3 plain-node checks passed here)
 | SA-09 | Announcements to all or selected gyms (in-app and email) | B | 1.5 | TODO |
 | SA-10 | Super Admin for all products: URL map and 3-stage plan (`docs/SUPER_ADMIN_AND_URLS.md`), mock-up screen shared. Mohamed (29 Oct): proceed, do not wait for tests | M | PLAN + mock-up |
 | SA-11 | Admin app `apps/admin`: summary checker/combiner, collector (https only, key from settings, timeout, no key in logs) and router; manifest-driven screens written (ADM-01); `apps/admin/server.js` answers 503 until two-step sign-in (SA-11b) is written, so it can never run open | M | WRITTEN (6 plain-node checks passed), not yet tested by a person |

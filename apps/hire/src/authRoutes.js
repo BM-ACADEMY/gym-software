@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const makeModels = require('./models');
 const { signUp, signIn } = require('./signup');
 const S = require('./session');
+const { runWithTenant, runUnscoped } = require('../../../packages/core-server/src');
 
 const hashPassword = async (pw) => { const salt = crypto.randomBytes(16); const h = crypto.scryptSync(pw, salt, 64, { N: 16384, r: 8, p: 1 }); return `scrypt$16384$${salt.toString('base64')}$${h.toString('base64')}`; };
 const verifyPassword = async (pw, stored) => { try { const [a, N, salt, hash] = String(stored).split('$'); if (a !== 'scrypt') return false; const want = Buffer.from(hash, 'base64'); const got = crypto.scryptSync(String(pw), Buffer.from(salt, 'base64'), want.length, { N: Number(N), r: 8, p: 1 }); return crypto.timingSafeEqual(got, want); } catch (e) { return false; } };
@@ -14,10 +15,10 @@ const DUMMY = hashPassword('dummy-password-for-timing');
 function makeStore(M) {
   const plain = (d) => d && { ...d.toObject(), id: String(d._id), tenantId: d.tenantId && String(d.tenantId) };
   return {
-    findUserByEmail: async (e) => plain(await M.User.findOne({ email: e }).select('+passwordHash')),
+    findUserByEmail: async (e) => plain(await runUnscoped('sign-in: find the user by email before the agency is known', () => M.User.findOne({ email: e }).select('+passwordHash'))),
     createTenant: async (t) => { const d = await M.Tenant.create(t); return { id: String(d._id) }; },
-    createUser: async (u) => { const d = await M.User.create(u); return { id: String(d._id) }; },
-    updateUser: async (id, patch) => { await M.User.updateOne({ _id: id }, { $set: patch }); },
+    createUser: async (u) => { const d = await runUnscoped('sign-up: first user of a brand-new agency', () => M.User.create(u)); return { id: String(d._id) }; },
+    updateUser: async (id, patch) => { await runUnscoped('sign-in: failed-attempt count and last login for one user', () => M.User.updateOne({ _id: id }, { $set: patch })); },
   };
 }
 const KNOWN = { SIGNUP_NAME: 400, SIGNUP_OWNER: 400, SIGNUP_EMAIL: 400, SIGNUP_STATE: 400, SIGNUP_PASSWORD: 400, SIGNUP_PHONE: 400, SIGNUP_TERMS: 400, SIGNUP_EXISTS: 409, LOGIN_BAD: 401, LOGIN_LOCKED: 429 };
@@ -52,10 +53,13 @@ function createAuthRouter({ express, mongoose, billing, secret, termsVersion }) 
 function sessionMiddleware(secret, M) {
   return async (req, res, next) => {
     const p = S.verify(S.readCookie(req.headers.cookie), secret);
-    if (!p) return res.status(401).json({ success: false, message: 'Please sign in.' });
-    const u = await M.User.findOne({ _id: p.uid, tenantId: p.tid, isActive: { $ne: false } });
-    if (!u) return res.status(401).json({ success: false, message: 'Please sign in.' });
-    req.user = { id: String(u._id), tenantId: String(u.tenantId), role: u.role }; req.subscription = await M.Tenant.findById(u.tenantId); next();
+    if (!p || !p.tid || !p.uid) return res.status(401).json({ success: false, message: 'Please sign in.' });
+    // The rest of the request (every route handler after this) runs inside the agency's tenant context (C-04 pilot).
+    return runWithTenant(String(p.tid), async () => {
+      const u = await M.User.findOne({ _id: p.uid, tenantId: p.tid, isActive: { $ne: false } });
+      if (!u) return res.status(401).json({ success: false, message: 'Please sign in.' });
+      req.user = { id: String(u._id), tenantId: String(u.tenantId), role: u.role }; req.subscription = await M.Tenant.findById(u.tenantId); next();
+    });
   };
 }
 module.exports = { createAuthRouter, sessionMiddleware, hashPassword, verifyPassword };

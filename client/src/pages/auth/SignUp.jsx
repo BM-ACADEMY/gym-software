@@ -9,7 +9,7 @@ import { useT } from '../../i18n';
 
 const SignUp = () => {
   const { t } = useT();
-  const [formData, setFormData] = useState({ gymName: '', ownerName: '', email: '', phone: '', state: 'Tamil Nadu', password: '' });
+  const [formData, setFormData] = useState({ gymName: '', ownerName: '', email: '', phone: '', state: 'Tamil Nadu', password: '', salesContactOk: false });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -95,6 +95,10 @@ const SignUp = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('Password (8 or more characters)')}</label>
               <PasswordInput required minLength={8} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
             </div>
+            <label className="flex items-start gap-2 text-xs text-gray-600">
+              <input type="checkbox" checked={formData.salesContactOk} onChange={(e) => setFormData({ ...formData, salesContactOk: e.target.checked })} className="mt-0.5 h-4 w-4 rounded border-gray-300" />
+              <span>{t('OK to call or WhatsApp me about my trial and plan. You can change this any time in Settings.')}</span>
+            </label>
             <button type="submit" disabled={loading} className={`w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-teal-500/30 text-sm font-bold text-white bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] hover:brightness-110 transition-all ${loading ? 'opacity-75 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}>
               {loading ? t('Creating your gym...') : t('Start 14-day free trial')}
             </button>

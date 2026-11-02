@@ -46,3 +46,9 @@ describe('marketing routes', () => {
     expect((await s.call('DELETE /calendar/:id', 'root_admin', { params: { id: a.b.data.id } })).c).toBe(200); expect((await s.call('GET /calendar', 'root_admin')).b.data.length).toBe(0);
   });
 });
+describe('week plan route', () => {
+  test('owner and DM team can read it; a failing facts source does not break it', async () => {
+    const s = setup(); await s.call('POST /refresh', 'root_admin');
+    for (const role of ['root_admin', 'marketing']) { const r = await s.call('GET /plan', role); expect(r.c).toBe(200); expect(Array.isArray(r.b.data)).toBe(true); expect(r.b.data.length).toBeGreaterThan(0); }
+  });
+});

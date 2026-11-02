@@ -49,7 +49,7 @@ const getGymSettings = async (req, res) => {
   try {
     const [subscriber, admin] = await Promise.all([
       Subscriber.findById(req.user.subscriberId),
-      Admin.findById(req.user.id).select('name email phone'),
+      Admin.findById(req.user.id).select('name email phone salesContactOk'),
     ]);
     if (!subscriber) return res.status(404).json({ success: false, message: 'Gym not found' });
 
@@ -125,9 +125,15 @@ const updateAdminProfile = async (req, res) => {
     if (name !== undefined) admin.name = name;
     if (email !== undefined) admin.email = email;
     if (phone !== undefined) admin.phone = phone;
+    // "OK to call me": only a real true/false from the owner counts; anything else is ignored.
+    // The time is stored so we can show when the permission was given or taken back.
+    if (typeof req.body.salesContactOk === 'boolean' && req.body.salesContactOk !== !!admin.salesContactOk) {
+      admin.salesContactOk = req.body.salesContactOk;
+      admin.salesContactAt = new Date();
+    }
     await admin.save();
 
-    res.status(200).json({ success: true, message: 'Profile updated successfully', data: { name: admin.name, email: admin.email, phone: admin.phone } });
+    res.status(200).json({ success: true, message: 'Profile updated successfully', data: { name: admin.name, email: admin.email, phone: admin.phone, salesContactOk: !!admin.salesContactOk } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error' });

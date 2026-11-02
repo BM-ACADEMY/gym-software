@@ -40,3 +40,34 @@ describe('today brief and push', () => {
     expect(M.pushPlan(items, { now }).send.every((i) => i.priority === 'decision_today')).toBe(true);
   });
 });
+describe('week plan', () => {
+  // now = Mon 2 Nov 2026, 10:00 IST
+  const facts = { products: [{ product: 'hire', state: 'ok' }, { product: 'fit', state: 'ok' }, { product: 'wash', state: 'building' }] };
+  const mk = (o) => ({ id: 'i' + Math.random().toString(36).slice(2, 8), status: 'suggested', channel: 'instagram', priority: 'this_week', ...o });
+  test('at most 2 a day, none on Sunday, every row says what, where and why-type', () => {
+    const items = Array.from({ length: 20 }, (_, n) => mk({ title: 'Item number ' + n, due: iso(0) }));
+    const plan = M.weekPlan(items, [], facts, now);
+    const perDay = {}; plan.forEach((r) => { perDay[r.day] = (perDay[r.day] || 0) + 1; });
+    expect(Math.max(...Object.values(perDay))).toBe(2);
+    expect(plan.some((r) => r.weekday === 'Sun')).toBe(false);
+    expect(plan.every((r) => r.title && r.channel && r.kind)).toBe(true);
+    expect(new Set(plan.map((r) => r.id)).size).toBe(plan.length);
+  });
+  test('festival lands on its own day; urgent items first; calls are left to sales', () => {
+    const cal = [{ id: 'd', name: 'Diwali', date: iso(2), products: ['fit'] }];
+    const items = [mk({ title: 'Later thing here', priority: 'later', due: iso(1) }), mk({ title: 'Urgent thing here', priority: 'decision_today', due: iso(0) }), mk({ title: 'Call the trials', channel: 'call', priority: 'decision_today' })];
+    const plan = M.weekPlan(items, cal, facts, now);
+    expect(plan.find((r) => r.kind === 'festival').day).toBe(iso(2).slice(0, 10));
+    expect(plan[0].title).toBe('Urgent thing here');
+    expect(plan.some((r) => /Call the trials/.test(r.title))).toBe(false);
+  });
+  test('live products with nothing planned get one routine post; building ones do not; snoozed and done are ignored', () => {
+    const plan = M.weekPlan([mk({ title: 'Hire video draft', product: 'hire', due: iso(0) }), mk({ title: 'Old done thing', status: 'done' })], [], facts, now);
+    expect(plan.filter((r) => r.kind === 'weekly_post').map((r) => r.product)).toEqual(['fit']);
+    expect(plan.some((r) => /Old done/.test(r.title))).toBe(false);
+  });
+  test('empty inputs give an empty plan; plan carries no personal fields', () => {
+    expect(M.weekPlan(null, null, null, now)).toEqual([]);
+    expect(JSON.stringify(M.weekPlan([mk({ title: 'Item with title', due: iso(0) })], [], facts, now))).not.toMatch(/phone|email/);
+  });
+});

@@ -4,10 +4,12 @@ const mongoose = require('mongoose');
 const request = require('supertest');
 const db = require('./helpers/db');
 const { createHireRouter, createSharePublicRouter } = require('../../apps/hire');
+const { runWithTenant } = require('../../packages/core-server/src');
+const makeModels = require('../../apps/hire/src/models');
 
 const A = new mongoose.Types.ObjectId().toString();
 const B = new mongoose.Types.ObjectId().toString();
-const protect = (req, res, next) => { const t = req.headers['x-tenant']; if (!t) return res.status(401).json({ success: false }); req.user = { id: new mongoose.Types.ObjectId().toString(), subscriberId: t, role: 'admin' }; next(); };
+const protect = (req, res, next) => { const t = req.headers['x-tenant']; if (!t) return res.status(401).json({ success: false }); req.user = { id: new mongoose.Types.ObjectId().toString(), subscriberId: t, role: 'admin' }; runWithTenant(t, () => next()); }; // like the real sessionMiddleware: the tenant guard (C-04) needs a context
 const authorize = () => (req, res, next) => next();
 const resumeText = 'Ravi Kumar, Java developer with five years at Zoho Chennai. Skills Java SQL AWS. Phone 98765 43210. '.repeat(2);
 let aiOn = true; let aiCalls = 0;
@@ -25,6 +27,14 @@ describe('Hire routes', () => {
   afterAll(async () => { await db.clearDatabase(); await db.closeDatabase(); });
   const as = (t) => ({ 'x-tenant': t });
   const post = (t, url, body) => request(app).post(url).set(as(t)).send(body);
+
+  test('tenant guard (C-04): a query outside any tenant context fails closed', async () => {
+    const M = makeModels(mongoose);
+    await expect(M.Candidate.find({})).rejects.toThrow(/outside any tenant context/);
+    await expect(M.Entry.aggregate([{ $group: { _id: null } }])).rejects.toThrow(/outside any tenant context/);
+    await expect(runWithTenant(A, () => M.Candidate.updateOne({}, { $set: { tenantId: B } }))).rejects.toThrow(/may not change/);
+    await expect(runWithTenant(A, () => M.Candidate.find({ tenantId: B }))).rejects.toThrow(/different tenant/);
+  });
 
   test('needs sign-in', async () => { expect((await request(app).get('/hire/candidates')).status).toBe(401); });
 

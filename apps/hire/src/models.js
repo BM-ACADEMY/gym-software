@@ -1,12 +1,19 @@
 // Hire records. The app passes its own mongoose. Every record carries tenantId (the agency) and every query
 // in routes filters by it. Money: whole rupees with a currency code.
+const { tenantPlugin } = require('../../../packages/core-server/src');
+
+// C-04 pilot: every model that carries tenantId gets the fail-closed tenant guard (packages/core-server/src/tenant.js).
+// Queries then run only inside runWithTenant (set by sessionMiddleware) or runUnscoped with a written reason.
+// HireTenant is the agency record itself, so it is not scoped by tenantId.
 module.exports = (mongoose) => {
   const { Schema } = mongoose;
+  const castId = (v) => new mongoose.Types.ObjectId(String(v));
   const T = { type: Schema.Types.ObjectId, required: true, index: true };
-  const define = (name, schema, indexes = []) => {
+  const define = (name, schema, indexes = [], scoped = true) => {
     if (mongoose.models[name]) return mongoose.models[name];
     const s = new Schema(schema, { timestamps: true });
     indexes.forEach(([f, o]) => s.index(f, o));
+    if (scoped) s.plugin(tenantPlugin, { field: 'tenantId', castId });
     return mongoose.model(name, s);
   };
   const Candidate = define('HireCandidate', {
@@ -24,7 +31,7 @@ module.exports = (mongoose) => {
   const UsageLog = define('HireUsage', { tenantId: T, kind: { type: String, enum: ['parse', 'rank', 'outreach'], required: true }, model: String, inTokens: Number, outTokens: Number }, [[{ tenantId: 1, kind: 1, createdAt: -1 }, {}]]);
   const AutopilotSettings = define('HireAutopilot', { tenantId: { ...T, unique: true }, paused: Boolean, quietFrom: Number, quietTo: Number, dailySendLimit: Number, jobs: Schema.Types.Mixed });
   const ActivityLog = define('HireActivity', { tenantId: T, job: String, ref: String, level: String, action: String, text: String }, [[{ tenantId: 1, createdAt: -1 }, {}]]);
-  const Tenant = define('HireTenant', { agencyName: { type: String, required: true, maxlength: 120 }, state: String, currency: { type: String, default: 'INR' }, trialEndsAt: Date, paidUntil: Date, planKey: String, billingCycle: String, planStartedAt: Date, isActive: { type: Boolean, default: true }, termsAcceptedAt: Date, termsVersion: String });
+  const Tenant = define('HireTenant', { agencyName: { type: String, required: true, maxlength: 120 }, state: String, currency: { type: String, default: 'INR' }, trialEndsAt: Date, paidUntil: Date, planKey: String, billingCycle: String, planStartedAt: Date, isActive: { type: Boolean, default: true }, termsAcceptedAt: Date, termsVersion: String }, [], false);
   const User = define('HireUser', { tenantId: T, name: String, email: { type: String, required: true, unique: true, lowercase: true, trim: true }, role: { type: String, enum: ['admin', 'subadmin'], default: 'admin' }, passwordHash: { type: String, required: true, select: false }, failedLogins: { type: Number, default: 0 }, lockedUntil: Date, isActive: { type: Boolean, default: true }, lastLoginAt: Date, phone: { type: String, trim: true }, salesContactOk: { type: Boolean, default: false }, salesContactAt: Date });
   return { Tenant, User, Candidate, Client, Job, Entry, Fee, UsageLog, AutopilotSettings, ActivityLog };
 };

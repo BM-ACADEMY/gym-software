@@ -24,6 +24,30 @@
       "resource": "calendar"
     },
     {
+      "key": "plan",
+      "label": "Week plan",
+      "screen": "resource",
+      "resource": "plan"
+    },
+    {
+      "key": "renewals",
+      "label": "Renewals",
+      "screen": "resource",
+      "resource": "renewals",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
+      "key": "accounts",
+      "label": "Accounts",
+      "screen": "resource",
+      "resource": "accounts",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
       "key": "overview",
       "label": "Overview",
       "screen": "stats",
@@ -456,6 +480,134 @@
           "method": "DELETE",
           "path": "/marketing/calendar/:id",
           "confirm": "Tap again to remove"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Week plan",
+      "endpoint": "/marketing/plan",
+      "readOnly": true,
+      "searchable": false,
+      "empty": "Nothing planned. Press Find new suggestions on the Marketing to-do page.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "weekday",
+          "label": ""
+        },
+        {
+          "key": "title",
+          "label": "What"
+        },
+        {
+          "key": "product",
+          "label": "Product"
+        },
+        {
+          "key": "channel",
+          "label": "Channel",
+          "type": "pill"
+        },
+        {
+          "key": "kind",
+          "label": "Type",
+          "type": "pill"
+        }
+      ]
+    },
+    "renewals": {
+      "label": "Renewals and follow-ups",
+      "endpoint": "/accounts/renewals",
+      "readOnly": true,
+      "empty": "No account needs a follow-up right now.",
+      "columns": [
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "pill"
+        },
+        {
+          "key": "business",
+          "label": "Business"
+        },
+        {
+          "key": "owner",
+          "label": "Owner"
+        },
+        {
+          "key": "status",
+          "label": "Plan status",
+          "type": "pill"
+        },
+        {
+          "key": "daysLeft",
+          "label": "Days left",
+          "type": "number"
+        },
+        {
+          "key": "stage",
+          "label": "What to do",
+          "type": "pill"
+        },
+        {
+          "key": "canContact",
+          "label": "OK to call",
+          "type": "pill"
+        },
+        {
+          "key": "joined",
+          "label": "Joined",
+          "type": "date"
+        }
+      ]
+    },
+    "accounts": {
+      "label": "All accounts",
+      "endpoint": "/accounts/list",
+      "readOnly": true,
+      "empty": "No accounts yet, or the products are not connected.",
+      "columns": [
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "pill"
+        },
+        {
+          "key": "business",
+          "label": "Business"
+        },
+        {
+          "key": "owner",
+          "label": "Owner"
+        },
+        {
+          "key": "status",
+          "label": "Plan status",
+          "type": "pill"
+        },
+        {
+          "key": "daysLeft",
+          "label": "Days left",
+          "type": "number"
+        },
+        {
+          "key": "stage",
+          "label": "What to do",
+          "type": "pill"
+        },
+        {
+          "key": "canContact",
+          "label": "OK to call",
+          "type": "pill"
+        },
+        {
+          "key": "joined",
+          "label": "Joined",
+          "type": "date"
         }
       ]
     }

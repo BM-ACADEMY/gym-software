@@ -21,3 +21,14 @@ Date: 28 Oct 2026. Pages read through the web tool. **Source** = the page says i
 ## Not yet done (DIN-R2 stays open)
 - Petpooja's own quote through a demo request or a restaurant's bill; Posist, Torqus, Gofrugal Restaurant and Zomato/Swiggy partner programme terms.
 - Talk to 3 restaurants and 1 pub (Mohamed or agents).
+
+## Second pass, 30 Oct 2026 (DIN-R2, still open)
+Source = the page says it. All pages below are vendor or comparison-site marketing; none is a quote.
+| Page | What it says | Tag |
+| --- | --- | --- |
+| DineOpen blog, "DineOpen vs Posist", dated 12 Mar 2026 (a competitor's blog, biased) | Posist lists **no public prices**; cost depends on outlets, modules and contract length ("quote-based"). Described as enterprise and multi-outlet: GST POS, KDS, inventory, table management, CRM, loyalty, API, direct Swiggy/Zomato integration, offline mode. QR menu and online ordering only "partial", WhatsApp "partial". Same blog says Posist is "now Restroworks" (unverified). | Source, unverified |
+
+What this changes (Assumption):
+1. **Posist is an enterprise and chain product with no public price.** It is not the price reference for a single cafe or small restaurant; Petpooja is. Drop Posist from the price comparison table in the scope file and keep it only in the "chains" note.
+2. **Gap that two competitors both claim:** direct Zomato/Swiggy order integration. Still the top Phase 2 risk (previous pass, point 2).
+3. Not found this pass: any Torqus or Gofrugal Restaurant INR price (listing sites show only dollar figures or "request a quote"). Stays open; the honest way to get prices is a restaurant's own invoice.

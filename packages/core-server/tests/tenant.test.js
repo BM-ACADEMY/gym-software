@@ -78,4 +78,53 @@ describe('tenant guard (C-03)', () => {
     expect(t.modelsMissingTenantScope(models, ['Plan'])).toEqual(['Audit']);
     expect(t.modelsMissingTenantScope({ Member: models.Member })).toEqual([]);
   });
+
+  // ---- C-04 hardening (29/30 Oct) ----
+  const upd = (filter, update) => ({ ...fakeQuery(filter), getUpdate() { return update; } });
+  test('an update that changes the tenant field is refused, in every form', () => {
+    const s = fakeSchema(); t.tenantPlugin(s);
+    t.runWithTenant(A, () => {
+      for (const name of t.UPDATE_HOOKS) {
+        expect(() => s.hooks[name][0].call(upd({}, { subscriberId: B }))).toThrow(/may not change/);
+        expect(() => s.hooks[name][0].call(upd({}, { $set: { subscriberId: B } }))).toThrow(/may not change/);
+        expect(() => s.hooks[name][0].call(upd({}, { $unset: { subscriberId: 1 } }))).toThrow(/may not change/);
+        expect(() => s.hooks[name][0].call(upd({}, { $rename: { owner: 'subscriberId' } }))).toThrow(/may not change/);
+        expect(() => s.hooks[name][0].call(upd({}, [{ $set: { subscriberId: B } }]))).toThrow(/pipeline/);
+      }
+    });
+  });
+  test('a normal update passes and a read-only hook ignores the update check', () => {
+    const s = fakeSchema(); t.tenantPlugin(s);
+    t.runWithTenant(A, () => {
+      expect(() => s.hooks.updateOne[0].call(upd({}, { $set: { status: 'x' } }))).not.toThrow();
+      expect(() => s.hooks.find[0].call(upd({}, { $set: { subscriberId: B } }))).not.toThrow();
+    });
+  });
+  test('an unscoped job may update across tenants', () => {
+    const s = fakeSchema(); t.tenantPlugin(s);
+    t.runUnscoped('Move a record between agencies on support request', () => {
+      expect(() => s.hooks.updateOne[0].call(upd({}, { $set: { subscriberId: B } }))).not.toThrow();
+    });
+  });
+  test('aggregate uses castId so an ObjectId tenant field matches', () => {
+    const s = fakeSchema(); t.tenantPlugin(s, { castId: (v) => ({ oid: v }) });
+    const pipe = [{ $group: { _id: null } }];
+    t.runWithTenant(A, () => { s.hooks.aggregate[0].call({ pipeline: () => pipe }); expect(pipe[0]).toEqual({ $match: { subscriberId: { oid: A } } }); });
+  });
+  test('bulkWrite is refused outside a tenant and inside one, allowed only unscoped', () => {
+    const s = fakeSchema(); t.tenantPlugin(s);
+    expect(() => s.hooks.bulkWrite[0].call({}, () => {})).toThrow(/outside any tenant context/);
+    t.runWithTenant(A, () => expect(() => s.hooks.bulkWrite[0].call({}, () => {})).toThrow(/not allowed inside a tenant/));
+    t.runUnscoped('Nightly import job for all agencies', () => expect(() => s.hooks.bulkWrite[0].call({}, () => {})).not.toThrow());
+  });
+  test('insertMany works with the callback style and the promise style', () => {
+    const s = fakeSchema(); t.tenantPlugin(s);
+    t.runWithTenant(A, () => {
+      let called = 0;
+      s.hooks.insertMany[0].call({}, () => { called += 1; }, [{}]);
+      expect(called).toBe(1);
+      expect(() => s.hooks.insertMany[0].call({}, [{ subscriberId: B }])).toThrow(/does not match/);
+      const docs = [{}]; s.hooks.insertMany[0].call({}, docs); expect(docs[0].subscriberId).toBe(A);
+    });
+  });
 });

@@ -26,7 +26,7 @@ DO NOT DO
 - Do not send a screenshot that shows a key or token.
 
 THE PHONE NUMBER IN THE TEMPLATES
-Samples use 9876543210. This is only a sample for Meta's form. The real support number will be given by Kamarudeen on 30 Oct. Nothing sends real messages until the real number is set.
+Samples use 9876543210. This is only a sample for Meta's form. The real support number is +91 78269 97187 (given 30 Oct). Nothing sends real messages until the real number is set.
 
 TWO QUESTIONS I NEED YOU TO ANSWER (check in Meta and tell me)
 1. Which WhatsApp Business account and phone number is used for the gym's messages to members, and which one for Afra's own messages to business owners? Is one Afra number enough for all shops, or does each shop need its own number?

@@ -27,3 +27,25 @@ Written 29 Oct 2026 by Claude. Method: web search and page reads of listing site
 - Photo storage cost per wash (needed for the floor price, WSH-P1).
 
 Sources: [GarageApp on Techjockey](https://www.techjockey.com/detail/garageapp), [MeriGarage on Capterra India](https://www.capterra.in/software/1081985/MeriGarage), [Washa on Capterra India](https://www.capterra.in/software/1109669/Washa), [WashPro on Capterra India](https://www.capterra.in/software/1112490/WashPro).
+
+## Second pass (WSH-R1b, 1 Nov 2026)
+
+Method: two more listing and vendor-page reads. Still no owner interviews. Source or Assumption only; nothing here is a launch claim.
+
+| Item | Value | Type |
+| --- | --- | --- |
+| AllWheels (Capterra India): from Rs 2,999, "flat rate", billing period not stated; for multi-brand car service centres and garages (teams of 2 to 200); appointment scheduling, CRM, estimates, inspections, service history; WhatsApp automation named in the listing text. Car washes and monthly packages are not mentioned | Source: capterra.in/software/1105545/AllWheels | Garage tool, not wash-first. Period unknown, so not comparable to our monthly price |
+| myBillBook "auto repair" page: Diamond Rs 349 a month (Rs 291 a month if billed yearly, Rs 3,490 a year), Platinum Rs 399 a month (Rs 3,990 a year), Enterprise from Rs 570 a month (yearly only); a free basic plan exists. Job-card style billing and WhatsApp/SMS invoice sharing are listed; car wash is not mentioned | Source: mybillbook.in/s/auto-repair-shop-invoice-software | Vendor page, read 1 Nov. General billing tool with a garage template |
+
+## What this changes (Assumption)
+
+1. The Indian price points now in hand are Rs 349 to 399 a month (myBillBook, stated per month) and Rs 399 to 799 (GarageApp, period unclear). Our draft Rs 149 / 299 / 499 is below or at these. It is a price comparison, not proof that washes will pay.
+2. Four tools read so far (GarageApp, MeriGarage, AllWheels, myBillBook) are garage or general billing tools. None of the pages mention a monthly wash pass with a visit balance or attendant commission. That supports the gap idea but is still thin: pages do not list every feature, and listings are not the market.
+3. WhatsApp invoice sharing is normal in the rivals, so it cannot be a selling point by itself.
+
+## Still open after the second pass
+
+- The same four items as above: 3 local owner interviews, number of car washes in India, photo storage cost, how any rival handles a monthly pass (vendor demos, not pages).
+- Floor price WSH-P1 stays blocked on master plan section 14 (D-23).
+
+Sources: [AllWheels on Capterra India](https://www.capterra.in/software/1105545/AllWheels), [myBillBook auto repair billing](https://mybillbook.in/s/auto-repair-shop-invoice-software/).

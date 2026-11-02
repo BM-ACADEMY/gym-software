@@ -237,6 +237,10 @@ const Settings = () => {
           <Input label="Name" value={profile.name || ''} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
           <Input label="Email" type="email" value={profile.email || ''} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
           <Input label="Phone" value={profile.phone || ''} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={!!profile.salesContactOk} onChange={(e) => setProfile({ ...profile, salesContactOk: e.target.checked })} className="mt-0.5 h-4 w-4 rounded border-gray-300" />
+            <span>OK to call or WhatsApp me about my trial and plan. You can turn this off any time.</span>
+          </label>
         </SectionCard>
 
         <SectionCard title="Working hours" onSave={() => saveGym({ workingHours: gym.workingHours }, 'hours', 'Working hours')} saving={savingSection === 'hours'} disabled={suspended}>

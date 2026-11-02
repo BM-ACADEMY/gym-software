@@ -21,3 +21,15 @@ Date: 28 Oct 2026. Pages read through the web tool. **Source** = the page says i
 - Vendor pricing pages (Busy, Vyapar, Marg, Gofrugal) with dates; a Marg or Gofrugal garment page.
 - Talk to 3 shops (saree, readymade, kids): what they use, what they pay, how they track sizes today, how big the festival swing is in their own last-year sales.
 - GST slab by price band for garments confirmed with the CA (Tier 3).
+
+## Second pass, 30 Oct 2026 (CLO-R1, still open)
+Source = the page says it. Comparison sites are not the vendor; confirm on each vendor's own pricing page before any price is quoted in public.
+| Page | What it says | Tag |
+| --- | --- | --- |
+| taxaj.com GST billing comparison (dated 21 Aug 2026, last modified 14 Oct 2026) | Vyapar Desktop Rs 3,399 + GST a year; Desktop + mobile Rs 3,999 + GST a year. myBillBook Diamond Rs 3,490, Platinum Rs 3,990 a year (matches the first pass). Marg ERP Nano Rs 5,550 + GST, Basic Rs 10,300, Silver Rs 13,900, Gold Rs 26,000 (**period not stated**). Marg is described for pharmacy, grocery, FMCG and jewellery, not garments. Busy and Gofrugal not covered. | Source (secondary) |
+| pricingsaas.com tracker for Vyapar (last seen 6 Jul 2026) | Vyapar prices are shown only in US dollars: Gold (Desktop + Mobile) about $99.99 a year, Platinum (Desktop + Mobile) about $139.99 a year, after a price rise on 6 Jul 2026. No INR and no plan contents. | Source (secondary), dollars only |
+
+What this changes (Assumption):
+1. **Price band of the incumbents for a small shop is now Rs 3,400 to 4,000 a year** (Vyapar, myBillBook), about Rs 285 to 335 a month. Our draft Cloth ladder (Rs 149 / 299 / 499 a month) sits at or below that only on its lower rungs. Billing alone will not win on price; the AI and WhatsApp part has to carry the sale (same view as the first pass). Cloth floor price still waits for D-23.
+2. **Marg is a different segment** (pharmacy, grocery, bigger stores) at roughly 1.5 to 7 times the price; do not use it as the garment price reference.
+3. Vyapar raised prices twice in two weeks of Jun/Jul 2026 (secondary source); the comparison table in the landing copy must carry a date and be re-checked before it is shown.

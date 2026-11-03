@@ -7,6 +7,7 @@ const stock = require('./stock');
 const makeModels = require('./models');
 const csv = require('./csvImport');
 const returns = require('./returns');
+const billHtml = require('./billHtml');
 
 const fyOf = (date) => {
   const ist = new Date(new Date(date).getTime() + 5.5 * 3600000);
@@ -16,7 +17,7 @@ const fyOf = (date) => {
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const num = (v) => (v === '' || v === null || v === undefined ? undefined : Number(v));
 
-module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['admin', 'subadmin'], loyaltyRules, prefix = 'BILL' }) => {
+module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['admin', 'subadmin'], loyaltyRules, prefix = 'BILL', shopOf }) => {
   const router = express.Router();
   const M = makeModels(mongoose);
   router.use(protect, authorize(...roles));
@@ -207,6 +208,26 @@ module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['a
     const doc = await M.PosBill.findOne({ _id: req.params.id, tenantId: tid });
     if (!doc) return fail(res, 404, 'Bill not found');
     res.json({ success: true, data: doc });
+  }));
+
+  // Printable bill page (A4/A5). The app passes shopOf(req) -> { name, address?, phone?, gstin?, footer? } from its own shop settings.
+  // Needs the sign-in header, so the screen fetches it and opens it as a local page (see openBillPage in core-ui); the bill is looked up by tenant.
+  router.get('/bills/:id/print', wrap(async (req, res, tid) => {
+    if (typeof shopOf !== 'function') return fail(res, 400, 'Shop details are not set up for printing.');
+    const doc = await M.PosBill.findOne({ _id: req.params.id, tenantId: tid });
+    if (!doc) return fail(res, 404, 'Bill not found');
+    const shop = await shopOf(req);
+    if (!shop || !shop.name) return fail(res, 400, 'Add your shop name in Settings to print bills.');
+    const size = req.query.size === 'A4' ? 'A4' : 'A5';
+    const lang = ['ta', 'hi'].includes(req.query.lang) ? req.query.lang : 'en';
+    let customerName; let customerPhone;
+    if (doc.customerId) { const c = await M.PosCustomer.findOne({ _id: doc.customerId, tenantId: tid }); if (c) { customerName = c.name; customerPhone = c.phone; } }
+    const at = new Date(doc.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false });
+    const html = billHtml.render(doc.toObject ? doc.toObject() : doc, shop, { size, lang, at, customerName, customerPhone });
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    res.set('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src data:");
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.send(html);
   }));
 
   // Part return: pick lines and quantities. Safe to double-click: the bill is only changed if nobody returned anything in between.

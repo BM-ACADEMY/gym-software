@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createQueue } from './offlineQueue';
+import { openBillPage } from './openBillPage';
 
 // Billing screen shared by every shop product. The app passes in:
 //   api      an axios-like client ({ get, post }) already signed in
@@ -27,11 +28,12 @@ const PosScreen = ({ api, rules, basePath = '/pos', defaultTaxMode = 'none', gst
   const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
   const [queued, setQueued] = useState(queue.pending().length);
   const [rejected, setRejected] = useState(queue.rejected());
+  const [lastBillId, setLastBillId] = useState(null);
   const searchRef = useRef(null);
 
   const refreshQueue = () => { setQueued(queue.pending().length); setRejected(queue.rejected()); };
   const send = async (bill) => {
-    try { await api.post(`${basePath}/bills`, bill); }
+    try { const r = await api.post(`${basePath}/bills`, bill); setLastBillId(r?.data?.data?._id || null); }
     catch (e) { const err = new Error(e.response?.data?.message || e.message); err.status = e.response?.status; throw err; }
   };
   const sync = async () => { const r = await queue.flush(send); refreshQueue(); if (r.sent) setMsg(`${r.sent} saved bill(s) sent.`); };
@@ -154,6 +156,11 @@ const PosScreen = ({ api, rules, basePath = '/pos', defaultTaxMode = 'none', gst
           </div>
         )}
         {msg && <p className="text-sm text-gray-700">{msg}</p>}
+        {lastBillId && (
+          <button type="button" className="text-sm underline text-blue-700" onClick={async () => { try { if (!(await openBillPage(api, lastBillId))) setMsg('Your browser blocked the bill page. Allow pop-ups and try again.'); } catch (e) { setMsg(e.response?.data?.message || 'Could not open the bill page.'); } }}>
+            Print last bill (A5 page, save as PDF)
+          </button>
+        )}
         <button type="button" onClick={submit} disabled={busy || !calc || !settled || !!settled.error} className="w-full py-3 rounded-lg bg-teal-600 text-white font-semibold disabled:opacity-40">{busy ? 'Saving...' : 'Save bill'}</button>
       </div>
     </div>

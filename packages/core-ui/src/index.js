@@ -3,3 +3,4 @@ export { createQueue, newClientId } from './pos/offlineQueue.js';
 export { default as ImportCsv, splitCsv } from './pos/ImportCsv.jsx';
 export { default as AdminShell } from './admin/AdminShell.jsx';
 export * as adminSchema from './admin/schema.js';
+export { openBillPage } from './pos/openBillPage.js';

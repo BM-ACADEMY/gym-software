@@ -124,4 +124,19 @@ describe('core-pos routes', () => {
     expect((await request(app).get('/pos/reports/low-stock').set(as(B))).body.data.map((i) => i.name)).toContain('Cream');
     expect((await request(app).get('/pos/reports/expiring?days=30').set(as(B))).body.data.map((i) => i.name)).toContain('Cream');
   });
+
+  test('print page: needs shop details, is tenant-scoped, escapes text, has a locked-down CSP', async () => {
+    const app2 = express(); app2.use(express.json());
+    app2.use('/pos', createPosRouter({ express, mongoose, protect, authorize, tenantOf: (req) => new mongoose.Types.ObjectId(req.user.subscriberId), shopOf: () => ({ name: 'Shop <b>1' }) }));
+    const item = (await request(app2).post('/pos/items').set(as(A)).send({ name: 'Soap', price: 50 })).body.data;
+    const bill = (await request(app2).post('/pos/bills').set(as(A)).send({ lines: [{ itemId: item._id, qty: 1 }], taxMode: 'none', payments: [{ method: 'cash', amount: 50 }] })).body.data;
+    expect((await request(app2).get(`/pos/bills/${bill._id}/print`)).status).toBe(401);
+    expect((await request(app2).get(`/pos/bills/${bill._id}/print`).set(as(B))).status).toBe(404); // other business
+    const ok = await request(app2).get(`/pos/bills/${bill._id}/print?size=A4`).set(as(A));
+    expect(ok.status).toBe(200); expect(ok.headers['content-type']).toMatch(/text\/html/);
+    expect(ok.headers['content-security-policy']).toContain("default-src 'none'");
+    expect(ok.text).toContain('Shop &lt;b&gt;1'); expect(ok.text).not.toContain('Shop <b>1');
+    // app that gave no shopOf cannot print
+    expect((await request(app).get(`/pos/bills/${bill._id}/print`).set(as(A))).status).toBe(400);
+  });
 });

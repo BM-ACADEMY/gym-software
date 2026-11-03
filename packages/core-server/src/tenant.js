@@ -12,15 +12,23 @@ class TenantScopeError extends Error {
   constructor(message) { super(message); this.name = 'TenantScopeError'; this.code = 'TENANT_SCOPE'; }
 }
 
+// A Mongoose query or aggregate is lazy: it only runs when somebody awaits it. If fn returns one and the caller awaits it
+// OUTSIDE als.run, the tenant context is gone and the query throws "outside any tenant context" (found by Dev A's first Hire
+// test run, 3 Nov: share-link page gave 500, tenant-guard test saw the wrong error). So a returned query is started here, inside the context.
+const startInside = (r) => {
+  if (r && typeof r.exec === 'function' && typeof r.then === 'function') { try { return Promise.resolve(r.exec()); } catch (e) { return Promise.reject(e); } }
+  return r;
+};
+
 const runWithTenant = (tenantId, fn) => {
   if (tenantId === undefined || tenantId === null || String(tenantId) === '') throw new TenantScopeError('runWithTenant needs a tenant id');
-  return als.run({ tenantId: String(tenantId), unscoped: false }, fn);
+  return als.run({ tenantId: String(tenantId), unscoped: false }, () => startInside(fn()));
 };
 
 // Explicit, named escape hatch. The reason is required so a code search shows every place that crosses tenants.
 const runUnscoped = (reason, fn) => {
   if (!reason || typeof reason !== 'string' || reason.trim().length < 5) throw new TenantScopeError('runUnscoped needs a written reason');
-  return als.run({ tenantId: null, unscoped: true, reason }, fn);
+  return als.run({ tenantId: null, unscoped: true, reason }, () => startInside(fn()));
 };
 
 const currentContext = () => als.getStore() || null;

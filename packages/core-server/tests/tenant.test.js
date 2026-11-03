@@ -127,4 +127,22 @@ describe('tenant guard (C-03)', () => {
       const docs = [{}]; s.hooks.insertMany[0].call({}, docs); expect(docs[0].subscriberId).toBe(A);
     });
   });
+
+  test('a lazy query returned from the block still runs inside the tenant context (Hire first run, 3 Nov)', async () => {
+    // Like a Mongoose Query: does nothing until awaited, and then reads the context at that moment.
+    const lazy = () => ({ exec() { return Promise.resolve(t.currentContext()); }, then(a, b) { return this.exec().then(a, b); } });
+    const inTenant = await t.runWithTenant(A, () => lazy());
+    expect(inTenant.tenantId).toBe(A);
+    const unscoped = await t.runUnscoped('public share link: find the client', () => lazy());
+    expect(unscoped.unscoped).toBe(true);
+    expect(t.currentContext()).toBe(null); // nothing leaks out afterwards
+  });
+  test('an error thrown while the lazy query starts comes back as a rejection', async () => {
+    const bad = { exec() { throw new Error('boom'); }, then() {} };
+    await expect(t.runWithTenant(A, () => bad)).rejects.toThrow(/boom/);
+  });
+  test('plain values and promises pass through unchanged', async () => {
+    expect(t.runWithTenant(A, () => 5)).toBe(5);
+    expect(await t.runWithTenant(A, async () => 'ok')).toBe('ok');
+  });
 });

@@ -30,10 +30,12 @@ import { ROOT_ADMIN_NAV, ADMIN_NAV, SUBADMIN_NAV, MEMBER_NAV } from './config/na
 // Eagerly load every page under each role folder, keyed by file path.
 // Nav config (config/navigation.js) is the single source of truth for which
 // page backs which route — add a page there + a matching file here and it's wired up.
-const rootAdminPages = import.meta.glob('./pages/root-admin/*.jsx', { eager: true });
-const adminPages = import.meta.glob('./pages/admin/*.jsx', { eager: true });
-const subadminPages = import.meta.glob('./pages/subadmin/*.jsx', { eager: true });
-const memberPages = import.meta.glob('./pages/member/*.jsx', { eager: true });
+// Test files (*.test.jsx) sit next to the pages; they import vitest and call vi.mock(),
+// which throws in the browser and blanks the whole app, so they are excluded here.
+const rootAdminPages = import.meta.glob(['./pages/root-admin/*.jsx', '!./pages/root-admin/*.test.jsx'], { eager: true });
+const adminPages = import.meta.glob(['./pages/admin/*.jsx', '!./pages/admin/*.test.jsx'], { eager: true });
+const subadminPages = import.meta.glob(['./pages/subadmin/*.jsx', '!./pages/subadmin/*.test.jsx'], { eager: true });
+const memberPages = import.meta.glob(['./pages/member/*.jsx', '!./pages/member/*.test.jsx'], { eager: true });
 
 const resolvePage = (pages, folder, name) => pages[`./pages/${folder}/${name}.jsx`]?.default;
 

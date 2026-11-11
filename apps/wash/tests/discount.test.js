@@ -64,3 +64,27 @@ describe('staff discount rule (D-30)', () => {
     expect((await H.call('GET /leaks', T1, 'admin')).b.data.staffDiscounts[0].total).toBe(40);
   });
 });
+
+// SET-03: cancelling after washing began needs a reason; before washing it does not.
+describe('cancel after washing began needs a reason (SET-03)', () => {
+  const { createWashRouter } = require('../src/routes'); const { makeFakeModels } = require('./fakeModels');
+  const mkH = () => {
+    const h = {}; const router = { use() {}, get: (p, f) => (h['GET ' + p] = f), post: (p, f) => (h['POST ' + p] = f), put: (p, f) => (h['PUT ' + p] = f) };
+    const M = makeFakeModels(); createWashRouter({ express: { Router: () => router }, models: M, protect: 'P', authorize: () => 'A', tenantOf: (r) => r.user.tenantId, planOf: () => 'growth', now: () => new Date('2026-11-12T08:00:00Z') });
+    const call = async (key, { body = {}, params = {} } = {}) => { const o = {}; await h[key]({ user: { id: 'u', role: 'admin', tenantId: 'aaaaaaaaaaaaaaaaaaaaaaa1' }, body, query: {}, params }, { set() {}, status(c) { o.c = c; return this; }, json(b) { o.b = b; if (!o.c) o.c = 200; } }); return o; };
+    return { call, M };
+  };
+  test('waiting job cancels without a reason; a washing job needs 3 letters and the reason is saved and audited', async () => {
+    const H = mkH(); await H.call('PUT /price-list', { body: { prices: { sedan: 400 }, addons: {}, incentive: {} } });
+    await H.call('POST /attendants', { body: { name: 'Murugan' } });
+    const a = (await H.call('POST /jobs', { body: { plate: 'TN09AB1234', klass: 'sedan' } })).b.data.id;
+    expect((await H.call('POST /jobs/:id/move', { params: { id: a }, body: { to: 'cancelled' } })).c).toBe(200);
+    const b = (await H.call('POST /jobs', { body: { plate: 'TN09AB5678', klass: 'sedan' } })).b.data.id;
+    expect((await H.call('POST /jobs/:id/move', { params: { id: b }, body: { to: 'washing' } })).c).toBe(200);
+    expect((await H.call('POST /jobs/:id/move', { params: { id: b }, body: { to: 'cancelled' } })).c).toBe(400);
+    expect((await H.call('POST /jobs/:id/move', { params: { id: b }, body: { to: 'cancelled', reason: 'ab' } })).c).toBe(400);
+    const ok = await H.call('POST /jobs/:id/move', { params: { id: b }, body: { to: 'cancelled', reason: 'Customer left' } });
+    expect(ok.c).toBe(200); expect(ok.b.data.cancelReason).toBe('Customer left');
+    expect(H.M.Audit.rows.some((x) => x.action === 'job.cancel' && /Customer left/.test(x.text))).toBe(true);
+  });
+});

@@ -145,8 +145,13 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
       attendantId = String(a._id);
     }
     if (String(b.to) === 'washing' && !attendantId) { const all = await M.Attendant.find({ tenantId: tid, isActive: true }).limit(2); if (all.length === 1) attendantId = String(all[0]._id); } // one attendant: no need to choose
+    // SET-03: cancelling a job after washing has begun needs a reason (the owner is told about every such cancel).
+    const started = !!job.startedAt || job.state === 'washing';
+    const cancelReason = typeof b.reason === 'string' ? b.reason.trim().slice(0, 120) : '';
+    if (String(b.to) === 'cancelled' && started && cancelReason.length < 3) return fail(res, 400, 'Say why this job is being cancelled after washing began.');
     const next = J.move(job, String(b.to), t, attendantId);
     const set = { state: next.state, attendantId: next.attendantId };
+    if (next.state === 'cancelled' && started) set.cancelReason = cancelReason;
     for (const k of ['startedAt', 'readyAt', 'deliveredAt', 'cancelledAt']) if (next[k]) set[k] = next[k];
     if (next.state === 'delivered') {
       const owe = job.total - (job.passId ? job.passCovered || 0 : 0);
@@ -163,6 +168,7 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
       await M.Vehicle.updateOne({ tenantId: tid, plate: job.plate }, { $set: { lastWash: dayOf(t) } });
     }
     await M.Job.updateOne({ _id: req.params.id, tenantId: tid }, { $set: set });
+    if (set.cancelReason) await M.Audit.create({ tenantId: tid, action: 'job.cancel', text: `job ${job.number} cancelled after washing began: ${set.cancelReason}`, by: req.user && req.user.id });
     res.json({ success: true, data: { ...job, ...set } });
   }));
 

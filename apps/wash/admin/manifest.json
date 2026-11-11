@@ -49,6 +49,15 @@
       "label": "Estimates",
       "screen": "stats",
       "stats": "predictions"
+    },
+    {
+      "key": "discount",
+      "label": "Discounts",
+      "screen": "settings",
+      "settings": "discount",
+      "roles": [
+        "admin"
+      ]
     }
   ],
   "stats": {
@@ -525,6 +534,47 @@
           "key": "note",
           "label": "Note",
           "max": 120
+        }
+      ]
+    }
+  },
+  "settings": {
+    "discount": {
+      "label": "Discounts",
+      "endpoint": "/settings",
+      "intro": "You decide who may give a discount. Every discount needs a reason, and you always see the ones your staff give in your daily list. You are never limited yourself.",
+      "fields": [
+        {
+          "key": "discountRule.staff",
+          "label": "Who may give a discount at billing?",
+          "type": "select",
+          "default": "limit",
+          "options": [
+            {
+              "value": "limit",
+              "label": "Staff, up to a limit"
+            },
+            {
+              "value": "owner_only",
+              "label": "Only me (the owner)"
+            },
+            {
+              "value": "any",
+              "label": "Any staff, any amount"
+            }
+          ]
+        },
+        {
+          "key": "discountRule.maxPercent",
+          "label": "Staff limit (percent of the bill)",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 10,
+          "showWhen": {
+            "key": "discountRule.staff",
+            "equals": "limit"
+          }
         }
       ]
     }

@@ -1,298 +1,347 @@
 {
- "product": "cloth",
- "title": "Cloth",
- "nav": [
-  {
-   "key": "today",
-   "label": "Today",
-   "screen": "stats",
-   "stats": "today"
+  "product": "cloth",
+  "title": "Cloth",
+  "nav": [
+    {
+      "key": "today",
+      "label": "Today",
+      "screen": "stats",
+      "stats": "today"
+    },
+    {
+      "key": "stock",
+      "label": "Stock",
+      "screen": "resource",
+      "resource": "variants"
+    },
+    {
+      "key": "alterations",
+      "label": "Alterations",
+      "screen": "resource",
+      "resource": "alterations"
+    },
+    {
+      "key": "staff",
+      "label": "Staff",
+      "screen": "resource",
+      "resource": "staff"
+    },
+    {
+      "key": "money",
+      "label": "Money",
+      "screen": "stats",
+      "stats": "money"
+    },
+    {
+      "key": "ideas",
+      "label": "Marketing ideas",
+      "screen": "stats",
+      "stats": "ideas"
+    },
+    {
+      "key": "discount",
+      "label": "Discounts",
+      "screen": "settings",
+      "settings": "discount",
+      "roles": [
+        "admin"
+      ]
+    }
+  ],
+  "stats": {
+    "today": {
+      "label": "Needs you today",
+      "endpoint": "/summary",
+      "refreshMs": 120000,
+      "tables": [
+        {
+          "label": "Three things to do",
+          "rows": "actions",
+          "empty": "All clear. Nothing needs you right now.",
+          "columns": [
+            {
+              "key": "text",
+              "label": "What"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    },
+    "money": {
+      "label": "Money you owe",
+      "endpoint": "/supplier-dues",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Supplier bills still unpaid",
+          "rows": "rows",
+          "empty": "No unpaid supplier bills.",
+          "columns": [
+            {
+              "key": "supplier",
+              "label": "Supplier"
+            },
+            {
+              "key": "owe",
+              "label": "Owe",
+              "type": "money"
+            },
+            {
+              "key": "lateDays",
+              "label": "Days late"
+            }
+          ]
+        }
+      ]
+    },
+    "ideas": {
+      "label": "Marketing ideas (suggestions only)",
+      "endpoint": "/marketing-ideas",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Ideas",
+          "rows": "ideas",
+          "empty": "No ideas right now.",
+          "columns": [
+            {
+              "key": "text",
+              "label": "Idea"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    }
   },
-  {
-   "key": "stock",
-   "label": "Stock",
-   "screen": "resource",
-   "resource": "variants"
+  "resources": {
+    "variants": {
+      "label": "Stock by size and colour",
+      "endpoint": "/variants",
+      "readOnly": true,
+      "searchable": true,
+      "empty": "No items yet. Add a style with sizes and colours.",
+      "columns": [
+        {
+          "key": "style",
+          "label": "Style"
+        },
+        {
+          "key": "size",
+          "label": "Size"
+        },
+        {
+          "key": "colour",
+          "label": "Colour"
+        },
+        {
+          "key": "qty",
+          "label": "In stock"
+        },
+        {
+          "key": "mrp",
+          "label": "MRP",
+          "type": "money"
+        },
+        {
+          "key": "gstRate",
+          "label": "GST %"
+        }
+      ]
+    },
+    "alterations": {
+      "label": "Alteration and tailoring jobs",
+      "endpoint": "/alterations",
+      "empty": "No jobs yet.",
+      "columns": [
+        {
+          "key": "customerName",
+          "label": "Customer"
+        },
+        {
+          "key": "what",
+          "label": "Work"
+        },
+        {
+          "key": "readyOn",
+          "label": "Ready on",
+          "type": "date"
+        },
+        {
+          "key": "charge",
+          "label": "Charge",
+          "type": "money"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "customerName",
+          "label": "Customer name",
+          "max": 120
+        },
+        {
+          "key": "customerPhone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "what",
+          "label": "What is the work",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "readyOn",
+          "label": "Ready on",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "charge",
+          "label": "Charge (Rs)",
+          "type": "money",
+          "required": true,
+          "min": 0
+        },
+        {
+          "key": "advance",
+          "label": "Advance paid (Rs)",
+          "type": "money",
+          "min": 0
+        }
+      ],
+      "actions": [
+        {
+          "label": "Started",
+          "method": "POST",
+          "path": "/alterations/:id/status",
+          "body": {
+            "status": "in_progress"
+          },
+          "when": {
+            "key": "status",
+            "equals": "received"
+          }
+        },
+        {
+          "label": "Ready",
+          "method": "POST",
+          "path": "/alterations/:id/status",
+          "body": {
+            "status": "ready"
+          },
+          "done": "Marked ready. Suggest: tell the customer.",
+          "when": {
+            "key": "status",
+            "equals": "in_progress"
+          }
+        },
+        {
+          "label": "Delivered",
+          "method": "POST",
+          "path": "/alterations/:id/status",
+          "body": {
+            "status": "delivered"
+          },
+          "when": {
+            "key": "status",
+            "equals": "ready"
+          }
+        }
+      ]
+    },
+    "staff": {
+      "label": "Staff",
+      "endpoint": "/staff",
+      "empty": "No staff added.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "salary",
+          "label": "Monthly salary",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "salary",
+          "label": "Monthly salary (Rs)",
+          "type": "money",
+          "min": 0
+        }
+      ]
+    }
   },
-  {
-   "key": "alterations",
-   "label": "Alterations",
-   "screen": "resource",
-   "resource": "alterations"
-  },
-  {
-   "key": "staff",
-   "label": "Staff",
-   "screen": "resource",
-   "resource": "staff"
-  },
-  {
-   "key": "money",
-   "label": "Money",
-   "screen": "stats",
-   "stats": "money"
-  },
-  {
-   "key": "ideas",
-   "label": "Marketing ideas",
-   "screen": "stats",
-   "stats": "ideas"
+  "settings": {
+    "discount": {
+      "label": "Discounts",
+      "endpoint": "/settings",
+      "intro": "You decide who may give a discount. Every discount needs a reason, and you always see the ones your staff give in your daily list. You are never limited yourself.",
+      "fields": [
+        {
+          "key": "discountRule.staff",
+          "label": "Who may give a discount at billing?",
+          "type": "select",
+          "default": "limit",
+          "options": [
+            {
+              "value": "limit",
+              "label": "Staff, up to a limit"
+            },
+            {
+              "value": "owner_only",
+              "label": "Only me (the owner)"
+            },
+            {
+              "value": "any",
+              "label": "Any staff, any amount"
+            }
+          ]
+        },
+        {
+          "key": "discountRule.maxPercent",
+          "label": "Staff limit (percent of the bill)",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 10,
+          "showWhen": {
+            "key": "discountRule.staff",
+            "equals": "limit"
+          }
+        }
+      ]
+    }
   }
- ],
- "stats": {
-  "today": {
-   "label": "Needs you today",
-   "endpoint": "/summary",
-   "refreshMs": 120000,
-   "tables": [
-    {
-     "label": "Three things to do",
-     "rows": "actions",
-     "empty": "All clear. Nothing needs you right now.",
-     "columns": [
-      {
-       "key": "text",
-       "label": "What"
-      },
-      {
-       "key": "reason",
-       "label": "Why"
-      }
-     ]
-    }
-   ]
-  },
-  "money": {
-   "label": "Money you owe",
-   "endpoint": "/supplier-dues",
-   "refreshMs": 300000,
-   "tables": [
-    {
-     "label": "Supplier bills still unpaid",
-     "rows": "rows",
-     "empty": "No unpaid supplier bills.",
-     "columns": [
-      {
-       "key": "supplier",
-       "label": "Supplier"
-      },
-      {
-       "key": "owe",
-       "label": "Owe",
-       "type": "money"
-      },
-      {
-       "key": "lateDays",
-       "label": "Days late"
-      }
-     ]
-    }
-   ]
-  },
-  "ideas": {
-   "label": "Marketing ideas (suggestions only)",
-   "endpoint": "/marketing-ideas",
-   "refreshMs": 300000,
-   "tables": [
-    {
-     "label": "Ideas",
-     "rows": "ideas",
-     "empty": "No ideas right now.",
-     "columns": [
-      {
-       "key": "text",
-       "label": "Idea"
-      },
-      {
-       "key": "reason",
-       "label": "Why"
-      }
-     ]
-    }
-   ]
-  }
- },
- "resources": {
-  "variants": {
-   "label": "Stock by size and colour",
-   "endpoint": "/variants",
-   "readOnly": true,
-   "searchable": true,
-   "empty": "No items yet. Add a style with sizes and colours.",
-   "columns": [
-    {
-     "key": "style",
-     "label": "Style"
-    },
-    {
-     "key": "size",
-     "label": "Size"
-    },
-    {
-     "key": "colour",
-     "label": "Colour"
-    },
-    {
-     "key": "qty",
-     "label": "In stock"
-    },
-    {
-     "key": "mrp",
-     "label": "MRP",
-     "type": "money"
-    },
-    {
-     "key": "gstRate",
-     "label": "GST %"
-    }
-   ]
-  },
-  "alterations": {
-   "label": "Alteration and tailoring jobs",
-   "endpoint": "/alterations",
-   "empty": "No jobs yet.",
-   "columns": [
-    {
-     "key": "customerName",
-     "label": "Customer"
-    },
-    {
-     "key": "what",
-     "label": "Work"
-    },
-    {
-     "key": "readyOn",
-     "label": "Ready on",
-     "type": "date"
-    },
-    {
-     "key": "charge",
-     "label": "Charge",
-     "type": "money"
-    },
-    {
-     "key": "status",
-     "label": "Status",
-     "type": "pill"
-    }
-   ],
-   "fields": [
-    {
-     "key": "customerName",
-     "label": "Customer name",
-     "max": 120
-    },
-    {
-     "key": "customerPhone",
-     "label": "Phone",
-     "type": "phone"
-    },
-    {
-     "key": "what",
-     "label": "What is the work",
-     "required": true,
-     "max": 120
-    },
-    {
-     "key": "readyOn",
-     "label": "Ready on",
-     "type": "date",
-     "required": true
-    },
-    {
-     "key": "charge",
-     "label": "Charge (Rs)",
-     "type": "money",
-     "required": true,
-     "min": 0
-    },
-    {
-     "key": "advance",
-     "label": "Advance paid (Rs)",
-     "type": "money",
-     "min": 0
-    }
-   ],
-   "actions": [
-    {
-     "label": "Started",
-     "method": "POST",
-     "path": "/alterations/:id/status",
-     "body": {
-      "status": "in_progress"
-     },
-     "when": {
-      "key": "status",
-      "equals": "received"
-     }
-    },
-    {
-     "label": "Ready",
-     "method": "POST",
-     "path": "/alterations/:id/status",
-     "body": {
-      "status": "ready"
-     },
-     "done": "Marked ready. Suggest: tell the customer.",
-     "when": {
-      "key": "status",
-      "equals": "in_progress"
-     }
-    },
-    {
-     "label": "Delivered",
-     "method": "POST",
-     "path": "/alterations/:id/status",
-     "body": {
-      "status": "delivered"
-     },
-     "when": {
-      "key": "status",
-      "equals": "ready"
-     }
-    }
-   ]
-  },
-  "staff": {
-   "label": "Staff",
-   "endpoint": "/staff",
-   "empty": "No staff added.",
-   "columns": [
-    {
-     "key": "name",
-     "label": "Name"
-    },
-    {
-     "key": "phone",
-     "label": "Phone",
-     "type": "phone"
-    },
-    {
-     "key": "salary",
-     "label": "Monthly salary",
-     "type": "money"
-    }
-   ],
-   "fields": [
-    {
-     "key": "name",
-     "label": "Name",
-     "required": true,
-     "max": 120
-    },
-    {
-     "key": "phone",
-     "label": "Phone",
-     "type": "phone"
-    },
-    {
-     "key": "salary",
-     "label": "Monthly salary (Rs)",
-     "type": "money",
-     "min": 0
-    }
-   ]
-  }
- },
- "settings": {}
 }

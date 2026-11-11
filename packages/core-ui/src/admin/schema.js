@@ -25,6 +25,16 @@ function validateManifest(m) {
       if (f.type === 'select' && !(f.options && f.options.length)) throw err(`resource ${name}.${f.key}: select needs options`);
     }
   }
+  // Settings screens: a list of `fields` with dotted keys (for example discountRule.staff), see SettingsScreen.
+  for (const [name, d] of Object.entries(m.settings || {})) {
+    if (!d.endpoint || !String(d.endpoint).startsWith('/')) throw err(`settings ${name}: endpoint must start with /`);
+    for (const f of d.fields || []) {
+      if (!f.key || !f.label) throw err(`settings ${name}: every field needs key and label`);
+      if (!['select', 'number', 'text', 'bool'].includes(f.type)) throw err(`settings ${name}.${f.key}: field type must be select, number, text or bool`);
+      if (f.type === 'select' && !(f.options && f.options.length)) throw err(`settings ${name}.${f.key}: select needs options`);
+      if (f.showWhen && !(f.showWhen.key && 'equals' in f.showWhen)) throw err(`settings ${name}.${f.key}: showWhen needs key and equals`);
+    }
+  }
   return m;
 }
 
@@ -82,4 +92,21 @@ function expandNav(m, data) {
     return rows.map((r) => ({ ...n, key: `${n.key}-${r[n.from.idKey]}`, label: String(r[n.from.labelKey] ?? r[n.from.idKey]), params: { [n.from.idKey]: r[n.from.idKey] }, from: undefined }));
   });
 }
-export { TYPES, validateManifest, visibleNav, getPath, formatCell, validateRecord, expandNav, inr };
+// Dotted keys for settings forms: setPath({}, 'discountRule.staff', 'any') gives { discountRule: { staff: 'any' } }. Never touches the input.
+const BAD = ['__proto__', 'constructor', 'prototype'];
+function setPath(obj, path, value) {
+  const keys = String(path).split('.'); if (keys.some((k) => !k || BAD.includes(k))) return obj;
+  const root = { ...(obj || {}) }; let cur = root;
+  keys.forEach((k, i) => { if (i === keys.length - 1) cur[k] = value; else { cur[k] = { ...((cur[k] && typeof cur[k] === 'object') ? cur[k] : {}) }; cur = cur[k]; } });
+  return root;
+}
+// Only the top-level keys that the fields belong to, so saving the discount rule sends just { discountRule: {...} }.
+function pickTop(values, fields) {
+  const out = {};
+  for (const f of fields) { const top = String(f.key).split('.')[0]; if (!BAD.includes(top) && values && top in values) out[top] = values[top]; }
+  return out;
+}
+// Fields shown now: a field with showWhen appears only while another field has that value.
+const visibleFields = (fields, values) => fields.filter((f) => !f.showWhen || getPath(values, f.showWhen.key) === f.showWhen.equals);
+
+export { setPath, pickTop, visibleFields, TYPES, validateManifest, visibleNav, getPath, formatCell, validateRecord, expandNav, inr };

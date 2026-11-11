@@ -108,7 +108,7 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 | CLO-02 | Cloth variant, alteration and stock routes with tenant tests | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
 | CLO-03 | Cloth accounts, staff and sales reports, CA CSV | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
 | CLO-04 | Cloth predictions, leak checks, marketing suggestions, daily summary with 3 actions, manifest, draft plans | M | 2 | WRITTEN 12 Nov, not yet tested by a person. Dev A steps in `docs/products/cloth/BUILD_STATUS.md` |
-| CLO-05 | Bills must reduce variant stock (core-pos uses PosItem, Cloth stock is in ClothVariant) | M | 2 | TODO, blocks invite-only start |
+| CLO-05 | Bills reduce variant stock (bill line carries a variant id; price and GST from the shop's own variant; stock refused if short, given back if the bill fails) | M | 2 | WRITTEN 12 Nov, not yet tested by a person (`f264cd5`); barcode scan still Phase 2; Dev A checks the double sign-in check on `/api/pos` |
 | CLO-06 | Barcode labels and scan billing, fabric by metre | M | 2 | TODO |
 | CLO-07 | Cloth screens, customer pages, WhatsApp `cloth_*` templates, Phase 2 list in BUILD_STATUS.md | L | 2 | TODO |
 | WSH-00 | Wash pure rules: plates, job states, monthly pass, bays, incentive, cash closing, win-back | M | 2 | WRITTEN 12 Nov, not yet tested by a person; 13 plain-node checks pass |
@@ -134,6 +134,13 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 | DIN-QA | Dine real-database route tests, QA workbook, Dev B attack list | M | 2 | TODO |
 | DIN-R2 | Meta alcohol policy check and templates `dine_winback`, `dine_slow_hour`, `dine_review` | S | 2 | TODO (human). CA and lawyer items in `docs/products/dine/CA_LAWYER_ITEMS.md` |
 | DIN-UI | Dine own screens: table, kitchen display, QR menu, KOT print, Phase 2 list in Dine status docs | L | 2 | TODO |
+| SAL-07 | D-30 Salon staff discount rule (`discountPolicy.js`, owner sets limit in Settings, default staff 10 percent, staff discounts shown to owner) | S | 2 | WRITTEN 12 Nov, not yet tested by a person; 4 plain-node checks |
+| MRT-05 | D-30 Mart staff discount rule (guard before core-pos bill route; record in `MartBillDiscount`; owner sees staff discounts) | S | 2 | WRITTEN 12 Nov, not yet tested by a person; panel has no editor for the rule yet |
+| DIN-07 | D-30 Dine staff discount rule (cashier and manager may discount; bill keeps who, percent, reason) | S | 2 | WRITTEN 12 Nov, not yet tested by a person; 80 plain-node checks |
+| WSH-03 | D-30 Wash staff discount rule, reason, audit and leaks route; cancelled-after-started alert | S | 2 | WRITTEN 12 Nov, not yet tested by a person; 62 plain-node checks; cancel reason and settings screens still TODO |
+| CLO-08 | D-30 Cloth staff discount rule (`billGuard.js`, `ClothBillDiscount`) | S | 2 | WRITTEN 12 Nov, not yet tested by a person; 59 plain-node checks |
+| POS-01 | `beforeBill` hook in core-pos so every product enforces D-30 in one place and the bill itself carries discountBy and discountPercent; then delete the Mart and Cloth wrappers | M | 2 | TODO |
+| SET-03 | Owner-panel screens for the discount rule in Mart and Wash (API exists), cancel-after-started reason in Wash | S | 2 | TODO |
 | CLINIC-01 | Clinic sector (doctor, physio, dental, skin): a preset of the Salon appointment product (D-29), not a separate app. Owner shared a clinic booking demo on 12 Nov as the look to follow. Needs owner decisions: name, price ladder, whose design it is | M | 3 | TODO (idea only; nothing built). Sensitive health data needs lawyer review first |
 | SA-06 | Plan and limit overrides and feature flags per gym, each with a logged reason | A | 2 | PARKED for Kamarudeen (Tier 3): design and questions in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |
 | SA-07 | View-as-gym for support: read-only, logged, time-limited | A | 2 | PARKED for Kamarudeen and the lawyer (Tier 3): recommend a counts-only support snapshot instead; design in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |

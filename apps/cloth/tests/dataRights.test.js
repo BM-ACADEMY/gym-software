@@ -26,7 +26,7 @@ describe('data export, delete on request, audit (CLO-10)', () => {
   });
   test('audit list: owner only, this shop only, newest limit respected', async () => {
     const { r, M } = mk(); await M.Audit.create({ tenantId: 'a', action: 'x', text: 'mine' }); await M.Audit.create({ tenantId: 'b', action: 'x', text: 'theirs' });
-    const l = await call(r['GET /audit'], { ...A, query: {} }); expect(l.b.data.length).toBe(1); expect(l.b.data[0].text).toBe('mine');
+    const l = await call(r['GET /audit'], { ...A, query: {} }); expect(l.b.data.rows.length).toBe(1); expect(l.b.data.rows[0].text).toBe('mine');
     expect((await call(r['GET /audit'], { ...SUB, query: {} })).c).toBe(403);
   });
 });

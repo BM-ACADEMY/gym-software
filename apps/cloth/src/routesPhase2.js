@@ -124,7 +124,7 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBet
   router.get('/audit', wrap(async (req, res, tid) => {
     if (ownerOnly(req, res)) return;
     const rows = await M.Audit.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(Math.min(Number(req.query.limit) || 100, 500)).lean();
-    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows.map((r) => ({ id: String(r._id), at: r.createdAt || null, action: r.action, text: r.text })) });
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: { rows: rows.map((r) => ({ id: String(r._id), at: r.createdAt || null, action: r.action, text: r.text })) } });
   }));
 
   // ---- 6. physical stock count and mismatch alert ----

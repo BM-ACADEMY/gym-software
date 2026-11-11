@@ -39,6 +39,75 @@
       "stats": "ideas"
     },
     {
+      "key": "sales_item",
+      "label": "Sales by item",
+      "screen": "stats",
+      "stats": "sales_item"
+    },
+    {
+      "key": "sales_staff",
+      "label": "Sales by staff",
+      "screen": "stats",
+      "stats": "sales_staff"
+    },
+    {
+      "key": "sales_hour",
+      "label": "Sales by hour",
+      "screen": "stats",
+      "stats": "sales_hour"
+    },
+    {
+      "key": "pnl",
+      "label": "Profit and loss",
+      "screen": "stats",
+      "stats": "pnl",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "gst",
+      "label": "GST summary",
+      "screen": "stats",
+      "stats": "gst",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "expenses",
+      "label": "Expenses",
+      "screen": "stats",
+      "stats": "expenses"
+    },
+    {
+      "key": "leaks",
+      "label": "Things to check",
+      "screen": "stats",
+      "stats": "leaks",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "audit",
+      "label": "Audit trail",
+      "screen": "stats",
+      "stats": "audit",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "payroll",
+      "label": "Staff pay rules",
+      "screen": "settings",
+      "settings": "payroll",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
       "key": "discount",
       "label": "Discounts",
       "screen": "settings",
@@ -119,6 +188,282 @@
           ]
         }
       ]
+    },
+    "sales_item": {
+      "label": "Sales by item (last 30 days)",
+      "endpoint": "/reports/sales-breakdown?by=item",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Items, biggest first",
+          "rows": "rows",
+          "empty": "No sales in this period.",
+          "columns": [
+            {
+              "key": "key",
+              "label": "Item"
+            },
+            {
+              "key": "pieces",
+              "label": "Pieces",
+              "type": "number"
+            },
+            {
+              "key": "amount",
+              "label": "Amount before GST",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "sales_staff": {
+      "label": "Sales by staff (last 30 days)",
+      "endpoint": "/reports/sales-breakdown?by=staff",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Staff on the bill lines",
+          "rows": "rows",
+          "empty": "No sales in this period.",
+          "columns": [
+            {
+              "key": "key",
+              "label": "Staff"
+            },
+            {
+              "key": "pieces",
+              "label": "Pieces",
+              "type": "number"
+            },
+            {
+              "key": "amount",
+              "label": "Amount before GST",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "sales_hour": {
+      "label": "Sales by hour (last 30 days)",
+      "endpoint": "/reports/sales-breakdown?by=hour",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Busy and slow hours (India time)",
+          "rows": "rows",
+          "empty": "No sales in this period.",
+          "columns": [
+            {
+              "key": "key",
+              "label": "Hour"
+            },
+            {
+              "key": "bills",
+              "label": "Bills",
+              "type": "number"
+            },
+            {
+              "key": "total",
+              "label": "Sales",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "pnl": {
+      "label": "Profit and loss (last 30 days)",
+      "endpoint": "/reports/profit-loss",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales before GST",
+          "path": "sales",
+          "type": "money"
+        },
+        {
+          "label": "Cost of goods",
+          "path": "cogs",
+          "type": "money"
+        },
+        {
+          "label": "Gross profit",
+          "path": "grossProfit",
+          "type": "money"
+        },
+        {
+          "label": "Expenses",
+          "path": "expenses",
+          "type": "money"
+        },
+        {
+          "label": "Net profit",
+          "path": "netProfit",
+          "type": "money"
+        }
+      ]
+    },
+    "gst": {
+      "label": "GST summary for your CA (last 30 days)",
+      "endpoint": "/reports/gst-summary",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "By GST rate",
+          "rows": "rows",
+          "empty": "No taxable sales.",
+          "columns": [
+            {
+              "key": "rate",
+              "label": "Rate %",
+              "type": "number"
+            },
+            {
+              "key": "taxable",
+              "label": "Taxable",
+              "type": "money"
+            },
+            {
+              "key": "tax",
+              "label": "GST",
+              "type": "money"
+            }
+          ]
+        }
+      ],
+      "cards": [
+        {
+          "label": "Taxable",
+          "path": "taxable",
+          "type": "money"
+        },
+        {
+          "label": "GST",
+          "path": "tax",
+          "type": "money"
+        }
+      ]
+    },
+    "expenses": {
+      "label": "Expenses (last 30 days)",
+      "endpoint": "/expenses",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Expenses",
+          "rows": "rows",
+          "empty": "No expenses in this period.",
+          "columns": [
+            {
+              "key": "date",
+              "label": "Date"
+            },
+            {
+              "key": "category",
+              "label": "Category"
+            },
+            {
+              "key": "amount",
+              "label": "Amount",
+              "type": "money"
+            },
+            {
+              "key": "note",
+              "label": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    "leaks": {
+      "label": "Things to check",
+      "endpoint": "/reports/leaks",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Staff discounts",
+          "rows": "staffDiscounts",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "reason",
+              "label": "What"
+            }
+          ]
+        },
+        {
+          "label": "Heavy discounts",
+          "rows": "heavyDiscounts",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "reason",
+              "label": "What"
+            }
+          ]
+        },
+        {
+          "label": "Returns or cancels by staff",
+          "rows": "voidsByStaff",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "reason",
+              "label": "What"
+            }
+          ]
+        },
+        {
+          "label": "Cash differences",
+          "rows": "cashDifferences",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "reason",
+              "label": "What"
+            }
+          ]
+        },
+        {
+          "label": "Stock counts that did not match",
+          "rows": "stockMismatch",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "reason",
+              "label": "What"
+            }
+          ]
+        }
+      ]
+    },
+    "audit": {
+      "label": "Audit trail (who did what)",
+      "endpoint": "/audit",
+      "refreshMs": 0,
+      "tables": [
+        {
+          "label": "Latest actions",
+          "rows": "rows",
+          "empty": "Nothing recorded yet.",
+          "columns": [
+            {
+              "key": "at",
+              "label": "When"
+            },
+            {
+              "key": "action",
+              "label": "Action"
+            },
+            {
+              "key": "text",
+              "label": "Detail"
+            }
+          ]
+        }
+      ]
     }
   },
   "resources": {
@@ -140,6 +485,10 @@
         {
           "key": "colour",
           "label": "Colour"
+        },
+        {
+          "key": "barcode",
+          "label": "Barcode"
         },
         {
           "key": "qty",
@@ -340,6 +689,45 @@
             "key": "discountRule.staff",
             "equals": "limit"
           }
+        }
+      ]
+    },
+    "payroll": {
+      "label": "Staff pay rules",
+      "endpoint": "/settings",
+      "intro": "Commission is worked out from the staff name on each bill line. It is what the rules say is payable: check it before paying. Paid leave is the days a person can take in a year without losing pay.",
+      "fields": [
+        {
+          "key": "leaveAllowance",
+          "label": "Paid leave days a year",
+          "type": "number",
+          "min": 0,
+          "max": 60,
+          "default": 12
+        },
+        {
+          "key": "commissionRules.default.type",
+          "label": "Commission on sales (everyone, unless set per person)",
+          "type": "select",
+          "default": "percent",
+          "options": [
+            {
+              "value": "percent",
+              "label": "Percent of the line amount"
+            },
+            {
+              "value": "flat",
+              "label": "Fixed rupees per line"
+            }
+          ]
+        },
+        {
+          "key": "commissionRules.default.value",
+          "label": "Commission value (percent or rupees)",
+          "type": "number",
+          "min": 0,
+          "max": 100000,
+          "default": 0
         }
       ]
     }

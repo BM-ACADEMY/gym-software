@@ -8,6 +8,7 @@ const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createWashRouter } = require('./routes');
 const { createPublicBookingRouter } = require('./publicBooking');
+const { createInternalRouter } = require('./internalRoutes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 
 function missingSettings(env) {
@@ -31,6 +32,8 @@ function createApp({ express, mongoose, env = process.env }) {
   app.use('/api/wash/auth', createAuthRouter({ express, mongoose, billing, secret, termsVersion: env.WASH_TERMS_VERSION }));
   // Public booking link (no sign-in; the secret token is the key). Closed when the plan has ended.
   app.use('/api/wash-book', createPublicBookingRouter({ express, mongoose, isOpen: (t) => ['trial', 'active', 'grace'].includes(billing.computeStatus(t).status) }));
+  // Super Admin counts (server to server, key in the x-internal-key header; closed while INTERNAL_API_KEY is unset).
+  app.use('/api/internal/wash', createInternalRouter({ express, mongoose, billing, key: env.INTERNAL_API_KEY }));
   const protect = sessionMiddleware(secret, M);
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));
   const planOf = (req) => billing.computeStatus(req.subscription).planKey;

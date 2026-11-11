@@ -138,8 +138,8 @@ function mountMore(ctx) {
   }));
   // ---- export and delete on request (owner only) ----
   router.get('/export', ownerOnly, wrap(async (req, res, tid) => {
-    const lim = 20000; const q = { tenantId: tid };
-    const [tenant, vehicles, jobs, passes, expenses, closings, attendants, attendance, shifts, refunds, collections, bookings, photos, pl] = await Promise.all([M.Tenant.findOne({ _id: tid }), M.Vehicle.find(q).limit(lim), M.Job.find(q).limit(lim), M.Pass.find(q).limit(lim), M.Expense.find(q).limit(lim), M.CashClosing.find(q).limit(lim), M.Attendant.find(q).limit(lim), M.Attendance.find(q).limit(lim), M.Shift.find(q).limit(lim), M.Refund.find(q).limit(lim), M.Collection.find(q).limit(lim), M.Booking.find(q).limit(lim), M.Photo.find(q).limit(lim), M.PriceList.findOne(q)]);
+    const lim = 20000;
+    const [tenant, vehicles, jobs, passes, expenses, closings, attendants, attendance, shifts, refunds, collections, bookings, photos, pl] = await Promise.all([M.Tenant.findOne({ _id: tid }), M.Vehicle.find({ tenantId: tid }).limit(lim), M.Job.find({ tenantId: tid }).limit(lim), M.Pass.find({ tenantId: tid }).limit(lim), M.Expense.find({ tenantId: tid }).limit(lim), M.CashClosing.find({ tenantId: tid }).limit(lim), M.Attendant.find({ tenantId: tid }).limit(lim), M.Attendance.find({ tenantId: tid }).limit(lim), M.Shift.find({ tenantId: tid }).limit(lim), M.Refund.find({ tenantId: tid }).limit(lim), M.Collection.find({ tenantId: tid }).limit(lim), M.Booking.find({ tenantId: tid }).limit(lim), M.Photo.find({ tenantId: tid }).limit(lim), M.PriceList.findOne({ tenantId: tid })]);
     const data = { vehicles, jobs, passes, expenses, cashClosings: closings, attendants, attendance, shifts, refunds, collections, bookings, photos };
     for (const k of Object.keys(data)) data[k] = data[k].map(plain); data.priceList = pl ? plain(pl) : null;
     await audit(tid, req, 'data.export', 'full data export downloaded');

@@ -40,3 +40,16 @@ describe('Wash tenant guard wiring (C-04 pilot)', () => {
     }
   });
 });
+describe('Phase 2 routes name the business on every query (source check)', () => {
+  test('each M.<Model>.<call>( on a scoped model in routesMore.js and publicBooking.js mentions tenantId within the call', () => {
+    for (const f of ['routesMore.js', 'publicBooking.js']) {
+      const src = fs.readFileSync(path.join(__dirname, '..', 'src', f), 'utf8'); let n = 0;
+      for (const m of src.matchAll(/M\.(\w+)\.(find|findOne|countDocuments|updateOne|findOneAndUpdate|create|deleteOne|updateMany)\(/g)) {
+        if (m[1] === 'Tenant') continue; n += 1;
+        const around = src.slice(m.index, m.index + 260);
+        if (!/tenantId/.test(around)) throw new Error(f + ': ' + m[0] + ' does not mention tenantId: ' + around.slice(0, 120));
+      }
+      expect(n).toBeGreaterThan(0);
+    }
+  });
+});

@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const P = require('./publicPages');
 const PR = require('./print');
 const IM = require('./importers');
+const PV = require('./privacy');
 
 function addPhase2Routes(ctx) {
   const { def, M, D, fail, log, str, plain, settingsOf, now, OID, DATE, loadOrder } = ctx;
@@ -106,6 +107,47 @@ function addPhase2Routes(ctx) {
       } else { await M.Customer.create({ tenantId: tid, name: g.name, visits: [] }); added += 1; }
     }
     await log(tid, req, 'import.guests', added + ' added'); res.json({ success: true, data: { added, alreadyThere: existing, openingPoints: points, problems: r.errors.length, errors: r.errors.slice(0, 50) } });
+  });
+  // ---- 5. data export and delete on request (owner only), and the audit trail ----
+  const ownerOnly = (req, res) => { if (req.user.staffRole !== 'owner') { fail(res, 403, 'Only the owner can do this.'); return false; } return true; };
+  def('get', '/privacy/guests/:id/export', 'customers', async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return;
+    const c = OID.test(String(req.params.id)) ? await M.Customer.findOne({ _id: req.params.id, tenantId: tid }) : null; if (!c) return fail(res, 404, 'Guest not found');
+    const cp = plain(c); const phone = cp.phone;
+    const [orders, loyalty, credits] = await Promise.all([M.Order.find({ tenantId: tid, customerPhone: phone }).limit(2000), M.Loyalty.find({ tenantId: tid, phone }).limit(2000), M.Credit.find({ tenantId: tid, phone }).limit(2000)]);
+    await log(tid, req, 'privacy.export', cp.id);
+    res.set('Cache-Control', 'no-store'); res.set('Content-Disposition', 'attachment; filename="guest-data.json"');
+    res.json({ success: true, data: PV.guestExport({ customer: cp, orders: orders.map(plain), loyalty: loyalty.map(plain), credits: credits.map(plain) }) });
+  });
+  def('post', '/privacy/guests/:id/delete', 'customers', async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return;
+    if (!PV.confirmed(req.body)) return fail(res, 400, 'To delete, send confirm: "' + PV.CONFIRM_WORD + '". This cannot be undone.');
+    const c = OID.test(String(req.params.id)) ? await M.Customer.findOne({ _id: req.params.id, tenantId: tid }) : null; if (!c) return fail(res, 404, 'Guest not found');
+    const cp = plain(c); if (cp.anonymised) return fail(res, 409, 'This guest was already deleted.');
+    const credits = (await M.Credit.find({ tenantId: tid, phone: cp.phone }).limit(2000)).map(plain);
+    if (PV.owed(credits) > 0) return fail(res, 409, 'This guest still owes Rs ' + PV.owed(credits) + '. Settle the pay-later first.');
+    const t = PV.tag(cp.id);
+    await M.Order.updateMany({ tenantId: tid, customerPhone: cp.phone }, { $set: { customerPhone: t } });
+    await M.Loyalty.updateMany({ tenantId: tid, phone: cp.phone }, { $set: { phone: t } });
+    await M.Credit.updateMany({ tenantId: tid, phone: cp.phone }, { $set: { phone: t, name: 'Deleted guest' } });
+    await M.Customer.updateOne({ _id: cp.id, tenantId: tid }, { $set: PV.anonymisePatch(cp.id, now()) });
+    await log(tid, req, 'privacy.delete', cp.id); res.json({ success: true, message: 'The guest details were removed. Bills stay for your accounts, without the name or phone.' });
+  });
+  def('get', '/privacy/export.json', 'customers', async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return;
+    const [tenant, menu, ingredients, recipes, customers, orders, cash] = await Promise.all([M.Tenant.findById(tid), M.MenuItem.find({ tenantId: tid }).limit(1000), M.Ingredient.find({ tenantId: tid }).limit(2000), M.Recipe.find({ tenantId: tid }).limit(1000), M.Customer.find({ tenantId: tid }).limit(20000), M.Order.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(20000), M.CashEntry.find({ tenantId: tid }).limit(20000)]);
+    await log(tid, req, 'privacy.export.business', String(tid));
+    const f = (rows) => rows.map(plain).map(PV.stripId);
+    res.set('Cache-Control', 'no-store'); res.set('Content-Disposition', 'attachment; filename="business-data.json"');
+    res.json({ success: true, data: { schema: 1, currency: 'INR', venue: { name: tenant && tenant.venueName }, menu: f(menu), ingredients: f(ingredients), recipes: f(recipes), guests: f(customers), orders: f(orders), cash: f(cash) } });
+  });
+  // Audit trail: who did what and when. Owner only. Never holds names, phone numbers or message text (the log is written without them).
+  def('get', '/audit', 'customers', async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return;
+    const prefix = typeof req.query.action === 'string' ? req.query.action.replace(/[^a-z._-]/gi, '').slice(0, 30) : '';
+    const q = { tenantId: tid, ...(prefix ? { action: { $regex: '^' + prefix.replace(/\./g, '\\.') } } : {}) };
+    const rows = (await M.Activity.find(q).sort({ createdAt: -1 }).limit(200)).map(plain);
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows.map((r) => ({ at: r.createdAt, by: r.by, action: r.action, ref: r.ref || '' })) });
   });
   // Link only: nothing is sent. The guest taps Send in their own WhatsApp.
   def('get', '/order-link', 'orders', async (req, res, tid) => {

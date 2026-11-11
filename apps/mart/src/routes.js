@@ -9,7 +9,7 @@ const { makeDiscountHook } = require('../../../packages/core-pos/src/discountHoo
 const R = require('./reorder'); const Sh = require('./shelf'); const U = require('./udhaar'); const L = require('./leaks'); const S = require('./summary');
 const DP = require('./discountPolicy'); const bill = require('../../../packages/core-pos/src/bill');
 const A = require('./accounts'); const I = require('./insights'); const { gstSummary } = require('./gstSummary');
-const shape = require('./shape'); const { istDay, addDays, valid } = require('./dates');
+const PV = require('./privacy'); const shape = require('./shape'); const { istDay, addDays, valid } = require('./dates');
 
 const toOid = (v) => (typeof v === 'string' && /^[a-f0-9]{24}$/i.test(v) ? v : null);
 const clampInt = (v, lo, hi, d) => { const n = Number(v); return Number.isInteger(n) && n >= lo && n <= hi ? n : d; };
@@ -275,6 +275,33 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
   router.get('/audit', wrap(async (req, res, tid) => {
     if (!req.user || req.user.role !== 'admin') return fail(res, 403, 'Only the owner can see the audit trail.');
     res.set('Cache-Control', 'no-store'); res.json({ success: true, data: (await M.Audit.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(200).lean()).map((a) => ({ id: String(a._id), at: a.createdAt, by: a.by, role: a.role, action: a.action, ref: a.ref })) });
+  }));
+
+  // ---- privacy: export and delete on request (owner only) ----
+  const ownerOnly = (req, res) => (req.user && req.user.role === 'admin' ? true : (fail(res, 403, 'Only the owner can do this.'), false));
+  router.get('/privacy/customers/:id/export', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return; const id = toOid(req.params.id); const c = id ? await P.PosCustomer.findOne({ _id: id, tenantId: tid }).lean() : null; if (!c) return fail(res, 404, 'Customer not found');
+    const [bills, pays] = await Promise.all([P.PosBill.find({ tenantId: tid, customerId: id }).sort({ createdAt: -1 }).limit(5000).lean(), M.Payment.find({ tenantId: tid, customerId: id }).limit(5000).lean()]);
+    await audit(tid, req, 'customer_export', id); res.set('Cache-Control', 'no-store'); res.json({ success: true, data: PV.customerExport({ customer: c, bills, payments: pays }) });
+  }));
+  router.post('/privacy/customers/:id/delete', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return; const b = req.body || {}; const id = toOid(req.params.id); const c = id ? await P.PosCustomer.findOne({ _id: id, tenantId: tid }).lean() : null; if (!c) return fail(res, 404, 'Customer not found');
+    if (b.confirm !== true) return fail(res, 400, 'Confirm that you want to remove this customer\'s name, phone and email. The shop\'s bills stay.');
+    if ((c.creditDue || 0) > 0 && b.acknowledgeDue !== true) return fail(res, 409, `This customer still owes Rs ${c.creditDue}. Removing the name means you cannot ask them for it. Confirm again to continue.`);
+    await P.PosCustomer.updateOne({ _id: id, tenantId: tid }, { $set: PV.anonymiseSet(now()), $unset: PV.anonymiseUnset });
+    await audit(tid, req, 'customer_delete', id); res.json({ success: true });
+  }));
+  router.get('/privacy/export', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return;
+    const [settings, expenses, suppliers, purchases, closes, items, customers, bills] = await Promise.all([M.Settings.findOne({ tenantId: tid }).lean(), M.Expense.find({ tenantId: tid }).limit(20000).lean(), M.Supplier.find({ tenantId: tid }).limit(5000).lean(), M.Purchase.find({ tenantId: tid }).limit(20000).lean(), M.DayClose.find({ tenantId: tid }).limit(5000).lean(), P.PosItem.find({ tenantId: tid }).limit(20000).lean(), P.PosCustomer.find({ tenantId: tid }).limit(20000).lean(), P.PosBill.find({ tenantId: tid }).limit(50000).lean()]);
+    await audit(tid, req, 'shop_export', ''); res.set('Cache-Control', 'no-store'); res.set('Content-Disposition', 'attachment; filename="mart-my-data.json"');
+    res.json({ success: true, exportedAt: now().toISOString(), data: { settings, expenses, suppliers, purchases, dayCloses: closes, items, customers, bills }, note: 'All of your shop data. Large shops: ask Afra for a file.' });
+  }));
+  router.post('/privacy/delete-shop-request', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return; if (!PV.shopDeleteOk((req.body || {}).confirm)) return fail(res, 400, `Type ${PV.CONFIRM_SHOP} to confirm.`);
+    const open = await M.DeleteRequest.findOne({ tenantId: tid, status: 'requested' }); if (open) return res.json({ success: true, already: true });
+    await M.DeleteRequest.create({ tenantId: tid, by: String(req.user.id), status: 'requested' }); await audit(tid, req, 'shop_delete_request', '');
+    res.status(201).json({ success: true, message: 'Request received. A person at Afra will contact you. Export your data first if you have not.' });
   }));
 
   // ---- festival dates the owner types (we never guess dates) ----

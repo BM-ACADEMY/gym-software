@@ -8,6 +8,7 @@ const makeModels = require('./models');
 const { createMartRouter, creditGuard, discountHooks } = require('./routes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 const PM = require('./permissions');
+const { createInternalRouter } = require('./internalRoutes');
 
 function missingSettings(env) {
   const out = [];
@@ -28,6 +29,8 @@ function createApp({ express, mongoose, env = process.env }) {
   const M = makeModels(mongoose);
   const secret = env.MART_SESSION_SECRET;
   app.use('/api/mart/auth', createAuthRouter({ express, mongoose, billing, secret, termsVersion: env.MART_TERMS_VERSION }));
+  // Server-to-server counts for the all-products Super Admin. Off (401) unless INTERNAL_API_KEY (24+ characters) is set in the server settings.
+  app.use('/api/internal', createInternalRouter({ express, mongoose, billing, key: env.INTERNAL_API_KEY, dailyBudgetInr: Number(env.MART_DAILY_AI_BUDGET_INR) || 300 }));
   const protect = sessionMiddleware(secret, M);
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));
   const tenantOf = (req) => req.user.tenantId;

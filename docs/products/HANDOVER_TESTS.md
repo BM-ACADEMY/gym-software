@@ -75,3 +75,12 @@ Things to watch in every product:
 - Cloth: barcode scan on the bill screen; customer pages.
 - Dine: own table and kitchen screens (DIN-UI); real-database route tests (DIN-QA).
 - Every product: audit trail screen, data export and delete on request, staff payslips.
+
+## Update 12 Nov (night): build the front-ends first (Dev A)
+The five new products now also have a phone front-end each, written but never built or opened. Before the Staff tests, do this once per product (Salon, Mart, Dine, Cloth, Wash):
+1. `cd apps/<product>/client && npm install && npm run build`. Pass means the build finishes. If it complains about a shared billing file (core-pos), send Claude the exact message.
+2. Start the product server (steps in `docs/products/<product>/DEV_A_STEPS.md` or STATUS/BUILD_NOTES), then `npm run dev` in the client folder, and sign up.
+3. Serve the build behind the product's domain (three-line change in `docs/products/<product>/CLIENT.md`).
+Then the Staff screen tests apply to these screens: Salon (day view, queue, bill), Dine (tables, kitchen, bill), Cloth (bill by barcode and by size and colour, alterations, stock), Wash (job board, new job, dues, close the day), Mart (billing with barcode and weight, team logins, downloads).
+Staff discount rule (D-30): as staff, give a discount over the owner's limit; it must be refused with the limit message. As owner, change the rule in the Discounts screen, then try again.
+Set per product on the server (never in git): `INTERNAL_API_KEY` (for Super Admin counts), and in Super Admin the per-product `ADMIN_URL_<PRODUCT>` and `ADMIN_KEY_<PRODUCT>`. Note Wash's summary route is `/api/internal/wash/admin-summary`; the others use `/api/internal/admin-summary`.

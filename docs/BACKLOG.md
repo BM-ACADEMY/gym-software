@@ -124,6 +124,16 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 | SAL-06 | Salon daily summary, win-back, rebooking and marketing suggestions (suggest only) | M | 2 | WRITTEN 12 Nov, not yet tested by a person; 51 plain-node checks use an in-memory fake |
 | SAL-DB | Dev A runs `apps/salon/tests/routes.db.test.js` on a real test database (three people booking one slot: exactly one wins) | S | 2 | TODO (human) |
 | SAL-P2 | Salon Phase 2 list in `docs/products/salon/BUILD_NOTES.md` (attendance and payslip, CSV import, loyalty, stock, returns, reminders needing Meta templates, booking page and QR, audit screen, export and delete, Clinic notes and body-area picker, accounts screens, Super Admin counts) | L | 2 | TODO |
+| DIN-01 | Dine menu with variants and add-ons; orders and KOT flow (open, sent, served, billed, paid; kitchen and bar tickets, voids, reopen) | L | 2 | WRITTEN 12 Nov, not yet tested by a person; 69 plain-node checks across `apps/dine` use spy models |
+| DIN-02 | Dine split bill, service charge, GST profiles (CA to confirm) | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| DIN-03 | Dine recipe costing, stock deduction, wastage; pub bottle variance and happy-hour rules | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| DIN-04 | Dine accounts, CA CSV, sales reports, labelled predictions | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| DIN-05 | Dine daily summary with 3 actions, marketing suggestions, staff roles and hours | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| DIN-06 | Dine models (15), about 45 routes with permission per role, fail-closed app, manifest, draft plans Rs 299 / 499 / 899, port 5009 | L | 2 | WRITTEN 12 Nov, not yet tested by a person. Dev A steps in `docs/products/dine/DEV_A_STEPS.md` |
+| DIN-P1 | Dine floor-price table; whether pub mode is charged extra (Tier 3) | M | 2 | TODO |
+| DIN-QA | Dine real-database route tests, QA workbook, Dev B attack list | M | 2 | TODO |
+| DIN-R2 | Meta alcohol policy check and templates `dine_winback`, `dine_slow_hour`, `dine_review` | S | 2 | TODO (human). CA and lawyer items in `docs/products/dine/CA_LAWYER_ITEMS.md` |
+| DIN-UI | Dine own screens: table, kitchen display, QR menu, KOT print, Phase 2 list in Dine status docs | L | 2 | TODO |
 | CLINIC-01 | Clinic sector (doctor, physio, dental, skin): a preset of the Salon appointment product (D-29), not a separate app. Owner shared a clinic booking demo on 12 Nov as the look to follow. Needs owner decisions: name, price ladder, whose design it is | M | 3 | TODO (idea only; nothing built). Sensitive health data needs lawyer review first |
 | SA-06 | Plan and limit overrides and feature flags per gym, each with a logged reason | A | 2 | PARKED for Kamarudeen (Tier 3): design and questions in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |
 | SA-07 | View-as-gym for support: read-only, logged, time-limited | A | 2 | PARKED for Kamarudeen and the lawyer (Tier 3): recommend a counts-only support snapshot instead; design in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |

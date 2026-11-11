@@ -39,3 +39,14 @@ Typical use (40 percent of caps, no safety factor), AI only: Starter about Rs 7 
 
 - Dev A: read the real model price and one real parse's token counts from `UsageLog` after the first human-run parse; replace the three Assumptions above.
 - Kamarudeen (Tier 3): approve prepaid outreach packs and Pro's parse cap, then `plans.js` is updated. Until then `plans.js` is unchanged.
+
+## Update, 12 Nov 2026 (draft 2): rechecked with the model prices the platform actually uses
+Full table and sources: `docs/products/FLOOR_PRICES.md` section 4. Draft 1 above used an unverified gpt-4o-mini price "from memory". Using GPT-5.4 nano ($0.20 / $1.25 per million tokens) and mini ($0.75 / $4.50) from OpenAI's own pages and the current caps (150/100, 600/400, 1,000/1,500; outreach prepaid), plus a 2.8% payment fee:
+
+| Plan | Price | Floor on nano | Floor on mini |
+| --- | --- | --- | --- |
+| Starter | 999 | 396 | 1,454 (below) |
+| Growth | 1,999 | 1,585 | 5,814 (below) |
+| Pro | 3,999 | 3,580 (12% room) | 13,118 (below) |
+
+The ladder holds only on the nano model, and OpenAI's nano page shows a deprecation notice with no replacement named. Dev A confirms the model and costs one real parse before the first invite. Still not approved (Tier 3).

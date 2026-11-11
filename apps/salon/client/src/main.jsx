@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { AdminShell } from '../../../../packages/core-ui/src/index.js';
 import AuthGate from './AuthGate.jsx';
 import product from './product.js';
+import SalonScreens from './Screens.jsx';
+import { textFor } from './strings.js';
 import manifest from '../../admin/manifest.json';
 const strings = null; // no Tamil or Hindi menu names for this product yet
 
@@ -23,7 +25,12 @@ const btn = { padding: '6px 12px', border: '1px solid #ccc', borderRadius: 6, ba
 
 function App({ me, signedOut }) {
   const [lang, setLang] = useState(() => store().getItem('salon:lang') || 'en');
-  const [view, setView] = useState('panel');
+  const [uiLang, setUiLang] = useState(() => store().getItem('salon:ui') || 'en');
+  const t = useMemo(() => textFor(uiLang), [uiLang]);
+  // Staff logins start on the day view; the owner too. The manifest panel (accounts, settings, reports) stays one tab away.
+  const [view, setView] = useState('day');
+  const pickUi = (l) => { setUiLang(l); try { store().setItem('salon:ui', l); } catch (e) { /* optional */ } };
+  const TABS = ['day', 'queue', 'bill', 'people', 'panel'];
   const shown = useMemo(() => translate(manifest, lang), [lang]);
   const pick = (l) => { setLang(l); try { store().setItem('salon:lang', l); } catch (e) { /* optional */ } };
   const logout = async () => { try { await call('POST', '/auth/logout', {}); } catch (e) { /* signing out anyway */ } signedOut(); };
@@ -31,12 +38,17 @@ function App({ me, signedOut }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <header style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 12px', background: product.accent, color: '#fff' }}>
         <strong style={{ flex: 1 }}>{me[product.meName] || product.title}</strong>
+        <select aria-label="Screen language" value={uiLang} onChange={(e) => pickUi(e.target.value)} style={btn}><option value="en">English</option><option value="ta">தமிழ்</option></select>
         {product.hasStrings && <select aria-label="Language" value={lang} onChange={(e) => pick(e.target.value)} style={btn}><option value="en">English</option><option value="ta">தமிழ்</option><option value="hi">हिन्दी</option></select>}
         <button type="button" onClick={logout} style={btn}>Sign out</button>
       </header>
+      <nav aria-label="Sections" style={{ display: 'flex', gap: 6, padding: '6px 8px', overflowX: 'auto', borderBottom: '1px solid #eee' }}>
+        {TABS.map((k) => <button key={k} type="button" aria-current={view === k} onClick={() => setView(k)} style={{ ...btn, minHeight: 44, whiteSpace: 'nowrap', fontWeight: view === k ? 700 : 400, borderColor: view === k ? product.accent : '#ccc' }}>{t.tabs[k]}</button>)}
+      </nav>
+      {uiLang === 'ta' && <p style={{ margin: 0, padding: '4px 12px', background: '#fff4e5', fontSize: 12 }}>Tamil screen text is a draft and still needs a native speaker's check. Missing words show in English.</p>}
       {lang !== 'en' && <p style={{ margin: 0, padding: '4px 12px', background: '#fff4e5', fontSize: 12 }}>Tamil and Hindi menu names are drafts and still need a native speaker's check.</p>}
       <div style={{ flex: 1, overflow: 'auto' }}>
-        <AdminShell manifest={shown} api={api} role={me.role} />
+        {view === 'panel' ? <AdminShell manifest={shown} api={api} role={me.role} /> : <SalonScreens api={api} me={me} t={t} tab={view} />}
       </div>
     </div>
   );

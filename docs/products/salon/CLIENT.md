@@ -38,3 +38,32 @@ app.get(/^(?!\/api).*/, (req, res) => res.sendFile(path.join(__dirname, '../clie
 - The page was never run. Treat every screen as untested.
 - Tamil and Hindi menu names (where present) are drafts and need a native speaker (M-06). Text inside the shared panel and billing screens is English only.
 - Icons are placeholders.
+
+## Screens added (CLIENT-02, written, not yet tested by a person)
+
+Files in `apps/salon/client/src`: `Screens.jsx` (the four screens), `strings.js` (all English wording, a draft Tamil set, Patient/Doctor wording for the Clinic preset), `main.jsx` (tabs: Day, Walk-ins, Bill, Customers, Owner panel). The owner panel is still the manifest panel, one tab away.
+
+| Tab | What it does | Routes used (all under `/api/salon`) |
+| --- | --- | --- |
+| Day | Day picker, filter by staff member, list of visits, book (service, staff, free time, name, phone, consent), move, cancel, Done, No-show, Accept (owner) | `GET /staff`, `/services`, `/appointments`, `/slots`; `POST /appointments`, `/appointments/:id/{cancel,accept,reschedule,done,noshow}` |
+| Walk-ins | Add a walk-in, Start, Finished, Left | `GET/POST /queue`, `POST /queue/:id/status` |
+| Bill | Services with the staff member on each line, discount (percent or rupees) with a reason, split payments (cash, UPI, card), saved bill with change and still-to-pay | `POST /bills` (price, GST, discount limit all decided by the server) |
+| Customers | Search by name or number, open one to see visits. Staff logins get masked numbers from the server | `GET /customers`, `GET /customers/:id` |
+
+- **Clinic:** when the business preset is `clinic`, labels say Doctor and Patient, and the booking form has the problem-area picker (sent as `bodyArea`).
+- **Discount limit:** the page never decides it. If a staff login goes over the owner's limit, the server's message ("Staff can give a discount up to 10%...") is shown above the Save button.
+- **Rough total:** the bill screen shows "~ Rs N" from service prices only. The real total, GST and rounding come back from the server after saving.
+- **Safe retry:** each bill carries a `clientId`, so tapping Save twice on a bad network does not make two bills.
+- **Language:** the select in the top bar switches the screens between English and a draft Tamil (needs a native speaker, M-06). Missing Tamil words show in English.
+
+**Checked here:** esbuild syntax check on every file, and a server-side render of all four tabs for salon and clinic in English and Tamil. Nothing was run in a browser or against the server.
+
+**Not built (gaps):**
+- No customer picker on the bill, so a bill is not linked to a customer yet (the route accepts `customerId`).
+- No product lines (retail items) on the bill and no card or wallet detail.
+- No "create customer" form (customers are created by booking).
+- Day view is a list per day with a staff filter, not a time grid.
+- No printing or WhatsApp copy of the bill.
+- Appointments with `pending` status can be accepted only by the owner (server rule).
+
+**Dev A steps:** (1) `cd apps/salon/client && npm install && npm run build`. (2) Start the Salon server and `npm run dev`. (3) Sign up as a clinic once and a salon once and check the wording. (4) As owner: book a visit, move it, mark Done, make a bill with a 50% discount, then sign in as a staff login and try the same discount: it must be refused with the limit message. (5) As staff: Customers must show masked numbers. (6) Tap Save twice quickly on a bill: only one bill should exist.

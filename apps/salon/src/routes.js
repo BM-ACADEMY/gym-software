@@ -10,6 +10,7 @@ const B = require('./booking');
 const { buildBill } = require('./billing');
 const DP = require('./discountPolicy');
 const LR = require('./loyaltyRule');
+const SO = require('./stockOps');
 const { dailySummary } = require('./summary');
 const { lapsed, dueForRebook } = require('./winback');
 const { startingServices, presetKeys } = require('./presets');
@@ -216,11 +217,15 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
     const svcs = {}; (await M.Service.find({ tenantId: tid, isActive: true }).lean()).forEach((s) => { svcs[s.key] = s; });
     const staffIds = new Set((await M.Staff.find({ tenantId: tid }).select('_id').lean()).map((s) => String(s._id)));
     for (const l of Array.isArray(b.lines) ? b.lines : []) if (l.staffId && !staffIds.has(String(l.staffId))) throw field('A staff member on the bill was not found.');
-    const calc = buildBill({ input: b, services: svcs, tenant: t, rules: t.commissionRules, role: req.user.role });
+    const productIds = (Array.isArray(b.lines) ? b.lines : []).map((l) => l && l.productId).filter(isId); const products = {};
+    if (productIds.length) (await M.Product.find({ tenantId: tid, _id: { $in: productIds }, isActive: true }).lean()).forEach((p) => { products[String(p._id)] = p; });
+    const calc = buildBill({ input: b, services: svcs, tenant: t, rules: t.commissionRules, role: req.user.role === 'admin' ? 'admin' : 'staff', products });
     let customerId; if (isId(b.customerId)) { const c = await M.Customer.findOne({ _id: b.customerId, tenantId: tid }); if (!c) return fail(res, 404, 'Customer not found'); customerId = c._id; }
     const seq = await M.Counter.findOneAndUpdate({ tenantId: tid, key: 'bill' }, { $inc: { seq: 1 } }, { new: true, upsert: true });
     const doc = await M.Bill.create({ tenantId: tid, number: 'B' + String(seq.seq).padStart(5, '0'), customerId, appointmentId: isId(b.appointmentId) ? b.appointmentId : undefined, clientId, date: today(), ...calc });
     if (isId(b.appointmentId)) await M.Appointment.updateOne({ _id: b.appointmentId, tenantId: tid, status: { $in: ['booked', 'done'] } }, { $set: { billId: doc._id } });
+    // Stock: what the services and retail lines used up. A failure here never loses the bill.
+    try { await SO.consumeForBill(M, tid, { lines: calc.lines, number: doc.number, date: doc.date }, svcs, req.user.id); } catch (e) { console.error('stock use failed:', e.message); }
     // Loyalty (owner turns it on in Settings): points on what was paid. A failure here never loses the bill.
     if (customerId) { const pts = LR.pointsForBill(t.loyaltyRule, { total: calc.total, due: calc.due }); if (pts > 0) { try { await M.LoyaltyEntry.create({ tenantId: tid, customerId, points: pts, reason: 'earn', billId: doc._id }); await M.Customer.findOneAndUpdate({ _id: customerId, tenantId: tid }, { $inc: { loyaltyBalance: pts } }); } catch (e) { console.error('loyalty earn failed:', e.message); } } }
     if (calc.discount) await audit(tid, req, 'bill.discount', `${doc.number} ${calc.discountPercent}% by ${calc.discountBy}`);
@@ -319,8 +324,8 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
   }));
   router.get('/alerts', adminOnly, wrap(async (req, res, tid) => {
     const t = today(); const from = B.addDays(t, -30);
-    const bills = await M.Bill.find({ tenantId: tid, date: { $gte: from } }).select('number date discount discountReason subtotal discountBy discountPercent status total voidReason').lean(); const returns = await refundsIn(tid, from, t); const closes = await M.DayClose.find({ tenantId: tid, date: { $gte: from } }).select('date difference').lean();
-    res.json({ success: true, data: { items: L.leakList({ bills, closes, returns }), note: 'These are things to look at, not accusations.' } });
+    const bills = await M.Bill.find({ tenantId: tid, date: { $gte: from } }).select('number date discount discountReason subtotal discountBy discountPercent status total voidReason').lean(); const returns = await refundsIn(tid, from, t); const prods = await M.Product.find({ tenantId: tid, isActive: true }).limit(500).lean(); const closes = await M.DayClose.find({ tenantId: tid, date: { $gte: from } }).select('date difference').lean();
+    res.json({ success: true, data: { items: L.leakList({ bills, closes, returns, stock: { counts: await M.StockCount.find({ tenantId: tid, date: { $gte: from } }).limit(200).lean(), negative: prods.filter((p) => p.stock < 0), low: prods.filter((p) => p.stock >= 0 && p.reorderLevel > 0 && p.stock <= p.reorderLevel) } }), note: 'These are things to look at, not accusations.' } });
   }));
   router.get('/marketing/ideas', adminOnly, wrap(async (req, res, tid) => {
     const t = await tenantDoc(tid); const y = B.addDays(today(), -1);

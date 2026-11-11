@@ -24,8 +24,11 @@ function repeatDrop({ currentVisitors, currentReturning, previousVisitors, previ
   return { enough: true, current: cur, previous: prev, flagged: prev - cur >= 10 };
 }
 // Builds the single list the owner sees, each line with what it means.
-function leakList({ bills, closes, repeat, returns, pct = 30, tolerance = 0 }) {
+function leakList({ bills, closes, repeat, returns, stock, pct = 30, tolerance = 0 }) {
   const out = [];
+  for (const c of (stock && stock.counts) || []) if (int(c.diff) !== 0) out.push({ kind: 'stock_mismatch', text: `${c.productName || 'A product'}: the count on ${c.date} was ${Math.abs(int(c.diff))} ${int(c.diff) < 0 ? 'fewer' : 'more'} than the system said.` });
+  for (const p of (stock && stock.negative) || []) out.push({ kind: 'stock_negative', text: `${p.name} shows ${int(p.stock)} in stock. Billing used more than was recorded. Record what came in or count the shelf.` });
+  for (const p of (stock && stock.low) || []) out.push({ kind: 'stock_low', text: `${p.name} is low: ${int(p.stock)} left (reorder level ${int(p.reorderLevel)}).` });
   for (const v of voidedBills(bills)) out.push({ kind: 'void', text: `Bill ${v.billNumber} (Rs ${v.total}) was voided on ${v.date}${v.reason ? `. Reason: ${v.reason}` : ''}.` });
   for (const r of refundList(returns)) out.push({ kind: 'refund', text: `Rs ${r.amount} was refunded on ${r.date} (${r.method})${r.reason ? `. Reason: ${r.reason}` : ''}.` });
   for (const d of heavyDiscounts(bills, pct)) out.push({ kind: 'discount', text: `Bill ${d.billNumber} on ${d.date} had a ${d.percent}% discount (Rs ${d.discount})${d.reason ? `. Reason given: ${d.reason}` : ''}.` });

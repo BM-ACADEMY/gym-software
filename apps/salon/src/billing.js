@@ -8,10 +8,14 @@ const err = (message) => Object.assign(new Error(message), { code: 'SALON_BILL' 
 
 // input: { lines:[{serviceKey?|name,unitPrice?,qty?,staffId,discount?}], billDiscount?, discountReason?, payments, taxMode?, gstMode? }
 // services: this business's active services by key (the only source of service prices). rules: tenant.commissionRules.
-function buildBill({ input, services, tenant, rules, role = 'admin' }) {
+function buildBill({ input, services, tenant, rules, role = 'admin', products = {} }) {
   const raw = Array.isArray(input.lines) ? input.lines.slice(0, 50) : [];
   if (!raw.length) throw err('Add at least one service or item to the bill.');
   const lines = raw.map((l) => {
+    if (l.productId) { // a retail product: name, price and GST come from the shop's own product list, never from the request
+      const p = products[String(l.productId)]; if (!p) throw err('A product on the bill was not found.');
+      return { name: p.name, kind: 'item', productId: String(l.productId), unitPrice: p.price, qty: Number(l.qty) || 1, gstRate: p.gstRate || 0, discount: l.discount, staffId: l.staffId ? String(l.staffId) : null };
+    }
     if (l.serviceKey) {
       const s = services[l.serviceKey]; if (!s) throw err('A service on the bill was not found.');
       if (!l.staffId) throw err(`Choose who did "${s.name}" so commission is counted.`);
@@ -32,7 +36,7 @@ function buildBill({ input, services, tenant, rules, role = 'admin' }) {
   const commissions = {}; const outLines = calc.lines.map((cl, i) => {
     const src = lines[i]; const c = src.staffId ? commissionFor({ staffId: src.staffId, serviceKey: src.serviceKey || '_item', amount: cl.taxable }, rules) : 0;
     if (src.staffId && c) commissions[src.staffId] = (commissions[src.staffId] || 0) + c;
-    return { ...cl, serviceKey: src.serviceKey || null, commission: c };
+    return { ...cl, serviceKey: src.serviceKey || null, productId: src.productId || null, commission: c };
   });
   // Keep the payments as typed (whole rupees) so the cash book can add up cash taken and the day close can be checked later.
   const payments = (Array.isArray(input.payments) ? input.payments : []).map((p) => ({ method: p.method, amount: Math.round(Number(p.amount) || 0) }));

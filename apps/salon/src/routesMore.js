@@ -11,6 +11,8 @@ const PK = require('./packages');
 const LR = require('./loyaltyRule');
 const SP = require('./staffPay');
 const RT = require('./returns');
+const ST = require('./stock');
+const SO = require('./stockOps');
 const LOY2 = require('../../../packages/core-pos/src/loyalty');
 const LOY = require('../../../packages/core-pos/src/loyalty');
 const { makeFail, makeWrap, field, str, plain, isId } = require('./routes');
@@ -204,7 +206,7 @@ function createSalonMoreRouter({ express, mongoose, protect, authorize, tenantOf
     if (v.error) return fail(res, bill ? 400 : 404, v.error);
     const g = await M.Bill.findOneAndUpdate({ _id: bill._id, tenantId: tid, status: { $ne: 'void' }, refunded: { $lte: 0 } }, { $set: { status: 'void', statusBeforeVoid: bill.status, voidReason: v.value.reason, voidedBy: req.user.id, voidedAt: new Date() } }, { new: true });
     if (!g) return fail(res, 409, 'This bill changed. Open it again.');
-    await reverseLoyalty(tid, bill._id, bill.customerId); await audit(tid, req, 'bill.void', bill.number); res.json({ success: true, message: 'The bill is voided and no longer counts in your sales.' });
+    await reverseLoyalty(tid, bill._id, bill.customerId); try { await SO.restoreForBill(M, tid, bill, req.user.id, today()); } catch (e) { console.error('stock restore failed:', e.message); } await audit(tid, req, 'bill.void', bill.number); res.json({ success: true, message: 'The bill is voided and no longer counts in your sales.' });
   }));
   router.post('/bills/:id/return', adminOnly, wrap(async (req, res, tid) => {
     const b = req.body || {}; const bill = isId(req.params.id) ? await M.Bill.findOne({ _id: req.params.id, tenantId: tid }).lean() : null; const v = RT.checkRefund({ bill, amount: b.amount, method: b.method, reason: b.reason });
@@ -218,6 +220,43 @@ function createSalonMoreRouter({ express, mongoose, protect, authorize, tenantOf
     await audit(tid, req, 'bill.refund', bill.number + ' ' + v.value.amount); res.status(201).json({ success: true, data: { amount: v.value.amount, currency: 'INR', left: RT.refundable({ total: bill.total, due: bill.due, refunded: g.refunded }) } });
   }));
   router.get('/returns', adminOnly, wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Return.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(200).lean()).map((r) => ({ ...r, id: String(r._id) })) })));
+
+  // ---- (6) retail stock and product use. Staff may see products; only the owner adds, buys, counts and sets what a service uses. ----
+  router.get('/products', wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Product.find({ tenantId: tid }).sort({ name: 1 }).limit(500).lean()).map((p) => ({ ...p, id: String(p._id) })) })));
+  router.post('/products', adminOnly, wrap(async (req, res, tid) => {
+    const v = ST.validateProduct(req.body || {}); if (v.error) throw field(v.error);
+    const d = await M.Product.create({ tenantId: tid, ...v.value }); if (v.value.stock > 0) await M.StockMove.create({ tenantId: tid, productId: d._id, qty: v.value.stock, reason: 'adjust', ref: 'opening stock', by: req.user.id, date: today() });
+    await audit(tid, req, 'product.add', String(d._id)); res.status(201).json({ success: true, data: plain(d) });
+  }));
+  router.patch('/products/:id', adminOnly, wrap(async (req, res, tid) => {
+    const b = req.body || {}; const set = {}; if ('name' in b) set.name = str(b.name, 80); if ('reorderLevel' in b && Number.isInteger(b.reorderLevel) && b.reorderLevel >= 0) set.reorderLevel = b.reorderLevel; if ('price' in b && Number.isInteger(b.price) && b.price >= 0) set.price = b.price;
+    if ('gstRate' in b && [0, 3, 5, 12, 18, 28].includes(b.gstRate)) set.gstRate = b.gstRate; if ('forSale' in b) set.forSale = b.forSale === true; if ('isActive' in b) set.isActive = b.isActive === true; if (!Object.keys(set).length) throw field('Nothing to change.');
+    const d = isId(req.params.id) ? await M.Product.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: set }, { new: true }) : null; if (!d) return fail(res, 404, 'Not found'); res.json({ success: true, data: plain(d) });
+  }));
+  router.post('/products/:id/purchase', adminOnly, wrap(async (req, res, tid) => {
+    const qty = Number((req.body || {}).qty); if (!Number.isInteger(qty) || qty < 1 || qty > 1e6) throw field('Enter how many came in, as a whole number.');
+    const p = isId(req.params.id) ? await M.Product.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $inc: { stock: qty } }, { new: true }) : null; if (!p) return fail(res, 404, 'Not found');
+    await M.StockMove.create({ tenantId: tid, productId: p._id, qty, reason: 'purchase', ref: str((req.body || {}).ref, 60) || undefined, by: req.user.id, date: today() }); res.json({ success: true, data: { stock: p.stock } });
+  }));
+  // A stock count: the owner says what is on the shelf; the difference from the system is kept and shown in the alert list.
+  router.post('/products/:id/count', adminOnly, wrap(async (req, res, tid) => {
+    const counted = Number((req.body || {}).counted); if (!Number.isInteger(counted) || counted < 0 || counted > 1e6) throw field('Enter what you counted, as a whole number.');
+    const p0 = isId(req.params.id) ? await M.Product.findOne({ _id: req.params.id, tenantId: tid }).lean() : null; if (!p0) return fail(res, 404, 'Not found');
+    const before = Math.round(p0.stock || 0); const diff = counted - before; const p = await M.Product.findOneAndUpdate({ _id: p0._id, tenantId: tid }, { $inc: { stock: diff } }, { new: true });
+    const c = ST.countDiff({ system: before, counted }); await M.StockCount.create({ tenantId: tid, productId: p0._id, productName: p0.name, date: today(), system: c.system, counted, diff: c.diff, by: req.user.id });
+    if (diff) await M.StockMove.create({ tenantId: tid, productId: p0._id, qty: diff, reason: 'count', ref: 'stock count', by: req.user.id, date: today() });
+    await audit(tid, req, c.flagged ? 'stock.count.difference' : 'stock.count.ok', String(p0._id)); res.json({ success: true, data: { ...c, stock: p.stock, text: c.diff === 0 ? 'Count matches.' : c.diff < 0 ? `${-c.diff} fewer than the system said.` : `${c.diff} more than the system said.` } });
+  }));
+  router.put('/services/:id/uses', adminOnly, wrap(async (req, res, tid) => {
+    const v = ST.validateUses((req.body || {}).uses); if (v.error) throw field(v.error);
+    if (v.value.length) { const have = await M.Product.find({ tenantId: tid, _id: { $in: v.value.map((u) => u.productId) } }).select('_id').lean(); if (have.length !== new Set(v.value.map((u) => u.productId)).size) throw field('A product in the list was not found.'); }
+    const d = isId(req.params.id) ? await M.Service.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: { uses: v.value } }, { new: true }) : null; if (!d) return fail(res, 404, 'Not found'); res.json({ success: true });
+  }));
+  router.get('/stock/runout', adminOnly, wrap(async (req, res, tid) => {
+    const t = today(); const products = await M.Product.find({ tenantId: tid, isActive: true }).limit(500).lean(); const moves = await M.StockMove.find({ tenantId: tid, date: { $gte: B.addDays(t, -30) } }).limit(20000).lean(); const by = {};
+    moves.forEach((m) => { (by[String(m.productId)] = by[String(m.productId)] || []).push(m); });
+    res.json({ success: true, data: products.map((p) => ({ id: String(p._id), name: p.name, stock: Math.round(p.stock || 0), unit: p.unit, reorderLevel: p.reorderLevel, low: (p.stock || 0) <= (p.reorderLevel || 0), ...ST.runOut({ stock: p.stock, moves: by[String(p._id)] || [], today: t }) })) });
+  }));
 
   return router;
 }

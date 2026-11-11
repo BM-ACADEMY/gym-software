@@ -145,6 +145,15 @@
       "roles": [
         "admin"
       ]
+    },
+    {
+      "key": "products",
+      "label": "Retail stock",
+      "screen": "resource",
+      "resource": "products",
+      "roles": [
+        "admin"
+      ]
     }
   ],
   "stats": {
@@ -916,6 +925,55 @@
         {
           "key": "reason",
           "label": "Reason"
+        }
+      ]
+    },
+    "products": {
+      "label": "Retail products and stock",
+      "endpoint": "/products",
+      "empty": "No products yet.",
+      "searchable": false,
+      "columns": [
+        {
+          "key": "name",
+          "label": "Product"
+        },
+        {
+          "key": "stock",
+          "label": "In stock"
+        },
+        {
+          "key": "reorderLevel",
+          "label": "Reorder at"
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Product name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price (rupees)",
+          "type": "money",
+          "required": true
+        },
+        {
+          "key": "stock",
+          "label": "Opening stock",
+          "type": "number"
+        },
+        {
+          "key": "reorderLevel",
+          "label": "Reorder level",
+          "type": "number"
         }
       ]
     }

@@ -3,10 +3,15 @@ const { getPlan } = require('../config/plans');
 
 // Tax invoice for a GymDesk subscription payment, streamed to the response.
 // Seller details come from env so the CA can approve wording without code changes.
+// Defaults are the company's registered details (public, from the certificates, 12 Nov 2026; see docs/COMPANY_FACTS.md).
+// Env values still win, so a change needs no deploy of code.
 const seller = () => ({
-  name: process.env.INVOICE_SELLER_NAME || 'Afra Ventures Pvt Ltd',
-  gstin: process.env.INVOICE_SELLER_GSTIN || '',
-  address: process.env.INVOICE_SELLER_ADDRESS || '',
+  name: process.env.INVOICE_SELLER_NAME || 'Afra Ventures Private Limited',
+  gstin: process.env.INVOICE_SELLER_GSTIN || '34ABGCA7083D1ZS',
+  pan: process.env.INVOICE_SELLER_PAN || 'ABGCA7083D',
+  cin: process.env.INVOICE_SELLER_CIN || 'U62011PY2026PTC009819',
+  address: process.env.INVOICE_SELLER_ADDRESS || '78, Lenin Street, Kosapalayam, Puducherry - 605013, India',
+  stateLine: process.env.INVOICE_SELLER_STATE_LINE || 'Puducherry (State code 34)',
   sac: process.env.INVOICE_SAC || '998431', // SaaS / online information services, confirm with CA
 });
 
@@ -25,7 +30,9 @@ const streamSubscriptionInvoice = (res, p) => {
   doc.moveDown(0.5).fontSize(11).text(s.name);
   doc.font('Helvetica').fontSize(10).fillColor('#444');
   if (s.address) doc.text(s.address);
-  if (s.gstin) doc.text(`GSTIN: ${s.gstin}`);
+  if (s.gstin) doc.text(`GSTIN: ${s.gstin}   PAN: ${s.pan}`);
+  if (s.cin) doc.text(`CIN: ${s.cin}`);
+  if (s.stateLine) doc.text(`State: ${s.stateLine}`);
   doc.moveDown();
 
   doc.fillColor('#000').font('Helvetica-Bold').text(`Invoice no: ${p.invoiceNo || '-'}`);

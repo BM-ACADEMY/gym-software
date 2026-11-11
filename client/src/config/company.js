@@ -5,10 +5,10 @@ const env = import.meta.env || {};
 
 export const company = {
   product: env.VITE_PRODUCT_NAME || 'GymDesk',
-  legalName: env.VITE_COMPANY_LEGAL_NAME || 'Afra Ventures Pvt Ltd',
+  legalName: env.VITE_COMPANY_LEGAL_NAME || 'Afra Ventures Private Limited',
   email: env.VITE_SUPPORT_EMAIL || '',
   phone: env.VITE_SUPPORT_PHONE || '',        // digits with country code, e.g. 919876543210
-  address: env.VITE_COMPANY_ADDRESS || '',
+  address: env.VITE_COMPANY_ADDRESS || '78, Lenin Street, Kosapalayam, Puducherry - 605013, India', // registered address from the certificates
   state: env.VITE_COMPANY_STATE || 'Puducherry',
   social: {
     instagram: env.VITE_SOCIAL_INSTAGRAM || '',

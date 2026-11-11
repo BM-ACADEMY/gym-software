@@ -3,13 +3,13 @@
 DRAFT written 29 Oct 2026 by Claude. Not legal advice. The lawyer must review and approve every page before it goes live (Mohamed reports the lawyer is engaged; file the written approval). Fill the [brackets] from the Meta business account so names match exactly. The gym app already has its own Privacy and Terms pages (`client/src/pages/public/`); the other products reuse their structure.
 
 ## Home (short)
-[Company legal name] builds simple business software for small Indian businesses: gyms, salons, shops, restaurants, cloth stores, car washes and recruitment agencies. Registered office: 78, Lenin Street, Kosapalayam, Puducherry - 605013, India (Mohamed gave this on 29 Oct; check it matches the certificates exactly). Contact: hello@afraventures.in. Products are in invite-only testing; each product page lists exactly what works today.
+Afra Ventures Private Limited builds simple business software for small Indian businesses: gyms, salons, shops, restaurants, cloth stores, car washes and recruitment agencies. Registered office: 78, Lenin Street, Kosapalayam, Puducherry - 605013, India (confirmed against the certificates on 12 Nov; CIN U62011PY2026PTC009819, GSTIN 34ABGCA7083D1ZS; see docs/COMPANY_FACTS.md). Contact: hello@afraventures.in. Products are in invite-only testing; each product page lists exactly what works today.
 
 ## Contact and grievance
 Support: support@afraventures.in, +91 78269 97187. Grievance officer: [name], privacy@afraventures.in. Phone support 10 am to 6 pm IST, Monday to Saturday (Mohamed, 29 Oct). An AI help assistant answers how-to questions at any hour; billing, refund and data requests are answered by a person on the next working day. We reply within [2 working days] and resolve within [15 days] (lawyer to confirm the periods).
 
 ## Privacy Policy (company level, all products)
-1. **Who we are.** [Legal name], 78, Lenin Street, Kosapalayam, Puducherry - 605013, India. We are the data fiduciary for our customers' account data. For data a business enters about its own customers, members or candidates, the business decides why it is collected and we process it for them.
+1. **Who we are.** Afra Ventures Private Limited, 78, Lenin Street, Kosapalayam, Puducherry - 605013, India. We are the data fiduciary for our customers' account data. For data a business enters about its own customers, members or candidates, the business decides why it is collected and we process it for them.
 2. **What we collect.** Account details (name, email, phone, business name, GST number), the business data you enter, billing records (we never see card or bank numbers; Razorpay handles payment), message delivery records, and technical logs (IP address, browser) for security.
 3. **Why.** To run the service, take payment and issue GST invoices, keep it secure, give support, and meet legal duties. We do not sell personal data or use it for advertising.
 4. **WhatsApp.** Messages go through the WhatsApp Business Platform (Meta), which receives the phone number and message text. Businesses must have the person's permission to message them. Anyone can tell the business to stop; the business must then stop.

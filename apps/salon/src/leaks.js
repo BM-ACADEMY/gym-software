@@ -6,6 +6,12 @@ function heavyDiscounts(bills, pct = 30) {
   return bills.filter((b) => int(b.subtotal) > 0 && (int(b.discount) * 100) / int(b.subtotal) >= pct)
     .map((b) => ({ billNumber: b.number, date: b.date, discount: int(b.discount), subtotal: int(b.subtotal), percent: Math.round((int(b.discount) * 100) / int(b.subtotal)), reason: b.discountReason || '', currency: 'INR' }));
 }
+// Discounts given by staff (not the owner): the owner always sees them (D-30). Grouped per day.
+function staffDiscounts(bills) {
+  const by = {};
+  for (const b of bills) if (b.discountBy === 'staff' && int(b.discount) > 0) { const d = by[b.date] || (by[b.date] = { date: b.date, count: 0, total: 0 }); d.count += 1; d.total += int(b.discount); }
+  return Object.values(by).sort((a, b) => b.date.localeCompare(a.date)).map((d) => ({ ...d, currency: 'INR' }));
+}
 // Day-close differences that are not zero (tolerance in rupees, default 0).
 const cashDifferences = (closes, tolerance = 0) => closes.filter((c) => Math.abs(int(c.difference)) > tolerance).map((c) => ({ date: c.date, difference: int(c.difference), currency: 'INR' }));
 // Share of customers who came back: current period versus the one before. Flags a drop of 10+ points when both have 20+ customers.
@@ -18,8 +24,9 @@ function repeatDrop({ currentVisitors, currentReturning, previousVisitors, previ
 function leakList({ bills, closes, repeat, pct = 30, tolerance = 0 }) {
   const out = [];
   for (const d of heavyDiscounts(bills, pct)) out.push({ kind: 'discount', text: `Bill ${d.billNumber} on ${d.date} had a ${d.percent}% discount (Rs ${d.discount})${d.reason ? `. Reason given: ${d.reason}` : ''}.` });
+  for (const d of staffDiscounts(bills)) out.push({ kind: 'staff_discount', text: `On ${d.date} staff gave ${d.count} discount${d.count === 1 ? '' : 's'} worth Rs ${d.total} in all. Each has a reason on its bill.` });
   for (const c of cashDifferences(closes, tolerance)) out.push({ kind: 'cash', text: `Cash on ${c.date} was ${c.difference < 0 ? 'short' : 'over'} by Rs ${Math.abs(c.difference)}.` });
   if (repeat && repeat.flagged) out.push({ kind: 'repeat', text: `Returning customers fell from ${repeat.previous}% to ${repeat.current}% of visitors.` });
   return out;
 }
-module.exports = { heavyDiscounts, cashDifferences, repeatDrop, leakList };
+module.exports = { staffDiscounts, heavyDiscounts, cashDifferences, repeatDrop, leakList };

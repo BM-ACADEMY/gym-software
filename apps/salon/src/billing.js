@@ -3,11 +3,12 @@
 // Maths comes from packages/core-pos (bill.compute and bill.settle); commission from commission.js. No database here.
 const { bill } = require('../../../packages/core-pos/src');
 const { commissionFor } = require('./commission');
+const DP = require('./discountPolicy');
 const err = (message) => Object.assign(new Error(message), { code: 'SALON_BILL' });
 
 // input: { lines:[{serviceKey?|name,unitPrice?,qty?,staffId,discount?}], billDiscount?, discountReason?, payments, taxMode?, gstMode? }
 // services: this business's active services by key (the only source of service prices). rules: tenant.commissionRules.
-function buildBill({ input, services, tenant, rules }) {
+function buildBill({ input, services, tenant, rules, role = 'admin' }) {
   const raw = Array.isArray(input.lines) ? input.lines.slice(0, 50) : [];
   if (!raw.length) throw err('Add at least one service or item to the bill.');
   const lines = raw.map((l) => {
@@ -24,6 +25,8 @@ function buildBill({ input, services, tenant, rules }) {
   const reason = String(input.discountReason || '').trim().slice(0, 120);
   if (hasDiscount && reason.length < 3) throw err('A discount needs a reason (leak check).');
   const calc = bill.compute({ lines, billDiscount: input.billDiscount, taxMode, gstMode });
+  const dc = DP.check({ role, discount: calc.discount, subtotal: calc.subtotal, rule: tenant.discountRule });
+  if (!dc.ok) throw err(dc.message);
   const pay = bill.settle(calc.total, Array.isArray(input.payments) ? input.payments : []);
   // Commission is on the amount before GST (taxable), per line, by the most specific rule.
   const commissions = {}; const outLines = calc.lines.map((cl, i) => {
@@ -33,6 +36,6 @@ function buildBill({ input, services, tenant, rules }) {
   });
   // Keep the payments as typed (whole rupees) so the cash book can add up cash taken and the day close can be checked later.
   const payments = (Array.isArray(input.payments) ? input.payments : []).map((p) => ({ method: p.method, amount: Math.round(Number(p.amount) || 0) }));
-  return { ...calc, lines: outLines, payments, ...pay, commissions, discountReason: hasDiscount ? reason : '', currency: 'INR' };
+  return { ...calc, lines: outLines, payments, ...pay, commissions, discountReason: hasDiscount ? reason : '', discountBy: calc.discount ? (role === 'staff' ? 'staff' : 'owner') : undefined, discountPercent: calc.discount ? dc.percent : undefined, currency: 'INR' };
 }
 module.exports = { buildBill };

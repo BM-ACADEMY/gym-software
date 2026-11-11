@@ -27,6 +27,7 @@ module.exports = (mongoose) => {
     slotStep: { type: Number, default: 30 }, bufferMins: { type: Number, default: 0 },
     taxMode: { type: String, enum: ['gst_inclusive', 'gst_exclusive', 'none'], default: 'none' }, gstin: { type: String, maxlength: 15 }, address: { type: String, maxlength: 200 }, phone: String,
     festivals: { type: [{ name: String, date: String, offer: String }], default: [] }, // owner's own list; we do not invent dates
+    discountRule: Schema.Types.Mixed, // D-30 { staff: 'any'|'limit'|'owner_only', maxPercent } see src/discountPolicy.js
     commissionRules: Schema.Types.Mixed, // { default, byService, byStaff, byStaffService } see src/commission.js
   }, [], false);
   const User = define('SalonUser', {
@@ -60,7 +61,7 @@ module.exports = (mongoose) => {
   }, [[{ tenantId: 1, date: 1, status: 1 }, {}]]);
   const Bill = define('SalonBill', {
     tenantId: T, number: { type: String, required: true }, customerId: Schema.Types.ObjectId, appointmentId: Schema.Types.ObjectId, clientId: String, date: { type: String, required: true },
-    lines: [Schema.Types.Mixed], subtotal: Number, discount: Number, discountReason: { type: String, maxlength: 120 }, taxable: Number, gst: Number, cgst: Number, sgst: Number, igst: Number, total: Number,
+    lines: [Schema.Types.Mixed], subtotal: Number, discount: Number, discountReason: { type: String, maxlength: 120 }, discountBy: { type: String, enum: ['owner', 'staff'] }, discountPercent: Number, taxable: Number, gst: Number, cgst: Number, sgst: Number, igst: Number, total: Number,
     taxMode: String, gstMode: String, currency: { type: String, default: 'INR' }, payments: [Schema.Types.Mixed], received: Number, change: Number, credit: Number, due: Number, status: String,
     commissions: Schema.Types.Mixed, // { staffId: rupees }
   }, [[{ tenantId: 1, number: 1 }, { unique: true }], [{ tenantId: 1, clientId: 1 }, { unique: true, partialFilterExpression: { clientId: { $type: 'string' } } }], [{ tenantId: 1, date: 1 }, {}]]);

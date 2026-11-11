@@ -8,6 +8,7 @@ const { runWithTenant, runUnscoped } = require('../../../packages/core-server/sr
 const makeModels = require('./models');
 const B = require('./booking');
 const { buildBill } = require('./billing');
+const DP = require('./discountPolicy');
 const { dailySummary } = require('./summary');
 const { lapsed, dueForRebook } = require('./winback');
 const { startingServices, presetKeys } = require('./presets');
@@ -214,12 +215,12 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
     const svcs = {}; (await M.Service.find({ tenantId: tid, isActive: true }).lean()).forEach((s) => { svcs[s.key] = s; });
     const staffIds = new Set((await M.Staff.find({ tenantId: tid }).select('_id').lean()).map((s) => String(s._id)));
     for (const l of Array.isArray(b.lines) ? b.lines : []) if (l.staffId && !staffIds.has(String(l.staffId))) throw field('A staff member on the bill was not found.');
-    const calc = buildBill({ input: b, services: svcs, tenant: t, rules: t.commissionRules });
+    const calc = buildBill({ input: b, services: svcs, tenant: t, rules: t.commissionRules, role: req.user.role });
     let customerId; if (isId(b.customerId)) { const c = await M.Customer.findOne({ _id: b.customerId, tenantId: tid }); if (!c) return fail(res, 404, 'Customer not found'); customerId = c._id; }
     const seq = await M.Counter.findOneAndUpdate({ tenantId: tid, key: 'bill' }, { $inc: { seq: 1 } }, { new: true, upsert: true });
     const doc = await M.Bill.create({ tenantId: tid, number: 'B' + String(seq.seq).padStart(5, '0'), customerId, appointmentId: isId(b.appointmentId) ? b.appointmentId : undefined, clientId, date: today(), ...calc });
     if (isId(b.appointmentId)) await M.Appointment.updateOne({ _id: b.appointmentId, tenantId: tid, status: { $in: ['booked', 'done'] } }, { $set: { billId: doc._id } });
-    if (calc.discount) await audit(tid, req, 'bill.discount', doc.number);
+    if (calc.discount) await audit(tid, req, 'bill.discount', `${doc.number} ${calc.discountPercent}% by ${calc.discountBy}`);
     res.status(201).json({ success: true, data: plain(doc) });
   }));
   router.get('/bills', adminOnly, wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Bill.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(Math.min(Number(req.query.limit) || 50, 200))).map(plain) })));
@@ -312,7 +313,7 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
   }));
   router.get('/alerts', adminOnly, wrap(async (req, res, tid) => {
     const t = today(); const from = B.addDays(t, -30);
-    const bills = await M.Bill.find({ tenantId: tid, date: { $gte: from } }).select('number date discount discountReason subtotal').lean(); const closes = await M.DayClose.find({ tenantId: tid, date: { $gte: from } }).select('date difference').lean();
+    const bills = await M.Bill.find({ tenantId: tid, date: { $gte: from } }).select('number date discount discountReason subtotal discountBy discountPercent').lean(); const closes = await M.DayClose.find({ tenantId: tid, date: { $gte: from } }).select('date difference').lean();
     res.json({ success: true, data: { items: L.leakList({ bills, closes }), note: 'These are things to look at, not accusations.' } });
   }));
   router.get('/marketing/ideas', adminOnly, wrap(async (req, res, tid) => {
@@ -333,6 +334,7 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
     if (Number.isInteger(b.slotStep) && b.slotStep >= 5 && b.slotStep <= 120) set.slotStep = b.slotStep;
     if (Number.isInteger(b.bufferMins) && b.bufferMins >= 0 && b.bufferMins <= 60) set.bufferMins = b.bufferMins;
     if (Array.isArray(b.festivals) && b.festivals.length <= 30 && b.festivals.every((f) => f && str(f.name, 60) && B.validDate(f.date))) set.festivals = b.festivals.map((f) => ({ name: str(f.name, 60), date: f.date, offer: str(f.offer, 200) }));
+    if (b.discountRule && typeof b.discountRule === 'object') set.discountRule = DP.normalize(b.discountRule);
     if ('gstin' in b) set.gstin = str(b.gstin, 15); if ('address' in b) set.address = str(b.address, 200);
     if (b.commissionRules && typeof b.commissionRules === 'object' && !Array.isArray(b.commissionRules)) set.commissionRules = JSON.parse(JSON.stringify(b.commissionRules)); // plain data only; bad rules are ignored by commission.js
     if (!Object.keys(set).length) throw field('Nothing to change.');

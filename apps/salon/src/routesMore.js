@@ -10,6 +10,8 @@ const CI = require('./customerImport');
 const PK = require('./packages');
 const LR = require('./loyaltyRule');
 const SP = require('./staffPay');
+const RT = require('./returns');
+const LOY2 = require('../../../packages/core-pos/src/loyalty');
 const LOY = require('../../../packages/core-pos/src/loyalty');
 const { makeFail, makeWrap, field, str, plain, isId } = require('./routes');
 
@@ -25,8 +27,8 @@ function createSalonMoreRouter({ express, mongoose, protect, authorize, tenantOf
   // ---- (1) owner-panel accounts screens: month view with no dates to type ----
   router.get('/accounts/month', adminOnly, wrap(async (req, res, tid) => {
     const month = str(req.query.month, 7) || today().slice(0, 7); const r = PN.monthRange(month); if (!r) throw field('Pick a month like 2026-11.');
-    const [bills, exp, unpaid] = await Promise.all([M.Bill.find({ tenantId: tid, date: { $gte: r.from, $lte: r.to } }).lean(), M.Expense.find({ tenantId: tid, date: { $gte: r.from, $lte: r.to } }).lean(), M.Expense.find({ tenantId: tid, paid: false }).limit(500).lean()]);
-    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: PN.accountsMonth({ month, bills, expenses: exp, supplierDues: A.supplierDues(unpaid) }) });
+    const [bills, exp, unpaid, refunds] = await Promise.all([M.Bill.find({ tenantId: tid, date: { $gte: r.from, $lte: r.to } }).lean(), M.Expense.find({ tenantId: tid, date: { $gte: r.from, $lte: r.to } }).lean(), M.Expense.find({ tenantId: tid, paid: false }).limit(500).lean(), M.Return.find({ tenantId: tid, date: { $gte: r.from, $lte: r.to } }).limit(5000).lean()]);
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: PN.accountsMonth({ month, bills, expenses: exp, supplierDues: A.supplierDues(unpaid), refunds }) });
   }));
   router.get('/discounts/staff', adminOnly, wrap(async (req, res, tid) => {
     const bills = await M.Bill.find({ tenantId: tid, date: { $gte: B.addDays(today(), -60) } }).sort({ date: -1 }).limit(1000).lean();
@@ -189,6 +191,33 @@ function createSalonMoreRouter({ express, mongoose, protect, authorize, tenantOf
     for (const st of staff) { const p = await slipFor(tid, st, month, r, t); if (!p.error) out.push({ id: String(st._id), staffName: st.name, month, workingDays: p.workingDays, paidDays: p.paidDays, unmarkedDays: p.unmarkedDays, salaryPay: p.salaryPay, commission: p.commission, advances: p.advances, net: p.net, currency: 'INR' }); }
     res.set('Cache-Control', 'no-store'); res.json({ success: true, data: out });
   }));
+
+  // ---- (5) voids and refunds (owner only, reason needed, audited, shown in the owner's alert list) ----
+  const reverseLoyalty = async (tid, billId, customerId) => {
+    if (!customerId) return;
+    const earned = await M.LoyaltyEntry.find({ tenantId: tid, billId, reason: 'earn' }).lean(); const pts = earned.reduce((n, e) => n + Math.round(e.points || 0), 0); if (pts <= 0) return;
+    await M.LoyaltyEntry.create({ tenantId: tid, customerId, billId, points: -pts, reason: 'reverse', note: 'bill voided' });
+    await M.Customer.findOneAndUpdate({ _id: customerId, tenantId: tid }, { $inc: { loyaltyBalance: -pts } });
+  };
+  router.post('/bills/:id/void', adminOnly, wrap(async (req, res, tid) => {
+    const bill = isId(req.params.id) ? await M.Bill.findOne({ _id: req.params.id, tenantId: tid }).lean() : null; const v = RT.checkVoid({ bill, reason: (req.body || {}).reason });
+    if (v.error) return fail(res, bill ? 400 : 404, v.error);
+    const g = await M.Bill.findOneAndUpdate({ _id: bill._id, tenantId: tid, status: { $ne: 'void' }, refunded: { $lte: 0 } }, { $set: { status: 'void', statusBeforeVoid: bill.status, voidReason: v.value.reason, voidedBy: req.user.id, voidedAt: new Date() } }, { new: true });
+    if (!g) return fail(res, 409, 'This bill changed. Open it again.');
+    await reverseLoyalty(tid, bill._id, bill.customerId); await audit(tid, req, 'bill.void', bill.number); res.json({ success: true, message: 'The bill is voided and no longer counts in your sales.' });
+  }));
+  router.post('/bills/:id/return', adminOnly, wrap(async (req, res, tid) => {
+    const b = req.body || {}; const bill = isId(req.params.id) ? await M.Bill.findOne({ _id: req.params.id, tenantId: tid }).lean() : null; const v = RT.checkRefund({ bill, amount: b.amount, method: b.method, reason: b.reason });
+    if (v.error) return fail(res, bill ? 400 : 404, v.error);
+    // One guarded update: two refunds at once cannot together give back more than the bill.
+    const g = await M.Bill.findOneAndUpdate({ _id: bill._id, tenantId: tid, status: { $ne: 'void' }, refunded: { $lte: RT.paidOf(bill) - v.value.amount } }, { $inc: { refunded: v.value.amount } }, { new: true });
+    if (!g) return fail(res, 409, 'That is more than can still be refunded on this bill.');
+    const seq = await M.Counter.findOneAndUpdate({ tenantId: tid, key: 'return' }, { $inc: { seq: 1 } }, { new: true, upsert: true });
+    try { await M.Return.create({ tenantId: tid, number: 'R' + String(seq.seq).padStart(5, '0'), billId: bill._id, billNumber: bill.number, date: today(), by: req.user.id, ...v.value }); }
+    catch (e) { await M.Bill.findOneAndUpdate({ _id: bill._id, tenantId: tid }, { $inc: { refunded: -v.value.amount } }); throw e; }
+    await audit(tid, req, 'bill.refund', bill.number + ' ' + v.value.amount); res.status(201).json({ success: true, data: { amount: v.value.amount, currency: 'INR', left: RT.refundable({ total: bill.total, due: bill.due, refunded: g.refunded }) } });
+  }));
+  router.get('/returns', adminOnly, wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Return.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(200).lean()).map((r) => ({ ...r, id: String(r._id) })) })));
 
   return router;
 }

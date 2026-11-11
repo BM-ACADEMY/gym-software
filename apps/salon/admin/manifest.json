@@ -136,6 +136,15 @@
       "roles": [
         "admin"
       ]
+    },
+    {
+      "key": "returns",
+      "label": "Refunds",
+      "screen": "resource",
+      "resource": "returns",
+      "roles": [
+        "admin"
+      ]
     }
   ],
   "stats": {
@@ -544,6 +553,22 @@
           "label": "Payment",
           "type": "pill"
         }
+      ],
+      "actions": [
+        {
+          "label": "Void (entered by mistake)",
+          "method": "POST",
+          "path": "/bills/:id/void",
+          "body": {
+            "reason": "Entered by mistake"
+          },
+          "confirm": "Tap again: this bill will not count in your sales",
+          "done": "Bill voided.",
+          "when": {
+            "key": "status",
+            "equals": "paid"
+          }
+        }
       ]
     },
     "expenses": {
@@ -859,6 +884,38 @@
             "equals": "requested"
           },
           "done": "Rejected."
+        }
+      ]
+    },
+    "returns": {
+      "label": "Refunds given",
+      "endpoint": "/returns",
+      "readOnly": true,
+      "empty": "No refunds yet.",
+      "searchable": false,
+      "columns": [
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "key": "billNumber",
+          "label": "Bill"
+        },
+        {
+          "key": "amount",
+          "label": "Rupees back",
+          "type": "money"
+        },
+        {
+          "key": "method",
+          "label": "How",
+          "type": "pill"
+        },
+        {
+          "key": "reason",
+          "label": "Reason"
         }
       ]
     }

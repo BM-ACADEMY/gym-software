@@ -233,8 +233,8 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
   // Commission payable per staff member for a date range (owner only).
   router.get('/commission', adminOnly, wrap(async (req, res, tid) => {
     const from = str(req.query.from, 10); const to = str(req.query.to, 10); if (!B.validDate(from) || !B.validDate(to)) throw field('Pick from and to dates.');
-    const bills = await M.Bill.find({ tenantId: tid, date: { $gte: from, $lte: to } }).select('commissions').lean(); const out = {};
-    for (const b of bills) for (const [k, v] of Object.entries(b.commissions || {})) out[k] = (out[k] || 0) + v;
+    const bills = await M.Bill.find({ tenantId: tid, date: { $gte: from, $lte: to } }).select('commissions status').lean(); const out = {};
+    for (const b of bills.filter((x) => x.status !== 'void')) for (const [k, v] of Object.entries(b.commissions || {})) out[k] = (out[k] || 0) + v;
     res.json({ success: true, data: { totals: out, currency: 'INR' } });
   }));
 
@@ -257,6 +257,7 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
   }));
 
   // ---- accounts: expenses, dues, day close, P&L, GST, CA export (owner only; we do not file GST) ----
+  const refundsIn = (tid, from, to) => M.Return.find({ tenantId: tid, date: { $gte: from, $lte: to } }).limit(5000).lean();
   const audit = (tid, req, action, ref) => M.Audit.create({ tenantId: tid, by: req.user.id, action, ref }).catch(() => {});
   const range = (req) => { const from = str(req.query.from, 10); const to = str(req.query.to, 10); if (!B.validDate(from) || !B.validDate(to) || from > to || B.daysBetween(from, to) > 366) throw field('Pick from and to dates (up to one year).'); return { from, to }; };
   // The panel's list screen sends no dates: default to the last 60 days (D-28: nothing to type to see the list).
@@ -281,26 +282,26 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
     const date = str(req.query.date, 10) || today(); if (!B.validDate(date)) throw field('Pick a valid date.');
     const prev = await M.DayClose.findOne({ tenantId: tid, date: { $lt: date } }).sort({ date: -1 }).lean(); const bills = await M.Bill.find({ tenantId: tid, date }).lean(); const exp = await M.Expense.find({ tenantId: tid, date }).lean();
     const saved = await M.DayClose.findOne({ tenantId: tid, date }).lean();
-    res.json({ success: true, data: { saved: saved || null, suggestedOpening: prev ? prev.counted : 0, preview: A.dayClose({ openingCash: saved ? saved.openingCash : prev ? prev.counted : 0, bills, expenses: exp, countedCash: saved ? saved.counted : 0 }) } });
+    res.json({ success: true, data: { saved: saved || null, suggestedOpening: prev ? prev.counted : 0, preview: A.dayClose({ openingCash: saved ? saved.openingCash : prev ? prev.counted : 0, bills, expenses: exp, countedCash: saved ? saved.counted : 0, refunds: await refundsIn(tid, date, date) }) } });
   }));
   router.post('/day-close', adminOnly, wrap(async (req, res, tid) => {
     const b = req.body || {}; const date = B.validDate(b.date) ? b.date : today(); const counted = Math.round(Number(b.countedCash)); const opening = Math.round(Number(b.openingCash));
     if (!Number.isInteger(counted) || counted < 0 || !Number.isInteger(opening) || opening < 0) throw field('Enter the opening and counted cash in whole rupees.');
     const bills = await M.Bill.find({ tenantId: tid, date }).lean(); const exp = await M.Expense.find({ tenantId: tid, date }).lean();
-    const c = A.dayClose({ openingCash: opening, bills, expenses: exp, countedCash: counted });
+    const c = A.dayClose({ openingCash: opening, bills, expenses: exp, countedCash: counted, refunds: await refundsIn(tid, date, date) });
     const d = await M.DayClose.findOneAndUpdate({ tenantId: tid, date }, { $set: { openingCash: c.openingCash, cashSales: c.cashSales, cashExpenses: c.cashExpenses, expected: c.expected, counted: c.counted, difference: c.difference, note: str(b.note, 200) || undefined } }, { new: true, upsert: true });
     await audit(tid, req, c.difference ? 'dayclose.difference' : 'dayclose.ok', date); res.json({ success: true, data: { ...plain(d), text: c.text } });
   }));
   router.get('/accounts/pnl', adminOnly, wrap(async (req, res, tid) => {
     const { from, to } = range(req); const bills = await M.Bill.find({ tenantId: tid, date: { $gte: from, $lte: to } }).lean(); const exp = await M.Expense.find({ tenantId: tid, date: { $gte: from, $lte: to } }).lean();
-    const commissionTotal = bills.reduce((t, b) => t + Object.values(b.commissions || {}).reduce((x, y) => x + y, 0), 0);
-    res.json({ success: true, data: A.profitAndLoss({ bills, expenses: exp, commissionTotal }) });
+    const commissionTotal = bills.filter((b) => b.status !== 'void').reduce((t, b) => t + Object.values(b.commissions || {}).reduce((x, y) => x + y, 0), 0);
+    res.json({ success: true, data: A.profitAndLoss({ bills, expenses: exp, commissionTotal, refunds: await refundsIn(tid, from, to) }) });
   }));
-  router.get('/accounts/gst', adminOnly, wrap(async (req, res, tid) => { const { from, to } = range(req); res.json({ success: true, data: A.gstSummary(await M.Bill.find({ tenantId: tid, date: { $gte: from, $lte: to } }).lean()) }); }));
+  router.get('/accounts/gst', adminOnly, wrap(async (req, res, tid) => { const { from, to } = range(req); res.json({ success: true, data: A.gstSummary(await M.Bill.find({ tenantId: tid, date: { $gte: from, $lte: to } }).lean(), await refundsIn(tid, from, to)) }); }));
   router.get('/accounts/export.csv', adminOnly, wrap(async (req, res, tid) => {
     const { from, to } = range(req); const bills = await M.Bill.find({ tenantId: tid, date: { $gte: from, $lte: to } }).sort({ date: 1 }).lean(); const exp = await M.Expense.find({ tenantId: tid, date: { $gte: from, $lte: to } }).sort({ date: 1 }).lean();
     await audit(tid, req, 'export.ca', from + '..' + to);
-    res.set('Content-Type', 'text/csv; charset=utf-8'); res.set('Content-Disposition', 'attachment; filename="groom-accounts.csv"'); res.set('X-Content-Type-Options', 'nosniff'); res.send(A.caCsv({ bills, expenses: exp }));
+    res.set('Content-Type', 'text/csv; charset=utf-8'); res.set('Content-Disposition', 'attachment; filename="groom-accounts.csv"'); res.set('X-Content-Type-Options', 'nosniff'); res.send(A.caCsv({ bills, expenses: exp, refunds: await refundsIn(tid, from, to) }));
   }));
 
   // ---- sales reports, estimates, leak checks, marketing ideas (owner only; all suggest or estimate) ----
@@ -318,8 +319,8 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
   }));
   router.get('/alerts', adminOnly, wrap(async (req, res, tid) => {
     const t = today(); const from = B.addDays(t, -30);
-    const bills = await M.Bill.find({ tenantId: tid, date: { $gte: from } }).select('number date discount discountReason subtotal discountBy discountPercent').lean(); const closes = await M.DayClose.find({ tenantId: tid, date: { $gte: from } }).select('date difference').lean();
-    res.json({ success: true, data: { items: L.leakList({ bills, closes }), note: 'These are things to look at, not accusations.' } });
+    const bills = await M.Bill.find({ tenantId: tid, date: { $gte: from } }).select('number date discount discountReason subtotal discountBy discountPercent status total voidReason').lean(); const returns = await refundsIn(tid, from, t); const closes = await M.DayClose.find({ tenantId: tid, date: { $gte: from } }).select('date difference').lean();
+    res.json({ success: true, data: { items: L.leakList({ bills, closes, returns }), note: 'These are things to look at, not accusations.' } });
   }));
   router.get('/marketing/ideas', adminOnly, wrap(async (req, res, tid) => {
     const t = await tenantDoc(tid); const y = B.addDays(today(), -1);

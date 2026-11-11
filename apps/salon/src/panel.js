@@ -13,11 +13,11 @@ function monthRange(month) {
 // Bills that count as sales (a voided bill never counts).
 const live = (bills) => (bills || []).filter((b) => b && b.status !== 'void');
 
-function accountsMonth({ month, bills, expenses, supplierDues }) {
+function accountsMonth({ month, bills, expenses, supplierDues, refunds = [] }) {
   const lb = live(bills);
   const commissionTotal = lb.reduce((t, b) => t + Object.values(b.commissions || {}).reduce((x, y) => x + int(y), 0), 0);
-  const pnl = A.profitAndLoss({ bills: lb, expenses, commissionTotal });
-  const gst = A.gstSummary(lb);
+  const pnl = A.profitAndLoss({ bills: lb, expenses, commissionTotal, refunds });
+  const gst = A.gstSummary(lb, refunds);
   const categories = Object.entries(pnl.expensesByCategory).map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount);
   const gstRates = Object.entries(gst.byRate || {}).map(([rate, v]) => ({ rate: Number(rate), taxable: v.taxable, gst: v.gst })).sort((a, b) => a.rate - b.rate);
   return { month, ...pnl, textRows: [{ text: pnl.text }], categories, gst, gstRates, supplierDues: supplierDues || [], exportNote: 'To give your CA the full list, ask for the accounts file (CSV) for the same dates. We do not file GST for you.' };

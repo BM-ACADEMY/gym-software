@@ -37,3 +37,38 @@ Code: `apps/cloth` (port 5010, fail-closed without `MONGODB_URI` and `CLOTH_SESS
 - Owner sees staff discounts in `GET /reports/leaks` (`staffDiscounts`) and as a note in the daily summary.
 - **Proposed change for core-pos (not done, outside this fork's folder):** a `beforeBill` hook in `createPosRouter` so every product enforces D-30 in one place and `PosBill` carries `discountBy` and `discountPercent`; Cloth's wrapper can then be removed.
 - Dev A: the guard runs `protect` twice on `/api/pos` (once in app.js, once inside the core-pos router); check there is no side effect and the tenant context still holds on the bill route.
+
+## Phase 2 wave A (12 Nov, night). Written, not yet tested by a person
+Plain-node checks: 13 test files, all pass (accounts 14, barcode 5, dataRights 4, discount 10, internal 2, manifest 1, payroll 4, phase2a 7, pickup 3, returnsRules 3, routes 8, routesMore 9, rules 11, salesReports 5, session 3, signup 4, stockCount 3). They use an in-memory stand-in for the database, so they prove the rules and the shape of each route, not the real Mongo queries.
+
+| ID | What is new | Where |
+| --- | --- | --- |
+| CLO-06 | Barcode: set a barcode on a variant, labels as CSV (`GET /labels.csv`) and printable page (`GET /labels.html`), scan lookup (`GET /variants/by-barcode/:code`). Fabric by the metre: a variant with unit `metre` keeps stock in whole centimetres, bills take `metres` with up to 2 decimals, stock in/out through `/variants/:id/fabric-stock` | `src/barcode.js`, `routesPhase2.js`, `billGuard.js` |
+| CLO-07 | Staff: shift, paid-leave balance (default 12 days a year, owner sets), commission rules (owner sets), payslip as JSON or printable page (`/staff/:id/shift`, `/leave`, `/payslip`) | `src/payrollRules.js` |
+| CLO-08 | Sales by item, staff and hour (`/reports/sales-breakdown?by=`) and a Tally-style voucher CSV for the CA (`/export/tally.csv`, owner only, audited). It is a plain voucher list, not a Tally import file | `src/salesReports.js` |
+| CLO-09 | Alteration pickup link: secret 48-character token, public page `/api/cloth-pickup/:token` shows only the item, status, ready date and balance (no phone), rate-limited, owner can rotate | `src/pickup.js`, `pickupRoutes.js` |
+| CLO-10 | Data export (`/export/all.json`, owner only, audited, no passwords or secret links), delete on request = anonymise the customer, bills stay (`/customers/:id/delete`, must type DELETE), audit list (`/audit`) | `src/dataRights.js` |
+| CLO-11 | Physical stock count (`/variants/:id/count`), difference recorded; owner can adjust the system stock to the count; mismatches show in `/reports/leaks` and `/reports/stock-mismatch` | `src/leaks.js` |
+| CLO-12 | Returns and exchanges put the exact size and colour back in stock (`POST /returns`, reason needed, never more than sold, audited). Money, points and pay-later are reversed with the shared bill return (`/api/pos/bills/:id/return-lines`) | `src/returnsRules.js` |
+| CLO-13 | Owner panel screens: sales by item, staff and hour, profit and loss, GST summary, expenses, things to check, audit trail, staff pay rules; barcode column on stock | `admin/manifest.json` |
+| CLO-14 | `GET /api/internal/admin-summary` for Super Admin (counts only; key in `INTERNAL_API_KEY`; off without it). Cloth has no AI yet so AI counts are zero | `src/internalRoutes.js` |
+
+### Dev A: what to run for this wave
+1. `npm install && npm test` in `apps/cloth` (real Jest). Note any difference from the plain-node results above.
+2. Fabric: make a variant, set unit to metre (only possible at zero stock), add 10.5 m (stock shows 1050 cm), bill 2.5 m: stock must drop by 250 cm and the bill line must show qty 2.5. Check that the shared bill route (`core-pos`) accepts a fractional quantity; the plain-node test only proves the guard.
+3. Scan: `GET /api/cloth/variants/by-barcode/<code>` for a code in shop A must return 404 when called as shop B.
+4. Pickup: make a link for a job, open it in a private window (no sign-in): item, status and balance only, no phone. Rotate: the old link must give "not valid". Try 40 quick opens: expect a 429.
+5. Export and delete: as the owner, download `/export/all.json` (no password hashes inside). Delete a test customer: name becomes "Removed on request", phone gone, bills still listed. As the subadmin both must answer 403.
+6. Count: count a variant 2 short, check it appears in `/reports/leaks`. As the subadmin, `adjust:true` must answer 403.
+7. Returns: return 1 of 2 sold on a bill (stock +1); try returning 2 more (refused); do the money side with the shared return-lines.
+8. Panel: open the owner panel as owner and as subadmin. Owner-only screens (profit and loss, GST, things to check, audit trail, staff pay rules) must not show for the subadmin. Stats screens use endpoints with a query string (`?by=item`): check the shared panel passes it through.
+9. Race checks (need a real database): two people returning the same item at once must not put stock back twice (the route re-checks after writing and voids the extra move with a 409).
+
+### Still open after wave A (nothing silently dropped)
+- Customer import screen and loyalty screens: the routes exist in core-pos (`/api/pos/import/customers` with preview and commit, loyalty on bills), and the `ImportCsv` component exists in core-ui, but Cloth has no product client shell yet to host a custom screen. Same gap for every product.
+- Cloth's own customer-facing pages beyond the pickup page (a shop page or QR for the catalogue), WhatsApp sending and the `cloth_*` templates (waiting on Meta), UPI payment link.
+- Godown transfer, purchase-bill photo reading, shifts rota screen (shift data is stored; no calendar view), payslip PDF (printable page only).
+- Staff discount and commission are by the name on the bill line; the bill screen must let the cashier pick the staff member per line.
+- Barcode label output is text (a label printer or font draws the bars); no barcode image is generated.
+- Branches, online ordering, accounting-software integrations, e-invoice (Phase 3 by rule).
+- Plans, GST bands and HSN wording stay Assumptions pending the owner and the CA.

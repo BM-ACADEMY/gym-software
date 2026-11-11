@@ -4,9 +4,10 @@
 // Every query carries tenantId. Written, not yet tested by a person.
 const crypto = require('crypto');
 const P = require('./publicPages');
+const PR = require('./print');
 
 function addPhase2Routes(ctx) {
-  const { def, M, D, fail, log, str, plain, settingsOf, now, OID, DATE } = ctx;
+  const { def, M, D, fail, log, str, plain, settingsOf, now, OID, DATE, loadOrder } = ctx;
   const setVenue = async (tid, patch) => { const t = await M.Tenant.findById(tid); const cur = (t && t.settings && t.settings.venue) || {}; await M.Tenant.updateOne({ _id: tid }, { $set: { 'settings.venue': { ...cur, ...patch } } }); return { ...cur, ...patch }; };
   const getVenue = async (tid) => { const t = await M.Tenant.findById(tid); return { name: t && t.venueName, ...(((t && t.settings && t.settings.venue) || {})) }; };
 
@@ -24,6 +25,19 @@ function addPhase2Routes(ctx) {
   def('post', '/settings/menu-link/rotate', 'staff', async (req, res, tid) => {
     const token = crypto.randomBytes(24).toString('hex'); await setVenue(tid, { menuToken: token }); await log(tid, req, 'menu.link.rotate');
     res.json({ success: true, data: { menuLink: '/dine-public/menu/' + token, note: 'Old QR codes stop working. Print the new one.' } });
+  });
+  // ---- 2. printable bill and KOT (browser prints them; Tamil and Hindi letters print correctly) ----
+  const page = (res, html) => { res.set('Content-Type', 'text/html; charset=utf-8'); res.set('Cache-Control', 'no-store'); res.set('X-Content-Type-Options', 'nosniff'); return res.status(200).send(html); };
+  def('get', '/orders/:id/print/bill', 'bill', async (req, res, tid) => {
+    const o = await loadOrder(tid, req.params.id); if (!o) return fail(res, 404, 'Order not found');
+    if (o.status !== 'billed' && o.status !== 'paid') return fail(res, 400, 'Bill the order first.');
+    const v = await getVenue(tid); const size = req.query.size === 'A4' ? 'A4' : 'A5';
+    page(res, PR.billPrintHtml(o, v, { size, cashier: undefined }));
+  });
+  def('get', '/orders/:id/print/kot', 'orders', async (req, res, tid) => {
+    const o = await loadOrder(tid, req.params.id); if (!o) return fail(res, 404, 'Order not found');
+    const station = req.query.station === 'bar' ? 'bar' : 'kitchen'; const v = await getVenue(tid);
+    page(res, PR.kotPrintHtml(o, station, v, PR.istText(now())));
   });
   // Link only: nothing is sent. The guest taps Send in their own WhatsApp.
   def('get', '/order-link', 'orders', async (req, res, tid) => {

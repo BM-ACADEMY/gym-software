@@ -11,7 +11,7 @@ const { checkLimit } = require('./plans');
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const OID = /^[a-f0-9]{24}$/i;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const KNOWN = ['MENU_INVALID', 'ORDER_INVALID', 'SPLIT_INVALID', 'GST_INVALID', 'COST_INVALID', 'PUB_INVALID', 'ACCOUNTS_INVALID', 'MARKETING_INVALID', 'BILL_INVALID', 'PLAN_UNKNOWN'];
+const KNOWN = ['MENU_INVALID', 'ORDER_INVALID', 'SPLIT_INVALID', 'GST_INVALID', 'COST_INVALID', 'PUB_INVALID', 'ACCOUNTS_INVALID', 'MARKETING_INVALID', 'BILL_INVALID', 'BILL_HTML_INVALID', 'CREDIT_INVALID', 'RETURN_INVALID', 'IMPORT_INVALID', 'PEOPLE_INVALID', 'LOYALTY_INVALID', 'PLAN_UNKNOWN'];
 const plain = (d) => { const o = d && d.toObject ? d.toObject() : d; return o ? { ...o, id: String(o._id) } : o; };
 const addDays = (s, n) => new Date(Date.parse(s + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);
 const startOf = (date) => new Date(Date.parse(date + 'T00:00:00Z') - 5.5 * 3600000); // start of that IST day, as a UTC instant

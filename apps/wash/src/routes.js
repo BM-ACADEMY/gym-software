@@ -77,7 +77,13 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
   router.get('/attendants', wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Attendant.find({ tenantId: tid, isActive: true }).sort({ name: 1 })).map(plain) })));
   router.post('/attendants', wrap(async (req, res, tid) => {
     const name = str(req.body && req.body.name, 80); if (name.length < 2) return fail(res, 400, 'Enter the attendant name');
-    res.status(201).json({ success: true, data: plain(await M.Attendant.create({ tenantId: tid, name, isActive: true })) });
+    // Salary details at creation are owner only (they feed the payslip).
+    const payBits = {}; const bb = req.body || {};
+    if (bb.monthlySalary !== undefined || bb.paidLeavePerMonth !== undefined) {
+      if (!req.user || req.user.role !== 'admin') return fail(res, 403, 'Only the owner can set salary details.');
+      const c = require('./payroll').checkPay({ monthlySalary: bb.monthlySalary, paidLeavePerMonth: bb.paidLeavePerMonth }); if (c.error) return fail(res, 400, c.error); Object.assign(payBits, c.value);
+    }
+    res.status(201).json({ success: true, data: plain(await M.Attendant.create({ tenantId: tid, name, isActive: true, ...payBits })) });
   }));
 
   // ---- passes ----

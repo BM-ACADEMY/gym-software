@@ -1,10 +1,10 @@
 'use strict';
 // Wash Phase 2 routes (13 Nov). Mounted from routes.js, so the same sign-in, role check, read-only guard and tenant filter
 // apply. EVERY query filters by tenantId. Written, not yet tested by a person.
-const A = require('./accounts'); const PH = require('./photos'); const MONEY = require('./money');
+const A = require('./accounts'); const PH = require('./photos'); const MONEY = require('./money'); const PAY = require('./payroll'); const AT = require('./attendance'); const { dayTotals } = require('./incentive');
 
 function mountMore(ctx) {
-  const { router, M, wrap, fail, plain, now, dayOf, ownerOnly, range, pnlFor, idOk } = ctx;
+  const { router, M, wrap, fail, plain, now, dayOf, ownerOnly, range, pnlFor, idOk, priceList } = ctx;
 
   // ---- owner overview: profit and loss, supplier dues and customer dues in one call (panel "Accounts" screen) ----
   router.get('/accounts/overview', wrap(async (req, res, tid) => {
@@ -61,5 +61,39 @@ function mountMore(ctx) {
     res.status(201).json({ success: true, data: { refunded: (j.refunded || 0) + c.value.amount, currency: 'INR' } });
   }));
   router.get('/refunds', ownerOnly, wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Refund.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(100)).map(plain) })));
+  // ---- shifts, pay settings and payslips (owner only for money) ----
+  router.post('/shifts', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const c = PAY.checkShift(b); if (c.error) return fail(res, 400, c.error);
+    if (!idOk(b.attendantId)) return fail(res, 400, 'Choose the attendant');
+    const a = await M.Attendant.findOne({ _id: b.attendantId, tenantId: tid, isActive: true }); if (!a) return fail(res, 400, 'Unknown attendant');
+    const d = await M.Shift.findOneAndUpdate({ tenantId: tid, attendantId: String(a._id), day: c.value.day }, { $set: { from: c.value.from, to: c.value.to }, $setOnInsert: { tenantId: tid, attendantId: String(a._id), day: c.value.day } }, { upsert: true, new: true });
+    res.status(201).json({ success: true, data: { ...plain(d), hours: c.value.hours } });
+  }));
+  router.get('/shifts', wrap(async (req, res, tid) => {
+    const month = /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : dayOf(now()).slice(0, 7);
+    res.json({ success: true, data: { month, rows: (await M.Shift.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).sort({ day: 1 }).limit(1000)).map(plain) } });
+  }));
+  router.put('/attendants/:id/pay', ownerOnly, wrap(async (req, res, tid) => {
+    const c = PAY.checkPay(req.body); if (c.error) return fail(res, 400, c.error);
+    if (!idOk(req.params.id)) return fail(res, 400, 'Unknown attendant');
+    const a = await M.Attendant.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: c.value }, { new: true }); if (!a) return fail(res, 404, 'Attendant not found');
+    await audit(tid, req, 'pay.settings', `salary settings changed for ${a.name}`);
+    res.json({ success: true });
+  }));
+  const slips = async (tid, month, onlyId) => {
+    const [people, att, jobs, pl] = await Promise.all([M.Attendant.find({ tenantId: tid, isActive: true }).sort({ name: 1 }).limit(100), M.Attendance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).limit(3000), M.Job.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' }, state: 'delivered' }).limit(10000), priceList(tid)]);
+    const sum = AT.monthSummary(att.map(plain), month); const inc = dayTotals(jobs.map(plain), pl.incentive);
+    return people.map(plain).filter((p) => !onlyId || p.id === onlyId).map((p) => ({ id: p.id, ...PAY.payslip({ month, name: p.name, monthlySalary: p.monthlySalary, paidLeavePerMonth: p.paidLeavePerMonth === undefined ? 1 : p.paidLeavePerMonth, att: sum[p.id] || {}, incentive: (inc[p.id] || {}).incentive || 0, jobs: (inc[p.id] || {}).jobs || 0 }) }));
+  };
+  router.get('/payslips', ownerOnly, wrap(async (req, res, tid) => {
+    const month = /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : dayOf(now()).slice(0, 7);
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: { month, slips: await slips(tid, month), note: 'Days with no attendance mark are counted as worked.' } });
+  }));
+  router.get('/payslips/:id', ownerOnly, wrap(async (req, res, tid) => {
+    if (!idOk(req.params.id)) return fail(res, 400, 'Unknown attendant');
+    const month = /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : dayOf(now()).slice(0, 7);
+    const one = (await slips(tid, month, req.params.id))[0]; if (!one) return fail(res, 404, 'Attendant not found');
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: one });
+  }));
 }
 module.exports = mountMore;

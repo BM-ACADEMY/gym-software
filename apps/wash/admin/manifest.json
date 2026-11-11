@@ -33,6 +33,21 @@
       "resource": "attendants"
     },
     {
+      "key": "payslips",
+      "label": "Payslips",
+      "screen": "stats",
+      "stats": "payslips",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "shifts",
+      "label": "Shifts",
+      "screen": "resource",
+      "resource": "shifts"
+    },
+    {
       "key": "closing",
       "label": "Cash closing",
       "screen": "resource",
@@ -324,6 +339,48 @@
               "key": "total",
               "label": "Worth",
               "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "payslips": {
+      "label": "Payslips (this month)",
+      "endpoint": "/payslips",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "What each attendant earned (days with no mark count as worked)",
+          "rows": "slips",
+          "empty": "No attendants yet.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Attendant"
+            },
+            {
+              "key": "unpaidDays",
+              "label": "Unpaid days",
+              "type": "number"
+            },
+            {
+              "key": "base",
+              "label": "Base",
+              "type": "money"
+            },
+            {
+              "key": "incentive",
+              "label": "Incentive",
+              "type": "money"
+            },
+            {
+              "key": "gross",
+              "label": "Total",
+              "type": "money"
+            },
+            {
+              "key": "words",
+              "label": "How it was worked out"
             }
           ]
         }
@@ -631,6 +688,19 @@
           "label": "Name",
           "required": true,
           "max": 80
+        },
+        {
+          "key": "monthlySalary",
+          "label": "Monthly salary (owner only)",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "paidLeavePerMonth",
+          "label": "Paid leave days per month (owner only)",
+          "type": "number",
+          "min": 0,
+          "max": 10
         }
       ]
     },
@@ -760,6 +830,32 @@
         {
           "key": "text",
           "label": "Details"
+        }
+      ],
+      "fields": []
+    },
+    "shifts": {
+      "label": "Shifts",
+      "endpoint": "/shifts",
+      "empty": "No shifts noted this month.",
+      "readOnly": true,
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "attendantId",
+          "label": "Attendant id"
+        },
+        {
+          "key": "from",
+          "label": "From"
+        },
+        {
+          "key": "to",
+          "label": "To"
         }
       ],
       "fields": []

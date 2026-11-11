@@ -10,6 +10,7 @@ const { createClothRouter } = require('./routes');
 const createBillGuard = require('./billGuard'); const { discountHooks } = createBillGuard;
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 const { createPickupRouter } = require('./pickupRoutes');
+const { createInternalRouter } = require('./internalRoutes');
 const { runUnscoped } = require('../../../packages/core-server/src');
 
 const missingSettings = (env) => { const out = []; if (!env.MONGODB_URI) out.push('MONGODB_URI'); if (!env.CLOTH_SESSION_SECRET || env.CLOTH_SESSION_SECRET.length < 32) out.push('CLOTH_SESSION_SECRET'); return out; };
@@ -26,6 +27,7 @@ function createApp({ express, mongoose, env = process.env }) {
   const M = makeModels(mongoose); const pos = corePos.models(mongoose); M.PosCustomer = pos.PosCustomer; M.PosItem = pos.PosItem;
   const secret = env.CLOTH_SESSION_SECRET;
   app.use('/api/cloth/auth', createAuthRouter({ express, mongoose, billing, secret, termsVersion: env.CLOTH_TERMS_VERSION }));
+  app.use('/api/internal', createInternalRouter({ express, mongoose, billing, key: env.INTERNAL_API_KEY, dailyBudgetInr: 0 })); // Super Admin only, counts only, off without INTERNAL_API_KEY
   app.use('/api/cloth-pickup', createPickupRouter({ express, M })); // public: the secret token is the key
   const protect = sessionMiddleware(secret, M);
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));

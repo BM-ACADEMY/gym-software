@@ -1,7 +1,7 @@
 'use strict';
 // Cloth routes, Phase 2 (wave A). Written, not yet tested by a person. Every query filters by tenantId (the shop).
 // Added in steps: 1 barcode/scan/fabric, 2 staff pay, 3 sales breakdown + Tally-style CSV, 5 data rights + audit, 6 stock count, 7 returns.
-const BC = require('./barcode'); const PR = require('./payrollRules'); const SR = require('./salesReports'); const Ac = require('./accounts');
+const BC = require('./barcode'); const PR = require('./payrollRules'); const SR = require('./salesReports'); const Ac = require('./accounts'); const PK = require('./pickup');
 
 module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBetween, settingsOf }) => {
   const audit = (tid, req, action, text) => M.Audit.create({ tenantId: tid, action, text: String(text || '').slice(0, 200), by: req.user.id });
@@ -91,6 +91,15 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBet
     await audit(tid, req, 'export.tally', r.from + ' to ' + r.to);
     res.set('Content-Type', 'text/csv; charset=utf-8'); res.set('Content-Disposition', 'attachment; filename="sales-vouchers.csv"'); res.set('Cache-Control', 'no-store'); res.send(SR.tallyCsv(bills, { names }));
   }));
+
+  // ---- 4. pickup link for an alteration job ----
+  router.post('/alterations/:id/pickup-link', wrap(async (req, res, tid) => {
+    const j = await M.Alteration.findOne({ _id: req.params.id, tenantId: tid }); if (!j) return fail(res, 404, 'Job not found');
+    const rotate = req.body && req.body.rotate === true; const token = !rotate && j.pickupToken ? j.pickupToken : PK.newToken();
+    if (token !== j.pickupToken) await M.Alteration.updateOne({ _id: j._id, tenantId: tid }, { $set: { pickupToken: token } });
+    await audit(tid, req, rotate ? 'pickup.rotate' : 'pickup.link', String(j._id));
+    res.json({ success: true, data: { path: '/api/cloth-pickup/' + token, qrText: '/api/cloth-pickup/' + token, note: 'Give the customer the full link (your address plus this path) or print it as a QR. Rotating makes the old link stop working.' } });
+  }, { write: true }));
 
   return { audit, ownerOnly };
 };

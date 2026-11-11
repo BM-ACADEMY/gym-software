@@ -26,6 +26,7 @@ module.exports = (mongoose) => {
     windows: { type: [[Number]], default: [[600, 780], [1080, 1260]] }, closedWeekdays: { type: [Number], default: [0] }, // 0 = Sunday
     slotStep: { type: Number, default: 30 }, bufferMins: { type: Number, default: 0 },
     taxMode: { type: String, enum: ['gst_inclusive', 'gst_exclusive', 'none'], default: 'none' }, gstin: { type: String, maxlength: 15 }, address: { type: String, maxlength: 200 }, phone: String,
+    festivals: { type: [{ name: String, date: String, offer: String }], default: [] }, // owner's own list; we do not invent dates
     commissionRules: Schema.Types.Mixed, // { default, byService, byStaff, byStaffService } see src/commission.js
   }, [], false);
   const User = define('SalonUser', {
@@ -52,7 +53,7 @@ module.exports = (mongoose) => {
     tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, customerId: { type: Schema.Types.ObjectId, required: true },
     serviceKey: { type: String, required: true }, serviceName: String, date: { type: String, required: true }, start: { type: Number, required: true }, mins: { type: Number, required: true },
     status: { type: String, enum: ['booked', 'pending', 'done', 'noshow', 'cancelled'], default: 'booked' }, active: { type: Boolean, default: true },
-    source: { type: String, enum: ['owner', 'public', 'walkin'], default: 'owner' }, advance: Number, currency: { type: String, default: 'INR' }, billId: Schema.Types.ObjectId,
+    source: { type: String, enum: ['owner', 'public', 'walkin'], default: 'owner' }, advance: Number, currency: { type: String, default: 'INR' }, billId: Schema.Types.ObjectId, reviewAsked: Boolean,
   }, [[{ tenantId: 1, staffId: 1, date: 1, start: 1 }, { unique: true, partialFilterExpression: { active: true } }], [{ tenantId: 1, date: 1 }, {}]]);
   const Queue = define('SalonQueue', {
     tenantId: T, name: { type: String, required: true, maxlength: 120 }, phone: String, serviceKey: String, staffId: Schema.Types.ObjectId, status: { type: String, enum: ['waiting', 'serving', 'done', 'left'], default: 'waiting' }, date: { type: String, required: true },
@@ -60,9 +61,19 @@ module.exports = (mongoose) => {
   const Bill = define('SalonBill', {
     tenantId: T, number: { type: String, required: true }, customerId: Schema.Types.ObjectId, appointmentId: Schema.Types.ObjectId, clientId: String, date: { type: String, required: true },
     lines: [Schema.Types.Mixed], subtotal: Number, discount: Number, discountReason: { type: String, maxlength: 120 }, taxable: Number, gst: Number, cgst: Number, sgst: Number, igst: Number, total: Number,
-    taxMode: String, gstMode: String, currency: { type: String, default: 'INR' }, payments: [Schema.Types.Mixed], received: Number, due: Number, status: String,
+    taxMode: String, gstMode: String, currency: { type: String, default: 'INR' }, payments: [Schema.Types.Mixed], received: Number, change: Number, credit: Number, due: Number, status: String,
     commissions: Schema.Types.Mixed, // { staffId: rupees }
   }, [[{ tenantId: 1, number: 1 }, { unique: true }], [{ tenantId: 1, clientId: 1 }, { unique: true, partialFilterExpression: { clientId: { $type: 'string' } } }], [{ tenantId: 1, date: 1 }, {}]]);
   const Counter = define('SalonCounter', { tenantId: T, key: { type: String, required: true }, seq: { type: Number, default: 0 } }, [[{ tenantId: 1, key: 1 }, { unique: true }]]);
-  return { Tenant, User, Service, Staff, Customer, Appointment, Queue, Bill, Counter };
+  const Expense = define('SalonExpense', {
+    tenantId: T, date: { type: String, required: true }, category: { type: String, enum: ['rent', 'salary', 'products', 'electricity', 'marketing', 'repairs', 'other'], default: 'other' },
+    amount: { type: Number, required: true, min: 1 }, currency: { type: String, default: 'INR' }, paidTo: { type: String, maxlength: 120 }, method: { type: String, enum: ['cash', 'upi', 'card', 'bank'], default: 'cash' },
+    paid: { type: Boolean, default: true }, dueDate: String, note: { type: String, maxlength: 200 },
+  }, [[{ tenantId: 1, date: 1 }, {}]]);
+  const DayClose = define('SalonDayClose', {
+    tenantId: T, date: { type: String, required: true }, openingCash: Number, cashSales: Number, cashExpenses: Number, expected: Number, counted: Number, difference: Number, note: { type: String, maxlength: 200 }, currency: { type: String, default: 'INR' },
+  }, [[{ tenantId: 1, date: 1 }, { unique: true }]]);
+  // Audit trail: who did what, never the customer's details or the note text.
+  const Audit = define('SalonAudit', { tenantId: T, by: String, action: { type: String, required: true }, ref: String }, [[{ tenantId: 1, createdAt: -1 }, {}]]);
+  return { Expense, DayClose, Audit, Tenant, User, Service, Staff, Customer, Appointment, Queue, Bill, Counter };
 };

@@ -1,0 +1,344 @@
+{
+  "product": "salon",
+  "title": "Groom",
+  "nav": [
+    {
+      "key": "today",
+      "label": "Today",
+      "screen": "stats",
+      "stats": "today"
+    },
+    {
+      "key": "appointments",
+      "label": "Appointments",
+      "screen": "resource",
+      "resource": "appointments"
+    },
+    {
+      "key": "customers",
+      "label": "Customers",
+      "screen": "resource",
+      "resource": "customers"
+    },
+    {
+      "key": "services",
+      "label": "Services",
+      "screen": "resource",
+      "resource": "services",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "staff",
+      "label": "Staff",
+      "screen": "resource",
+      "resource": "staff",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "bills",
+      "label": "Bills",
+      "screen": "resource",
+      "resource": "bills",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "alerts",
+      "label": "Look at these",
+      "screen": "stats",
+      "stats": "alerts",
+      "roles": [
+        "admin"
+      ]
+    }
+  ],
+  "stats": {
+    "today": {
+      "label": "Today",
+      "endpoint": "/summary/today",
+      "refreshMs": 120000,
+      "cards": [
+        {
+          "label": "Bookings today",
+          "path": "bookings.today",
+          "type": "number"
+        },
+        {
+          "label": "Waiting for you",
+          "path": "bookings.pending",
+          "type": "number"
+        },
+        {
+          "label": "Sales yesterday",
+          "path": "sales.yesterday",
+          "type": "money"
+        },
+        {
+          "label": "Sales today",
+          "path": "sales.today",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Three things to do today (suggestions, nothing is sent)",
+          "rows": "actions",
+          "empty": "All clear.",
+          "columns": [
+            {
+              "key": "title",
+              "label": "What"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            },
+            {
+              "key": "count",
+              "label": "How many",
+              "type": "number"
+            }
+          ]
+        }
+      ]
+    },
+    "alerts": {
+      "label": "Things to look at (not accusations)",
+      "endpoint": "/alerts",
+      "tables": [
+        {
+          "label": "Leak checks, last 30 days",
+          "rows": "items",
+          "empty": "Nothing unusual.",
+          "columns": [
+            {
+              "key": "text",
+              "label": "What"
+            },
+            {
+              "key": "kind",
+              "label": "Type",
+              "type": "pill"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resources": {
+    "appointments": {
+      "label": "Appointments (today)",
+      "endpoint": "/appointments",
+      "empty": "No visits today.",
+      "columns": [
+        {
+          "key": "start",
+          "label": "Start (minutes)",
+          "type": "number"
+        },
+        {
+          "key": "serviceName",
+          "label": "Service"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        },
+        {
+          "key": "source",
+          "label": "How booked",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Done",
+          "method": "POST",
+          "path": "/appointments/:id/done",
+          "when": {
+            "key": "status",
+            "equals": "booked"
+          }
+        },
+        {
+          "label": "No-show",
+          "method": "POST",
+          "path": "/appointments/:id/noshow",
+          "when": {
+            "key": "status",
+            "equals": "booked"
+          }
+        },
+        {
+          "label": "Accept",
+          "method": "POST",
+          "path": "/appointments/:id/accept",
+          "when": {
+            "key": "status",
+            "equals": "pending"
+          }
+        },
+        {
+          "label": "Cancel",
+          "method": "POST",
+          "path": "/appointments/:id/cancel",
+          "when": {
+            "key": "status",
+            "equals": "booked"
+          }
+        }
+      ]
+    },
+    "customers": {
+      "label": "Customers",
+      "endpoint": "/customers",
+      "empty": "No customers yet.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "phone",
+          "label": "Phone"
+        },
+        {
+          "key": "lastVisit",
+          "label": "Last visit",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "phone",
+          "label": "Mobile number",
+          "required": true,
+          "max": 15
+        },
+        {
+          "key": "consentGiven",
+          "label": "Customer agreed to be contacted",
+          "type": "bool"
+        }
+      ]
+    },
+    "services": {
+      "label": "Services",
+      "endpoint": "/services",
+      "empty": "Add your first service.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Service"
+        },
+        {
+          "key": "mins",
+          "label": "Minutes",
+          "type": "number"
+        },
+        {
+          "key": "price",
+          "label": "Price (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "isActive",
+          "label": "On",
+          "type": "bool"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Service name",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "mins",
+          "label": "Minutes",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price in whole rupees",
+          "type": "number"
+        }
+      ]
+    },
+    "staff": {
+      "label": "Staff (no limit)",
+      "endpoint": "/staff",
+      "empty": "Add your first staff member.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "isActive",
+          "label": "Active",
+          "type": "bool"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "email",
+          "label": "Login email (optional)",
+          "max": 120
+        },
+        {
+          "key": "password",
+          "label": "Login password (10+ characters, optional)",
+          "max": 100
+        }
+      ]
+    },
+    "bills": {
+      "label": "Bills",
+      "endpoint": "/bills",
+      "readOnly": true,
+      "empty": "No bills yet.",
+      "columns": [
+        {
+          "key": "number",
+          "label": "Bill"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "key": "total",
+          "label": "Total (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Payment",
+          "type": "pill"
+        }
+      ]
+    }
+  }
+}

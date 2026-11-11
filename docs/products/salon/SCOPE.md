@@ -14,6 +14,8 @@ Empty slots from no-shows, customers who come once and vanish, staff who take cl
 | Live comparison of each competitor's current feature list | Source (first pass, 28 Oct) | Invoay, SalonBoost, Easy Salon read; see `RESEARCH.md`. Vendor pricing pages and owner interviews still open (SAL-R1) |
 
 ## 3. Presets
+Fourth preset, Clinic (D-29, 12 Nov): doctor or physio picker instead of stylist, "patient" wording, follow-up due and missed-visit lists, physio package progress (session 4 of 10), optional body-area picker for orthopaedics. Patient notes visible to the doctor only; lawyer review of consent and records before a real clinic uses it.
+
 Salon (hair, skin, nails), Spa (long services, rooms, therapist slots, packages), Barber/Grooming (fast walk-in queue, short services, shaving/beard add-ons). Preset sets the service list, durations, GST/SAC defaults, queue vs appointment default and message wording.
 14. **CSV import** (items with opening stock, customers with opening balance or points) with a preview before saving: written in `packages/core-pos` (written, not yet tested).
 

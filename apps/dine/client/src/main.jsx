@@ -15,7 +15,13 @@ const call = async (method, path, body, params) => {
   if (!res.ok) { const e = new Error(json.message || 'Request failed'); e.response = { data: json }; throw e; }
   return json;
 };
-const api = { get: (p, params) => call('GET', p, null, params), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p) };
+// Saves a file (CA export, my-data export) with the same signed-in cookie. The page, not a link, makes the request.
+const download = async (path) => {
+  const res = await fetch(product.api + path, { method: 'GET', credentials: 'same-origin' });
+  if (!res.ok) { const json = await res.json().catch(() => ({})); const e = new Error(json.message || 'Could not download.'); e.response = { data: json }; throw e; }
+  return { blob: await res.blob(), contentDisposition: res.headers.get('Content-Disposition') || '' };
+};
+const api = { get: (p, params) => call('GET', p, null, params), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p), download };
 
 const store = () => { try { return window.localStorage; } catch (e) { return { getItem: () => null, setItem: () => {} }; } };
 // Menu names in another language come from admin/strings.json (draft, needs native review). Anything missing stays in English.

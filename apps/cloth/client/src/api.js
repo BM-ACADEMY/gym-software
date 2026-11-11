@@ -10,4 +10,10 @@ const run = async (base, method, path, body, params) => {
 };
 export const call = (m, p, b, q) => run(product.api, m, p, b, q);
 export const pos = (m, p, b, q) => run('/api/pos', m, p, b, q); // the shared bill, customer and import routes
-export const api = { get: (p, q) => call('GET', p, null, q), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p) };
+// Saves a file (CA export, my-data export) with the same signed-in cookie. The page, not a link, makes the request.
+export const download = async (path) => {
+  const res = await fetch(product.api + path, { method: 'GET', credentials: 'same-origin' });
+  if (!res.ok) { const json = await res.json().catch(() => ({})); const e = new Error(json.message || 'Could not download.'); e.response = { data: json }; throw e; }
+  return { blob: await res.blob(), contentDisposition: res.headers.get('Content-Disposition') || '' };
+};
+export const api = { get: (p, q) => call('GET', p, null, q), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p), download };

@@ -1,0 +1,532 @@
+{
+  "product": "wash",
+  "title": "Wash",
+  "nav": [
+    {
+      "key": "today",
+      "label": "Today",
+      "screen": "stats",
+      "stats": "today"
+    },
+    {
+      "key": "jobs",
+      "label": "Job board",
+      "screen": "resource",
+      "resource": "jobs"
+    },
+    {
+      "key": "vehicles",
+      "label": "Vehicles",
+      "screen": "resource",
+      "resource": "vehicles"
+    },
+    {
+      "key": "passes",
+      "label": "Monthly passes",
+      "screen": "resource",
+      "resource": "passes"
+    },
+    {
+      "key": "attendants",
+      "label": "Attendants",
+      "screen": "resource",
+      "resource": "attendants"
+    },
+    {
+      "key": "closing",
+      "label": "Cash closing",
+      "screen": "resource",
+      "resource": "closing"
+    },
+    {
+      "key": "expenses",
+      "label": "Expenses",
+      "screen": "resource",
+      "resource": "expenses"
+    },
+    {
+      "key": "predictions",
+      "label": "Estimates",
+      "screen": "stats",
+      "stats": "predictions"
+    }
+  ],
+  "stats": {
+    "today": {
+      "label": "Today",
+      "endpoint": "/summary",
+      "refreshMs": 120000,
+      "cards": [
+        {
+          "label": "Washes delivered",
+          "path": "facts.jobsDelivered",
+          "type": "number"
+        },
+        {
+          "label": "Still open",
+          "path": "facts.jobsOpen",
+          "type": "number"
+        },
+        {
+          "label": "Revenue",
+          "path": "facts.revenue",
+          "type": "money"
+        },
+        {
+          "label": "Cash",
+          "path": "facts.pay.cash",
+          "type": "money"
+        },
+        {
+          "label": "UPI",
+          "path": "facts.pay.upi",
+          "type": "money"
+        },
+        {
+          "label": "Idle bay minutes",
+          "path": "facts.idleMinutes",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Three things to do today (suggestions, nothing is sent)",
+          "rows": "actions",
+          "empty": "All clear. Nothing needs you right now.",
+          "columns": [
+            {
+              "key": "text",
+              "label": "What"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    },
+    "predictions": {
+      "label": "Estimates (not promises)",
+      "endpoint": "/predictions",
+      "cards": [
+        {
+          "label": "Next month, low",
+          "path": "nextMonth.low",
+          "type": "money"
+        },
+        {
+          "label": "Next month, likely",
+          "path": "nextMonth.expected",
+          "type": "money"
+        },
+        {
+          "label": "Next month, high",
+          "path": "nextMonth.high",
+          "type": "money"
+        },
+        {
+          "label": "Passes ending in 14 days",
+          "path": "renewals.count",
+          "type": "number"
+        },
+        {
+          "label": "Value if half renew",
+          "path": "renewals.ifHalfRenew",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Customers who may stop coming",
+          "rows": "lapseRisk",
+          "empty": "Nobody looks at risk right now.",
+          "columns": [
+            {
+              "key": "plate",
+              "label": "Vehicle"
+            },
+            {
+              "key": "name",
+              "label": "Name"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resources": {
+    "jobs": {
+      "label": "Job board",
+      "endpoint": "/jobs",
+      "empty": "No open jobs. Add a vehicle that has arrived.",
+      "columns": [
+        {
+          "key": "number",
+          "label": "No."
+        },
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "klass",
+          "label": "Class"
+        },
+        {
+          "key": "total",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "plate",
+          "label": "Number plate",
+          "required": true,
+          "max": 15
+        },
+        {
+          "key": "klass",
+          "label": "Class",
+          "type": "select",
+          "options": [
+            "bike",
+            "hatchback",
+            "sedan",
+            "suv",
+            "other"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "Start washing",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "washing"
+          },
+          "when": {
+            "key": "state",
+            "equals": "waiting"
+          }
+        },
+        {
+          "label": "Ready",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "ready"
+          },
+          "when": {
+            "key": "state",
+            "equals": "washing"
+          }
+        },
+        {
+          "label": "Cancel",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "cancelled"
+          },
+          "when": {
+            "key": "state",
+            "equals": "waiting"
+          }
+        },
+        {
+          "label": "Delivered, paid cash",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "delivered",
+            "payAllWith": "cash"
+          },
+          "when": {
+            "key": "state",
+            "equals": "ready"
+          }
+        },
+        {
+          "label": "Delivered, paid UPI",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "delivered",
+            "payAllWith": "upi"
+          },
+          "when": {
+            "key": "state",
+            "equals": "ready"
+          }
+        },
+        {
+          "label": "Delivered, paid card",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "delivered",
+            "payAllWith": "card"
+          },
+          "when": {
+            "key": "state",
+            "equals": "ready"
+          }
+        }
+      ]
+    },
+    "vehicles": {
+      "label": "Vehicles",
+      "endpoint": "/vehicles",
+      "empty": "No vehicles yet.",
+      "columns": [
+        {
+          "key": "plate",
+          "label": "Plate"
+        },
+        {
+          "key": "klass",
+          "label": "Class"
+        },
+        {
+          "key": "ownerName",
+          "label": "Owner"
+        },
+        {
+          "key": "lastWash",
+          "label": "Last wash",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "plate",
+          "label": "Number plate",
+          "required": true,
+          "max": 15
+        },
+        {
+          "key": "klass",
+          "label": "Class",
+          "required": true,
+          "type": "select",
+          "options": [
+            "bike",
+            "hatchback",
+            "sedan",
+            "suv",
+            "other"
+          ]
+        },
+        {
+          "key": "ownerName",
+          "label": "Owner name",
+          "max": 120
+        },
+        {
+          "key": "ownerPhone",
+          "label": "Mobile",
+          "max": 10
+        },
+        {
+          "key": "intervalDays",
+          "label": "Usual gap in days",
+          "type": "number",
+          "min": 3,
+          "max": 180
+        }
+      ]
+    },
+    "passes": {
+      "label": "Monthly passes",
+      "endpoint": "/passes",
+      "empty": "No passes sold yet.",
+      "columns": [
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "used",
+          "label": "Used",
+          "type": "number"
+        },
+        {
+          "key": "washes",
+          "label": "Washes",
+          "type": "number"
+        },
+        {
+          "key": "endsOn",
+          "label": "Ends",
+          "type": "date"
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "plate",
+          "label": "Number plate",
+          "required": true,
+          "max": 15
+        },
+        {
+          "key": "washes",
+          "label": "Washes",
+          "type": "number",
+          "required": true,
+          "min": 1,
+          "max": 100
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "money",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    "attendants": {
+      "label": "Attendants",
+      "endpoint": "/attendants",
+      "empty": "Add the people who wash.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "required": true,
+          "max": 80
+        }
+      ]
+    },
+    "closing": {
+      "label": "Cash closing",
+      "endpoint": "/cash-closing",
+      "empty": "No day closed yet.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "expected",
+          "label": "Bills say",
+          "type": "money"
+        },
+        {
+          "key": "declared",
+          "label": "Counted",
+          "type": "money"
+        },
+        {
+          "key": "diff",
+          "label": "Difference",
+          "type": "money"
+        },
+        {
+          "key": "flag",
+          "label": "Check",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "declared",
+          "label": "Cash counted",
+          "type": "money",
+          "required": true,
+          "min": 0
+        },
+        {
+          "key": "openingFloat",
+          "label": "Cash at start of day",
+          "type": "money",
+          "min": 0
+        }
+      ]
+    },
+    "expenses": {
+      "label": "Expenses",
+      "endpoint": "/expenses",
+      "empty": "No expenses noted this month.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "category",
+          "label": "Type",
+          "type": "pill"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "supplier",
+          "label": "Supplier"
+        }
+      ],
+      "fields": [
+        {
+          "key": "category",
+          "label": "Type",
+          "required": true,
+          "type": "select",
+          "options": [
+            "salary",
+            "water",
+            "electricity",
+            "chemicals",
+            "rent",
+            "repairs",
+            "other"
+          ]
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "supplier",
+          "label": "Supplier",
+          "max": 80
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "max": 120
+        }
+      ]
+    }
+  }
+}

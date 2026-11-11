@@ -5,6 +5,7 @@
 const makeModels = require('./models');
 const V = require('./vehicles'); const J = require('./jobs'); const P = require('./pass'); const C = require('./cashclose'); const { checkCap } = require('./plans');
 const { summarize } = require('./summary');
+const A = require('./accounts'); const R = require('./reports'); const PR = require('./predict'); const MK = require('./marketing'); const AT = require('./attendance'); const { dayTotals } = require('./incentive');
 
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const isInt = (n) => Number.isInteger(n);
@@ -75,7 +76,7 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
   router.get('/attendants', wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Attendant.find({ tenantId: tid, isActive: true }).sort({ name: 1 })).map(plain) })));
   router.post('/attendants', wrap(async (req, res, tid) => {
     const name = str(req.body && req.body.name, 80); if (name.length < 2) return fail(res, 400, 'Enter the attendant name');
-    res.status(201).json({ success: true, data: plain(await M.Attendant.create({ tenantId: tid, name })) });
+    res.status(201).json({ success: true, data: plain(await M.Attendant.create({ tenantId: tid, name, isActive: true })) });
   }));
 
   // ---- passes ----
@@ -128,12 +129,13 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
       const a = await M.Attendant.findOne({ _id: b.attendantId, tenantId: tid, isActive: true }); if (!a) return fail(res, 400, 'Unknown attendant');
       attendantId = String(a._id);
     }
+    if (String(b.to) === 'washing' && !attendantId) { const all = await M.Attendant.find({ tenantId: tid, isActive: true }).limit(2); if (all.length === 1) attendantId = String(all[0]._id); } // one attendant: no need to choose
     const next = J.move(job, String(b.to), t, attendantId);
     const set = { state: next.state, attendantId: next.attendantId };
     for (const k of ['startedAt', 'readyAt', 'deliveredAt', 'cancelledAt']) if (next[k]) set[k] = next[k];
     if (next.state === 'delivered') {
       const owe = job.total - (job.passId ? job.passCovered || 0 : 0);
-      const pays = Array.isArray(b.payments) ? b.payments : [];
+      const pays = Array.isArray(b.payments) ? b.payments : (METHODS.includes(b.payAllWith) && owe > 0 ? [{ method: b.payAllWith, amount: owe }] : []); // payAllWith: one tap, full amount by one method
       if (pays.some((p) => !p || !METHODS.includes(p.method) || !isInt(p.amount) || p.amount <= 0)) return fail(res, 400, 'Each payment needs cash, upi or card and a whole-rupee amount');
       const sum = pays.reduce((s, p) => s + p.amount, 0);
       if (sum !== owe) return fail(res, 400, 'Payments must add up to Rs ' + owe);
@@ -174,6 +176,86 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
   };
   router.get('/summary', wrap(async (req, res, tid) => { res.set('Cache-Control', 'no-store'); res.json({ success: true, data: await build(tid) }); }));
   router.get('/suggestions', wrap(async (req, res, tid) => { res.set('Cache-Control', 'no-store'); const s = await build(tid); res.json({ success: true, data: { actions: s.actions, autoSend: false } }); }));
+  // ---- accounts: expenses, cash book, dues, profit and loss, CA export ----
+  const DAYRE = /^\d{4}-\d{2}-\d{2}$/;
+  const range = (q) => {
+    const to = DAYRE.test(q.to || '') ? q.to : dayOf(now()); const from = DAYRE.test(q.from || '') ? q.from : to.slice(0, 8) + '01';
+    if (Date.parse(to + 'T00:00:00Z') - Date.parse(from + 'T00:00:00Z') > 366 * 86400000 || from > to) return null;
+    return { from, to };
+  };
+  router.post('/expenses', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const c = A.checkExpense(b); if (c.error) return fail(res, 400, c.error);
+    const day = DAYRE.test(b.day || '') ? b.day : dayOf(now());
+    const d = await M.Expense.create({ tenantId: tid, day, category: b.category, amount: b.amount, paid: b.paid !== false, cash: b.cash !== false, supplier: str(b.supplier, 80), note: str(b.note, 120), by: req.user && req.user.id });
+    res.status(201).json({ success: true, data: plain(d) });
+  }));
+  router.get('/expenses', wrap(async (req, res, tid) => { const r = range(req.query); if (!r) return fail(res, 400, 'Choose a date range of up to one year'); res.json({ success: true, data: (await M.Expense.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).sort({ day: -1 }).limit(500)).map(plain) }); }));
+  router.get('/accounts/cash-book', wrap(async (req, res, tid) => {
+    const day = DAYRE.test(req.query.day || '') ? req.query.day : dayOf(now()); const float = Number.isInteger(Number(req.query.float)) ? Math.max(0, Number(req.query.float)) : 0;
+    const [jobs, ex] = await Promise.all([M.Job.find({ tenantId: tid, day, state: 'delivered' }).limit(500), M.Expense.find({ tenantId: tid, day }).limit(500)]);
+    res.json({ success: true, data: A.cashBook({ openingFloat: float, jobs: jobs.map(plain), expenses: ex.map(plain) }) });
+  }));
+  router.get('/accounts/dues', wrap(async (req, res, tid) => res.json({ success: true, data: A.supplierDues((await M.Expense.find({ tenantId: tid, paid: false }).limit(1000)).map(plain)) })));
+  router.get('/accounts/pnl', wrap(async (req, res, tid) => {
+    const r = range(req.query); if (!r) return fail(res, 400, 'Choose a date range of up to one year');
+    const [jobs, ex, pl] = await Promise.all([M.Job.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to }, state: 'delivered' }).limit(5000), M.Expense.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(5000), priceList(tid)]);
+    const js = jobs.map(plain); const inc = Object.values(dayTotals(js, pl.incentive)).reduce((s, x) => s + x.incentive, 0);
+    res.json({ success: true, data: { ...A.profitLoss({ revenue: js.reduce((s, j) => s + (j.total || 0), 0), expenses: ex.map(plain), incentive: inc }), from: r.from, to: r.to } });
+  }));
+  router.get('/accounts/export.csv', wrap(async (req, res, tid) => {
+    const r = range(req.query); if (!r) return fail(res, 400, 'Choose a date range of up to one year');
+    const [jobs, ex] = await Promise.all([M.Job.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(10000), M.Expense.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(10000)]);
+    res.set('Content-Type', 'text/csv; charset=utf-8'); res.set('Content-Disposition', `attachment; filename="wash-accounts-${r.from}-to-${r.to}.csv"`);
+    res.send(A.caCsv({ jobs: jobs.map(plain), expenses: ex.map(plain) }));
+  }));
+
+  // ---- sales reports ----
+  router.get('/reports/sales', wrap(async (req, res, tid) => {
+    const r = range(req.query); if (!r) return fail(res, 400, 'Choose a date range of up to one year');
+    const out = R.salesBy((await M.Job.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to }, state: 'delivered' }).limit(10000)).map(plain), String(req.query.by || 'day'));
+    if (out.error) return fail(res, 400, out.error); res.json({ success: true, data: { ...out, from: r.from, to: r.to } });
+  }));
+
+  // ---- predictions (labelled estimates) and marketing suggestions ----
+  const monthTotals = async (tid) => {
+    const t = now(); const start = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() - 6, 1)).toISOString().slice(0, 10); const thisMonth = dayOf(t).slice(0, 7);
+    const jobs = (await M.Job.find({ tenantId: tid, day: { $gte: start }, state: 'delivered' }).limit(20000)).map(plain); const m = {};
+    for (const j of jobs) { const k = (j.day || '').slice(0, 7); if (k && k < thisMonth) m[k] = (m[k] || 0) + (j.total || 0); }
+    return Object.keys(m).sort().map((k) => m[k]);
+  };
+  router.get('/predictions', wrap(async (req, res, tid) => {
+    const today = dayOf(now());
+    const [months, jobs, vehicles, passes] = await Promise.all([monthTotals(tid), M.Job.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(500), M.Vehicle.find({ tenantId: tid }).limit(3000), M.Pass.find({ tenantId: tid, endsOn: { $gte: today } }).limit(1000)]);
+    res.set('Cache-Control', 'no-store');
+    res.json({ success: true, data: { nextMonth: PR.nextMonthRange(months), busyHours: PR.busyHours(jobs.map(plain), R.hourIST), renewals: PR.renewalsExpected(passes.map(plain), today, P.status), lapseRisk: PR.lapseRisk(vehicles.map(plain), today).slice(0, 20) } });
+  }));
+  router.put('/festivals', wrap(async (req, res, tid) => {
+    const list = Array.isArray(req.body && req.body.festivals) ? req.body.festivals : null;
+    if (!list || list.length > 20 || list.some((f) => !f || str(f.name, 40).length < 2 || !DAYRE.test(f.date || ''))) return fail(res, 400, 'Each festival needs a name and a date');
+    await M.PriceList.findOneAndUpdate({ tenantId: tid }, { $set: { festivals: list.map((f) => ({ name: str(f.name, 40), date: f.date })) }, $setOnInsert: { tenantId: tid } }, { upsert: true, new: true });
+    res.json({ success: true });
+  }));
+  router.get('/marketing', wrap(async (req, res, tid) => {
+    const today = dayOf(now()); const pl = await priceList(tid);
+    const [jobs, vehicles] = await Promise.all([M.Job.find({ tenantId: tid, day: today, state: 'delivered' }).limit(200), M.Vehicle.find({ tenantId: tid }).limit(3000)]);
+    const phone = {}; for (const v of vehicles.map(plain)) phone[v.plate] = v;
+    const ready = jobs.map(plain).map((j) => ({ ...j, ownerPhone: phone[j.plate] && phone[j.plate].ownerPhone, doNotContact: phone[j.plate] && phone[j.plate].doNotContact }));
+    const hist = (await M.Job.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(500)).map(plain);
+    res.json({ success: true, data: { sends: 'none: suggestions only', reviewRequests: MK.reviewRequests(ready), offPeak: MK.offPeakOffer(PR.busyHours(hist, R.hourIST), (pl.prices || {}).sedan), festivals: MK.festivalPrompts(pl.festivals, today) } });
+  }));
+
+  // ---- attendance ----
+  router.post('/attendance', wrap(async (req, res, tid) => {
+    const b = req.body || {}; if (!AT.STATUS.includes(b.status) || !DAYRE.test(b.day || '') || !idOk(b.attendantId)) return fail(res, 400, 'Choose the attendant, the day and present, absent or leave');
+    const a = await M.Attendant.findOne({ _id: b.attendantId, tenantId: tid }); if (!a) return fail(res, 400, 'Unknown attendant');
+    await M.Attendance.findOneAndUpdate({ tenantId: tid, attendantId: String(a._id), day: b.day }, { $set: { status: b.status }, $setOnInsert: { tenantId: tid, attendantId: String(a._id), day: b.day } }, { upsert: true, new: true });
+    res.json({ success: true });
+  }));
+  router.get('/attendance', wrap(async (req, res, tid) => {
+    const month = /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : dayOf(now()).slice(0, 7);
+    const rows = (await M.Attendance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).limit(2000)).map(plain);
+    res.json({ success: true, data: { month, summary: AT.monthSummary(rows, month) } });
+  }));
   return router;
 }
 module.exports = { createWashRouter, dayOf };

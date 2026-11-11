@@ -1,0 +1,31 @@
+// Cloth records. The app passes its own mongoose. Every record carries tenantId (the shop) and gets the fail-closed tenant guard
+// (packages/core-server/src/tenant.js): queries run only inside runWithTenant (set by sessionMiddleware) or runUnscoped with a reason.
+// Money: whole rupees with a currency code. Customers, bills and loyalty come from packages/core-pos (mounted at /api/pos).
+const { tenantPlugin } = require('../../../packages/core-server/src');
+
+module.exports = (mongoose) => {
+  const { Schema } = mongoose;
+  const castId = (v) => new mongoose.Types.ObjectId(String(v));
+  const T = { type: Schema.Types.ObjectId, required: true, index: true };
+  const define = (name, schema, indexes = [], scoped = true) => {
+    if (mongoose.models[name]) return mongoose.models[name];
+    const s = new Schema(schema, { timestamps: true });
+    indexes.forEach(([f, o]) => s.index(f, o));
+    if (scoped) s.plugin(tenantPlugin, { field: 'tenantId', castId });
+    return mongoose.model(name, s);
+  };
+  const Tenant = define('ClothTenant', { shopName: { type: String, required: true, maxlength: 120 }, state: String, currency: { type: String, default: 'INR' }, trialEndsAt: Date, paidUntil: Date, planKey: String, billingCycle: String, planStartedAt: Date, isActive: { type: Boolean, default: true }, termsAcceptedAt: Date, termsVersion: String }, [], false);
+  const User = define('ClothUser', { tenantId: T, name: String, email: { type: String, required: true, unique: true, lowercase: true, trim: true }, role: { type: String, enum: ['admin', 'subadmin'], default: 'admin' }, passwordHash: { type: String, required: true, select: false }, failedLogins: { type: Number, default: 0 }, lockedUntil: Date, isActive: { type: Boolean, default: true }, lastLoginAt: Date, phone: { type: String, trim: true }, salesContactOk: { type: Boolean, default: false }, salesContactAt: Date });
+  const Variant = define('ClothVariant', { tenantId: T, style: { type: String, required: true, maxlength: 40 }, size: { type: String, required: true, maxlength: 30 }, colour: { type: String, required: true, maxlength: 30 }, key: { type: String, required: true }, barcode: { type: String, trim: true, maxlength: 40 }, category: { type: String, maxlength: 40 }, mrp: { type: Number, required: true, min: 1 }, cost: { type: Number, min: 0 }, currency: { type: String, default: 'INR' }, gstRate: { type: Number, default: 5 }, qty: { type: Number, default: 0, min: 0 }, reorderLevel: Number, addedOn: String, lastSoldOn: String, isActive: { type: Boolean, default: true } },
+    [[{ tenantId: 1, key: 1 }, { unique: true }], [{ tenantId: 1, barcode: 1 }, { unique: true, partialFilterExpression: { barcode: { $type: 'string' } } }]]);
+  const StockMove = define('ClothStockMove', { tenantId: T, variantId: { type: Schema.Types.ObjectId, required: true }, type: { type: String, required: true }, qty: { type: Number, required: true }, date: String, reason: String, by: Schema.Types.ObjectId }, [[{ tenantId: 1, variantId: 1, createdAt: -1 }, {}], [{ tenantId: 1, type: 1, date: 1 }, {}]]);
+  const Alteration = define('ClothAlteration', { tenantId: T, customerId: Schema.Types.ObjectId, customerName: { type: String, maxlength: 120 }, customerPhone: String, what: { type: String, required: true, maxlength: 120 }, readyOn: { type: String, required: true }, readyAt: String, status: { type: String, enum: ['received', 'in_progress', 'ready', 'delivered', 'cancelled'], default: 'received' }, charge: { type: Number, required: true, min: 0 }, advance: { type: Number, default: 0 }, currency: { type: String, default: 'INR' }, note: { type: String, maxlength: 200 } }, [[{ tenantId: 1, status: 1, readyOn: 1 }, {}]]);
+  const CustomerInfo = define('ClothCustomerInfo', { tenantId: T, customerId: { type: Schema.Types.ObjectId, required: true }, lastVisit: String, occasionOn: { type: String, match: /^\d{2}-\d{2}$/ }, creditSince: String, doNotContact: { type: Boolean, default: false }, sizes: { type: String, maxlength: 120 } }, [[{ tenantId: 1, customerId: 1 }, { unique: true }]]);
+  const Settings = define('ClothSettings', { tenantId: { ...T, unique: true }, gstBands: Schema.Types.Mixed, growthPct: { type: Number, default: 0 }, supplierDue: { type: Number, default: 0 } });
+  const Expense = define('ClothExpense', { tenantId: T, date: { type: String, required: true }, amount: { type: Number, required: true, min: 1 }, category: String, mode: String, note: { type: String, maxlength: 120 }, currency: { type: String, default: 'INR' } }, [[{ tenantId: 1, date: -1 }, {}]]);
+  const DayClose = define('ClothDayClose', { tenantId: T, date: { type: String, required: true }, opening: Number, cashIn: Number, cashOut: Number, expected: Number, counted: Number, difference: Number, status: String, currency: { type: String, default: 'INR' } }, [[{ tenantId: 1, date: 1 }, { unique: true }]]);
+  const SupplierBill = define('ClothSupplierBill', { tenantId: T, supplier: { type: String, required: true, maxlength: 120 }, amount: { type: Number, required: true, min: 1 }, paid: { type: Number, default: 0 }, dueOn: { type: String, required: true }, billNo: { type: String, maxlength: 40 }, currency: { type: String, default: 'INR' } }, [[{ tenantId: 1, dueOn: 1 }, {}]]);
+  const Staff = define('ClothStaff', { tenantId: T, name: { type: String, required: true, maxlength: 120 }, phone: String, salary: { type: Number, default: 0, min: 0 }, currency: { type: String, default: 'INR' }, isActive: { type: Boolean, default: true } });
+  const Attendance = define('ClothAttendance', { tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, date: { type: String, required: true }, status: { type: String, enum: ['present', 'half', 'absent', 'leave'], required: true } }, [[{ tenantId: 1, staffId: 1, date: 1 }, { unique: true }]]);
+  return { Tenant, User, Variant, StockMove, Alteration, CustomerInfo, Settings, Expense, DayClose, SupplierBill, Staff, Attendance };
+};

@@ -65,3 +65,34 @@ describe('bill guard with fabric', () => {
     expect(M.Variant.rows[0].qty).toBe(750);
   });
 });
+describe('staff routes: shift, leave, payslip', () => {
+  const mk2 = () => { const { r, router } = mkRouter(); const bills = [{ id: 'b1', date: '2026-11-10', status: 'paid', total: 2100, lines: [{ staffId: 'S1', taxable: 2000 }] }];
+    const M = { Settings: model(), Variant: model(), StockMove: model(), Alteration: model(), CustomerInfo: model(), PosCustomer: model(), Expense: model(), DayClose: model(), SupplierBill: model(), Staff: model(), Attendance: model(), BillDiscount: model(), Audit: model(), Tenant: model() };
+    createClothRouter({ express: { Router: () => router }, M, protect: 'P', authorize: () => 'A', tenantOf: (req) => req.user.tenantId, now: () => new Date('2026-11-12T06:00:00Z'), billsBetween: async (tid, f, t) => (tid === 'a' ? bills.filter((b) => b.date >= f && b.date <= t) : []) });
+    return { r, M }; };
+  const STAFF = { user: { id: 'u3', tenantId: 'a', role: 'subadmin' } };
+  test('shift: owner only, validated, this shop only; leave and payslip', async () => {
+    const { r, M } = mk2(); const s = await M.Staff.create({ tenantId: 'a', name: 'Ravi', salary: 15000, isActive: true }); const id = String(s._id);
+    M.Staff.rows[0]._id = id; const P = (b, x = A, q = {}) => ({ ...x, params: { id }, method: 'PUT', body: b, query: q });
+    expect((await call(r['PUT /staff/:id/shift'], P({ start: 600, end: 1260, days: [1, 2] }, STAFF))).c).toBe(403);
+    expect((await call(r['PUT /staff/:id/shift'], P({ start: 700, end: 600, days: [1] }))).c).toBe(400);
+    expect((await call(r['PUT /staff/:id/shift'], P({ start: 600, end: 1260, days: [1, 2] }))).b.data.shift.days).toEqual([1, 2]);
+    expect((await call(r['PUT /staff/:id/shift'], P({ start: 600, end: 1260, days: [1] }, B))).c).toBe(404);
+    await M.Attendance.create({ tenantId: 'a', staffId: id, date: '2026-11-02', status: 'absent' });
+    expect((await call(r['GET /staff/:id/leave'], P({}, A, { month: '2026-11' }))).b.data.allowance).toBe(12);
+    expect((await call(r['GET /staff/:id/leave'], P({}, A, { month: '2026-13' }))).c).toBe(400);
+    const sl = await call(r['GET /staff/:id/payslip'], P({}, A, { month: '2026-11' })); expect(sl.b.data.daysLost).toBe(1); expect(sl.b.data.salaryPay).toBe(14500);
+    expect((await call(r['GET /staff/:id/payslip'], P({}, STAFF, { month: '2026-11' }))).c).toBe(403);
+    expect((await call(r['GET /staff/:id/payslip'], P({}, B, { month: '2026-11' }))).c).toBe(404);
+    expect((await call(r['GET /staff/:id/payslip'], P({}, A, { month: '2026-11', format: 'html' }))).text.includes('Salary payable')).toBe(true);
+    expect(M.Audit.rows.some((a) => a.action === 'payslip.view')).toBe(true);
+  });
+  test('settings: commission rule and leave allowance are owner only and validated', async () => {
+    const { r } = mk2(); const put = (b, x = A) => call(r['PUT /settings'], { ...x, method: 'PUT', body: b });
+    expect((await put({ commissionRules: { default: { type: 'percent', value: 2 } } }, STAFF)).c).toBe(403);
+    expect((await put({ commissionRules: { default: { type: 'percent', value: 200 } } })).c).toBe(400);
+    expect((await put({ commissionRules: { default: { type: 'percent', value: 2 } }, leaveAllowance: 10 })).c).toBe(200);
+    expect((await put({ leaveAllowance: 99 })).c).toBe(400);
+    expect((await call(r['GET /settings'], A)).b.data.leaveAllowance).toBe(10);
+  });
+});

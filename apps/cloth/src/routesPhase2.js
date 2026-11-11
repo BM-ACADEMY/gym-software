@@ -1,7 +1,7 @@
 'use strict';
 // Cloth routes, Phase 2 (wave A). Written, not yet tested by a person. Every query filters by tenantId (the shop).
 // Added in steps: 1 barcode/scan/fabric, 2 staff pay, 3 sales breakdown + Tally-style CSV, 5 data rights + audit, 6 stock count, 7 returns.
-const BC = require('./barcode');
+const BC = require('./barcode'); const PR = require('./payrollRules');
 
 module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBetween, settingsOf }) => {
   const audit = (tid, req, action, text) => M.Audit.create({ tenantId: tid, action, text: String(text || '').slice(0, 200), by: req.user.id });
@@ -44,6 +44,37 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBet
     await M.StockMove.create({ tenantId: tid, variantId: v._id, type, qty: cm, date: todayIST(now()), reason: str(req.body.reason, 200), by: req.user.id });
     res.json({ success: true, data: { id: String(u._id), stock: BC.metresText(u.qty) } });
   }, { write: true }));
+
+  // ---- 2. shifts, leave, payslip ----
+  const monthArg = (req) => { const m = str(req.query.month, 7) || todayIST(now()).slice(0, 7); return /^\d{4}-(0[1-9]|1[0-2])$/.test(m) ? m : null; };
+  const staffOf = (tid, id) => M.Staff.findOne({ _id: id, tenantId: tid, isActive: true });
+  router.put('/staff/:id/shift', wrap(async (req, res, tid) => {
+    const g = ownerOnly(req, res); if (g) return g;
+    const v = PR.validShift(req.body); if (v.error) return fail(res, 400, v.error);
+    const u = await M.Staff.findOneAndUpdate({ _id: req.params.id, tenantId: tid, isActive: true }, { $set: { shift: v.value } }, { returnDocument: 'after' }); if (!u) return fail(res, 404, 'Staff member not found');
+    await audit(tid, req, 'staff.shift', String(u._id)); res.json({ success: true, data: { id: String(u._id), shift: u.shift } });
+  }, { write: true }));
+  router.get('/staff/:id/leave', wrap(async (req, res, tid) => {
+    const s = await staffOf(tid, req.params.id); if (!s) return fail(res, 404, 'Staff member not found');
+    const month = monthArg(req); if (!month) return fail(res, 400, 'Month must look like 2026-11.');
+    const marks = await M.Attendance.find({ tenantId: tid, staffId: s._id, date: { $gte: month.slice(0, 4) + '-01-01', $lte: month.slice(0, 4) + '-12-31' } }).lean();
+    res.json({ success: true, data: PR.leaveFor({ allowance: (await settingsOf(tid)).leaveAllowance, marksYear: marks, month }) });
+  }));
+  router.get('/staff/:id/payslip', wrap(async (req, res, tid) => {
+    const g = ownerOnly(req, res); if (g) return g;
+    const s = await staffOf(tid, req.params.id); if (!s) return fail(res, 404, 'Staff member not found');
+    const month = monthArg(req); if (!month) return fail(res, 400, 'Month must look like 2026-11.');
+    const st = await settingsOf(tid); const last = new Date(Date.UTC(+month.slice(0, 4), +month.slice(5), 0)).getUTCDate();
+    const marksYear = await M.Attendance.find({ tenantId: tid, staffId: s._id, date: { $gte: month.slice(0, 4) + '-01-01', $lte: month.slice(0, 4) + '-12-31' } }).lean();
+    const marks = marksYear.filter((m) => m.date.slice(0, 7) === month);
+    const bills = await billsBetween(tid, month + '-01', month + '-' + String(last).padStart(2, '0'));
+    const shop = (await M.Tenant.findOne({ _id: tid }).lean() || {}).shopName;
+    const p = PR.payslip({ shop, staff: { id: String(s._id), name: s.name, salary: s.salary }, month, marks, marksYear, daysInMonth: last, allowance: st.leaveAllowance, bills, rules: st.commissionRules });
+    if (p.error) return fail(res, 400, p.error);
+    await audit(tid, req, 'payslip.view', String(s._id) + ' ' + month);
+    if (req.query.format === 'html') { res.set('Content-Type', 'text/html; charset=utf-8'); res.set('Cache-Control', 'no-store'); return res.send(PR.payslipHtml(p)); }
+    res.json({ success: true, data: p });
+  }));
 
   return { audit, ownerOnly };
 };

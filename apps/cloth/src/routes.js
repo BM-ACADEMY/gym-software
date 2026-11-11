@@ -4,7 +4,7 @@
 // Bills, customers and loyalty are in packages/core-pos (mounted separately at /api/pos).
 const V = require('./variants'); const G = require('./gst'); const A = require('./alterations'); const SA = require('./stockAdvice');
 const DP = require('./discountPolicy'); const F = require('./followups'); const Lk = require('./leaks'); const SM = require('./summary'); const P = require('./plans');
-const stock = require('../../../packages/core-pos/src/stock');
+const stock = require('../../../packages/core-pos/src/stock'); const PR = require('./payrollRules');
 
 const todayIST = (now) => new Date(now.getTime() + 5.5 * 3600000).toISOString().slice(0, 10);
 const addDays = (s, n) => new Date(Date.parse(s + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);
@@ -27,7 +27,7 @@ function createClothRouter({ express, M, protect, authorize, tenantOf, planOf = 
       console.error('Cloth route failed:', err.message); return fail(res, 500, 'Server error');
     }
   };
-  const settingsOf = async (tid) => { const s = await M.Settings.findOne({ tenantId: tid }).lean(); return { gstBands: s && s.gstBands && G.validBands(s.gstBands.bands) ? s.gstBands : G.DEFAULT_BANDS, growthPct: (s && s.growthPct) || 0, discountRule: DP.normalize(s && s.discountRule), supplierDue: (s && s.supplierDue) || 0 }; };
+  const settingsOf = async (tid) => { const s = await M.Settings.findOne({ tenantId: tid }).lean(); return { gstBands: s && s.gstBands && G.validBands(s.gstBands.bands) ? s.gstBands : G.DEFAULT_BANDS, growthPct: (s && s.growthPct) || 0, discountRule: DP.normalize(s && s.discountRule), supplierDue: (s && s.supplierDue) || 0, commissionRules: (s && s.commissionRules) || null, leaveAllowance: s && Number.isInteger(s.leaveAllowance) ? s.leaveAllowance : 12 }; };
 
   // ---- settings (owner edits without a deploy) ----
   router.get('/settings', wrap(async (req, res, tid) => res.json({ success: true, data: await settingsOf(tid) })));
@@ -36,6 +36,8 @@ function createClothRouter({ express, M, protect, authorize, tenantOf, planOf = 
     if ('gstBands' in b) { if (!G.validBands(b.gstBands && b.gstBands.bands)) return fail(res, 400, 'GST bands are not valid. Use rates 0, 5, 12, 18 or 28 and end with "no upper limit".'); patch.gstBands = { bands: b.gstBands.bands, source: 'set by the shop owner', needsCaConfirmation: true }; }
     if ('discountRule' in b) { if (req.user.role !== 'admin') return fail(res, 403, 'Only the owner can change the discount rule.'); if (!b.discountRule || typeof b.discountRule !== 'object') return fail(res, 400, 'Discount rule is not valid.'); patch.discountRule = DP.normalize(b.discountRule); }
     if ('growthPct' in b) { if (!Number.isInteger(b.growthPct) || b.growthPct < -50 || b.growthPct > 200) return fail(res, 400, 'Growth must be a whole percent from -50 to 200.'); patch.growthPct = b.growthPct; }
+    if ('commissionRules' in b) { if (req.user.role !== 'admin') return fail(res, 403, 'Only the owner can change commission rules.'); const cr = b.commissionRules; const ok = cr === null || (cr && typeof cr === 'object' && !Array.isArray(cr) && (cr.default === undefined || PR.okRule(cr.default)) && (cr.byStaff === undefined || (cr.byStaff && typeof cr.byStaff === 'object' && Object.values(cr.byStaff).every(PR.okRule)))); if (!ok) return fail(res, 400, 'Commission rule: percent 0 to 100, or flat rupees.'); patch.commissionRules = cr === null ? null : { default: cr.default, byStaff: cr.byStaff }; }
+    if ('leaveAllowance' in b) { if (!Number.isInteger(b.leaveAllowance) || b.leaveAllowance < 0 || b.leaveAllowance > 60) return fail(res, 400, 'Paid leave a year: a whole number from 0 to 60.'); patch.leaveAllowance = b.leaveAllowance; }
     if ('supplierDue' in b) { if (!Number.isInteger(b.supplierDue) || b.supplierDue < 0) return fail(res, 400, 'Supplier dues must be whole rupees.'); patch.supplierDue = b.supplierDue; }
     if (!Object.keys(patch).length) return fail(res, 400, 'Nothing to change.');
     await M.Settings.updateOne({ tenantId: tid }, { $set: patch }, { upsert: true });

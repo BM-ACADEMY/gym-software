@@ -17,3 +17,6 @@ These are public business details (they appear on invoices and the company site)
 
 Used by: invoice PDF defaults (`server/utils/subscriptionInvoicePdf.js`), public pages (`client/src/config/company.js`), legal page text (`docs/legal/COMPANY_SITE_PAGES.md`). Environment values still override the defaults.
 Still waiting for the CA (M-04): invoice wording, SAC code (code default 998431 is unconfirmed) and the heading "TAX INVOICE".
+
+## Grievance officer
+Mohamed Kamarudeen B, founder (owner confirmed 12 Nov 2026). Email privacy@afraventures.in. Reply and resolve periods still need lawyer confirmation.

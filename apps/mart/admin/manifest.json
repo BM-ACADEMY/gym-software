@@ -39,10 +39,34 @@
       "resource": "suppliers"
     },
     {
+      "key": "purchases",
+      "label": "Supplier bills",
+      "screen": "resource",
+      "resource": "purchases"
+    },
+    {
+      "key": "supplierpay",
+      "label": "Pay a supplier",
+      "screen": "resource",
+      "resource": "supplierpay"
+    },
+    {
+      "key": "dayclose",
+      "label": "Close the day",
+      "screen": "resource",
+      "resource": "dayclose"
+    },
+    {
       "key": "profit",
       "label": "Profit",
       "screen": "stats",
       "stats": "profit"
+    },
+    {
+      "key": "gst",
+      "label": "GST summary",
+      "screen": "stats",
+      "stats": "gst"
     },
     {
       "key": "estimates",
@@ -55,6 +79,21 @@
       "label": "Marketing ideas",
       "screen": "stats",
       "stats": "marketing"
+    },
+    {
+      "key": "festivals",
+      "label": "Festival dates",
+      "screen": "resource",
+      "resource": "festivals"
+    },
+    {
+      "key": "audit",
+      "label": "Audit trail",
+      "screen": "resource",
+      "resource": "audit",
+      "roles": [
+        "admin"
+      ]
     },
     {
       "key": "limits",
@@ -390,6 +429,61 @@
           ]
         }
       ]
+    },
+    "gst": {
+      "label": "GST summary (last 30 days)",
+      "endpoint": "/reports/gst-summary",
+      "cards": [
+        {
+          "label": "Taxable sales",
+          "path": "taxable",
+          "type": "money"
+        },
+        {
+          "label": "GST collected",
+          "path": "gst",
+          "type": "money"
+        },
+        {
+          "label": "Bills",
+          "path": "bills",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "By GST rate (for your CA; we do not file GST)",
+          "rows": "rows",
+          "empty": "No bills in this period.",
+          "columns": [
+            {
+              "key": "rate",
+              "label": "Rate %",
+              "type": "number"
+            },
+            {
+              "key": "taxable",
+              "label": "Taxable",
+              "type": "money"
+            },
+            {
+              "key": "cgst",
+              "label": "CGST",
+              "type": "money"
+            },
+            {
+              "key": "sgst",
+              "label": "SGST",
+              "type": "money"
+            },
+            {
+              "key": "igst",
+              "label": "IGST",
+              "type": "money"
+            }
+          ]
+        }
+      ]
     }
   },
   "resources": {
@@ -483,6 +577,235 @@
           "type": "phone"
         }
       ]
+    },
+    "purchases": {
+      "label": "Supplier bills",
+      "endpoint": "/purchases",
+      "empty": "No supplier bills yet.",
+      "intro": "Type the supplier name exactly as in your supplier list.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "supplier",
+          "label": "Supplier"
+        },
+        {
+          "key": "amount",
+          "label": "Bill",
+          "type": "money"
+        },
+        {
+          "key": "paid",
+          "label": "Paid",
+          "type": "money"
+        },
+        {
+          "key": "owed",
+          "label": "Still owed",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "supplier",
+          "label": "Supplier name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "amount",
+          "label": "Bill amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "paid",
+          "label": "Paid now (rupees)",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "max": 200
+        }
+      ]
+    },
+    "supplierpay": {
+      "label": "Pay a supplier",
+      "endpoint": "/supplier-payments",
+      "empty": "You owe no supplier anything.",
+      "columns": [
+        {
+          "key": "supplier",
+          "label": "Supplier"
+        },
+        {
+          "key": "day",
+          "label": "Bill day",
+          "type": "date"
+        },
+        {
+          "key": "owed",
+          "label": "Still owed",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "supplier",
+          "label": "Supplier name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "amount",
+          "label": "Amount paid now (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "method",
+          "label": "How",
+          "type": "select",
+          "options": [
+            "cash",
+            "upi",
+            "card"
+          ]
+        }
+      ]
+    },
+    "dayclose": {
+      "label": "Close the day",
+      "endpoint": "/day-closes",
+      "empty": "No day closed yet.",
+      "intro": "Count the cash in the drawer and type it. We show what the books say should be there.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "openingCash",
+          "label": "Opening cash",
+          "type": "money"
+        },
+        {
+          "key": "expected",
+          "label": "Books say",
+          "type": "money"
+        },
+        {
+          "key": "counted",
+          "label": "You counted",
+          "type": "money"
+        },
+        {
+          "key": "diff",
+          "label": "Difference",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "openingCash",
+          "label": "Opening cash (rupees)",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "counted",
+          "label": "Cash counted (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    "festivals": {
+      "label": "Festival dates",
+      "endpoint": "/festivals",
+      "empty": "No festival added. Type your own dates; we never guess them.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Festival"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Festival name",
+          "type": "text",
+          "required": true,
+          "max": 60
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "DELETE",
+          "path": "/festivals/:id"
+        }
+      ]
+    },
+    "audit": {
+      "label": "Audit trail",
+      "endpoint": "/audit",
+      "readOnly": true,
+      "empty": "Nothing recorded yet.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "pill"
+        },
+        {
+          "key": "action",
+          "label": "What"
+        },
+        {
+          "key": "ref",
+          "label": "Reference"
+        }
+      ]
     }
   },
   "settings": {
@@ -557,6 +880,11 @@
             "key": "discountRule.staff",
             "equals": "limit"
           }
+        },
+        {
+          "key": "clearCreditLimit",
+          "label": "Remove the udhaar limit (leave the number above empty)",
+          "type": "bool"
         }
       ]
     }

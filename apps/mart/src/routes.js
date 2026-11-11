@@ -8,7 +8,7 @@ const makePos = require('../../../packages/core-pos/src/models');
 const { makeDiscountHook } = require('../../../packages/core-pos/src/discountHook');
 const R = require('./reorder'); const Sh = require('./shelf'); const U = require('./udhaar'); const L = require('./leaks'); const S = require('./summary');
 const DP = require('./discountPolicy'); const bill = require('../../../packages/core-pos/src/bill');
-const A = require('./accounts'); const I = require('./insights');
+const A = require('./accounts'); const I = require('./insights'); const { gstSummary } = require('./gstSummary');
 const shape = require('./shape'); const { istDay, addDays, valid } = require('./dates');
 
 const toOid = (v) => (typeof v === 'string' && /^[a-f0-9]{24}$/i.test(v) ? v : null);
@@ -48,8 +48,9 @@ function discountHooks({ mongoose, now = () => new Date() }) {
   });
 }
 
-function createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles = ['admin', 'subadmin'], now = () => new Date() }) {
-  const router = express.Router(); const M = makeModels(mongoose); const P = makePos(mongoose);
+function createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles = ['admin', 'subadmin'], now = () => new Date(), models, pos }) {
+  // models/pos: injected stand-ins for plain-node tests; the real app passes only mongoose.
+  const router = express.Router(); const M = models || makeModels(mongoose); const P = pos || makePos(mongoose);
   router.use(protect, authorize(...roles));
   if (guardWrite) router.use((req, res, next) => { const g = guardWrite(req); return g.ok ? next() : res.status(g.httpStatus || 402).json({ success: false, message: g.message, code: 'read_only' }); });
   const fail = (res, code, message) => res.status(code).json({ success: false, message });
@@ -65,6 +66,8 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     return { entries: shape.ledger({ bills, payments, customers }), customers };
   };
   const today = () => istDay(now());
+  // Audit trail: never blocks the real action, never stores customer details (action name and a short reference only).
+  const audit = async (tid, req, action, ref) => { try { await M.Audit.create({ tenantId: tid, by: String(req.user && req.user.id), role: req.user && req.user.role, action, ref: String(ref == null ? '' : ref).slice(0, 80) }); } catch (e) { console.error('audit write failed:', e.message); } };
 
   // ---- settings the owner can change any time ----
   router.get('/settings', wrap(async (req, res, tid) => res.json({ success: true, data: await settingsOf(tid) })));
@@ -74,7 +77,8 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     if ('deadStockDays' in b) { const v = clampInt(b.deadStockDays, 7, 365, null); if (v === null) return fail(res, 400, 'Dead stock days must be 7 to 365.'); set.deadStockDays = v; }
     if ('discountAlertPct' in b) { const v = clampInt(b.discountAlertPct, 5, 100, null); if (v === null) return fail(res, 400, 'Discount alert must be 5 to 100 percent.'); set.discountAlertPct = v; }
     if ('festivalUplift' in b) { const v = Number(b.festivalUplift); if (!(v >= 1 && v <= 5)) return fail(res, 400, 'Festival uplift must be 1 to 5.'); set.festivalUplift = v; }
-    if ('defaultCreditLimit' in b) { if (b.defaultCreditLimit === null || b.defaultCreditLimit === '') set.defaultCreditLimit = null; else { const v = clampInt(b.defaultCreditLimit, 0, 10000000, null); if (v === null) return fail(res, 400, 'Credit limit must be whole rupees.'); set.defaultCreditLimit = v; } }
+    if (b.clearCreditLimit === true) { if (b.defaultCreditLimit !== undefined && b.defaultCreditLimit !== null && b.defaultCreditLimit !== '') return fail(res, 400, 'Either type a limit or tick "remove the limit", not both.'); set.defaultCreditLimit = null; }
+    else if ('defaultCreditLimit' in b) { if (b.defaultCreditLimit === null || b.defaultCreditLimit === '') set.defaultCreditLimit = null; else { const v = clampInt(b.defaultCreditLimit, 0, 10000000, null); if (v === null) return fail(res, 400, 'Credit limit must be whole rupees.'); set.defaultCreditLimit = v; } }
     if ('discountRule' in b) {
       if (!req.user || req.user.role !== 'admin') return fail(res, 403, 'Only the owner can change the discount rule.');
       const r = b.discountRule || {}; if (!['any', 'limit', 'owner_only'].includes(r.staff)) return fail(res, 400, 'Choose who may give a discount: anyone, up to a limit, or owner only.');
@@ -84,6 +88,7 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     if ('festivals' in b) { if (!Array.isArray(b.festivals) || b.festivals.length > 30) return fail(res, 400, 'Add up to 30 festival dates.'); const f = b.festivals.map((x) => ({ name: typeof (x || {}).name === 'string' ? x.name.trim().slice(0, 60) : '', date: x && x.date })); if (f.some((x) => x.name.length < 2 || !valid(x.date))) return fail(res, 400, 'Each festival needs a name and a date.'); set.festivals = f; }
     if (!Object.keys(set).length) return fail(res, 400, 'Nothing to change.');
     await M.Settings.updateOne({ tenantId: tid }, { $set: set }, { upsert: true });
+    await audit(tid, req, 'settings_change', Object.keys(set).join(','));
     res.json({ success: true, data: await settingsOf(tid) });
   }));
 
@@ -107,6 +112,7 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     if (!upd) return fail(res, 409, 'The balance changed. Check it and try again.');
     const method = ['cash', 'upi', 'card'].includes(b.method) ? b.method : 'cash';
     const doc = await M.Payment.create({ tenantId: tid, customerId: cid, amount, method, day: today(), note: typeof b.note === 'string' ? b.note.trim().slice(0, 200) : undefined, by: req.user.id });
+    await audit(tid, req, 'udhaar_payment', doc._id);
     res.status(201).json({ success: true, data: { payment: doc, balance: upd.creditDue } });
   }));
 
@@ -168,6 +174,7 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     if (!A.EXPENSE_CATEGORIES.includes(b.category)) return fail(res, 400, 'Choose a category.');
     if (!Number.isInteger(amount) || amount <= 0) return fail(res, 400, 'Enter the amount in whole rupees.');
     const d = await M.Expense.create({ tenantId: tid, day: dayParam(b.day, today()), category: b.category, amount, method: ['cash', 'upi', 'card'].includes(b.method) ? b.method : 'cash', note: typeof b.note === 'string' ? b.note.trim().slice(0, 200) : undefined, by: req.user.id });
+    await audit(tid, req, 'expense_add', d._id);
     res.status(201).json({ success: true, data: d });
   }));
   router.get('/suppliers', wrap(async (req, res, tid) => {
@@ -179,23 +186,42 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     const name = typeof (req.body || {}).name === 'string' ? req.body.name.trim().slice(0, 120) : ''; if (name.length < 2) return fail(res, 400, 'Enter the supplier name.');
     res.status(201).json({ success: true, data: await M.Supplier.create({ tenantId: tid, name, phone: typeof req.body.phone === 'string' ? req.body.phone.replace(/[^\d+]/g, '').slice(0, 15) : undefined }) });
   }));
-  router.post('/suppliers/:id/purchases', wrap(async (req, res, tid) => {
+  const purH = wrap(async (req, res, tid) => {
     const sid = toOid(req.params.id); const b = req.body || {}; const amount = Number(b.amount); const paid = Number(b.paid || 0);
     if (!sid || !(await M.Supplier.findOne({ _id: sid, tenantId: tid }))) return fail(res, 404, 'Supplier not found');
     if (!Number.isInteger(amount) || amount <= 0) return fail(res, 400, 'Enter the bill amount in whole rupees.');
     if (!Number.isInteger(paid) || paid < 0 || paid > amount) return fail(res, 400, 'Paid now must be from 0 to the bill amount.');
     const cash = b.method === 'cash' || b.method === undefined ? paid : 0;
     res.status(201).json({ success: true, data: await M.Purchase.create({ tenantId: tid, supplierId: sid, day: dayParam(b.day, today()), amount, paid, paidCash: cash, note: typeof b.note === 'string' ? b.note.trim().slice(0, 200) : undefined, by: req.user.id }) });
-  }));
-  router.post('/suppliers/:id/pay', wrap(async (req, res, tid) => {
+  });
+  router.post('/suppliers/:id/purchases', purH);
+  const payH = wrap(async (req, res, tid) => {
     const sid = toOid(req.params.id); const amount = Number((req.body || {}).amount);
     if (!sid || !(await M.Supplier.findOne({ _id: sid, tenantId: tid }))) return fail(res, 404, 'Supplier not found');
     const open = await M.Purchase.find({ tenantId: tid, supplierId: sid, $expr: { $gt: ['$amount', '$paid'] } }).lean();
     let plan; try { plan = A.allocatePayment(open.map((p) => ({ id: String(p._id), day: p.day, amount: p.amount, paid: p.paid })), amount); } catch (e) { if (e.code === 'ACCOUNTS_INVALID') return fail(res, 400, e.message); throw e; }
     const cashPay = (req.body || {}).method === 'upi' || (req.body || {}).method === 'card' ? false : true; let left = amount;
     for (const u of plan) { const prev = open.find((p) => String(p._id) === u.id); const add = u.paid - prev.paid; left -= add; await M.Purchase.updateOne({ _id: u.id, tenantId: tid, paid: prev.paid }, { $set: { paid: u.paid }, ...(cashPay ? { $inc: { paidCash: add } } : {}) }); }
+    await audit(tid, req, 'supplier_payment', sid);
     res.json({ success: true, data: { paid: amount - left } });
+  });
+  router.post('/suppliers/:id/pay', payH);
+  // Panel-friendly versions: the owner picks the supplier by name (the form has no id picker). Same rules as the id routes.
+  const bySupplierName = (h) => wrap(async (req, res, tid) => {
+    const name = typeof (req.body || {}).supplier === 'string' ? req.body.supplier.trim() : '';
+    const sup = name ? await M.Supplier.findOne({ tenantId: tid, name }) : null; if (!sup) return fail(res, 404, 'Supplier not found. Type the name exactly as in your supplier list.');
+    req.params = { ...req.params, id: String(sup._id) }; return h(req, res);
+  });
+  router.get('/purchases', wrap(async (req, res, tid) => {
+    const [sup, pur] = await Promise.all([M.Supplier.find({ tenantId: tid }).limit(500).lean(), M.Purchase.find({ tenantId: tid }).sort({ day: -1 }).limit(200).lean()]);
+    const nm = Object.fromEntries(sup.map((x) => [String(x._id), x.name])); res.json({ success: true, data: pur.map((p) => ({ id: String(p._id), supplier: nm[String(p.supplierId)] || '', day: p.day, amount: p.amount, paid: p.paid, owed: Math.max(0, p.amount - p.paid), note: p.note })) });
   }));
+  router.get('/supplier-payments', wrap(async (req, res, tid) => {
+    const [sup, pur] = await Promise.all([M.Supplier.find({ tenantId: tid }).limit(500).lean(), M.Purchase.find({ tenantId: tid, $expr: { $gt: ['$amount', '$paid'] } }).sort({ day: 1 }).limit(200).lean()]);
+    const nm = Object.fromEntries(sup.map((x) => [String(x._id), x.name])); res.json({ success: true, data: pur.map((p) => ({ id: String(p._id), supplier: nm[String(p.supplierId)] || '', day: p.day, owed: p.amount - p.paid })) });
+  }));
+  router.post('/purchases', bySupplierName(purH));
+  router.post('/supplier-payments', bySupplierName(payH));
   // Day close: counted cash against what the books say should be there. Saves one row per day.
   const cashFor = async (tid, day, opening) => {
     const from = new Date(Date.parse(day + 'T00:00:00Z') - 5.5 * 3600000); const to = new Date(from.getTime() + 86400000);
@@ -212,6 +238,7 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     if (!Number.isInteger(counted) || counted < 0) return fail(res, 400, 'Enter the counted cash in whole rupees.');
     const { expected } = await cashFor(tid, day, opening); const r = A.dayClose({ expected, counted });
     await M.DayClose.updateOne({ tenantId: tid, day }, { $set: { openingCash: opening, expected, counted, diff: r.diff, by: req.user.id } }, { upsert: true });
+    await audit(tid, req, 'day_close', day);
     res.json({ success: true, data: { day, ...r } });
   }));
   const periodBills = async (tid, from, to) => P.PosBill.find({ tenantId: tid, createdAt: { $gte: new Date(Date.parse(from + 'T00:00:00Z') - 5.5 * 3600000), $lt: new Date(Date.parse(to + 'T00:00:00Z') + 86400000 - 5.5 * 3600000) } }).limit(20000).lean();
@@ -227,6 +254,41 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     const [bills, exps] = await Promise.all([periodBills(tid, from, to), M.Expense.find({ tenantId: tid, day: { $gte: from, $lte: to } }).lean()]);
     res.set('Content-Type', 'text/csv; charset=utf-8'); res.set('Content-Disposition', `attachment; filename="mart-${from}-to-${to}.csv"`); res.set('Cache-Control', 'no-store');
     res.send(A.caCsv({ bills, expenses: exps, dayOf: (b) => istDay(b.createdAt) }));
+  }));
+
+  // Day-close history for the panel (same rows the day close writes). The save reuses the day-close handler's rules.
+  router.get('/day-closes', wrap(async (req, res, tid) => res.json({ success: true, data: (await M.DayClose.find({ tenantId: tid }).sort({ day: -1 }).limit(60).lean()).map((d) => ({ ...d, id: String(d._id) })) })));
+  router.post('/day-closes', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const day = dayParam(b.day, today()); const counted = Number(b.counted); const opening = Number.isInteger(Number(b.openingCash)) ? Math.max(0, Number(b.openingCash)) : 0;
+    if (!Number.isInteger(counted) || counted < 0) return fail(res, 400, 'Enter the counted cash in whole rupees.');
+    const { expected } = await cashFor(tid, day, opening); const r = A.dayClose({ expected, counted });
+    await M.DayClose.updateOne({ tenantId: tid, day }, { $set: { openingCash: opening, expected, counted, diff: r.diff, by: req.user.id } }, { upsert: true });
+    await audit(tid, req, 'day_close', day);
+    res.status(201).json({ success: true, data: { day, ...r } });
+  }));
+  router.get('/reports/gst-summary', wrap(async (req, res, tid) => {
+    const to = dayParam(req.query.to, today()); const from = dayParam(req.query.from, addDays(to, -30));
+    const bills = await periodBills(tid, from, to);
+    res.json({ success: true, data: { from, to, ...gstSummary(bills) } });
+  }));
+
+  router.get('/audit', wrap(async (req, res, tid) => {
+    if (!req.user || req.user.role !== 'admin') return fail(res, 403, 'Only the owner can see the audit trail.');
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: (await M.Audit.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(200).lean()).map((a) => ({ id: String(a._id), at: a.createdAt, by: a.by, role: a.role, action: a.action, ref: a.ref })) });
+  }));
+
+  // ---- festival dates the owner types (we never guess dates) ----
+  router.get('/festivals', wrap(async (req, res, tid) => { const st = await M.Settings.findOne({ tenantId: tid }).lean(); res.json({ success: true, data: ((st && st.festivals) || []).map((f) => ({ id: String(f._id), name: f.name, date: f.date })) }); }));
+  router.post('/festivals', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const name = typeof b.name === 'string' ? b.name.trim().slice(0, 60) : '';
+    if (name.length < 2 || !valid(b.date)) return fail(res, 400, 'Each festival needs a name and a date.');
+    const st = await M.Settings.findOne({ tenantId: tid }).lean(); if (((st && st.festivals) || []).length >= 30) return fail(res, 400, 'Add up to 30 festival dates.');
+    await M.Settings.updateOne({ tenantId: tid }, { $push: { festivals: { name, date: b.date } } }, { upsert: true }); await audit(tid, req, 'festival_add', name);
+    res.status(201).json({ success: true });
+  }));
+  router.delete('/festivals/:fid', wrap(async (req, res, tid) => {
+    const fid = toOid(req.params.fid); if (!fid) return fail(res, 404, 'Not found');
+    await M.Settings.updateOne({ tenantId: tid }, { $pull: { festivals: { _id: fid } } }); await audit(tid, req, 'festival_remove', fid); res.json({ success: true });
   }));
 
   // ---- sales reports and predictions (estimates, labelled) ----

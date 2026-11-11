@@ -34,7 +34,7 @@ function createDineRouter({ express, mongoose, models, protect, tenantOf, planOf
       console.error('Dine route failed:', err.message); return fail(res, 500, 'Server error');
     }
   });
-  const settingsOf = async (tid) => { const t = await M.Tenant.findById(tid); const s = (t && t.settings) || {}; return { gstProfile: s.gstProfile || 'none', serviceChargePct: s.serviceChargePct || 0, pubMode: !!s.pubMode, festivals: s.festivals || [], happyRules: s.happyRules || [], discountRule: D.discountPolicy.normalize(s.discountRule), reviewLink: s.reviewLink || '', venueName: (t && t.venueName) || 'us' }; };
+  const settingsOf = async (tid) => { const t = await M.Tenant.findById(tid); const s = (t && t.settings) || {}; return { gstProfile: s.gstProfile || 'none', serviceChargePct: s.serviceChargePct || 0, pubMode: !!s.pubMode, festivals: s.festivals || [], happyRules: s.happyRules || [], discountRule: D.discountPolicy.normalize(s.discountRule), reviewLink: s.reviewLink || '', creditLimit: s.venue && Number.isInteger(s.venue.creditLimit) ? s.venue.creditLimit : D.credit.DEFAULT_LIMIT, loyalty: s.loyalty || {}, venueName: (t && t.venueName) || 'us' }; };
   const log = (tid, req, action, ref) => M.Activity.create({ tenantId: tid, by: req.user.id, action, ref: ref ? String(ref).slice(0, 60) : undefined });
   const loadOrder = async (tid, id) => { if (!OID.test(String(id))) return null; return plain(await M.Order.findOne({ _id: id, tenantId: tid })); };
   // Optimistic save: only succeeds if nobody else changed the order since we read it (events grows by one on every change).
@@ -177,20 +177,41 @@ function createDineRouter({ express, mongoose, models, protect, tenantOf, planOf
   def('post', '/orders/:id/pay', 'bill', async (req, res, tid) => {
     const o = await loadOrder(tid, req.params.id); if (!o) return fail(res, 404, 'Order not found');
     if (o.status !== 'billed') return fail(res, 400, 'Bill the order before taking payment.');
-    const payments = (Array.isArray(req.body && req.body.payments) ? req.body.payments : []).map((p) => ({ method: str(p.method, 12), amount: Number(p.amount) }));
-    if (payments.some((p) => p.method === 'credit')) return fail(res, 400, 'Pay-later is not available in Dine yet.');
-    const s = bill.settle(o.grandTotal, payments); if (s.status !== 'paid') return fail(res, 400, 'Payment is short by Rs ' + s.due + '.');
+    const body = req.body || {};
+    const payments = (Array.isArray(body.payments) ? body.payments : []).map((p) => ({ method: str(p.method, 12), amount: Number(p.amount) }));
+    const phone = str(body.customerPhone, 15); const cname = str(body.customerName);
+    const hasPhone = /^\d{10}$/.test(phone); const settings = await settingsOf(tid);
+    // Pay-later: needs the customer's name and phone, and stays under the owner's credit limit.
+    const creditAmt = payments.filter((p) => p.method === 'credit').reduce((a, p) => a + p.amount, 0);
+    if (creditAmt > 0) {
+      if (!D.can(req.user.staffRole, 'credit')) return fail(res, 403, 'Not allowed for your role.');
+      const existing = (await M.Credit.find({ tenantId: tid, phone, settled: false }).limit(500)).map(plain);
+      D.credit.checkNewCredit({ amount: creditAmt, phone, name: cname, existing, limit: settings.creditLimit });
+    }
+    // Loyalty: points the customer asks to use are paid in as rupees (a 'loyalty' payment); points are earned on what is actually paid.
+    let redeemed = { points: 0, rupees: 0 };
+    if (Number(body.redeemPoints) > 0) {
+      if (!hasPhone) return fail(res, 400, 'Points need the customer\'s mobile number.');
+      const bal = D.loyalty.balanceOf((await M.Loyalty.find({ tenantId: tid, phone }).limit(2000)).map(plain));
+      redeemed = D.loyalty.redeem({ requestedPoints: Number(body.redeemPoints), balance: bal, billTotal: o.grandTotal }, settings.loyalty);
+      if (redeemed.rupees > 0) payments.push({ method: 'loyalty', amount: redeemed.rupees });
+    }
+    const s = bill.settle(o.grandTotal, payments);
+    if (s.status !== 'paid' && s.status !== 'credit') return fail(res, 400, 'Payment is short by Rs ' + s.due + '.');
     const t = now(); const events = [...o.events, { at: t.toISOString(), by: req.user.id, what: 'paid' }];
-    const r = await M.Order.findOneAndUpdate({ _id: o.id, tenantId: tid, status: 'billed' }, { $set: { status: 'paid', payments, settle: { received: s.received, change: s.change }, paidAt: t, events } }, { new: true });
+    const earned = hasPhone ? D.loyalty.earn(Math.max(0, s.received - s.change - redeemed.rupees), settings.loyalty) : 0;
+    const r = await M.Order.findOneAndUpdate({ _id: o.id, tenantId: tid, status: 'billed' }, { $set: { status: 'paid', payments, settle: { received: s.received, change: s.change }, credit: s.credit, customerPhone: hasPhone ? phone : undefined, pointsEarned: earned, pointsUsed: redeemed.points, paidAt: t, events } }, { new: true });
     if (!r) return fail(res, 409, 'This order was already paid.');
+    if (s.credit > 0) { await M.Credit.create({ tenantId: tid, orderId: o.id, orderNumber: o.number, phone, name: cname, amount: s.credit, date: D.istParts(t).date }); await log(tid, req, 'order.credit', o.number + ' Rs ' + s.credit); }
+    if (earned > 0) await M.Loyalty.create({ tenantId: tid, phone, points: earned, reason: 'earned', orderNumber: o.number, date: D.istParts(t).date });
+    if (redeemed.points > 0) await M.Loyalty.create({ tenantId: tid, phone, points: -redeemed.points, reason: 'used', orderNumber: o.number, date: D.istParts(t).date });
     // Stock: take the recipes' ingredients off. Dishes without a recipe are left alone.
     const sold = D.live(o).filter((l) => l.itemKey).map((l) => ({ dishKey: l.itemKey, qty: l.qty }));
     const recipes = Object.fromEntries((await M.Recipe.find({ tenantId: tid, dishKey: { $in: [...new Set(sold.map((x) => x.dishKey))] } })).map((x) => [x.dishKey, { portion: x.portion, parts: x.parts }]));
     const used = D.deductions(sold, recipes).used;
     for (const id of Object.keys(used)) if (OID.test(id)) await M.Ingredient.updateOne({ _id: id, tenantId: tid }, { $inc: { qty: -used[id] } });
-    const phone = str(req.body && req.body.customerPhone, 15);
-    if (/^\d{10}$/.test(phone)) await M.Customer.findOneAndUpdate({ tenantId: tid, phone }, { $set: { name: str(req.body.customerName) || 'Guest' }, $addToSet: { visits: D.istParts(t).date } }, { upsert: true });
-    res.json({ success: true, data: plain(r), change: s.change });
+    if (hasPhone) await M.Customer.findOneAndUpdate({ tenantId: tid, phone }, { $set: { name: cname || 'Guest' }, $addToSet: { visits: D.istParts(t).date } }, { upsert: true });
+    res.json({ success: true, data: plain(r), change: s.change, credit: s.credit, pointsEarned: earned });
   });
 
   // ---- recipes, ingredients, wastage ----

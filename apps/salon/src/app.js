@@ -5,6 +5,7 @@ const { makeBilling } = require('../../../packages/core-billing/src');
 const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createSalonRouter, createPublicRouter } = require('./routes');
+const { createSalonMoreRouter } = require('./routesMore');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 
 function missingSettings(env) {
@@ -30,6 +31,7 @@ function createApp({ express, mongoose, env = process.env }) {
   const protect = sessionMiddleware(secret, M);
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));
   app.use('/api/salon', createSalonRouter({ express, mongoose, protect, authorize, tenantOf: (req) => req.user.tenantId, guardWrite: (req) => billing.guardWrite(req.subscription, req.method) }));
+  app.use('/api/salon', createSalonMoreRouter({ express, mongoose, protect, authorize, tenantOf: (req) => req.user.tenantId, guardWrite: (req) => billing.guardWrite(req.subscription, req.method), env }));
   return app;
 }
 module.exports = { createApp, missingSettings };

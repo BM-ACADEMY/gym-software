@@ -256,7 +256,9 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
   // ---- accounts: expenses, dues, day close, P&L, GST, CA export (owner only; we do not file GST) ----
   const audit = (tid, req, action, ref) => M.Audit.create({ tenantId: tid, by: req.user.id, action, ref }).catch(() => {});
   const range = (req) => { const from = str(req.query.from, 10); const to = str(req.query.to, 10); if (!B.validDate(from) || !B.validDate(to) || from > to || B.daysBetween(from, to) > 366) throw field('Pick from and to dates (up to one year).'); return { from, to }; };
-  router.get('/expenses', adminOnly, wrap(async (req, res, tid) => { const { from, to } = range(req); res.json({ success: true, data: (await M.Expense.find({ tenantId: tid, date: { $gte: from, $lte: to } }).sort({ date: -1 }).limit(500)).map(plain) }); }));
+  // The panel's list screen sends no dates: default to the last 60 days (D-28: nothing to type to see the list).
+  const rangeOr = (req, days) => (req.query.from || req.query.to ? range(req) : { from: B.addDays(today(), -days), to: today() });
+  router.get('/expenses', adminOnly, wrap(async (req, res, tid) => { const { from, to } = rangeOr(req, 60); res.json({ success: true, data: (await M.Expense.find({ tenantId: tid, date: { $gte: from, $lte: to } }).sort({ date: -1 }).limit(500)).map(plain) }); }));
   router.post('/expenses', adminOnly, wrap(async (req, res, tid) => {
     const b = req.body || {}; const amount = Math.round(Number(b.amount)); if (!Number.isInteger(amount) || amount < 1 || amount > 10000000) throw field('Enter the amount in whole rupees.');
     const date = B.validDate(b.date) ? b.date : today(); const paid = b.paid !== false;
@@ -385,4 +387,4 @@ function makeLimiter({ max = 40, windowMs = 10 * 60000, now = () => Date.now() }
   const hits = new Map();
   return { allow(key) { const t = now(); const arr = (hits.get(key) || []).filter((x) => t - x < windowMs); if (arr.length >= max) { hits.set(key, arr); return false; } arr.push(t); hits.set(key, arr); if (hits.size > 5000) hits.clear(); return true; } };
 }
-module.exports = { createSalonRouter, createPublicRouter, makeLimiter, makeBooker };
+module.exports = { createSalonRouter, createPublicRouter, makeLimiter, makeBooker, makeFail, makeWrap, field, str, plain, isId };

@@ -64,6 +64,42 @@
       "roles": [
         "admin"
       ]
+    },
+    {
+      "key": "accounts",
+      "label": "Accounts (this month)",
+      "screen": "stats",
+      "stats": "accounts",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "expenses",
+      "label": "Expenses",
+      "screen": "resource",
+      "resource": "expenses",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "staffdisc",
+      "label": "Staff discounts",
+      "screen": "resource",
+      "resource": "staffDiscounts",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "audit",
+      "label": "Activity log",
+      "screen": "resource",
+      "resource": "audit",
+      "roles": [
+        "admin"
+      ]
     }
   ],
   "stats": {
@@ -133,6 +169,119 @@
               "key": "kind",
               "label": "Type",
               "type": "pill"
+            }
+          ]
+        }
+      ]
+    },
+    "accounts": {
+      "label": "Accounts this month",
+      "endpoint": "/accounts/month",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales (before GST)",
+          "path": "income",
+          "type": "money"
+        },
+        {
+          "label": "Staff commission",
+          "path": "commission",
+          "type": "money"
+        },
+        {
+          "label": "Expenses",
+          "path": "expenseTotal",
+          "type": "money"
+        },
+        {
+          "label": "Profit",
+          "path": "profit",
+          "type": "money"
+        },
+        {
+          "label": "Discounts given",
+          "path": "discountsGiven",
+          "type": "money"
+        },
+        {
+          "label": "GST collected",
+          "path": "gst.gst",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "In plain words",
+          "rows": "textRows",
+          "empty": "",
+          "columns": [
+            {
+              "key": "text",
+              "label": ""
+            }
+          ]
+        },
+        {
+          "label": "Expenses by type",
+          "rows": "categories",
+          "empty": "No expenses this month.",
+          "columns": [
+            {
+              "key": "category",
+              "label": "Type"
+            },
+            {
+              "key": "amount",
+              "label": "Amount",
+              "type": "money"
+            }
+          ]
+        },
+        {
+          "label": "GST by rate (for your CA; we do not file GST)",
+          "rows": "gstRates",
+          "empty": "No GST this month.",
+          "columns": [
+            {
+              "key": "rate",
+              "label": "Rate %",
+              "type": "number"
+            },
+            {
+              "key": "taxable",
+              "label": "Sales",
+              "type": "money"
+            },
+            {
+              "key": "gst",
+              "label": "GST",
+              "type": "money"
+            }
+          ]
+        },
+        {
+          "label": "Bills you still have to pay",
+          "rows": "supplierDues",
+          "empty": "Nothing due.",
+          "columns": [
+            {
+              "key": "paidTo",
+              "label": "To"
+            },
+            {
+              "key": "category",
+              "label": "Type"
+            },
+            {
+              "key": "amount",
+              "label": "Amount",
+              "type": "money"
+            },
+            {
+              "key": "dueDate",
+              "label": "Due",
+              "type": "date"
             }
           ]
         }
@@ -346,6 +495,153 @@
           "key": "status",
           "label": "Payment",
           "type": "pill"
+        }
+      ]
+    },
+    "expenses": {
+      "label": "Expenses (last 60 days)",
+      "endpoint": "/expenses",
+      "empty": "No expenses yet.",
+      "columns": [
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "key": "category",
+          "label": "Type",
+          "type": "pill"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "paidTo",
+          "label": "Paid to"
+        },
+        {
+          "key": "paid",
+          "label": "Paid",
+          "type": "bool"
+        }
+      ],
+      "fields": [
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true
+        },
+        {
+          "key": "category",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "rent",
+              "label": "rent"
+            },
+            {
+              "value": "salary",
+              "label": "salary"
+            },
+            {
+              "value": "products",
+              "label": "products"
+            },
+            {
+              "value": "electricity",
+              "label": "electricity"
+            },
+            {
+              "value": "marketing",
+              "label": "marketing"
+            },
+            {
+              "value": "repairs",
+              "label": "repairs"
+            },
+            {
+              "value": "other",
+              "label": "other"
+            }
+          ]
+        },
+        {
+          "key": "paidTo",
+          "label": "Paid to",
+          "type": "text"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Mark paid",
+          "method": "POST",
+          "path": "/expenses/:id/paid",
+          "when": {
+            "key": "paid",
+            "equals": false
+          }
+        }
+      ]
+    },
+    "staffDiscounts": {
+      "label": "Discounts your staff gave (last 60 days)",
+      "endpoint": "/discounts/staff",
+      "readOnly": true,
+      "empty": "No staff discounts.",
+      "columns": [
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "key": "number",
+          "label": "Bill"
+        },
+        {
+          "key": "discount",
+          "label": "Rupees off",
+          "type": "money"
+        },
+        {
+          "key": "percent",
+          "label": "Percent",
+          "type": "number"
+        },
+        {
+          "key": "reason",
+          "label": "Reason"
+        }
+      ]
+    },
+    "audit": {
+      "label": "Activity log (what was done, by whom)",
+      "endpoint": "/audit",
+      "readOnly": true,
+      "empty": "Nothing yet.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "action",
+          "label": "What"
+        },
+        {
+          "key": "ref",
+          "label": "Ref"
         }
       ]
     }

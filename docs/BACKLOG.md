@@ -103,6 +103,14 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 | MRT-02 | Mart accounts and estimates: cash book, day close, expenses, suppliers, P&L, CA CSV, labelled-estimate predictions | M | 2 | WRITTEN 12 Nov, not yet tested by a person; 17 plain-node checks pass |
 | MRT-03 | Mart app on core-pos: 24 routes, manifest, draft plans, port 5008 | L | 2 | WRITTEN 12 Nov, not yet tested by a person; `apps/mart/tests/routes.db.test.js` needs Dev A |
 | MRT-04 | Mart Phase 2 list in `docs/products/mart/BUILD_NOTES.md` (staff and payroll wiring, roles, audit screen, export and delete, bill photo AI, WhatsApp sending, UPI links, GST screen, Tamil and Hindi, landing, QA workbook, Dev B list) | L | 2 | TODO |
+| CLO-00 | Cloth pure rules: variants, GST bands by price (editable, CA to confirm), alterations, slow and dead stock, follow-ups | M | 2 | WRITTEN 12 Nov, not yet tested by a person; plain-node checks pass (49 across the app) |
+| CLO-01 | Cloth models, sign-up and session (copied from Hire), port 5010 | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| CLO-02 | Cloth variant, alteration and stock routes with tenant tests | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| CLO-03 | Cloth accounts, staff and sales reports, CA CSV | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| CLO-04 | Cloth predictions, leak checks, marketing suggestions, daily summary with 3 actions, manifest, draft plans | M | 2 | WRITTEN 12 Nov, not yet tested by a person. Dev A steps in `docs/products/cloth/BUILD_STATUS.md` |
+| CLO-05 | Bills must reduce variant stock (core-pos uses PosItem, Cloth stock is in ClothVariant) | M | 2 | TODO, blocks invite-only start |
+| CLO-06 | Barcode labels and scan billing, fabric by metre | M | 2 | TODO |
+| CLO-07 | Cloth screens, customer pages, WhatsApp `cloth_*` templates, Phase 2 list in BUILD_STATUS.md | L | 2 | TODO |
 | CLINIC-01 | Clinic sector (doctor, physio, dental, skin): a preset of the Salon appointment product (D-29), not a separate app. Owner shared a clinic booking demo on 12 Nov as the look to follow. Needs owner decisions: name, price ladder, whose design it is | M | 3 | TODO (idea only; nothing built). Sensitive health data needs lawyer review first |
 | SA-06 | Plan and limit overrides and feature flags per gym, each with a logged reason | A | 2 | PARKED for Kamarudeen (Tier 3): design and questions in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |
 | SA-07 | View-as-gym for support: read-only, logged, time-limited | A | 2 | PARKED for Kamarudeen and the lawyer (Tier 3): recommend a counts-only support snapshot instead; design in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |

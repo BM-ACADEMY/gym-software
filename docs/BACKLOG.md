@@ -116,6 +116,14 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 | WSH-02 | Wash Phase 2 list in STATUS.md (photos, customer dues, discount reasons, payslips, booking link, WhatsApp sending, audit screen, export and delete, register import, void alerts) | L | 2 | TODO |
 | WSH-L | Wash landing page and `MARKETING_CLAIMS.md` | M | 2 | TODO |
 | WSH-QA | Wash QA workbook and Dev B attack list | M | 2 | TODO |
+| SAL-01 | Salon models, sign-in, sessions, draft plans (port 5007) | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-02 | Salon appointments, free-slot check with unique index, walk-in queue, public booking link | L | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-03 | Salon bills (GST or plain, split payments, discount reason) and commission | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-04 | Salon accounts: cash book, expenses, dues, day close, P&L, CA CSV | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-05 | Salon reports, labelled estimates, leak checks | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-06 | Salon daily summary, win-back, rebooking and marketing suggestions (suggest only) | M | 2 | WRITTEN 12 Nov, not yet tested by a person; 51 plain-node checks use an in-memory fake |
+| SAL-DB | Dev A runs `apps/salon/tests/routes.db.test.js` on a real test database (three people booking one slot: exactly one wins) | S | 2 | TODO (human) |
+| SAL-P2 | Salon Phase 2 list in `docs/products/salon/BUILD_NOTES.md` (attendance and payslip, CSV import, loyalty, stock, returns, reminders needing Meta templates, booking page and QR, audit screen, export and delete, Clinic notes and body-area picker, accounts screens, Super Admin counts) | L | 2 | TODO |
 | CLINIC-01 | Clinic sector (doctor, physio, dental, skin): a preset of the Salon appointment product (D-29), not a separate app. Owner shared a clinic booking demo on 12 Nov as the look to follow. Needs owner decisions: name, price ladder, whose design it is | M | 3 | TODO (idea only; nothing built). Sensitive health data needs lawyer review first |
 | SA-06 | Plan and limit overrides and feature flags per gym, each with a logged reason | A | 2 | PARKED for Kamarudeen (Tier 3): design and questions in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |
 | SA-07 | View-as-gym for support: read-only, logged, time-limited | A | 2 | PARKED for Kamarudeen and the lawyer (Tier 3): recommend a counts-only support snapshot instead; design in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |

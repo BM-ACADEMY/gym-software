@@ -166,6 +166,14 @@
           "key": "category",
           "label": "Category"
         }
+      ],
+      "downloads": [
+        {
+          "label": "Download the file for your CA",
+          "path": "/export/ca.csv",
+          "rangeDays": 30,
+          "filename": "dine-ca.csv"
+        }
       ]
     },
     "dues": {
@@ -208,6 +216,13 @@
         {
           "key": "reason",
           "label": "Why"
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download all my guest and venue data",
+          "path": "/privacy/export.json",
+          "filename": "dine-my-data.json"
         }
       ]
     },

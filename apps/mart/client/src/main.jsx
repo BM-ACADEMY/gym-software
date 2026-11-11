@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AdminShell, PosScreen } from '../../../../packages/core-ui/src/index.js';
 import pure from '../../../../packages/core-pos/src/pure.js';
@@ -15,7 +15,13 @@ const call = async (method, path, body, params) => {
   if (!res.ok) { const e = new Error(json.message || 'Request failed'); e.response = { data: json }; throw e; }
   return json;
 };
-const api = { get: (p, params) => call('GET', p, null, params), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p) };
+// Saves a file (CA export, my-data export) with the same signed-in cookie. The page, not a link, makes the request.
+const download = async (path) => {
+  const res = await fetch(product.api + path, { method: 'GET', credentials: 'same-origin' });
+  if (!res.ok) { const json = await res.json().catch(() => ({})); const e = new Error(json.message || 'Could not download.'); e.response = { data: json }; throw e; }
+  return { blob: await res.blob(), contentDisposition: res.headers.get('Content-Disposition') || '' };
+};
+const api = { get: (p, params) => call('GET', p, null, params), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p), download };
 
 // The shared billing screen expects an axios-like client: get(path, { params }) and results as { data: body }.
 const posCall = async (method, path, body, params) => {
@@ -26,17 +32,16 @@ const posCall = async (method, path, body, params) => {
   return { data: json };
 };
 const posApi = { get: (p, cfg) => posCall('GET', p, null, cfg && cfg.params), post: (p, b) => posCall('POST', p, b || {}) };
+// "Who owes": customers with an udhaar balance, for Pay later bills.
+const loadOwing = () => posApi.get('/mart/udhaar').then((r) => ((r.data && r.data.data && r.data.data.owing) || []).map((o) => ({ _id: o.customerId, name: o.name || 'Customer', phone: o.phone, due: o.due })));
 const posRules = pure ? { compute: pure.bill.compute, settle: pure.bill.settle } : null;
 
 const store = () => { try { return window.localStorage; } catch (e) { return { getItem: () => null, setItem: () => {} }; } };
-// Menu names in another language come from admin/strings.json (draft, needs native review). Anything missing stays in English.
-const translate = (m, lang) => (!strings || lang === 'en' || !strings[lang] ? m : { ...m, nav: m.nav.map((n) => ({ ...n, label: strings[lang][n.key] || n.label })) });
 const btn = { padding: '6px 12px', border: '1px solid #ccc', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 14 };
 
 function App({ me, signedOut }) {
   const [lang, setLang] = useState(() => store().getItem('mart:lang') || 'en');
   const [view, setView] = useState('panel');
-  const shown = useMemo(() => translate(manifest, lang), [lang]);
   const pick = (l) => { setLang(l); try { store().setItem('mart:lang', l); } catch (e) { /* optional */ } };
   const logout = async () => { try { await call('POST', '/auth/logout', {}); } catch (e) { /* signing out anyway */ } signedOut(); };
   return (
@@ -47,9 +52,8 @@ function App({ me, signedOut }) {
         {product.hasStrings && <select aria-label="Language" value={lang} onChange={(e) => pick(e.target.value)} style={btn}><option value="en">English</option><option value="ta">தமிழ்</option><option value="hi">हिन्दी</option></select>}
         <button type="button" onClick={logout} style={btn}>Sign out</button>
       </header>
-      {lang !== 'en' && <p style={{ margin: 0, padding: '4px 12px', background: '#fff4e5', fontSize: 12 }}>Tamil and Hindi menu names are drafts and still need a native speaker's check.</p>}
       <div style={{ flex: 1, overflow: 'auto' }}>
-        {view === 'billing' ? <PosScreen api={posApi} rules={posRules} basePath="/mart/pos" /> : <AdminShell manifest={shown} api={api} role={me.role} />}
+        {view === 'billing' ? <PosScreen api={posApi} rules={posRules} basePath="/mart/pos" askDiscountReason allowDecimalQty creditNeedsCustomer loadOwing={loadOwing} /> : <AdminShell manifest={manifest} api={api} role={me.role} lang={lang} strings={strings} />}
       </div>
     </div>
   );

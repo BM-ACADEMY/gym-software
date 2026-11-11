@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useLoad } from './useLoad.js';
 import { getPath, setPath, pickTop, visibleFields } from './schema.js';
+import { useT } from './i18n.js';
+import DownloadButtons from './DownloadButtons.jsx';
 
 // A settings page built from a list of switches (levels per job) plus plain number fields. Saves with PUT.
 export default function SettingsScreen({ def, api, title }) {
+  const t = useT();
   const { loading, error, data } = useLoad(() => api.get(def.endpoint).then((r) => r.data), [def.endpoint]);
   const [v, setV] = useState({ jobs: {} });
   const [msg, setMsg] = useState('');
@@ -19,12 +22,13 @@ export default function SettingsScreen({ def, api, title }) {
     const body = (def.fields && !def.numbers && !def.jobs) ? pickTop(v, def.fields) : v; // a fields-only screen sends just its own settings
     try { await api.put(def.endpoint, body); setMsg('Saved.'); } catch (err) { setMsg((err.response && err.response.data && err.response.data.message) || 'Could not save.'); }
   };
-  if (loading && !data) return <p className="adm-note">Loading...</p>;
+  if (loading && !data) return <p className="adm-note">{t('loading')}</p>;
   return (
     <section className="adm-screen">
       <header className="adm-head"><h2>{title || def.label}</h2></header>
       {error && <p role="alert" className="adm-error">{error}</p>}
       {def.intro && <p className="adm-note">{def.intro}</p>}
+      <DownloadButtons list={def.downloads} api={api} />
       <form className="adm-form" onSubmit={save}>
         <label className="adm-check"><input type="checkbox" checked={!!v.paused} onChange={(e) => setV({ ...v, paused: e.target.checked })} /> <span>Pause everything</span></label>
         {(def.jobs || []).map((j) => (
@@ -51,7 +55,7 @@ export default function SettingsScreen({ def, api, title }) {
             </label>
           );
         })}
-        <div className="adm-row"><button type="submit" className="adm-btn main">Save</button></div>
+        <div className="adm-row"><button type="submit" className="adm-btn main">{t('save')}</button></div>
       </form>
       {msg && <p role="status" className="adm-note">{msg}</p>}
     </section>

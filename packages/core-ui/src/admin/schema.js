@@ -1,6 +1,6 @@
 // Pure rules for the shared, data-driven admin panels. No React, no network: tested with plain node.
 // A product describes its panel in a manifest (data); the screens read the manifest and the API. Nothing is hard-coded per product.
-const TYPES = ['text', 'number', 'money', 'date', 'select', 'tags', 'bool', 'phone', 'email', 'textarea', 'pill'];
+const TYPES = ['text', 'number', 'money', 'date', 'select', 'tags', 'bool', 'phone', 'email', 'textarea', 'pill', 'password'];
 const err = (msg) => Object.assign(new Error(msg), { code: 'MANIFEST_INVALID' });
 
 function validateManifest(m) {
@@ -17,8 +17,22 @@ function validateManifest(m) {
     if (n.screen === 'resource' && !(m.resources && m.resources[n.resource])) throw err(`nav ${n.key}: resource not defined`);
     if (n.screen === 'stats' && !(m.stats && m.stats[n.stats])) throw err(`nav ${n.key}: stats not defined`);
   }
+  const checkDownloads = (where, list) => {
+    if (list == null) return;
+    if (!Array.isArray(list)) throw err(`${where}: downloads must be a list`);
+    for (const d of list) {
+      if (!d || !d.label) throw err(`${where}: every download needs a label`);
+      if (!d.path || !String(d.path).startsWith('/') || /\.\.|[\s<>]/.test(String(d.path))) throw err(`${where}: download path must start with / and have no spaces or ..`);
+      if (d.rangeDays != null && (!Number.isInteger(d.rangeDays) || d.rangeDays < 1 || d.rangeDays > 366)) throw err(`${where}: rangeDays must be a whole number from 1 to 366`);
+      if (d.filename != null && !/^[A-Za-z0-9._-]{1,80}$/.test(String(d.filename))) throw err(`${where}: download filename may use letters, digits, dot, dash and underscore only`);
+    }
+  };
+  for (const [name, d] of Object.entries(m.stats || {})) checkDownloads(`stats ${name}`, d.downloads);
   for (const [name, r] of Object.entries(m.resources || {})) {
+    checkDownloads(`resource ${name}`, r.downloads);
+    for (const f of r.fields || []) if (f.type === 'password' && f.min != null && (!Number.isInteger(f.min) || f.min < 1)) throw err(`resource ${name}.${f.key}: password min must be a whole number of 1 or more`);
     if (!r.endpoint || !String(r.endpoint).startsWith('/')) throw err(`resource ${name}: endpoint must start with /`);
+    for (const f of r.columns || []) if (f.type === 'password') throw err(`resource ${name}.${f.key}: a password can never be shown in a list`);
     for (const f of [...(r.columns || []), ...(r.fields || [])]) {
       if (!f.key) throw err(`resource ${name}: field without key`);
       if (f.type && !TYPES.includes(f.type)) throw err(`resource ${name}.${f.key}: unknown type ${f.type}`);
@@ -27,6 +41,7 @@ function validateManifest(m) {
   }
   // Settings screens: a list of `fields` with dotted keys (for example discountRule.staff), see SettingsScreen.
   for (const [name, d] of Object.entries(m.settings || {})) {
+    checkDownloads(`settings ${name}`, d.downloads);
     if (!d.endpoint || !String(d.endpoint).startsWith('/')) throw err(`settings ${name}: endpoint must start with /`);
     for (const f of d.fields || []) {
       if (!f.key || !f.label) throw err(`settings ${name}: every field needs key and label`);
@@ -75,6 +90,11 @@ function validateRecord(fields, values) {
       case 'email': if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v))) errors[f.key] = 'Not a valid email'; break;
       case 'phone': if (!/^(\+?91)?[\s-]?[6-9]\d{4}[\s-]?\d{5}$/.test(String(v).trim())) errors[f.key] = 'Not a valid Indian mobile number'; break;
       case 'select': if (!f.options.some((o) => String(o.value ?? o) === String(v))) errors[f.key] = 'Pick one of the options'; break;
+      case 'password': { // never trimmed, never echoed; the server still decides
+        const min = f.min || 8, max = f.max || 100; v = String(v);
+        if (v.length < min) errors[f.key] = `At least ${min} characters`; else if (v.length > max) errors[f.key] = `At most ${max} characters`;
+        break;
+      }
       case 'tags': v = Array.isArray(v) ? v : String(v).split(',').map((s) => s.trim()).filter(Boolean); break;
       case 'bool': v = v === true || v === 'true'; break;
       default: if (f.max && String(v).length > f.max) errors[f.key] = `At most ${f.max} characters`; v = String(v).trim();
@@ -109,4 +129,31 @@ function pickTop(values, fields) {
 // Fields shown now: a field with showWhen appears only while another field has that value.
 const visibleFields = (fields, values) => fields.filter((f) => !f.showWhen || getPath(values, f.showWhen.key) === f.showWhen.equals);
 
-export { setPath, pickTop, visibleFields, TYPES, validateManifest, visibleNav, getPath, formatCell, validateRecord, expandNav, inr };
+// For exports that need dates: the last `days` days up to today, in Indian time, as YYYY-MM-DD.
+function rangeQuery(days, now = new Date()) {
+  const n = Number.isInteger(days) && days >= 1 && days <= 366 ? days : 30;
+  const ist = new Date(now.getTime() + 330 * 60000); const day = (d) => d.toISOString().slice(0, 10);
+  return { from: day(new Date(ist.getTime() - (n - 1) * 86400000)), to: day(ist) };
+}
+// Save-as names for downloads: letters, digits, dot, dash, underscore only. The server's Content-Disposition name is used when it is clean.
+function downloadName(contentDisposition, fallback) {
+  const clean = (n) => { const x = String(n || '').split(/[\\/]/).pop().replace(/[^A-Za-z0-9._-]/g, '_').replace(/^\.+/, '').slice(0, 80); return x || null; };
+  const m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(String(contentDisposition || ''));
+  return (m && clean(m[1])) || clean(fallback) || 'download';
+}
+
+// Words the shared panel itself shows. Tamil and Hindi are drafts by Claude: NEEDS NATIVE REVIEW (M-06) before customers see them.
+const UI_WORDS = {
+  en: { add: 'Add', edit: 'Edit', save: 'Save', cancel: 'Cancel', search: 'Search', loading: 'Loading...', refresh: 'Refresh', download: 'Download', choose: 'Choose', nothing: 'Nothing here yet.' },
+  ta: { add: 'சேர்', edit: 'திருத்து', save: 'சேமி', cancel: 'ரத்து', search: 'தேடு', loading: 'ஏற்றுகிறது...', refresh: 'புதுப்பி', download: 'பதிவிறக்கு', choose: 'தேர்வு செய்', nothing: 'இங்கே இன்னும் எதுவும் இல்லை.' },
+  hi: { add: 'जोड़ें', edit: 'बदलें', save: 'सहेजें', cancel: 'रद्द करें', search: 'खोजें', loading: 'लोड हो रहा है...', refresh: 'ताज़ा करें', download: 'डाउनलोड', choose: 'चुनें', nothing: 'यहाँ अभी कुछ नहीं है।' },
+};
+const uiText = (lang, key) => (UI_WORDS[lang] && UI_WORDS[lang][key]) || UI_WORDS.en[key] || key;
+// A product's strings map { _meta, en:{navKey:'..'}, ta:{..}, hi:{..} } relabels the menu. Anything missing stays in English. Never changes the input.
+function translateManifest(m, strings, lang) {
+  if (!m || !strings || !lang || lang === 'en' || !strings[lang] || typeof strings[lang] !== 'object') return m;
+  return { ...m, nav: m.nav.map((n) => (typeof strings[lang][n.key] === 'string' && strings[lang][n.key] ? { ...n, label: strings[lang][n.key] } : n)) };
+}
+const needsReview = (strings, lang) => !!(strings && lang && lang !== 'en' && strings[lang]);
+
+export { rangeQuery, downloadName, UI_WORDS, uiText, translateManifest, needsReview, setPath, pickTop, visibleFields, TYPES, validateManifest, visibleNav, getPath, formatCell, validateRecord, expandNav, inr };

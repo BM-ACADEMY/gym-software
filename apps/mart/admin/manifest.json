@@ -602,6 +602,14 @@
             }
           ]
         }
+      ],
+      "downloads": [
+        {
+          "label": "Download the file for your CA",
+          "path": "/reports/ca-export",
+          "rangeDays": 30,
+          "filename": "mart-ca.csv"
+        }
       ]
     }
   },
@@ -1149,7 +1157,6 @@
       "endpoint": "/team",
       "readOnly": true,
       "empty": "Only you so far.",
-      "intro": "Cashier, stock keeper and manager logins. Adding a login needs a password field that the panel does not have yet, so ask Afra support to add one for now.",
       "columns": [
         {
           "key": "name",
@@ -1180,6 +1187,51 @@
             "equals": true
           },
           "confirm": "Tap again to switch off"
+        }
+      ],
+      "canAdd": true,
+      "intro": "Cashier, stock keeper and manager logins. Add one with a name, email, role and a password of at least 8 characters, and tell the person their password yourself. Switch a login off any time.",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "email",
+          "required": true
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "subadmin",
+              "label": "Manager"
+            },
+            {
+              "value": "cashier",
+              "label": "Cashier"
+            },
+            {
+              "value": "stockkeeper",
+              "label": "Stock keeper"
+            }
+          ]
+        },
+        {
+          "key": "password",
+          "label": "Password (8 or more characters)",
+          "type": "password",
+          "min": 8,
+          "max": 100,
+          "required": true
         }
       ]
     },
@@ -1340,6 +1392,13 @@
           "label": "Name shown in the customer's UPI app",
           "type": "text",
           "max": 40
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download all my shop data",
+          "path": "/privacy/export",
+          "filename": "mart-my-data.json"
         }
       ]
     }

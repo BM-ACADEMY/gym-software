@@ -1,13 +1,17 @@
 import { useLoad } from './useLoad.js';
 import { formatCell, getPath } from './schema.js';
+import { useT } from './i18n.js';
+import DownloadButtons from './DownloadButtons.jsx';
 
 // Cards, tables and an attention list read from one API reply. The manifest says where each value lives.
 export default function StatsScreen({ def, api, params, title }) {
+  const t = useT();
   const { loading, error, data, reload } = useLoad(() => api.get(def.endpoint, params || {}).then((r) => r.data), [def.endpoint, JSON.stringify(params || {})], def.refreshMs);
-  if (loading && !data) return <p className="adm-note">Loading...</p>;
+  if (loading && !data) return <p className="adm-note">{t('loading')}</p>;
   return (
     <section className="adm-screen">
-      <header className="adm-head"><h2>{title || def.label}</h2><button type="button" className="adm-btn" onClick={reload}>Refresh</button></header>
+      <header className="adm-head"><h2>{title || def.label}</h2><button type="button" className="adm-btn" onClick={reload}>{t('refresh')}</button></header>
+      <DownloadButtons list={def.downloads} api={api} />
       {error && <p role="alert" className="adm-error">{error}{data ? ' Showing the last good numbers.' : ''}</p>}
       {data && (
         <>

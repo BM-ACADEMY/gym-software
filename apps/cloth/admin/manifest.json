@@ -344,6 +344,20 @@
           "path": "tax",
           "type": "money"
         }
+      ],
+      "downloads": [
+        {
+          "label": "Download the file for your CA",
+          "path": "/export/ca.csv",
+          "rangeDays": 30,
+          "filename": "cloth-ca.csv"
+        },
+        {
+          "label": "Download the Tally-style voucher list",
+          "path": "/export/tally.csv",
+          "rangeDays": 30,
+          "filename": "cloth-tally.csv"
+        }
       ]
     },
     "expenses": {
@@ -462,6 +476,13 @@
               "label": "Detail"
             }
           ]
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download all my shop data",
+          "path": "/export/all.json",
+          "filename": "cloth-my-data.json"
         }
       ]
     }

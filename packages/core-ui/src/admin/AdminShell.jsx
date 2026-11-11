@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { expandNav, validateManifest, visibleNav } from './schema.js';
+import { expandNav, needsReview, translateManifest, validateManifest, visibleNav } from './schema.js';
+import { LangProvider } from './i18n.js';
 import ResourceScreen from './ResourceScreen.jsx';
 import StatsScreen from './StatsScreen.jsx';
 import SettingsScreen from './SettingsScreen.jsx';
 import './admin.css';
 
 // The whole panel comes from a manifest (data). `custom` screens are passed in by the product: screens={ key: Component }.
-export default function AdminShell({ manifest, api, role = 'admin', screens = {} }) {
+// lang + strings (optional): menu names and the panel's own words in Tamil or Hindi, English wherever a word is missing.
+export default function AdminShell({ manifest: baseManifest, api, role = 'admin', screens = {}, lang = 'en', strings = null }) {
+  const manifest = useMemo(() => translateManifest(baseManifest, strings, lang), [baseManifest, strings, lang]);
   const m = useMemo(() => { try { return { ok: validateManifest(manifest) }; } catch (e) { return { error: e.message }; } }, [manifest]);
   const [navData, setNavData] = useState({});
   const [key, setKey] = useState(() => (typeof location !== 'undefined' && location.hash.slice(1)) || '');
@@ -30,12 +33,17 @@ export default function AdminShell({ manifest, api, role = 'admin', screens = {}
     const Custom = screens[current.key]; return Custom ? <Custom api={api} /> : <p className="adm-note">This screen is not available yet.</p>;
   };
   return (
+    <LangProvider lang={lang}>
     <div className="adm-shell">
       <nav aria-label={manifest.title}>
         <div className="adm-brand">{manifest.title}</div>
         <ul>{nav.map((n) => <li key={n.key}><a href={`#${n.key}`} aria-current={current && current.key === n.key ? 'page' : undefined}>{n.label}</a></li>)}</ul>
       </nav>
-      <main>{render()}</main>
+      <main>
+        {needsReview(strings, lang) && <p className="adm-note" role="note">{(strings._meta && strings._meta.status) ? `Draft wording: ${strings._meta.status}.` : 'Draft wording: needs native review.'}</p>}
+        {render()}
+      </main>
     </div>
+    </LangProvider>
   );
 }

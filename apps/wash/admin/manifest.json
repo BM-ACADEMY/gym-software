@@ -306,6 +306,14 @@
             }
           ]
         }
+      ],
+      "downloads": [
+        {
+          "label": "Download the file for your CA",
+          "path": "/accounts/export.csv",
+          "rangeDays": 30,
+          "filename": "wash-ca.csv"
+        }
       ]
     },
     "leaks": {
@@ -858,7 +866,14 @@
           "label": "Details"
         }
       ],
-      "fields": []
+      "fields": [],
+      "downloads": [
+        {
+          "label": "Download all my business data",
+          "path": "/export",
+          "filename": "wash-my-data.json"
+        }
+      ]
     },
     "shifts": {
       "label": "Shifts",

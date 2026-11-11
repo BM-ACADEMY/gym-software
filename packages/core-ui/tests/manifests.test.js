@@ -33,7 +33,9 @@ describe('panel manifests', () => {
     expect(calls).toEqual(['/overview']); expect(hasRoute(adminRoutes, 'get', '/overview')).toBe(true);
   });
   test('no screen shows a full phone number or hard-codes a product list', () => {
-    expect(JSON.stringify(adminApp)).not.toMatch(/"gym"|"hire"|"mart"/);
+    // The Ideas board has its own product-area choices (it files ideas by product); every other screen must come from the product list API.
+    const { ideas, ...otherResources } = adminApp.resources || {};
+    expect(JSON.stringify({ ...adminApp, resources: otherResources })).not.toMatch(/"gym"|"hire"|"mart"/);
     const phoneCols = JSON.stringify(hire).match(/"key":"phone"[^}]*/g) || [];
     phoneCols.forEach((c) => expect(c).toMatch(/phone/));
   });

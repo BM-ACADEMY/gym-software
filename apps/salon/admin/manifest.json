@@ -339,6 +339,14 @@
             }
           ]
         }
+      ],
+      "downloads": [
+        {
+          "label": "Download the file for your CA",
+          "path": "/accounts/export.csv",
+          "rangeDays": 30,
+          "filename": "groom-ca.csv"
+        }
       ]
     }
   },
@@ -724,6 +732,13 @@
         {
           "key": "ref",
           "label": "Ref"
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download all my business data",
+          "path": "/privacy/export.json",
+          "filename": "groom-my-data.json"
         }
       ]
     },

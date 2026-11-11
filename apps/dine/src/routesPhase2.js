@@ -7,9 +7,10 @@ const P = require('./publicPages');
 const PR = require('./print');
 const IM = require('./importers');
 const PV = require('./privacy');
+const PE = require('./people');
 
 function addPhase2Routes(ctx) {
-  const { def, M, D, fail, log, str, plain, settingsOf, now, OID, DATE, loadOrder } = ctx;
+  const { def, M, D, fail, log, str, plain, settingsOf, now, OID, DATE, loadOrder, range, startOf, addDays } = ctx;
   const setVenue = async (tid, patch) => { const t = await M.Tenant.findById(tid); const cur = (t && t.settings && t.settings.venue) || {}; await M.Tenant.updateOne({ _id: tid }, { $set: { 'settings.venue': { ...cur, ...patch } } }); return { ...cur, ...patch }; };
   const getVenue = async (tid) => { const t = await M.Tenant.findById(tid); return { name: t && t.venueName, ...(((t && t.settings && t.settings.venue) || {})) }; };
 
@@ -148,6 +149,58 @@ function addPhase2Routes(ctx) {
     const q = { tenantId: tid, ...(prefix ? { action: { $regex: '^' + prefix.replace(/\./g, '\\.') } } : {}) };
     const rows = (await M.Activity.find(q).sort({ createdAt: -1 }).limit(200)).map(plain);
     res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows.map((r) => ({ at: r.createdAt, by: r.by, action: r.action, ref: r.ref || '' })) });
+  });
+  // ---- 6. shifts, leave, pay rates and the payslip ----
+  const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+  def('get', '/shifts', 'orders', async (req, res, tid) => {
+    const { from, to } = range(req); const own = !D.can(req.user.staffRole, 'payroll'); // staff see their own shifts; managers see all
+    const q = { tenantId: tid, removed: { $ne: true }, date: { $gte: from, $lte: to }, ...(own ? { userId: req.user.id } : {}) };
+    res.json({ success: true, data: (await M.Shift.find(q).sort({ date: 1 }).limit(1000)).map(plain), from, to });
+  });
+  def('post', '/shifts', 'payroll', async (req, res, tid) => {
+    const b = req.body || {}; if (!OID.test(String(b.userId))) return fail(res, 400, 'Choose the staff member.');
+    const u = await M.User.findOne({ _id: b.userId, tenantId: tid }); if (!u) return fail(res, 404, 'Staff member not found');
+    const s = PE.checkShift(b); const same = (await M.Shift.find({ tenantId: tid, userId: b.userId, date: s.date, removed: { $ne: true } }).limit(20)).map(plain);
+    if (PE.overlaps(same, s)) return fail(res, 409, 'This person already has a shift at that time.');
+    const d = await M.Shift.create({ tenantId: tid, userId: b.userId, date: s.date, from: s.from, to: s.to, note: str(b.note, 100) });
+    await log(tid, req, 'shift.add', d._id); res.status(201).json({ success: true, data: plain(d) });
+  });
+  def('delete', '/shifts/:id', 'payroll', async (req, res, tid) => {
+    if (!OID.test(String(req.params.id))) return fail(res, 404, 'Shift not found');
+    const r = await M.Shift.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: { removed: true } }); // soft: the row stays for the audit trail
+    if (!r) return fail(res, 404, 'Shift not found'); await log(tid, req, 'shift.remove', req.params.id); res.json({ success: true });
+  });
+  def('post', '/leave', 'orders', async (req, res, tid) => {
+    const l = PE.checkLeave(req.body || {});
+    const d = await M.Leave.create({ tenantId: tid, userId: req.user.id, from: l.from, to: l.to, reason: l.reason, status: 'pending' });
+    await log(tid, req, 'leave.request', d._id); res.status(201).json({ success: true, data: plain(d) });
+  });
+  def('get', '/leave', 'orders', async (req, res, tid) => {
+    const own = !D.can(req.user.staffRole, 'payroll'); res.json({ success: true, data: (await M.Leave.find({ tenantId: tid, ...(own ? { userId: req.user.id } : {}) }).sort({ from: -1 }).limit(200)).map(plain) });
+  });
+  def('post', '/leave/:id/decide', 'payroll', async (req, res, tid) => {
+    const b = req.body || {}; if (!['approved', 'declined'].includes(b.decision)) return fail(res, 400, 'Choose approved or declined.');
+    if (!OID.test(String(req.params.id))) return fail(res, 404, 'Leave request not found');
+    const r = await M.Leave.findOneAndUpdate({ _id: req.params.id, tenantId: tid, status: 'pending' }, { $set: { status: b.decision, paid: b.paid === true, by: req.user.id } }, { new: true });
+    if (!r) return fail(res, 404, 'No pending leave request found'); await log(tid, req, 'leave.' + b.decision, req.params.id); res.json({ success: true, data: plain(r) });
+  });
+  def('put', '/staff/:userId/pay', 'payroll', async (req, res, tid) => {
+    if (!OID.test(String(req.params.userId))) return fail(res, 404, 'Staff member not found');
+    const b = req.body || {}; const rate = b.ratePerHour === undefined ? 0 : b.ratePerHour; const monthly = b.monthly === undefined ? 0 : b.monthly;
+    if (![rate, monthly].every((n) => Number.isInteger(n) && n >= 0 && n <= 1000000)) return fail(res, 400, 'Pay must be whole rupees from 0 to 1000000.');
+    const u = await M.User.findOne({ _id: req.params.userId, tenantId: tid }); if (!u) return fail(res, 404, 'Staff member not found');
+    await M.StaffPay.findOneAndUpdate({ tenantId: tid, userId: req.params.userId }, { $set: { ratePerHour: rate, monthly } }, { upsert: true }); await log(tid, req, 'staff.pay', req.params.userId); res.json({ success: true });
+  });
+  def('get', '/payslip', 'payroll', async (req, res, tid) => {
+    const month = String(req.query.month || ''); const userId = String(req.query.userId || '');
+    if (!MONTH.test(month) || !OID.test(userId)) return fail(res, 400, 'Choose the staff member and a month like 2026-11.');
+    const pay = await M.StaffPay.findOne({ tenantId: tid, userId }); if (!pay) return fail(res, 400, 'Set this person\'s pay first.');
+    const from = month + '-01'; const to = month + '-' + String(PE.monthDays(month)).padStart(2, '0');
+    const punches = (await M.Punch.find({ tenantId: tid, userId, at: { $gte: startOf(from).toISOString(), $lt: startOf(addDays(to, 1)).toISOString() } }).limit(2000)).map(plain);
+    const hw = D.hoursWorked(punches.map((p) => ({ at: p.at, kind: p.kind })));
+    const leaves = (await M.Leave.find({ tenantId: tid, userId, status: 'approved' }).limit(100)).map(plain);
+    const slip = PE.payslip({ month, pay: plain(pay), hours: hw.hours, leave: PE.leaveInMonth(leaves, month), advances: Number(req.query.advances) || 0, otherDeductions: Number(req.query.deductions) || 0 });
+    await log(tid, req, 'payslip.view', userId); res.json({ success: true, data: { ...slip, hoursProblems: hw.problems } });
   });
   // Link only: nothing is sent. The guest taps Send in their own WhatsApp.
   def('get', '/order-link', 'orders', async (req, res, tid) => {

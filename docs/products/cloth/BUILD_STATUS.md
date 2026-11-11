@@ -39,7 +39,7 @@ Code: `apps/cloth` (port 5010, fail-closed without `MONGODB_URI` and `CLOTH_SESS
 - Dev A: the guard runs `protect` twice on `/api/pos` (once in app.js, once inside the core-pos router); check there is no side effect and the tenant context still holds on the bill route.
 
 ## Phase 2 wave A (12 Nov, night). Written, not yet tested by a person
-Plain-node checks: 13 test files, all pass (accounts 14, barcode 5, dataRights 4, discount 10, internal 2, manifest 1, payroll 4, phase2a 7, pickup 3, returnsRules 3, routes 8, routesMore 9, rules 11, salesReports 5, session 3, signup 4, stockCount 3). They use an in-memory stand-in for the database, so they prove the rules and the shape of each route, not the real Mongo queries.
+Plain-node checks: 17 test files, 96 checks, all pass (accounts 14, barcode 5, dataRights 4, discount 10, internal 2, manifest 1, payroll 4, phase2a 7, pickup 3, returnsRules 3, routes 8, routesMore 9, rules 11, salesReports 5, session 3, signup 4, stockCount 3). They use an in-memory stand-in for the database, so they prove the rules and the shape of each route, not the real Mongo queries.
 
 | ID | What is new | Where |
 | --- | --- | --- |

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/public/Navbar';
 import Footer from '../../components/public/Footer';
+import apiClient from '../../api/client';
 
 // Keep in step with server/config/plans.js (prices exclude 18% GST).
 const plans = [
@@ -23,10 +24,28 @@ const plans = [
   },
 ];
 
+// SET-01: prices and limits come live from the server (Root Admin > Plan settings), so a change shows without a deploy.
+// The list above is the fallback if the server cannot be reached.
+const BLURBS = { solo: 'For a trainer or a very small studio', starter: 'For a small gym just getting organised', growth: 'For most gyms', pro: 'For big or multi-trainer gyms' };
+const liveFeatures = (p) => [
+  p.memberLimit ? `Up to ${p.memberLimit.toLocaleString('en-IN')} members` : 'Unlimited members',
+  p.staffLimit ? `${p.staffLimit} staff login${p.staffLimit > 1 ? 's' : ''}` : 'Unlimited staff logins',
+  'Member portal with QR check-in', 'Attendance and payments',
+  p.whatsappPerMonth > 0 ? `${p.whatsappPerMonth.toLocaleString('en-IN')} WhatsApp messages a month` : 'No WhatsApp messages (upgrade for reminders)',
+  ...(p.features['pt-sessions'] ? ['PT sessions and trainer commission'] : []),
+  ...(p.features.accounts ? ['Accounts and expenses'] : []),
+  ...(p.features['ai-plans'] ? [`AI workout and diet plans${p.aiPlansPerMonth ? ` (${p.aiPlansPerMonth} a month)` : ''}`] : []),
+  ...(p.features.branding ? ['Your own logo and colours'] : []),
+  `${p.aiCallsPerMonth} AI answers a month`,
+];
+const fromServer = (list) => list.map((p) => ({ name: p.name, blurb: BLURBS[p.key] || '', monthly: p.monthly, yearly: p.yearly, popular: p.key === 'growth', features: liveFeatures(p) }));
+
 const rupees = (n) => `₹${n.toLocaleString('en-IN')}`;
 
 const Pricing = () => {
   const [cycle, setCycle] = useState('yearly');
+  const [shown, setShown] = useState(plans);
+  useEffect(() => { apiClient.get('/public/plans').then((r) => { const l = r.data && r.data.data && r.data.data.plans; if (Array.isArray(l) && l.length) setShown(fromServer(l)); }).catch(() => {}); }, []);
 
   return (
     <div className="min-h-screen">
@@ -45,14 +64,14 @@ const Pricing = () => {
             <div className="inline-flex rounded-xl bg-gray-200 p-1">
               {['monthly', 'yearly'].map((c) => (
                 <button key={c} onClick={() => setCycle(c)} className={`rounded-lg px-5 py-2 text-sm font-semibold ${cycle === c ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}`}>
-                  {c === 'monthly' ? 'Monthly' : 'Yearly (2 months free)'}
+                  {c === 'monthly' ? 'Monthly' : (shown.every((x) => x.yearly <= x.monthly * 10) ? 'Yearly (2 months free)' : 'Yearly')}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-            {plans.map((plan) => (
+            {shown.map((plan) => (
               <div key={plan.name} className={`relative rounded-3xl p-8 flex flex-col border ${plan.popular ? 'border-teal-400 bg-gradient-to-b from-teal-50 to-white shadow-lg shadow-teal-100' : 'border-gray-100 bg-white shadow-sm'}`}>
                 {plan.popular && (
                   <span className="absolute -top-4 left-1/2 -translate-x-1/2 px-5 py-1.5 rounded-full bg-teal-600 text-white text-xs font-bold uppercase tracking-wider">Most popular</span>

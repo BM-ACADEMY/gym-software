@@ -7,6 +7,7 @@ const makeModels = require('./models');
 const { createDineRouter } = require('./routes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 const { createPublicRouter } = require('./publicRoutes');
+const { createInternalRouter } = require('./internalRoutes');
 
 function missingSettings(env) {
   const out = [];
@@ -27,6 +28,7 @@ function createApp({ express, mongoose, env = process.env }) {
   const M = makeModels(mongoose);
   const secret = env.DINE_SESSION_SECRET;
   app.use('/api/dine/auth', createAuthRouter({ express, mongoose, billing, secret, termsVersion: env.DINE_TERMS_VERSION }));
+  app.use('/api/internal', createInternalRouter({ express, mongoose, billing, key: env.INTERNAL_API_KEY }));
   app.use('/dine-public', createPublicRouter({ express, models: M }));
   const protect = sessionMiddleware(secret, M);
   app.use('/api/dine', createDineRouter({

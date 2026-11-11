@@ -100,6 +100,24 @@
       "roles": [
         "admin"
       ]
+    },
+    {
+      "key": "packages",
+      "label": "Packages",
+      "screen": "resource",
+      "resource": "packages",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "loyalty",
+      "label": "Loyalty points",
+      "screen": "settings",
+      "settings": "loyalty",
+      "roles": [
+        "admin"
+      ]
     }
   ],
   "stats": {
@@ -656,6 +674,75 @@
           "label": "Ref"
         }
       ]
+    },
+    "packages": {
+      "label": "Packages and memberships",
+      "endpoint": "/packages",
+      "empty": "No packages sold yet.",
+      "searchable": false,
+      "columns": [
+        {
+          "key": "name",
+          "label": "Package"
+        },
+        {
+          "key": "text",
+          "label": "Used"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        },
+        {
+          "key": "expiresOn",
+          "label": "Expires",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "customerId",
+          "label": "Customer id (open the customer to copy it)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Package name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "total",
+          "label": "Number of sessions",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price (rupees)",
+          "type": "money"
+        },
+        {
+          "key": "expiresOn",
+          "label": "Expires on",
+          "type": "date"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Use one session",
+          "method": "POST",
+          "path": "/packages/:id/use",
+          "confirm": "Tap again to use one session",
+          "done": "One session used.",
+          "when": {
+            "key": "status",
+            "equals": "open"
+          }
+        }
+      ]
     }
   },
   "settings": {
@@ -695,6 +782,35 @@
             "key": "discountRule.staff",
             "equals": "limit"
           }
+        }
+      ]
+    },
+    "loyalty": {
+      "label": "Loyalty points",
+      "endpoint": "/settings",
+      "intro": "Customers earn points on what they pay. Turn it on when you are ready. Points are used as a discount on the bill, and the discount rule still applies.",
+      "fields": [
+        {
+          "key": "loyaltyRule.enabled",
+          "label": "Give loyalty points",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "loyaltyRule.earnPer100",
+          "label": "Points for every Rs 100 paid",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 5
+        },
+        {
+          "key": "loyaltyRule.minRedeem",
+          "label": "Smallest number of points to use at once",
+          "type": "number",
+          "min": 1,
+          "max": 10000,
+          "default": 50
         }
       ]
     }

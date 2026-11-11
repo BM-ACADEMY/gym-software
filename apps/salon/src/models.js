@@ -27,6 +27,7 @@ module.exports = (mongoose) => {
     slotStep: { type: Number, default: 30 }, bufferMins: { type: Number, default: 0 },
     taxMode: { type: String, enum: ['gst_inclusive', 'gst_exclusive', 'none'], default: 'none' }, gstin: { type: String, maxlength: 15 }, address: { type: String, maxlength: 200 }, phone: String,
     festivals: { type: [{ name: String, date: String, offer: String }], default: [] }, // owner's own list; we do not invent dates
+    loyaltyRule: Schema.Types.Mixed, // { enabled, earnPer100, pointValueRupees, maxRedeemShare, minRedeem } core-pos loyalty; off until the owner turns it on
     discountRule: Schema.Types.Mixed, // D-30 { staff: 'any'|'limit'|'owner_only', maxPercent } see src/discountPolicy.js
     commissionRules: Schema.Types.Mixed, // { default, byService, byStaff, byStaffService } see src/commission.js
   }, [], false);
@@ -45,7 +46,7 @@ module.exports = (mongoose) => {
   const Customer = define('SalonCustomer', {
     tenantId: T, name: { type: String, required: true, maxlength: 120 }, phone: { type: String, required: true }, note: { type: String, maxlength: 300 },
     preferredStaffId: Schema.Types.ObjectId, birthday: String, anniversary: String, doNotContact: { type: Boolean, default: false },
-    lastVisit: String, lastServiceKey: String, anonymisedAt: Date, // set when the owner deletes the person on request: details removed, bills kept
+    lastVisit: String, lastServiceKey: String, loyaltyBalance: { type: Number, default: 0 }, anonymisedAt: Date, // set when the owner deletes the person on request: details removed, bills kept
     consent: { at: Date, source: String }, // booking-link consent tick, or owner records that the customer agreed
   }, [[{ tenantId: 1, phone: 1 }, { unique: true }]]);
   // `active` is true while the visit holds the slot (booked or pending). The unique index only covers active rows,
@@ -76,5 +77,9 @@ module.exports = (mongoose) => {
   }, [[{ tenantId: 1, date: 1 }, { unique: true }]]);
   // Audit trail: who did what, never the customer's details or the note text.
   const Audit = define('SalonAudit', { tenantId: T, by: String, action: { type: String, required: true }, ref: String }, [[{ tenantId: 1, createdAt: -1 }, {}]]);
-  return { Expense, DayClose, Audit, Tenant, User, Service, Staff, Customer, Appointment, Queue, Bill, Counter };
+  // Loyalty ledger: the rows are the truth, Customer.loyaltyBalance is the quick copy used by the guarded redeem.
+  const LoyaltyEntry = define('SalonLoyalty', { tenantId: T, customerId: { type: Schema.Types.ObjectId, required: true }, points: { type: Number, required: true }, reason: { type: String, enum: ['earn', 'redeem', 'import', 'reverse', 'adjust'], required: true }, billId: Schema.Types.ObjectId, note: { type: String, maxlength: 120 } }, [[{ tenantId: 1, customerId: 1, createdAt: -1 }, {}]]);
+  const Package = define('SalonPackage', { tenantId: T, customerId: { type: Schema.Types.ObjectId, required: true }, name: { type: String, required: true, maxlength: 80 }, serviceKey: String, total: { type: Number, required: true }, left: { type: Number, required: true }, price: Number, currency: { type: String, default: 'INR' }, expiresOn: String, active: { type: Boolean, default: true } }, [[{ tenantId: 1, customerId: 1 }, {}]]);
+  const PackageUse = define('SalonPackageUse', { tenantId: T, packageId: { type: Schema.Types.ObjectId, required: true }, by: String, appointmentId: Schema.Types.ObjectId, undone: Boolean }, [[{ tenantId: 1, packageId: 1, createdAt: -1 }, {}]]);
+  return { LoyaltyEntry, Package, PackageUse, Expense, DayClose, Audit, Tenant, User, Service, Staff, Customer, Appointment, Queue, Bill, Counter };
 };

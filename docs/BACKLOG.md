@@ -111,6 +111,11 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 | CLO-05 | Bills must reduce variant stock (core-pos uses PosItem, Cloth stock is in ClothVariant) | M | 2 | TODO, blocks invite-only start |
 | CLO-06 | Barcode labels and scan billing, fabric by metre | M | 2 | TODO |
 | CLO-07 | Cloth screens, customer pages, WhatsApp `cloth_*` templates, Phase 2 list in BUILD_STATUS.md | L | 2 | TODO |
+| WSH-00 | Wash pure rules: plates, job states, monthly pass, bays, incentive, cash closing, win-back | M | 2 | WRITTEN 12 Nov, not yet tested by a person; 13 plain-node checks pass |
+| WSH-01 | Wash models, routes, sign-in, manifest and all-in-one areas 1 to 10 (Phase 1 parts), port 5011 | L | 2 | WRITTEN 12 Nov, not yet tested by a person; 57 plain-node checks use an in-memory fake, so Dev A must run them on a real database. Steps in `docs/products/wash/STATUS.md` |
+| WSH-02 | Wash Phase 2 list in STATUS.md (photos, customer dues, discount reasons, payslips, booking link, WhatsApp sending, audit screen, export and delete, register import, void alerts) | L | 2 | TODO |
+| WSH-L | Wash landing page and `MARKETING_CLAIMS.md` | M | 2 | TODO |
+| WSH-QA | Wash QA workbook and Dev B attack list | M | 2 | TODO |
 | CLINIC-01 | Clinic sector (doctor, physio, dental, skin): a preset of the Salon appointment product (D-29), not a separate app. Owner shared a clinic booking demo on 12 Nov as the look to follow. Needs owner decisions: name, price ladder, whose design it is | M | 3 | TODO (idea only; nothing built). Sensitive health data needs lawyer review first |
 | SA-06 | Plan and limit overrides and feature flags per gym, each with a logged reason | A | 2 | PARKED for Kamarudeen (Tier 3): design and questions in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |
 | SA-07 | View-as-gym for support: read-only, logged, time-limited | A | 2 | PARKED for Kamarudeen and the lawyer (Tier 3): recommend a counts-only support snapshot instead; design in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |

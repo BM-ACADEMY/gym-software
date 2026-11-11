@@ -1,0 +1,10 @@
+{
+  "name": "@afra/wash",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wash: job board, monthly passes and cash closing for car wash and detailing. Pure rules first. Written, not yet tested by a person.",
+  "main": "src/index.js",
+  "dependencies": { "express": "^5.2.1", "mongoose": "^9.7.4" },
+  "scripts": { "test": "jest" },
+  "license": "UNLICENSED"
+}

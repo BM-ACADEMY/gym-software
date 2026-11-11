@@ -102,6 +102,22 @@ run('Mart routes (needs a test database)', () => {
     const r = await as('A', 'get', '/api/mart/summary'); expect(r.status).toBe(200);
     expect(r.body.data.actions.length <= 3).toBe(true); for (const a of r.body.data.actions) expect(!!a.reason).toBe(true);
   });
+  test('phase 2: roles. Owner adds a cashier; the cashier can bill and close the day but not see accounts, staff, audit or privacy; another shop cannot see the team', async () => {
+    const mkU = await as('A', 'post', '/api/mart/team').send({ name: 'Cash Ier', email: 'cashier@example.com', role: 'cashier', password: 'a-long-password-2' }); expect(mkU.status).toBe(201);
+    const lg = await request(app).post('/api/mart/auth/login').set(H).send({ email: 'cashier@example.com', password: 'a-long-password-2' }); expect(lg.status).toBe(200); cookies.C = lg.headers['set-cookie'][0].split(';')[0];
+    for (const u of ['/expenses', '/audit', '/payroll', '/team', '/privacy/export', '/settings', '/summary']) expect([u, (await as('C', 'get', '/api/mart' + u)).status]).toEqual([u, 403]);
+    expect((await as('C', 'get', '/api/mart/day-closes')).status).toBe(200); expect((await as('C', 'get', '/api/mart/pos/items')).status).toBe(200); expect((await as('C', 'post', '/api/mart/pos/items').send({ name: 'x', price: 1 })).status).toBe(403);
+    expect((await as('B', 'get', '/api/mart/team')).body.data.length).toBe(1);
+    expect((await as('A', 'post', '/api/mart/team/' + mkU.body.data.id + '/deactivate')).status).toBe(200); expect((await as('C', 'get', '/api/mart/day-closes')).status).toBe(401);
+  });
+  test('phase 2: payroll, audit and privacy for the owner', async () => {
+    expect((await as('A', 'post', '/api/mart/staff').send({ name: 'Meena', monthlySalary: 9000 })).status).toBe(201);
+    expect((await as('A', 'post', '/api/mart/attendance').send({ staff: 'Meena', status: 'present' })).status).toBe(201);
+    const pay = await as('A', 'get', '/api/mart/payroll'); expect(pay.status).toBe(200); expect(pay.body.data[0].draft).toBe(true); expect((await as('B', 'get', '/api/mart/payroll')).body.data.length).toBe(0);
+    expect((await as('A', 'get', '/api/mart/audit')).body.data.some((a) => a.action === 'staff_add')).toBe(true);
+    const ex = await as('A', 'get', '/api/mart/privacy/export'); expect(ex.status).toBe(200); expect(ex.headers['cache-control']).toMatch(/no-store/);
+    expect((await as('A', 'post', '/api/mart/privacy/delete-shop-request').send({ confirm: 'no' })).status).toBe(400);
+  });
   test('expired account is read-only for writes but can still read', async () => {
     await mongoose.model('MartTenant').updateMany({}, { $set: { trialEndsAt: new Date(Date.now() - 20 * 86400000) } });
     expect((await as('A', 'post', '/api/mart/expenses').send({ category: 'rent', amount: 10 })).status).toBe(402);

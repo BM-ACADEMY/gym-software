@@ -3,13 +3,13 @@
 //   app.use('/api/mart', createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite }));
 // Billing, items, stock, returns, CSV import and loyalty are core-pos, mounted at /api/mart/pos by createApp (same sign-in).
 // Every query filters by tenantId (and runs inside the shop's tenant context set by the session middleware).
-const makeModels = require('./models');
+const makeModels = require('./models'); const { runUnscoped } = require('../../../packages/core-server/src');
 const makePos = require('../../../packages/core-pos/src/models');
 const { makeDiscountHook } = require('../../../packages/core-pos/src/discountHook');
 const R = require('./reorder'); const Sh = require('./shelf'); const U = require('./udhaar'); const L = require('./leaks'); const S = require('./summary');
 const DP = require('./discountPolicy'); const bill = require('../../../packages/core-pos/src/bill');
 const A = require('./accounts'); const I = require('./insights'); const { gstSummary } = require('./gstSummary');
-const PV = require('./privacy'); const shape = require('./shape'); const { istDay, addDays, valid } = require('./dates');
+const PV = require('./privacy'); const PR = require('./payroll'); const PM = require('./permissions'); const shape = require('./shape'); const { istDay, addDays, valid } = require('./dates');
 
 const toOid = (v) => (typeof v === 'string' && /^[a-f0-9]{24}$/i.test(v) ? v : null);
 const clampInt = (v, lo, hi, d) => { const n = Number(v); return Number.isInteger(n) && n >= lo && n <= hi ? n : d; };
@@ -48,10 +48,11 @@ function discountHooks({ mongoose, now = () => new Date() }) {
   });
 }
 
-function createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles = ['admin', 'subadmin'], now = () => new Date(), models, pos }) {
+function createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles = ['admin', 'subadmin'], now = () => new Date(), models, pos, hashFn }) {
   // models/pos: injected stand-ins for plain-node tests; the real app passes only mongoose.
   const router = express.Router(); const M = models || makeModels(mongoose); const P = pos || makePos(mongoose);
   router.use(protect, authorize(...roles));
+  router.use(PM.gate(PM.permFor)); // role permissions (server side); the owner passes, an unlisted route is owner-only
   if (guardWrite) router.use((req, res, next) => { const g = guardWrite(req); return g.ok ? next() : res.status(g.httpStatus || 402).json({ success: false, message: g.message, code: 'read_only' }); });
   const fail = (res, code, message) => res.status(code).json({ success: false, message });
   const wrap = (fn) => async (req, res) => { try { await fn(req, res, tenantOf(req)); } catch (err) { if (err.code === 'UDHAAR_INVALID') return fail(res, 400, err.message); if (err.name === 'ValidationError' || err.name === 'CastError') return fail(res, 400, 'Check the values you entered.'); console.error('Mart route failed:', err.message); return fail(res, 500, 'Server error'); } };
@@ -302,6 +303,69 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     const open = await M.DeleteRequest.findOne({ tenantId: tid, status: 'requested' }); if (open) return res.json({ success: true, already: true });
     await M.DeleteRequest.create({ tenantId: tid, by: String(req.user.id), status: 'requested' }); await audit(tid, req, 'shop_delete_request', '');
     res.status(201).json({ success: true, message: 'Request received. A person at Afra will contact you. Export your data first if you have not.' });
+  }));
+
+  // ---- team logins (owner only): cashier, stockkeeper, manager ----
+  router.get('/team', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return;
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: (await M.User.find({ tenantId: tid }).sort({ createdAt: 1 }).limit(100).lean()).map((u) => ({ id: String(u._id), name: u.name, email: u.email, role: u.role, isActive: u.isActive !== false })) });
+  }));
+  router.post('/team', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return; const b = req.body || {}; const name = typeof b.name === 'string' ? b.name.trim().slice(0, 120) : ''; const email = typeof b.email === 'string' ? b.email.trim().toLowerCase().slice(0, 120) : '';
+    if (name.length < 2) return fail(res, 400, 'Enter the name.'); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail(res, 400, 'Enter a valid email.');
+    if (!PM.TEAM_ROLES.includes(b.role)) return fail(res, 400, 'Choose a role: manager, cashier or stock keeper.');
+    if (typeof b.password !== 'string' || b.password.length < 8 || b.password.length > 100) return fail(res, 400, 'The password must be 8 to 100 characters.');
+    const exists = await runUnscoped('team: is this email already used by any shop', () => M.User.findOne({ email })); if (exists) return fail(res, 409, 'That email is already in use.');
+    const u = await M.User.create({ tenantId: tid, name, email, role: b.role, passwordHash: await (hashFn || require('./authRoutes').hashPassword)(b.password) });
+    await audit(tid, req, 'team_add', `${b.role} ${u._id}`); res.status(201).json({ success: true, data: { id: String(u._id), name, email, role: b.role } });
+  }));
+  router.post('/team/:id/deactivate', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return; const id = toOid(req.params.id); if (!id) return fail(res, 404, 'Not found'); if (id === String(req.user.id)) return fail(res, 400, 'You cannot switch off your own login.');
+    const u = await M.User.findOne({ _id: id, tenantId: tid }); if (!u) return fail(res, 404, 'Not found'); if (u.role === 'admin') return fail(res, 400, 'The owner login cannot be switched off here.');
+    await M.User.updateOne({ _id: id, tenantId: tid }, { $set: { isActive: false } }); await audit(tid, req, 'team_off', id); res.json({ success: true });
+  }));
+
+  // ---- payroll: staff, attendance, leave, advances, payslips ----
+  const monthOf = (v) => (PR.validMonth(v) ? v : today().slice(0, 7));
+  router.get('/staff', wrap(async (req, res, tid) => { if (!ownerOnly(req, res)) return; res.set('Cache-Control', 'no-store'); res.json({ success: true, data: (await M.Staff.find({ tenantId: tid, isActive: true }).sort({ name: 1 }).limit(200).lean()).map((x) => ({ id: String(x._id), name: x.name, phone: x.phone, monthlySalary: x.monthlySalary, joinedOn: x.joinedOn })) }); }));
+  router.post('/staff', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return; const b = req.body || {}; const name = typeof b.name === 'string' ? b.name.trim().slice(0, 120) : ''; const sal = Number(b.monthlySalary);
+    if (name.length < 2) return fail(res, 400, 'Enter the name.'); if (!Number.isInteger(sal) || sal < 0 || sal > 10000000) return fail(res, 400, 'Enter the monthly salary in whole rupees.');
+    if (b.joinedOn !== undefined && b.joinedOn !== '' && !valid(b.joinedOn)) return fail(res, 400, 'Joining date must be a real date.');
+    const d = await M.Staff.create({ tenantId: tid, name, phone: typeof b.phone === 'string' ? b.phone.replace(/[^\d+]/g, '').slice(0, 15) : undefined, monthlySalary: sal, joinedOn: b.joinedOn || undefined });
+    await audit(tid, req, 'staff_add', d._id); res.status(201).json({ success: true, data: { id: String(d._id) } });
+  }));
+  router.post('/staff/:id/deactivate', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return; const id = toOid(req.params.id); if (!id || !(await M.Staff.findOne({ _id: id, tenantId: tid }))) return fail(res, 404, 'Not found');
+    await M.Staff.updateOne({ _id: id, tenantId: tid }, { $set: { isActive: false } }); await audit(tid, req, 'staff_off', id); res.json({ success: true });
+  }));
+  // Attendance: the staff member is picked by name (the panel form has no id picker). One mark per person per day.
+  const staffByName = async (tid, name) => (typeof name === 'string' && name.trim() ? M.Staff.findOne({ tenantId: tid, name: name.trim(), isActive: true }) : null);
+  router.get('/attendance', wrap(async (req, res, tid) => {
+    const month = monthOf(req.query.month); const [staff, marks] = await Promise.all([M.Staff.find({ tenantId: tid }).limit(200).lean(), M.Attendance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).sort({ day: -1 }).limit(6200).lean()]);
+    const nm = Object.fromEntries(staff.map((x) => [String(x._id), x.name])); res.json({ success: true, data: marks.map((m) => ({ id: String(m._id), staff: nm[String(m.staffId)] || '', day: m.day, status: m.status })) });
+  }));
+  router.post('/attendance', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const st = await staffByName(tid, b.staff); if (!st) return fail(res, 404, 'Staff member not found. Type the name exactly as in your staff list.');
+    if (!PR.STATUS.includes(b.status)) return fail(res, 400, 'Choose present, half day, absent, paid leave, unpaid leave or weekly off.');
+    const day = b.day === undefined || b.day === '' ? today() : b.day; if (!valid(day) || day > addDays(today(), 1)) return fail(res, 400, 'Choose a real date that is not in the future.');
+    await M.Attendance.updateOne({ tenantId: tid, staffId: st._id, day }, { $set: { status: b.status } }, { upsert: true }); res.status(201).json({ success: true });
+  }));
+  router.get('/advances', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return; const month = monthOf(req.query.month); const [staff, adv] = await Promise.all([M.Staff.find({ tenantId: tid }).limit(200).lean(), M.Advance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).sort({ day: -1 }).limit(1000).lean()]);
+    const nm = Object.fromEntries(staff.map((x) => [String(x._id), x.name])); res.json({ success: true, data: adv.map((a) => ({ id: String(a._id), staff: nm[String(a.staffId)] || '', day: a.day, amount: a.amount, note: a.note })) });
+  }));
+  router.post('/advances', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return; const b = req.body || {}; const st = await staffByName(tid, b.staff); if (!st) return fail(res, 404, 'Staff member not found. Type the name exactly as in your staff list.');
+    const amount = Number(b.amount); if (!Number.isInteger(amount) || amount <= 0 || amount > 10000000) return fail(res, 400, 'Enter the advance in whole rupees.');
+    const day = b.day === undefined || b.day === '' ? today() : b.day; if (!valid(day)) return fail(res, 400, 'Choose a real date.');
+    const d = await M.Advance.create({ tenantId: tid, staffId: st._id, day, amount, note: typeof b.note === 'string' ? b.note.trim().slice(0, 200) : undefined }); await audit(tid, req, 'advance_add', d._id); res.status(201).json({ success: true });
+  }));
+  router.get('/payroll', wrap(async (req, res, tid) => {
+    if (!ownerOnly(req, res)) return; const month = monthOf(req.query.month);
+    const [staff, marks, adv] = await Promise.all([M.Staff.find({ tenantId: tid, isActive: true }).sort({ name: 1 }).limit(200).lean(), M.Attendance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).limit(6200).lean(), M.Advance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).limit(2000).lean()]);
+    const rows = staff.map((x) => { const p = PR.payslip({ name: x.name, monthlySalary: x.monthlySalary, month, marks: marks.filter((m) => String(m.staffId) === String(x._id)), advances: adv.filter((a) => String(a.staffId) === String(x._id)), joinedOn: x.joinedOn }); return { id: String(x._id), ...p, text: PR.slipText(p) }; });
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows, month, total: rows.reduce((a, r) => a + r.net, 0), currency: 'INR', note: 'Pay the staff yourself. These are draft figures until every day is marked.' });
   }));
 
   // ---- festival dates the owner types (we never guess dates) ----

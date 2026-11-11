@@ -6,91 +6,199 @@
       "key": "today",
       "label": "Today",
       "screen": "stats",
-      "stats": "today"
+      "stats": "today",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
     },
     {
       "key": "udhaar",
       "label": "Udhaar",
       "screen": "stats",
-      "stats": "udhaar"
+      "stats": "udhaar",
+      "roles": [
+        "admin",
+        "subadmin",
+        "cashier"
+      ]
     },
     {
       "key": "reorder",
       "label": "Order list",
       "screen": "stats",
-      "stats": "reorder"
+      "stats": "reorder",
+      "roles": [
+        "admin",
+        "subadmin",
+        "stockkeeper"
+      ]
     },
     {
       "key": "expiry",
       "label": "Expiry",
       "screen": "stats",
-      "stats": "expiry"
+      "stats": "expiry",
+      "roles": [
+        "admin",
+        "subadmin",
+        "stockkeeper"
+      ]
     },
     {
       "key": "expenses",
       "label": "Expenses",
       "screen": "resource",
-      "resource": "expenses"
+      "resource": "expenses",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
     },
     {
       "key": "suppliers",
       "label": "Suppliers",
       "screen": "resource",
-      "resource": "suppliers"
+      "resource": "suppliers",
+      "roles": [
+        "admin",
+        "subadmin",
+        "stockkeeper"
+      ]
     },
     {
       "key": "purchases",
       "label": "Supplier bills",
       "screen": "resource",
-      "resource": "purchases"
+      "resource": "purchases",
+      "roles": [
+        "admin",
+        "subadmin",
+        "stockkeeper"
+      ]
     },
     {
       "key": "supplierpay",
       "label": "Pay a supplier",
       "screen": "resource",
-      "resource": "supplierpay"
+      "resource": "supplierpay",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
     },
     {
       "key": "dayclose",
       "label": "Close the day",
       "screen": "resource",
-      "resource": "dayclose"
+      "resource": "dayclose",
+      "roles": [
+        "admin",
+        "subadmin",
+        "cashier"
+      ]
     },
     {
       "key": "profit",
       "label": "Profit",
       "screen": "stats",
-      "stats": "profit"
+      "stats": "profit",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
     },
     {
       "key": "gst",
       "label": "GST summary",
       "screen": "stats",
-      "stats": "gst"
+      "stats": "gst",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
     },
     {
       "key": "estimates",
       "label": "Estimates",
       "screen": "stats",
-      "stats": "estimates"
+      "stats": "estimates",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
     },
     {
       "key": "marketing",
       "label": "Marketing ideas",
       "screen": "stats",
-      "stats": "marketing"
+      "stats": "marketing",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
     },
     {
       "key": "festivals",
       "label": "Festival dates",
       "screen": "resource",
-      "resource": "festivals"
+      "resource": "festivals",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
     },
     {
       "key": "audit",
       "label": "Audit trail",
       "screen": "resource",
       "resource": "audit",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "staff",
+      "label": "Staff and salary",
+      "screen": "resource",
+      "resource": "staff",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "attendance",
+      "label": "Attendance and leave",
+      "screen": "resource",
+      "resource": "attendance",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "advances",
+      "label": "Salary advances",
+      "screen": "resource",
+      "resource": "advances",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "payroll",
+      "label": "Payslips",
+      "screen": "resource",
+      "resource": "payroll",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "team",
+      "label": "Team logins",
+      "screen": "resource",
+      "resource": "team",
       "roles": [
         "admin"
       ]
@@ -804,6 +912,263 @@
         {
           "key": "ref",
           "label": "Reference"
+        }
+      ]
+    },
+    "staff": {
+      "label": "Staff and salary",
+      "endpoint": "/staff",
+      "empty": "No staff added yet.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "monthlySalary",
+          "label": "Monthly salary",
+          "type": "money"
+        },
+        {
+          "key": "joinedOn",
+          "label": "Joined",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "monthlySalary",
+          "label": "Monthly salary (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 0
+        },
+        {
+          "key": "joinedOn",
+          "label": "Joining date",
+          "type": "date"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "POST",
+          "path": "/staff/:id/deactivate",
+          "confirm": "Tap again to remove"
+        }
+      ]
+    },
+    "attendance": {
+      "label": "Attendance and leave",
+      "endpoint": "/attendance",
+      "empty": "Nothing marked this month.",
+      "intro": "Type the staff name exactly as in your staff list. A day nobody marks is not paid, so mark every day.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "staff",
+          "label": "Staff"
+        },
+        {
+          "key": "status",
+          "label": "Mark",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "staff",
+          "label": "Staff name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "status",
+          "label": "Mark",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "present",
+              "label": "Present"
+            },
+            {
+              "value": "half",
+              "label": "Half day"
+            },
+            {
+              "value": "absent",
+              "label": "Absent"
+            },
+            {
+              "value": "paid_leave",
+              "label": "Paid leave"
+            },
+            {
+              "value": "unpaid_leave",
+              "label": "Unpaid leave"
+            },
+            {
+              "value": "weekly_off",
+              "label": "Weekly off"
+            }
+          ]
+        },
+        {
+          "key": "day",
+          "label": "Day (empty means today)",
+          "type": "date"
+        }
+      ]
+    },
+    "advances": {
+      "label": "Salary advances",
+      "endpoint": "/advances",
+      "empty": "No advance given this month.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "staff",
+          "label": "Staff"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        }
+      ],
+      "fields": [
+        {
+          "key": "staff",
+          "label": "Staff name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "day",
+          "label": "Day (empty means today)",
+          "type": "date"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "max": 200
+        }
+      ]
+    },
+    "payroll": {
+      "label": "Payslips (this month)",
+      "endpoint": "/payroll",
+      "readOnly": true,
+      "empty": "Add staff first.",
+      "intro": "Draft figures. You pay the staff yourself. A draft means some days are not marked.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Staff"
+        },
+        {
+          "key": "payableDays",
+          "label": "Payable days",
+          "type": "number"
+        },
+        {
+          "key": "gross",
+          "label": "Pay for the days",
+          "type": "money"
+        },
+        {
+          "key": "advances",
+          "label": "Advances",
+          "type": "money"
+        },
+        {
+          "key": "net",
+          "label": "To pay",
+          "type": "money"
+        },
+        {
+          "key": "draft",
+          "label": "Draft",
+          "type": "bool"
+        }
+      ]
+    },
+    "team": {
+      "label": "Team logins",
+      "endpoint": "/team",
+      "readOnly": true,
+      "empty": "Only you so far.",
+      "intro": "Cashier, stock keeper and manager logins. Adding a login needs a password field that the panel does not have yet, so ask Afra support to add one for now.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "email",
+          "label": "Email"
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "pill"
+        },
+        {
+          "key": "isActive",
+          "label": "Active",
+          "type": "bool"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Switch off",
+          "method": "POST",
+          "path": "/team/:id/deactivate",
+          "when": {
+            "key": "isActive",
+            "equals": true
+          },
+          "confirm": "Tap again to switch off"
         }
       ]
     }

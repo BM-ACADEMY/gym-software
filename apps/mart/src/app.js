@@ -7,6 +7,7 @@ const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createMartRouter, creditGuard, discountHooks } = require('./routes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
+const PM = require('./permissions');
 
 function missingSettings(env) {
   const out = [];
@@ -31,12 +32,12 @@ function createApp({ express, mongoose, env = process.env }) {
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));
   const tenantOf = (req) => req.user.tenantId;
   const guardWrite = (req) => billing.guardWrite(req.subscription, req.method);
-  const roles = ['admin', 'subadmin'];
+  const roles = PM.ROLES; // admin, subadmin, cashier, stockkeeper: what each may do is decided by permissions.js (server side)
   const noop = (req, res, next) => next();
   // Shared shop features (bills, items, stock, returns, CSV import, loyalty): same sign-in, same read-only rule for expired accounts,
   // and the pay-later limit is checked before a bill is saved.
   app.use('/api/mart/pos', protect, authorize(...roles), (req, res, next) => { const g = guardWrite(req); return g.ok ? next() : res.status(g.httpStatus || 402).json({ success: false, message: g.message, code: 'read_only' }); },
-    creditGuard({ mongoose, tenantOf }), createPosRouter({ express, mongoose, protect: noop, authorize: () => noop, tenantOf, roles, prefix: 'MART', ...discountHooks({ mongoose }) }));
+    PM.gate(PM.posPermFor), creditGuard({ mongoose, tenantOf }), createPosRouter({ express, mongoose, protect: noop, authorize: () => noop, tenantOf, roles, prefix: 'MART', ...discountHooks({ mongoose }) }));
   app.use('/api/mart', createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles }));
   return app;
 }

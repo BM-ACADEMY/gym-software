@@ -3,7 +3,7 @@ let n = 0; const oid = () => (++n).toString(16).padStart(24, '0');
 const eq = (a, b) => String(a) === String(b);
 const match = (doc, q) => Object.entries(q).every(([k, v]) => {
   if (k === '$expr') { const [[op, [a, b]]] = Object.entries(v); const g = (x) => (typeof x === 'string' && x[0] === '$' ? doc[x.slice(1)] : x); return op === '$gt' ? g(a) > g(b) : false; }
-  const x = doc[k];
+  const x = doc[k]; if (k === 'isActive' && x === undefined) return v === true; // schema default
   if (v && typeof v === 'object' && !(v instanceof Date) && !Array.isArray(v) && Object.keys(v).some((o) => o[0] === '$')) {
     return Object.entries(v).every(([op, y]) => (op === '$gte' ? x >= y : op === '$lte' ? x <= y : op === '$lt' ? x < y : op === '$gt' ? x > y : op === '$in' ? y.some((z) => eq(z, x)) : op === '$ne' ? !eq(x, y) : op === '$exists' ? (y ? x !== undefined : x === undefined) : true));
   }

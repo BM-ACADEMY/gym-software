@@ -41,7 +41,7 @@ module.exports = (mongoose) => {
     price: { type: Number, default: 0, min: 0 }, currency: { type: String, default: 'INR' }, gstRate: { type: Number, default: 0 }, hsn: { type: String, maxlength: 12 }, cycleDays: Number, isActive: { type: Boolean, default: true },
   }, [[{ tenantId: 1, key: 1 }, { unique: true }]]);
   const Staff = define('SalonStaff', {
-    tenantId: T, name: { type: String, required: true, maxlength: 80 }, phone: String, serviceKeys: [String], isActive: { type: Boolean, default: true },
+    tenantId: T, name: { type: String, required: true, maxlength: 80 }, phone: String, serviceKeys: [String], isActive: { type: Boolean, default: true }, baseSalary: { type: Number, default: 0, min: 0 }, // monthly, whole rupees (INR)
   });
   const Customer = define('SalonCustomer', {
     tenantId: T, name: { type: String, required: true, maxlength: 120 }, phone: { type: String, required: true }, note: { type: String, maxlength: 300 },
@@ -81,5 +81,9 @@ module.exports = (mongoose) => {
   const LoyaltyEntry = define('SalonLoyalty', { tenantId: T, customerId: { type: Schema.Types.ObjectId, required: true }, points: { type: Number, required: true }, reason: { type: String, enum: ['earn', 'redeem', 'import', 'reverse', 'adjust'], required: true }, billId: Schema.Types.ObjectId, note: { type: String, maxlength: 120 } }, [[{ tenantId: 1, customerId: 1, createdAt: -1 }, {}]]);
   const Package = define('SalonPackage', { tenantId: T, customerId: { type: Schema.Types.ObjectId, required: true }, name: { type: String, required: true, maxlength: 80 }, serviceKey: String, total: { type: Number, required: true }, left: { type: Number, required: true }, price: Number, currency: { type: String, default: 'INR' }, expiresOn: String, active: { type: Boolean, default: true } }, [[{ tenantId: 1, customerId: 1 }, {}]]);
   const PackageUse = define('SalonPackageUse', { tenantId: T, packageId: { type: Schema.Types.ObjectId, required: true }, by: String, appointmentId: Schema.Types.ObjectId, undone: Boolean }, [[{ tenantId: 1, packageId: 1, createdAt: -1 }, {}]]);
-  return { LoyaltyEntry, Package, PackageUse, Expense, DayClose, Audit, Tenant, User, Service, Staff, Customer, Appointment, Queue, Bill, Counter };
+  const Attendance = define('SalonAttendance', { tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, day: { type: String, required: true }, status: { type: String, enum: ['present', 'half', 'absent', 'paid_leave', 'unpaid_leave'], required: true } }, [[{ tenantId: 1, staffId: 1, day: 1 }, { unique: true }]]);
+  const Leave = define('SalonLeave', { tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, from: { type: String, required: true }, to: { type: String, required: true }, kind: { type: String, enum: ['paid', 'unpaid'], default: 'unpaid' }, status: { type: String, enum: ['requested', 'approved', 'rejected'], default: 'requested' }, note: { type: String, maxlength: 200 } }, [[{ tenantId: 1, status: 1 }, {}]]);
+  const Shift = define('SalonShift', { tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, weekday: { type: Number, min: 0, max: 6 }, start: Number, end: Number }, [[{ tenantId: 1, staffId: 1 }, {}]]);
+  const Advance = define('SalonAdvance', { tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, date: { type: String, required: true }, amount: { type: Number, required: true, min: 1 }, currency: { type: String, default: 'INR' }, note: { type: String, maxlength: 120 } }, [[{ tenantId: 1, staffId: 1, date: 1 }, {}]]);
+  return { Attendance, Leave, Shift, Advance, LoyaltyEntry, Package, PackageUse, Expense, DayClose, Audit, Tenant, User, Service, Staff, Customer, Appointment, Queue, Bill, Counter };
 };

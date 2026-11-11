@@ -9,6 +9,7 @@ const PV = require('./privacy');
 const CI = require('./customerImport');
 const PK = require('./packages');
 const LR = require('./loyaltyRule');
+const SP = require('./staffPay');
 const LOY = require('../../../packages/core-pos/src/loyalty');
 const { makeFail, makeWrap, field, str, plain, isId } = require('./routes');
 
@@ -113,6 +114,80 @@ function createSalonMoreRouter({ express, mongoose, protect, authorize, tenantOf
     const g = await M.Package.findOneAndUpdate({ _id: p._id, tenantId: tid, active: true, left: { $gt: 0 } }, { $inc: { left: -1 } }, { new: true }); if (!g) return fail(res, 409, 'No sessions left in this package.');
     await M.PackageUse.create({ tenantId: tid, packageId: p._id, by: req.user.id, appointmentId: isId((req.body || {}).appointmentId) ? req.body.appointmentId : undefined });
     res.json({ success: true, data: PK.describe({ ...g.toObject ? g.toObject() : g, id: String(g._id) }, today()) });
+  }));
+
+  // ---- (4) staff: attendance, leave, shifts, advances, payslip. The owner marks and approves; a staff login sees only their own. ----
+  const ownStaffOnly = (req, staffId) => req.user.role === 'admin' || (req.user.staffId && String(req.user.staffId) === String(staffId));
+  const staffOk = async (tid, id) => (isId(id) ? M.Staff.findOne({ _id: id, tenantId: tid }).lean() : null);
+  router.put('/staff/:id/salary', adminOnly, wrap(async (req, res, tid) => {
+    const v = Math.round(Number((req.body || {}).baseSalary)); if (!Number.isInteger(v) || v < 0 || v > 10000000) throw field('Salary must be whole rupees a month.');
+    const d = isId(req.params.id) ? await M.Staff.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: { baseSalary: v } }, { new: true }) : null; if (!d) return fail(res, 404, 'Not found');
+    await audit(tid, req, 'staff.salary', String(d._id)); res.json({ success: true });
+  }));
+  router.put('/attendance', adminOnly, wrap(async (req, res, tid) => {
+    const b = req.body || {}; if (!SP.STATUS.includes(b.status)) throw field('Choose present, half, absent, paid leave or unpaid leave.');
+    if (!B.validDate(b.day) || b.day > today() || B.daysBetween(b.day, today()) > 62) throw field('Pick a day from today back to 62 days ago.');
+    if (!(await staffOk(tid, b.staffId))) return fail(res, 404, 'Staff member not found');
+    await M.Attendance.findOneAndUpdate({ tenantId: tid, staffId: b.staffId, day: b.day }, { $set: { status: b.status } }, { upsert: true, new: true });
+    await audit(tid, req, 'attendance.mark', b.staffId + ' ' + b.day); res.json({ success: true });
+  }));
+  router.get('/attendance', wrap(async (req, res, tid) => {
+    const month = str(req.query.month, 7) || today().slice(0, 7); if (!SP.validMonth(month)) throw field('Pick a month like 2026-11.');
+    const q = { tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }; if (req.user.role !== 'admin') q.staffId = req.user.staffId || 'none';
+    const rows = await M.Attendance.find(q).limit(5000).lean(); const flat = rows.map((r) => ({ staffId: String(r.staffId), day: r.day, status: r.status }));
+    res.json({ success: true, data: { month, rows: flat, summary: SP.monthSummary(flat, month) } });
+  }));
+  router.post('/leave', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const staffId = req.user.role === 'admin' ? b.staffId : req.user.staffId;
+    if (!(await staffOk(tid, staffId))) return fail(res, 404, 'Staff member not found');
+    if (!B.validDate(b.from) || !B.validDate(b.to) || b.from > b.to || B.daysBetween(b.from, b.to) > 30) throw field('Pick from and to dates (up to 31 days).');
+    const d = await M.Leave.create({ tenantId: tid, staffId, from: b.from, to: b.to, kind: SP.LEAVE_KINDS.includes(b.kind) ? b.kind : 'unpaid', note: str(b.note, 200) || undefined, status: 'requested' });
+    res.status(201).json({ success: true, data: plain(d) });
+  }));
+  router.get('/leave', wrap(async (req, res, tid) => {
+    const q = { tenantId: tid }; if (req.user.role !== 'admin') q.staffId = req.user.staffId || 'none';
+    res.json({ success: true, data: (await M.Leave.find(q).sort({ createdAt: -1 }).limit(200).lean()).map((l) => ({ ...l, id: String(l._id) })) });
+  }));
+  router.post('/leave/:id/decide', adminOnly, wrap(async (req, res, tid) => {
+    const approve = (req.body || {}).approve === true; const l = isId(req.params.id) ? await M.Leave.findOne({ _id: req.params.id, tenantId: tid, status: 'requested' }) : null; if (!l) return fail(res, 404, 'No waiting leave request found');
+    const t = await M.Tenant.findById(tid).lean();
+    const g = await M.Leave.findOneAndUpdate({ _id: l._id, tenantId: tid, status: 'requested' }, { $set: { status: approve ? 'approved' : 'rejected' } }, { new: true }); if (!g) return fail(res, 409, 'Already decided.');
+    if (approve) for (const day of SP.leaveDays(l.from, l.to, t.closedWeekdays)) await M.Attendance.findOneAndUpdate({ tenantId: tid, staffId: l.staffId, day }, { $set: { status: l.kind === 'paid' ? 'paid_leave' : 'unpaid_leave' } }, { upsert: true, new: true });
+    await audit(tid, req, approve ? 'leave.approve' : 'leave.reject', String(l._id)); res.json({ success: true });
+  }));
+  router.put('/shifts', adminOnly, wrap(async (req, res, tid) => {
+    const b = req.body || {}; if (!(await staffOk(tid, b.staffId))) return fail(res, 404, 'Staff member not found'); const v = SP.validShifts(b.shifts); if (v.error) throw field(v.error);
+    await M.Shift.deleteMany({ tenantId: tid, staffId: b.staffId }); for (const sh of v.value) await M.Shift.create({ tenantId: tid, staffId: b.staffId, ...sh });
+    await audit(tid, req, 'shifts.set', String(b.staffId)); res.json({ success: true });
+  }));
+  router.get('/shifts', wrap(async (req, res, tid) => {
+    const q = { tenantId: tid }; if (req.user.role !== 'admin') q.staffId = req.user.staffId || 'none';
+    res.json({ success: true, data: (await M.Shift.find(q).limit(500).lean()).map((x) => ({ staffId: String(x.staffId), weekday: x.weekday, start: x.start, end: x.end })) });
+  }));
+  router.post('/advances', adminOnly, wrap(async (req, res, tid) => {
+    const b = req.body || {}; const amount = Math.round(Number(b.amount)); if (!Number.isInteger(amount) || amount < 1 || amount > 10000000) throw field('Enter the advance in whole rupees.');
+    if (!(await staffOk(tid, b.staffId))) return fail(res, 404, 'Staff member not found');
+    const d = await M.Advance.create({ tenantId: tid, staffId: b.staffId, date: B.validDate(b.date) ? b.date : today(), amount, note: str(b.note, 120) || undefined });
+    await audit(tid, req, 'advance.add', String(d._id)); res.status(201).json({ success: true, data: plain(d) });
+  }));
+  const slipFor = async (tid, st, month, r, t) => {
+    const [att, bills, adv] = await Promise.all([M.Attendance.find({ tenantId: tid, staffId: st._id, day: { $gte: r.from, $lte: r.to } }).limit(40).lean(), M.Bill.find({ tenantId: tid, date: { $gte: r.from, $lte: r.to } }).select('commissions status').lean(), M.Advance.find({ tenantId: tid, staffId: st._id, date: { $gte: r.from, $lte: r.to } }).limit(100).lean()]);
+    const commission = PN.live(bills).reduce((n, b) => n + Math.round(Number((b.commissions || {})[String(st._id)]) || 0), 0);
+    return SP.payslip({ month, baseSalary: st.baseSalary, closedWeekdays: t.closedWeekdays, summary: SP.monthSummary(att.map((a) => ({ staffId: String(a.staffId), day: a.day, status: a.status })), month)[String(st._id)], commission, advances: adv.reduce((n, a) => n + a.amount, 0) });
+  };
+  router.get('/payslip', wrap(async (req, res, tid) => {
+    const staffId = req.user.role === 'admin' ? (req.query.staffId || req.query.id) : req.user.staffId; const month = str(req.query.month, 7) || today().slice(0, 7);
+    if (!ownStaffOnly(req, staffId)) return fail(res, 403, 'You can see your own payslip only.');
+    const st = await staffOk(tid, staffId); if (!st) return fail(res, 404, 'Staff member not found'); const r = PN.monthRange(month); if (!r) throw field('Pick a month like 2026-11.');
+    const p = await slipFor(tid, st, month, r, await M.Tenant.findById(tid).lean());
+    if (p.error) throw field(p.error); res.set('Cache-Control', 'no-store'); res.json({ success: true, data: { staffName: st.name, ...p } });
+  }));
+  // One line per staff member for the month (owner panel list).
+  router.get('/payslips/month', adminOnly, wrap(async (req, res, tid) => {
+    const month = str(req.query.month, 7) || today().slice(0, 7); const r = PN.monthRange(month); if (!r) throw field('Pick a month like 2026-11.');
+    const t = await M.Tenant.findById(tid).lean(); const staff = await M.Staff.find({ tenantId: tid, isActive: true }).limit(200).lean(); const out = [];
+    for (const st of staff) { const p = await slipFor(tid, st, month, r, t); if (!p.error) out.push({ id: String(st._id), staffName: st.name, month, workingDays: p.workingDays, paidDays: p.paidDays, unmarkedDays: p.unmarkedDays, salaryPay: p.salaryPay, commission: p.commission, advances: p.advances, net: p.net, currency: 'INR' }); }
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: out });
   }));
 
   return router;

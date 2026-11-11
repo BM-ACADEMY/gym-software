@@ -118,6 +118,24 @@
       "roles": [
         "admin"
       ]
+    },
+    {
+      "key": "payslips",
+      "label": "Staff pay (this month)",
+      "screen": "resource",
+      "resource": "payslips",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "leave",
+      "label": "Time off",
+      "screen": "resource",
+      "resource": "leave",
+      "roles": [
+        "admin"
+      ]
     }
   ],
   "stats": {
@@ -741,6 +759,106 @@
             "key": "status",
             "equals": "open"
           }
+        }
+      ]
+    },
+    "payslips": {
+      "label": "Staff pay this month",
+      "endpoint": "/payslips/month",
+      "readOnly": true,
+      "empty": "No staff yet.",
+      "searchable": false,
+      "columns": [
+        {
+          "key": "staffName",
+          "label": "Staff"
+        },
+        {
+          "key": "paidDays",
+          "label": "Paid days",
+          "type": "number"
+        },
+        {
+          "key": "unmarkedDays",
+          "label": "Days not marked",
+          "type": "number"
+        },
+        {
+          "key": "salaryPay",
+          "label": "Salary",
+          "type": "money"
+        },
+        {
+          "key": "commission",
+          "label": "Commission",
+          "type": "money"
+        },
+        {
+          "key": "advances",
+          "label": "Advances",
+          "type": "money"
+        },
+        {
+          "key": "net",
+          "label": "To pay",
+          "type": "money"
+        }
+      ]
+    },
+    "leave": {
+      "label": "Time off requests",
+      "endpoint": "/leave",
+      "readOnly": true,
+      "empty": "No requests.",
+      "searchable": false,
+      "columns": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "date"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "date"
+        },
+        {
+          "key": "kind",
+          "label": "Paid or unpaid",
+          "type": "pill"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Approve",
+          "method": "POST",
+          "path": "/leave/:id/decide",
+          "body": {
+            "approve": true
+          },
+          "when": {
+            "key": "status",
+            "equals": "requested"
+          },
+          "done": "Approved. Days are marked."
+        },
+        {
+          "label": "Reject",
+          "method": "POST",
+          "path": "/leave/:id/decide",
+          "body": {
+            "approve": false
+          },
+          "when": {
+            "key": "status",
+            "equals": "requested"
+          },
+          "done": "Rejected."
         }
       ]
     }

@@ -1,0 +1,504 @@
+{
+  "product": "mart",
+  "title": "Mart",
+  "nav": [
+    {
+      "key": "today",
+      "label": "Today",
+      "screen": "stats",
+      "stats": "today"
+    },
+    {
+      "key": "udhaar",
+      "label": "Udhaar",
+      "screen": "stats",
+      "stats": "udhaar"
+    },
+    {
+      "key": "reorder",
+      "label": "Order list",
+      "screen": "stats",
+      "stats": "reorder"
+    },
+    {
+      "key": "expiry",
+      "label": "Expiry",
+      "screen": "stats",
+      "stats": "expiry"
+    },
+    {
+      "key": "expenses",
+      "label": "Expenses",
+      "screen": "resource",
+      "resource": "expenses"
+    },
+    {
+      "key": "suppliers",
+      "label": "Suppliers",
+      "screen": "resource",
+      "resource": "suppliers"
+    },
+    {
+      "key": "profit",
+      "label": "Profit",
+      "screen": "stats",
+      "stats": "profit"
+    },
+    {
+      "key": "estimates",
+      "label": "Estimates",
+      "screen": "stats",
+      "stats": "estimates"
+    },
+    {
+      "key": "marketing",
+      "label": "Marketing ideas",
+      "screen": "stats",
+      "stats": "marketing"
+    },
+    {
+      "key": "limits",
+      "label": "My settings",
+      "screen": "settings",
+      "settings": "limits",
+      "roles": [
+        "admin"
+      ]
+    }
+  ],
+  "stats": {
+    "today": {
+      "label": "Yesterday and today's three jobs",
+      "endpoint": "/summary",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales",
+          "path": "sales.total",
+          "type": "money"
+        },
+        {
+          "label": "Bills",
+          "path": "sales.count",
+          "type": "number"
+        },
+        {
+          "label": "Cash",
+          "path": "sales.cash",
+          "type": "money"
+        },
+        {
+          "label": "UPI",
+          "path": "sales.upi",
+          "type": "money"
+        },
+        {
+          "label": "Udhaar overdue",
+          "path": "udhaarOverdueTotal",
+          "type": "money"
+        },
+        {
+          "label": "Low stock items",
+          "path": "lowStockCount",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Three things to do today (suggestions)",
+          "rows": "actions",
+          "empty": "Nothing needs you today.",
+          "columns": [
+            {
+              "key": "text",
+              "label": "What"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            },
+            {
+              "key": "rupees",
+              "label": "At stake",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "udhaar": {
+      "label": "Udhaar (pay later)",
+      "endpoint": "/udhaar",
+      "cards": [
+        {
+          "label": "Total owed",
+          "path": "totalDue",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Overdue",
+          "rows": "overdue",
+          "empty": "Nobody is overdue.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Customer"
+            },
+            {
+              "key": "phone",
+              "label": "Phone",
+              "type": "phone"
+            },
+            {
+              "key": "due",
+              "label": "Owes",
+              "type": "money"
+            },
+            {
+              "key": "daysOld",
+              "label": "Days old",
+              "type": "number"
+            }
+          ]
+        },
+        {
+          "label": "Everyone who owes",
+          "rows": "owing",
+          "empty": "No udhaar.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Customer"
+            },
+            {
+              "key": "due",
+              "label": "Owes",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "reorder": {
+      "label": "Order list (suggestions)",
+      "endpoint": "/reports/reorder",
+      "tables": [
+        {
+          "label": "Running low, with the reason",
+          "rows": "",
+          "empty": "Nothing needs ordering.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Item"
+            },
+            {
+              "key": "qty",
+              "label": "Left",
+              "type": "number"
+            },
+            {
+              "key": "daysLeft",
+              "label": "Days left",
+              "type": "number"
+            },
+            {
+              "key": "orderQty",
+              "label": "Order",
+              "type": "number"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    },
+    "expiry": {
+      "label": "Expiry",
+      "endpoint": "/reports/expiry",
+      "tables": [
+        {
+          "label": "Expiring within 30 days",
+          "rows": "",
+          "empty": "Nothing expires soon.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Item"
+            },
+            {
+              "key": "daysLeft",
+              "label": "Days left",
+              "type": "number"
+            },
+            {
+              "key": "suggestedDiscountPct",
+              "label": "Offer %",
+              "type": "number"
+            },
+            {
+              "key": "rupees",
+              "label": "Stock worth",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "profit": {
+      "label": "Profit and loss (last 30 days)",
+      "endpoint": "/reports/profit-loss",
+      "cards": [
+        {
+          "label": "Sales (no GST)",
+          "path": "sales",
+          "type": "money"
+        },
+        {
+          "label": "Cost of goods",
+          "path": "costOfGoods",
+          "type": "money"
+        },
+        {
+          "label": "Expenses",
+          "path": "expenses",
+          "type": "money"
+        },
+        {
+          "label": "What is left",
+          "path": "netProfit",
+          "type": "money"
+        }
+      ],
+      "tables": []
+    },
+    "estimates": {
+      "label": "Estimates (not promises)",
+      "endpoint": "/reports/forecast",
+      "cards": [
+        {
+          "label": "Next month, low",
+          "path": "nextMonth.low",
+          "type": "money"
+        },
+        {
+          "label": "Next month, likely",
+          "path": "nextMonth.likely",
+          "type": "money"
+        },
+        {
+          "label": "Next month, high",
+          "path": "nextMonth.high",
+          "type": "money"
+        },
+        {
+          "label": "Cash needed for dues",
+          "path": "cashNeeded.rupees",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Likely to run out within 7 days",
+          "rows": "runOutSoon",
+          "empty": "Nothing runs out soon.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Item"
+            },
+            {
+              "key": "daysLeft",
+              "label": "Days left",
+              "type": "number"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    },
+    "marketing": {
+      "label": "Marketing ideas (suggestions)",
+      "endpoint": "/marketing",
+      "tables": [
+        {
+          "label": "Regulars who may be drifting away",
+          "rows": "winBack",
+          "empty": "No one is drifting right now.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Customer"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        },
+        {
+          "label": "Festival offers",
+          "rows": "festivals",
+          "empty": "Add festival dates in My settings.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Festival"
+            },
+            {
+              "key": "inDays",
+              "label": "In days",
+              "type": "number"
+            },
+            {
+              "key": "text",
+              "label": "Idea"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resources": {
+    "expenses": {
+      "label": "Expenses",
+      "endpoint": "/expenses",
+      "empty": "No expenses yet.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day"
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "pill"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        }
+      ],
+      "fields": [
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "required": true,
+          "options": [
+            "rent",
+            "salary",
+            "electricity",
+            "transport",
+            "packaging",
+            "repair",
+            "tea_food",
+            "other"
+          ]
+        },
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "max": 200
+        }
+      ]
+    },
+    "suppliers": {
+      "label": "Suppliers",
+      "endpoint": "/suppliers",
+      "empty": "No suppliers yet.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Supplier"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "due",
+          "label": "You owe",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Supplier name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        }
+      ]
+    }
+  },
+  "settings": {
+    "limits": {
+      "label": "My settings",
+      "endpoint": "/settings",
+      "intro": "These are your own rules. Change them any time; no one else needs to be involved.",
+      "numbers": [
+        {
+          "key": "defaultCreditLimit",
+          "label": "Udhaar limit per customer (rupees, empty for none)",
+          "min": 0
+        },
+        {
+          "key": "overdueGraceDays",
+          "label": "Udhaar overdue after (days)",
+          "min": 1,
+          "max": 365,
+          "default": 15
+        },
+        {
+          "key": "discountAlertPct",
+          "label": "Warn me when a bill discount is above (%)",
+          "min": 5,
+          "max": 100,
+          "default": 20
+        },
+        {
+          "key": "deadStockDays",
+          "label": "Slow stock after (days)",
+          "min": 7,
+          "max": 365,
+          "default": 45
+        },
+        {
+          "key": "festivalUplift",
+          "label": "Festival order uplift (1 to 5)",
+          "min": 1,
+          "max": 5,
+          "default": 1
+        }
+      ]
+    }
+  }
+}

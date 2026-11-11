@@ -6,6 +6,7 @@
 const makeModels = require('./models');
 const makePos = require('../../../packages/core-pos/src/models');
 const R = require('./reorder'); const Sh = require('./shelf'); const U = require('./udhaar'); const L = require('./leaks'); const S = require('./summary');
+const A = require('./accounts'); const I = require('./insights');
 const shape = require('./shape'); const { istDay, addDays, valid } = require('./dates');
 
 const toOid = (v) => (typeof v === 'string' && /^[a-f0-9]{24}$/i.test(v) ? v : null);
@@ -57,8 +58,9 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     if ('discountAlertPct' in b) { const v = clampInt(b.discountAlertPct, 5, 100, null); if (v === null) return fail(res, 400, 'Discount alert must be 5 to 100 percent.'); set.discountAlertPct = v; }
     if ('festivalUplift' in b) { const v = Number(b.festivalUplift); if (!(v >= 1 && v <= 5)) return fail(res, 400, 'Festival uplift must be 1 to 5.'); set.festivalUplift = v; }
     if ('defaultCreditLimit' in b) { if (b.defaultCreditLimit === null || b.defaultCreditLimit === '') set.defaultCreditLimit = null; else { const v = clampInt(b.defaultCreditLimit, 0, 10000000, null); if (v === null) return fail(res, 400, 'Credit limit must be whole rupees.'); set.defaultCreditLimit = v; } }
+    if ('festivals' in b) { if (!Array.isArray(b.festivals) || b.festivals.length > 30) return fail(res, 400, 'Add up to 30 festival dates.'); const f = b.festivals.map((x) => ({ name: typeof (x || {}).name === 'string' ? x.name.trim().slice(0, 60) : '', date: x && x.date })); if (f.some((x) => x.name.length < 2 || !valid(x.date))) return fail(res, 400, 'Each festival needs a name and a date.'); set.festivals = f; }
     if (!Object.keys(set).length) return fail(res, 400, 'Nothing to change.');
-    await M.Settings.updateOne({ tenantId: tid }, { $set: set, $setOnInsert: { tenantId: tid } }, { upsert: true });
+    await M.Settings.updateOne({ tenantId: tid }, { $set: set }, { upsert: true });
     res.json({ success: true, data: await settingsOf(tid) });
   }));
 
@@ -122,6 +124,116 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
       discounts: L.heavyDiscounts(weekBills, { pct: st.discountAlertPct }), dead: Sh.deadStock(its, shape.salesOf(bills), t, st.deadStockDays),
     });
     res.json({ success: true, data: { day, ...out, note: 'Suggestions only. Nothing is ordered or sent for you.' } });
+  }));
+
+  // ---- accounts: expenses, suppliers, day close, profit and loss, CA file ----
+  const dayParam = (v, d) => (valid(v) ? v : d);
+  router.get('/expenses', wrap(async (req, res, tid) => {
+    const to = dayParam(req.query.to, today()); const from = dayParam(req.query.from, addDays(to, -30));
+    const rows = await M.Expense.find({ tenantId: tid, day: { $gte: from, $lte: to } }).sort({ day: -1 }).limit(1000).lean();
+    res.json({ success: true, data: rows });
+  }));
+  router.get('/reports/expenses', wrap(async (req, res, tid) => {
+    const to = dayParam(req.query.to, today()); const from = dayParam(req.query.from, addDays(to, -30));
+    res.json({ success: true, data: { from, to, ...A.expensesByCategory(await M.Expense.find({ tenantId: tid, day: { $gte: from, $lte: to } }).limit(5000).lean()) } });
+  }));
+  router.post('/expenses', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const amount = Number(b.amount);
+    if (!A.EXPENSE_CATEGORIES.includes(b.category)) return fail(res, 400, 'Choose a category.');
+    if (!Number.isInteger(amount) || amount <= 0) return fail(res, 400, 'Enter the amount in whole rupees.');
+    const d = await M.Expense.create({ tenantId: tid, day: dayParam(b.day, today()), category: b.category, amount, method: ['cash', 'upi', 'card'].includes(b.method) ? b.method : 'cash', note: typeof b.note === 'string' ? b.note.trim().slice(0, 200) : undefined, by: req.user.id });
+    res.status(201).json({ success: true, data: d });
+  }));
+  router.get('/suppliers', wrap(async (req, res, tid) => {
+    const [sup, pur] = await Promise.all([M.Supplier.find({ tenantId: tid, isActive: true }).sort({ name: 1 }).limit(500).lean(), M.Purchase.find({ tenantId: tid, $expr: { $gt: ['$amount', '$paid'] } }).limit(5000).lean()]);
+    const dues = Object.fromEntries(A.supplierDues(pur.map((p) => ({ ...p, supplierId: String(p.supplierId) })), today()).map((d) => [d.supplierId, d]));
+    res.json({ success: true, data: sup.map((s) => ({ ...s, due: (dues[String(s._id)] || {}).due || 0, oldestDay: (dues[String(s._id)] || {}).oldestDay || null })) });
+  }));
+  router.post('/suppliers', wrap(async (req, res, tid) => {
+    const name = typeof (req.body || {}).name === 'string' ? req.body.name.trim().slice(0, 120) : ''; if (name.length < 2) return fail(res, 400, 'Enter the supplier name.');
+    res.status(201).json({ success: true, data: await M.Supplier.create({ tenantId: tid, name, phone: typeof req.body.phone === 'string' ? req.body.phone.replace(/[^\d+]/g, '').slice(0, 15) : undefined }) });
+  }));
+  router.post('/suppliers/:id/purchases', wrap(async (req, res, tid) => {
+    const sid = toOid(req.params.id); const b = req.body || {}; const amount = Number(b.amount); const paid = Number(b.paid || 0);
+    if (!sid || !(await M.Supplier.findOne({ _id: sid, tenantId: tid }))) return fail(res, 404, 'Supplier not found');
+    if (!Number.isInteger(amount) || amount <= 0) return fail(res, 400, 'Enter the bill amount in whole rupees.');
+    if (!Number.isInteger(paid) || paid < 0 || paid > amount) return fail(res, 400, 'Paid now must be from 0 to the bill amount.');
+    const cash = b.method === 'cash' || b.method === undefined ? paid : 0;
+    res.status(201).json({ success: true, data: await M.Purchase.create({ tenantId: tid, supplierId: sid, day: dayParam(b.day, today()), amount, paid, paidCash: cash, note: typeof b.note === 'string' ? b.note.trim().slice(0, 200) : undefined, by: req.user.id }) });
+  }));
+  router.post('/suppliers/:id/pay', wrap(async (req, res, tid) => {
+    const sid = toOid(req.params.id); const amount = Number((req.body || {}).amount);
+    if (!sid || !(await M.Supplier.findOne({ _id: sid, tenantId: tid }))) return fail(res, 404, 'Supplier not found');
+    const open = await M.Purchase.find({ tenantId: tid, supplierId: sid, $expr: { $gt: ['$amount', '$paid'] } }).lean();
+    let plan; try { plan = A.allocatePayment(open.map((p) => ({ id: String(p._id), day: p.day, amount: p.amount, paid: p.paid })), amount); } catch (e) { if (e.code === 'ACCOUNTS_INVALID') return fail(res, 400, e.message); throw e; }
+    const cashPay = (req.body || {}).method === 'upi' || (req.body || {}).method === 'card' ? false : true; let left = amount;
+    for (const u of plan) { const prev = open.find((p) => String(p._id) === u.id); const add = u.paid - prev.paid; left -= add; await M.Purchase.updateOne({ _id: u.id, tenantId: tid, paid: prev.paid }, { $set: { paid: u.paid }, ...(cashPay ? { $inc: { paidCash: add } } : {}) }); }
+    res.json({ success: true, data: { paid: amount - left } });
+  }));
+  // Day close: counted cash against what the books say should be there. Saves one row per day.
+  const cashFor = async (tid, day, opening) => {
+    const from = new Date(Date.parse(day + 'T00:00:00Z') - 5.5 * 3600000); const to = new Date(from.getTime() + 86400000);
+    const [bills, pays, exps, purs] = await Promise.all([P.PosBill.find({ tenantId: tid, createdAt: { $gte: from, $lt: to } }).lean(), M.Payment.find({ tenantId: tid, day, method: 'cash' }).lean(), M.Expense.find({ tenantId: tid, day, method: 'cash' }).lean(), M.Purchase.find({ tenantId: tid, day, paidCash: { $gt: 0 } }).lean()]);
+    return A.expectedCash({ opening, cashSales: Math.max(0, shape.billsOf(bills).length ? S.salesOf(shape.billsOf(bills)).cash : 0), udhaarCashIn: pays.reduce((a, x) => a + x.amount, 0), expensesCash: exps.reduce((a, x) => a + x.amount, 0), supplierCashOut: purs.reduce((a, x) => a + x.paidCash, 0) });
+  };
+  router.get('/day-close', wrap(async (req, res, tid) => {
+    const day = dayParam(req.query.day, today()); const prev = await M.DayClose.findOne({ tenantId: tid, day: { $lt: day } }).sort({ day: -1 }).lean();
+    const opening = Number.isInteger(Number(req.query.opening)) && req.query.opening !== undefined ? Math.max(0, Number(req.query.opening)) : (prev ? prev.counted : 0);
+    res.json({ success: true, data: { day, openingCash: opening, ...(await cashFor(tid, day, opening)), saved: await M.DayClose.findOne({ tenantId: tid, day }).lean() } });
+  }));
+  router.post('/day-close', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const day = dayParam(b.day, today()); const counted = Number(b.counted); const opening = Number.isInteger(Number(b.openingCash)) ? Math.max(0, Number(b.openingCash)) : 0;
+    if (!Number.isInteger(counted) || counted < 0) return fail(res, 400, 'Enter the counted cash in whole rupees.');
+    const { expected } = await cashFor(tid, day, opening); const r = A.dayClose({ expected, counted });
+    await M.DayClose.updateOne({ tenantId: tid, day }, { $set: { openingCash: opening, expected, counted, diff: r.diff, by: req.user.id } }, { upsert: true });
+    res.json({ success: true, data: { day, ...r } });
+  }));
+  const periodBills = async (tid, from, to) => P.PosBill.find({ tenantId: tid, createdAt: { $gte: new Date(Date.parse(from + 'T00:00:00Z') - 5.5 * 3600000), $lt: new Date(Date.parse(to + 'T00:00:00Z') + 86400000 - 5.5 * 3600000) } }).limit(20000).lean();
+  router.get('/reports/profit-loss', wrap(async (req, res, tid) => {
+    const to = dayParam(req.query.to, today()); const from = dayParam(req.query.from, addDays(to, -30));
+    const [bills, exps, items] = await Promise.all([periodBills(tid, from, to), M.Expense.find({ tenantId: tid, day: { $gte: from, $lte: to } }).lean(), P.PosItem.find({ tenantId: tid }).select('cost').lean()]);
+    const costOf = {}; for (const i of items) if (i.cost !== undefined && i.cost !== null) costOf[String(i._id)] = i.cost;
+    res.json({ success: true, data: { from, to, ...A.profitAndLoss({ bills: bills.map((b) => ({ ...b, lines: (b.lines || []).map((l) => ({ itemId: l.itemId ? String(l.itemId) : null, qty: l.qty })) })), expenses: exps, costOf }) } });
+  }));
+  // CSV for the CA. Read-only; we do not file anything.
+  router.get('/reports/ca-export', wrap(async (req, res, tid) => {
+    const to = dayParam(req.query.to, today()); const from = dayParam(req.query.from, addDays(to, -30));
+    const [bills, exps] = await Promise.all([periodBills(tid, from, to), M.Expense.find({ tenantId: tid, day: { $gte: from, $lte: to } }).lean()]);
+    res.set('Content-Type', 'text/csv; charset=utf-8'); res.set('Content-Disposition', `attachment; filename="mart-${from}-to-${to}.csv"`); res.set('Cache-Control', 'no-store');
+    res.send(A.caCsv({ bills, expenses: exps, dayOf: (b) => istDay(b.createdAt) }));
+  }));
+
+  // ---- sales reports and predictions (estimates, labelled) ----
+  router.get('/reports/sales', wrap(async (req, res, tid) => {
+    const to = dayParam(req.query.to, today()); const from = dayParam(req.query.from, addDays(to, -7)); const dim = String(req.query.by || 'day');
+    if (!['day', 'hour', 'staff', 'item'].includes(dim)) return fail(res, 400, 'Report by day, hour, staff or item.');
+    const bills = await periodBills(tid, from, to);
+    res.json({ success: true, data: { from, to, by: dim, rows: I.salesBy(bills.map((b) => ({ ...b, by: b.by ? String(b.by) : null })), dim) } });
+  }));
+  router.get('/reports/forecast', wrap(async (req, res, tid) => {
+    const st = await settingsOf(tid); const t = today(); const monthTotals = [];
+    const first = (n) => { const d = new Date(Date.parse(t.slice(0, 7) + '-01T00:00:00Z')); d.setUTCMonth(d.getUTCMonth() - n); return d.toISOString().slice(0, 10); };
+    const bills = await periodBills(tid, first(3), addDays(first(0), -1));
+    for (let n = 3; n >= 1; n -= 1) { const a = first(n); const z = first(n - 1); monthTotals.push(I.salesBy(bills.filter((b) => { const d = istDay(b.createdAt); return d >= a && d < z; }), 'day').reduce((s, x) => s + x.total, 0)); }
+    const recent = await P.PosBill.find({ tenantId: tid, createdAt: { $gte: new Date(now().getTime() - 60 * 86400000) } }).limit(5000).lean();
+    const { items, bills: two } = await load(tid, 14); const its = shape.itemsOf(items);
+    const { entries } = await udhaarEntries(tid); const pur = await M.Purchase.find({ tenantId: tid, $expr: { $gt: ['$amount', '$paid'] } }).limit(5000).lean();
+    const supplierDue = A.supplierDues(pur.map((p) => ({ ...p, supplierId: String(p.supplierId) })), t).reduce((a, x) => a + x.due, 0);
+    const exp30 = await M.Expense.find({ tenantId: tid, day: { $gte: addDays(t, -30) } }).lean();
+    res.json({ success: true, data: {
+      label: 'Estimates from your own past data. Not promises.',
+      nextMonth: I.nextMonthRange(monthTotals), busySlow: I.busySlow(recent),
+      runOutSoon: R.suggestReorder({ items: its, sales: shape.salesOf(two), today: t, uplift: st.festivalUplift }).filter((r) => r.daysLeft !== null && r.daysLeft <= 7),
+      udhaarOverdue: U.overdue(entries, t, st.overdueGraceDays).length, cashNeeded: I.cashNeededForDues({ supplierDue, expectedExpenses: A.expensesByCategory(exp30).total }),
+    } });
+  }));
+  router.get('/marketing', wrap(async (req, res, tid) => {
+    const st = await settingsOf(tid); const t = today();
+    const bills = await P.PosBill.find({ tenantId: tid, customerId: { $exists: true, $ne: null }, createdAt: { $gte: new Date(now().getTime() - 365 * 86400000) } }).select('customerId createdAt').limit(20000).lean();
+    const cust = await P.PosCustomer.find({ tenantId: tid, isActive: true }).select('name').limit(20000).lean(); const nm = Object.fromEntries(cust.map((c) => [String(c._id), c.name]));
+    const g = {}; for (const b of bills) (g[String(b.customerId)] = g[String(b.customerId)] || []).push(istDay(b.createdAt));
+    const list = Object.entries(g).map(([id, dates]) => ({ customerId: id, name: nm[id] || 'Customer', dates, lastBillDay: [...dates].sort().pop() }));
+    res.json({ success: true, data: { note: 'Suggestions only. Nothing is sent for you, and WhatsApp messages need approved templates.', winBack: I.lapseRisk(list, t), festivals: I.festivalIdeas((st.festivals || []), t), reviewRequests: I.reviewRequests(list, t) } });
   }));
   return router;
 }

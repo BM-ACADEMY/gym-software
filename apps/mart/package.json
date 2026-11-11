@@ -4,7 +4,16 @@
   "private": true,
   "description": "Mart: billing, stock, udhaar and daily summary for kirana and mini marts. Billing, stock, returns, CSV import and loyalty come from packages/core-pos. Written, not yet tested by a person.",
   "main": "src/index.js",
-  "dependencies": { "express": "^5.2.1", "mongoose": "^9.7.4" },
-  "scripts": { "test": "jest" },
-  "license": "UNLICENSED"
+  "dependencies": {
+    "express": "^5.2.1",
+    "mongoose": "^9.7.4"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "supertest": "^7.2.2",
+    "jest": "^29.7.0"
+  }
 }

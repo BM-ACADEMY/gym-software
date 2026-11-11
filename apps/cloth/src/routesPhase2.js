@@ -1,7 +1,7 @@
 'use strict';
 // Cloth routes, Phase 2 (wave A). Written, not yet tested by a person. Every query filters by tenantId (the shop).
 // Added in steps: 1 barcode/scan/fabric, 2 staff pay, 3 sales breakdown + Tally-style CSV, 5 data rights + audit, 6 stock count, 7 returns.
-const BC = require('./barcode'); const PR = require('./payrollRules');
+const BC = require('./barcode'); const PR = require('./payrollRules'); const SR = require('./salesReports'); const Ac = require('./accounts');
 
 module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBetween, settingsOf }) => {
   const audit = (tid, req, action, text) => M.Audit.create({ tenantId: tid, action, text: String(text || '').slice(0, 200), by: req.user.id });
@@ -74,6 +74,22 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBet
     await audit(tid, req, 'payslip.view', String(s._id) + ' ' + month);
     if (req.query.format === 'html') { res.set('Content-Type', 'text/html; charset=utf-8'); res.set('Cache-Control', 'no-store'); return res.send(PR.payslipHtml(p)); }
     res.json({ success: true, data: p });
+  }));
+
+  // ---- 3. sales by item, staff, hour; Tally-style CSV ----
+  const range = (req) => { const today = todayIST(now()); const from = str(req.query.from, 10) || addDays(today, -29), to = str(req.query.to, 10) || today; return Ac.isDate(from) && Ac.isDate(to) && to >= from && (Date.parse(to) - Date.parse(from)) / 86400000 <= 400 ? { from, to } : null; };
+  router.get('/reports/sales-breakdown', wrap(async (req, res, tid) => {
+    const by = ['item', 'staff', 'hour'].includes(req.query.by) ? req.query.by : null; if (!by) return fail(res, 400, 'by must be item, staff or hour.');
+    const r = range(req); if (!r) return fail(res, 400, 'Give a valid from and to date.');
+    res.json({ success: true, data: SR.report(await billsBetween(tid, r.from, r.to), by) });
+  }));
+  router.get('/export/tally.csv', wrap(async (req, res, tid) => {
+    const g = ownerOnly(req, res); if (g) return g;
+    const r = range(req); if (!r) return fail(res, 400, 'Give a valid from and to date.');
+    const bills = await billsBetween(tid, r.from, r.to); const ids = [...new Set(bills.map((b) => b.customerId).filter(Boolean))];
+    const names = {}; if (ids.length && M.PosCustomer) for (const c of await M.PosCustomer.find({ tenantId: tid, _id: { $in: ids } }).select('name').lean()) names[String(c._id)] = c.name;
+    await audit(tid, req, 'export.tally', r.from + ' to ' + r.to);
+    res.set('Content-Type', 'text/csv; charset=utf-8'); res.set('Content-Disposition', 'attachment; filename="sales-vouchers.csv"'); res.set('Cache-Control', 'no-store'); res.send(SR.tallyCsv(bills, { names }));
   }));
 
   return { audit, ownerOnly };

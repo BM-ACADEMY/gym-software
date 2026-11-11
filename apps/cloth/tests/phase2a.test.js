@@ -96,3 +96,19 @@ describe('staff routes: shift, leave, payslip', () => {
     expect((await call(r['GET /settings'], A)).b.data.leaveAllowance).toBe(10);
   });
 });
+describe('sales breakdown and Tally-style export routes', () => {
+  const bills = [{ id: 'b1', number: 'CL1', date: '2026-11-10', at: '2026-11-10T05:00:00Z', status: 'paid', total: 1050, taxable: 1000, gst: 50, discount: 0, customerId: 'c1', lines: [{ name: 'Kurta', qty: 1, net: 1000, staffId: 's1' }] }];
+  const mk3 = () => { const { r, router } = mkRouter(); const M = { Settings: model(), Variant: model(), StockMove: model(), Alteration: model(), CustomerInfo: model(), PosCustomer: model(), Expense: model(), DayClose: model(), SupplierBill: model(), Staff: model(), Attendance: model(), BillDiscount: model(), Audit: model(), Tenant: model() };
+    createClothRouter({ express: { Router: () => router }, M, protect: 'P', authorize: () => 'A', tenantOf: (req) => req.user.tenantId, now: () => new Date('2026-11-12T06:00:00Z'), billsBetween: async (tid, f, t) => (tid === 'a' ? bills.filter((b) => b.date >= f && b.date <= t) : []) }); return { r, M }; };
+  test('breakdown validates by and dates, per shop; export is owner only and audited', async () => {
+    const { r, M } = mk3(); const Q = (q, x = A) => ({ ...x, query: q });
+    expect((await call(r['GET /reports/sales-breakdown'], Q({ by: 'item' }))).b.data.rows[0].amount).toBe(1000);
+    expect((await call(r['GET /reports/sales-breakdown'], Q({ by: 'colour' }))).c).toBe(400);
+    expect((await call(r['GET /reports/sales-breakdown'], Q({ by: 'staff', from: '2026-12-01', to: '2026-11-01' }))).c).toBe(400);
+    expect((await call(r['GET /reports/sales-breakdown'], Q({ by: 'hour' }, B))).b.data.rows.length).toBe(0);
+    await M.PosCustomer.create({ tenantId: 'a', _id: 'c1', name: 'Asha' });
+    const csv = await call(r['GET /export/tally.csv'], Q({})); expect(csv.text.includes('CL1')).toBe(true);
+    expect((await call(r['GET /export/tally.csv'], Q({}, { user: { id: 'u3', tenantId: 'a', role: 'subadmin' } }))).c).toBe(403);
+    expect(M.Audit.rows.some((a) => a.action === 'export.tally')).toBe(true);
+  });
+});

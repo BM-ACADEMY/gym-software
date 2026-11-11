@@ -38,7 +38,7 @@ function createApp({ express, mongoose, env = process.env }) {
   const billsBetween = async (tid, fromDate, toDate) => {
     const from = new Date(Date.parse(fromDate + 'T00:00:00Z') - 5.5 * 3600000); const to = new Date(Date.parse(toDate + 'T00:00:00Z') + 86400000 - 5.5 * 3600000);
     const rows = await pos.PosBill.find({ tenantId: new mongoose.Types.ObjectId(String(tid)), createdAt: { $gte: from, $lt: to } }).limit(20000).lean();
-    return rows.map((b) => ({ id: String(b._id), number: b.number, date: new Date(b.createdAt.getTime() + 5.5 * 3600000).toISOString().slice(0, 10), total: b.total, discount: b.discount || 0, status: b.status, by: b.by && String(b.by), customerId: b.customerId && String(b.customerId), taxable: b.taxable, gst: b.gst, lines: b.lines || [] }));
+    return rows.map((b) => ({ id: String(b._id), number: b.number, date: new Date(b.createdAt.getTime() + 5.5 * 3600000).toISOString().slice(0, 10), at: b.createdAt.toISOString(), total: b.total, discount: b.discount || 0, status: b.status, by: b.by && String(b.by), customerId: b.customerId && String(b.customerId), taxable: b.taxable, gst: b.gst, lines: b.lines || [] }));
   };
   app.use('/api/cloth', createClothRouter({ ...common, M, billsBetween, planOf: (req) => billing.computeStatus(req.subscription).planKey, guardWrite: (req) => { const g = billing.guardWrite(req.subscription, req.method); return g.ok ? null : { status: g.httpStatus, message: g.message }; }, salesOfDay }));
   app.use('/api/pos', protect, authorize('admin', 'subadmin'), createBillGuard({ M }), corePos.createPosRouter({ ...common, mongoose, prefix: 'CL', ...discountHooks({ M }) }));

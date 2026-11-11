@@ -45,7 +45,7 @@ module.exports = (mongoose) => {
   const Customer = define('SalonCustomer', {
     tenantId: T, name: { type: String, required: true, maxlength: 120 }, phone: { type: String, required: true }, note: { type: String, maxlength: 300 },
     preferredStaffId: Schema.Types.ObjectId, birthday: String, anniversary: String, doNotContact: { type: Boolean, default: false },
-    lastVisit: String, lastServiceKey: String,
+    lastVisit: String, lastServiceKey: String, anonymisedAt: Date, // set when the owner deletes the person on request: details removed, bills kept
     consent: { at: Date, source: String }, // booking-link consent tick, or owner records that the customer agreed
   }, [[{ tenantId: 1, phone: 1 }, { unique: true }]]);
   // `active` is true while the visit holds the slot (booked or pending). The unique index only covers active rows,

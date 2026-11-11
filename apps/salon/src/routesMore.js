@@ -5,6 +5,7 @@ const makeModels = require('./models');
 const B = require('./booking');
 const A = require('./accounts');
 const PN = require('./panel');
+const PV = require('./privacy');
 const { makeFail, makeWrap, field, str, plain, isId } = require('./routes');
 
 function createSalonMoreRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, env = process.env, roles = ['admin', 'staff', 'doctor'] }) {
@@ -31,6 +32,29 @@ function createSalonMoreRouter({ express, mongoose, protect, authorize, tenantOf
   router.get('/audit', adminOnly, wrap(async (req, res, tid) => {
     const rows = await M.Audit.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(200).lean();
     res.json({ success: true, data: rows.map((r) => ({ id: String(r._id), at: r.createdAt, by: r.by, action: r.action, ref: r.ref })) });
+  }));
+
+  // ---- (2) data export and delete on request (owner only, audited, nothing about the request goes in the audit but the id) ----
+  router.get('/privacy/customers/:id/export', adminOnly, wrap(async (req, res, tid) => {
+    const c = isId(req.params.id) ? await M.Customer.findOne({ _id: req.params.id, tenantId: tid }).lean() : null; if (!c) return fail(res, 404, 'Customer not found');
+    const [appointments, bills] = await Promise.all([M.Appointment.find({ tenantId: tid, customerId: c._id }).limit(2000).lean(), M.Bill.find({ tenantId: tid, customerId: c._id }).limit(2000).lean()]);
+    await audit(tid, req, 'privacy.export', String(c._id));
+    res.set('Cache-Control', 'no-store'); res.set('Content-Disposition', 'attachment; filename="customer-data.json"'); res.json({ success: true, data: PV.customerExport({ customer: c, appointments, bills }) });
+  }));
+  router.post('/privacy/customers/:id/delete', adminOnly, wrap(async (req, res, tid) => {
+    if (!PV.confirmed(req.body)) throw field('To delete, send confirm: "' + PV.CONFIRM_WORD + '". This cannot be undone.');
+    const c = isId(req.params.id) ? await M.Customer.findOne({ _id: req.params.id, tenantId: tid }) : null; if (!c) return fail(res, 404, 'Customer not found');
+    if (c.anonymisedAt) return fail(res, 409, 'This customer was already deleted.');
+    await M.Appointment.updateMany({ tenantId: tid, customerId: c._id, active: true }, { $set: { status: 'cancelled', active: false } }); // frees any held slot
+    await M.Customer.updateOne({ _id: c._id, tenantId: tid }, { $set: PV.anonymisePatch(c._id) });
+    await audit(tid, req, 'privacy.delete', String(c._id)); res.json({ success: true, message: 'The customer details were removed. Bills stay for your accounts, without the name or phone.' });
+  }));
+  router.get('/privacy/export.json', adminOnly, wrap(async (req, res, tid) => {
+    const [tenant, services, staff, customers, bills, expenses] = await Promise.all([M.Tenant.findById(tid).lean(), M.Service.find({ tenantId: tid }).limit(500).lean(), M.Staff.find({ tenantId: tid }).limit(500).lean(), M.Customer.find({ tenantId: tid }).limit(5000).lean(), M.Bill.find({ tenantId: tid }).limit(5000).lean(), M.Expense.find({ tenantId: tid }).limit(5000).lean()]);
+    await audit(tid, req, 'privacy.export.business', String(tid));
+    const strip = (o) => { const { _id, tenantId, __v, ...rest } = o; return rest; };
+    res.set('Cache-Control', 'no-store'); res.set('Content-Disposition', 'attachment; filename="business-data.json"');
+    res.json({ success: true, data: { schema: 1, currency: 'INR', business: { businessName: tenant.businessName, preset: tenant.preset, address: tenant.address, gstin: tenant.gstin }, services: services.map(strip), staff: staff.map(strip), customers: customers.map(strip), bills: bills.map(strip), expenses: expenses.map(strip), note: 'Up to 5,000 rows of each kind. Ask for more in parts if you have more.' } });
   }));
 
   return router;

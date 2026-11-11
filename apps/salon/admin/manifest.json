@@ -390,6 +390,18 @@
           "label": "Customer agreed to be contacted",
           "type": "bool"
         }
+      ],
+      "actions": [
+        {
+          "label": "Delete on request",
+          "method": "POST",
+          "path": "/privacy/customers/:id/delete",
+          "body": {
+            "confirm": "DELETE"
+          },
+          "confirm": "Tap again: removes name and phone for good",
+          "done": "Customer details removed. Bills stay without the name."
+        }
       ]
     },
     "services": {

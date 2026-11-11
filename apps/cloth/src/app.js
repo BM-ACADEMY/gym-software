@@ -7,6 +7,7 @@ const corePos = require('../../../packages/core-pos/src');
 const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createClothRouter } = require('./routes');
+const createBillGuard = require('./billGuard');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 const { runUnscoped } = require('../../../packages/core-server/src');
 
@@ -21,7 +22,7 @@ function createApp({ express, mongoose, env = process.env }) {
   if (missing.length) { app.use('/api', (req, res) => res.status(503).json({ success: false, message: 'Cloth is not set up yet.' })); return app; }
 
   const billing = makeBilling({ plans: billingPlans(), ...BILLING });
-  const M = makeModels(mongoose); const pos = corePos.models(mongoose); M.PosCustomer = pos.PosCustomer;
+  const M = makeModels(mongoose); const pos = corePos.models(mongoose); M.PosCustomer = pos.PosCustomer; M.PosItem = pos.PosItem;
   const secret = env.CLOTH_SESSION_SECRET;
   app.use('/api/cloth/auth', createAuthRouter({ express, mongoose, billing, secret, termsVersion: env.CLOTH_TERMS_VERSION }));
   const protect = sessionMiddleware(secret, M);
@@ -40,7 +41,7 @@ function createApp({ express, mongoose, env = process.env }) {
     return rows.map((b) => ({ id: String(b._id), number: b.number, date: new Date(b.createdAt.getTime() + 5.5 * 3600000).toISOString().slice(0, 10), total: b.total, discount: b.discount || 0, status: b.status, by: b.by && String(b.by), customerId: b.customerId && String(b.customerId), taxable: b.taxable, gst: b.gst, lines: b.lines || [] }));
   };
   app.use('/api/cloth', createClothRouter({ ...common, M, billsBetween, planOf: (req) => billing.computeStatus(req.subscription).planKey, guardWrite: (req) => { const g = billing.guardWrite(req.subscription, req.method); return g.ok ? null : { status: g.httpStatus, message: g.message }; }, salesOfDay }));
-  app.use('/api/pos', corePos.createPosRouter({ ...common, mongoose, prefix: 'CL' }));
+  app.use('/api/pos', protect, authorize('admin', 'subadmin'), createBillGuard({ M }), corePos.createPosRouter({ ...common, mongoose, prefix: 'CL' }));
   return app;
 }
 module.exports = { createApp, missingSettings };

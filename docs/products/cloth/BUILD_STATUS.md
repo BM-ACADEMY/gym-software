@@ -18,7 +18,7 @@ Code: `apps/cloth` (port 5010, fail-closed without `MONGODB_URI` and `CLOTH_SESS
 | 11 | Growth | none (by rule) | Multi-branch, online ordering, accounting integrations, e-invoice |
 
 ## Real gaps to know about (not hidden)
-1. **Bills do not yet reduce variant stock.** Core-pos bills use `PosItem`; Cloth stock is in `ClothVariant`. Until a bill line carries a variant id and the stock move is written, the owner records sales on the stock screen (`type: sale`). Cost of goods in profit and loss and slow-stock dates depend on this. First Phase 2 item, needed before invite-only start.
+1. **(Done 12 Nov, written, not yet tested: CLO-05)** Bills now reduce variant stock: a bill line may carry `variantId`; `src/billGuard.js` sits in front of `POST /api/pos/bills`, takes price and GST from the shop's own variant, takes stock first (409 if short), gives it back if the bill is not saved, and writes a stock move with the bill id. Barcode scan on the bill screen is still Phase 2. Old note: bills did not reduce variant stock. Core-pos bills use `PosItem`; Cloth stock is in `ClothVariant`. Until a bill line carries a variant id and the stock move is written, the owner records sales on the stock screen (`type: sale`). Cost of goods in profit and loss and slow-stock dates depend on this. First Phase 2 item, needed before invite-only start.
 2. GST bands are data (default read from busy.in on 12 Nov 2026: 5% up to Rs 2,500 per piece, 18% above) and flagged "needs CA confirmation". HSN wording is a CA item, not decided here.
 3. No screens beyond the manifest-driven admin panel; the customer-facing pages are not built.
 4. WhatsApp templates `cloth_*` do not exist yet; nothing is sent.
@@ -30,3 +30,10 @@ Code: `apps/cloth` (port 5010, fail-closed without `MONGODB_URI` and `CLOTH_SESS
 3. Sign up a test shop, add a style grid, record a purchase and a sale, add an alteration, add an expense, close the day. A second test shop must see none of it.
 4. Check the fail-closed tenant guard: a query outside a signed-in request must throw (see `packages/core-server/tests/tenant.test.js`).
 5. Copy `apps/hire/tests/app.test.js` pattern for a Cloth app test (503 without settings, 401 without sign-in on `/api/cloth/*` and `/api/pos/*`).
+
+## D-30 staff discounts (12 Nov, written, not yet tested)
+- Owner sets the rule in Settings (`PUT /api/cloth/settings { discountRule: { staff: 'any'|'limit'|'owner_only', maxPercent } }`, owner role only; default staff 'limit' 10 percent). Same `discountPolicy.js` as Salon.
+- `billGuard.js` checks it after computing the bill (staff = any non-admin user), refuses with 403 and a plain message, otherwise saves who (owner/staff) and percent in `ClothBillDiscount` plus an audit line `CL-n 10% by staff`.
+- Owner sees staff discounts in `GET /reports/leaks` (`staffDiscounts`) and as a note in the daily summary.
+- **Proposed change for core-pos (not done, outside this fork's folder):** a `beforeBill` hook in `createPosRouter` so every product enforces D-30 in one place and `PosBill` carries `discountBy` and `discountPercent`; Cloth's wrapper can then be removed.
+- Dev A: the guard runs `protect` twice on `/api/pos` (once in app.js, once inside the core-pos router); check there is no side effect and the tenant context still holds on the bill route.

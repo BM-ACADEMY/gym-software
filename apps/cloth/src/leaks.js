@@ -18,4 +18,10 @@ function cashDifferences(closes) {
   const total = shorts.reduce((a, c) => a + c.difference, 0);
   return shorts.length >= 3 ? [{ days: shorts.length, total, reason: `Cash was short on ${shorts.length} days, Rs ${-total} in all.` }] : [];
 }
-module.exports = { heavyDiscounts, voidsByStaff, cashDifferences };
+// D-30: discounts given by staff (not the owner), grouped per day, for the owner to see. rows: [{date,discount,by}]
+function staffDiscounts(rows) {
+  const by = {};
+  for (const r of rows || []) if (r.by === 'staff' && r.discount > 0) { const d = by[r.date] || (by[r.date] = { date: r.date, count: 0, total: 0 }); d.count++; d.total += r.discount; }
+  return Object.values(by).sort((a, b) => (a.date < b.date ? 1 : -1)).map((d) => ({ ...d, currency: 'INR', reason: `Staff gave ${d.count} discount${d.count === 1 ? '' : 's'} worth Rs ${d.total} on ${d.date}.` }));
+}
+module.exports = { staffDiscounts, heavyDiscounts, voidsByStaff, cashDifferences };

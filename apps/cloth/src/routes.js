@@ -3,7 +3,7 @@
 // Every query filters by tenantId (the shop). Writes go through guardWrite (read-only once the plan has lapsed).
 // Bills, customers and loyalty are in packages/core-pos (mounted separately at /api/pos).
 const V = require('./variants'); const G = require('./gst'); const A = require('./alterations'); const SA = require('./stockAdvice');
-const F = require('./followups'); const SM = require('./summary'); const P = require('./plans');
+const DP = require('./discountPolicy'); const F = require('./followups'); const Lk = require('./leaks'); const SM = require('./summary'); const P = require('./plans');
 const stock = require('../../../packages/core-pos/src/stock');
 
 const todayIST = (now) => new Date(now.getTime() + 5.5 * 3600000).toISOString().slice(0, 10);
@@ -27,13 +27,14 @@ function createClothRouter({ express, M, protect, authorize, tenantOf, planOf = 
       console.error('Cloth route failed:', err.message); return fail(res, 500, 'Server error');
     }
   };
-  const settingsOf = async (tid) => { const s = await M.Settings.findOne({ tenantId: tid }).lean(); return { gstBands: s && s.gstBands && G.validBands(s.gstBands.bands) ? s.gstBands : G.DEFAULT_BANDS, growthPct: (s && s.growthPct) || 0, supplierDue: (s && s.supplierDue) || 0 }; };
+  const settingsOf = async (tid) => { const s = await M.Settings.findOne({ tenantId: tid }).lean(); return { gstBands: s && s.gstBands && G.validBands(s.gstBands.bands) ? s.gstBands : G.DEFAULT_BANDS, growthPct: (s && s.growthPct) || 0, discountRule: DP.normalize(s && s.discountRule), supplierDue: (s && s.supplierDue) || 0 }; };
 
   // ---- settings (owner edits without a deploy) ----
   router.get('/settings', wrap(async (req, res, tid) => res.json({ success: true, data: await settingsOf(tid) })));
   router.put('/settings', wrap(async (req, res, tid) => {
     const b = req.body || {}; const patch = {};
     if ('gstBands' in b) { if (!G.validBands(b.gstBands && b.gstBands.bands)) return fail(res, 400, 'GST bands are not valid. Use rates 0, 5, 12, 18 or 28 and end with "no upper limit".'); patch.gstBands = { bands: b.gstBands.bands, source: 'set by the shop owner', needsCaConfirmation: true }; }
+    if ('discountRule' in b) { if (req.user.role !== 'admin') return fail(res, 403, 'Only the owner can change the discount rule.'); if (!b.discountRule || typeof b.discountRule !== 'object') return fail(res, 400, 'Discount rule is not valid.'); patch.discountRule = DP.normalize(b.discountRule); }
     if ('growthPct' in b) { if (!Number.isInteger(b.growthPct) || b.growthPct < -50 || b.growthPct > 200) return fail(res, 400, 'Growth must be a whole percent from -50 to 200.'); patch.growthPct = b.growthPct; }
     if ('supplierDue' in b) { if (!Number.isInteger(b.supplierDue) || b.supplierDue < 0) return fail(res, 400, 'Supplier dues must be whole rupees.'); patch.supplierDue = b.supplierDue; }
     if (!Object.keys(patch).length) return fail(res, 400, 'Nothing to change.');
@@ -131,7 +132,7 @@ function createClothRouter({ express, M, protect, authorize, tenantOf, planOf = 
   router.get('/summary', wrap(async (req, res, tid) => {
     const today = todayIST(now()); const g = await gather(tid, today); const s = await settingsOf(tid);
     const y = await salesOfDay(tid, addDays(today, -1)); const jobs = await M.Alteration.find({ tenantId: tid, status: { $in: ['received', 'in_progress', 'ready'] } }).lean();
-    res.json({ success: true, data: SM.build({ today, salesYesterday: y.total, billsYesterday: y.bills, alterations: A.lists(jobs.map((j) => ({ ...j, id: String(j._id) })), today), followups: F.lists(await customerRows(tid), today), slow: g.slow, gaps: g.gaps, supplierDue: s.supplierDue }) });
+    res.json({ success: true, data: SM.build({ today, salesYesterday: y.total, billsYesterday: y.bills, alterations: A.lists(jobs.map((j) => ({ ...j, id: String(j._id) })), today), followups: F.lists(await customerRows(tid), today), staffDiscounts: Lk.staffDiscounts(await M.BillDiscount.find({ tenantId: tid, date: { $gte: addDays(today, -1) } }).lean()), slow: g.slow, gaps: g.gaps, supplierDue: s.supplierDue }) });
   }));
   require('./routesMore')({ router, M, wrap, fail, str, todayIST, addDays, settingsOf, gather, customerRows, billsBetween, now });
   return router;

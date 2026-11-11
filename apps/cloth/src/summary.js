@@ -2,7 +2,7 @@
 // Owner's daily summary: yesterday's numbers and THREE things to do today, each with its reason. Suggestions only; nothing is sent.
 // Money in whole rupees (INR). Pure: the caller gathers the inputs.
 const rs = (n) => 'Rs ' + Math.round(n).toLocaleString('en-IN');
-function build({ today, salesYesterday = 0, billsYesterday = 0, alterations, followups, slow = [], gaps = [], supplierDue = 0 }) {
+function build({ today, salesYesterday = 0, billsYesterday = 0, alterations, followups, slow = [], gaps = [], supplierDue = 0, staffDiscounts = [] }) {
   const acts = [];
   const a = alterations || { overdue: [], dueToday: [], notCollected: [] }; const f = followups || { lapsed: [], creditOverdue: [], occasions: [] };
   if (a.overdue.length) acts.push({ weight: 100 + a.overdue.length, key: 'alt_overdue', text: `Call ${a.overdue.length} customer(s) whose alteration is late`, reason: `Oldest is ${a.overdue[0].lateDays} day(s) late: "${a.overdue[0].what}".` });
@@ -16,6 +16,6 @@ function build({ today, salesYesterday = 0, billsYesterday = 0, alterations, fol
   if (a.notCollected.length) acts.push({ weight: 45, key: 'uncollected', text: `Remind ${a.notCollected.length} customer(s) to collect finished alterations`, reason: `Ready for 7+ days.` });
   if (supplierDue > 0) acts.push({ weight: 40, key: 'supplier', text: `Plan to pay suppliers: ${rs(supplierDue)} due`, reason: 'Total of unpaid supplier bills.' });
   acts.sort((x, y) => y.weight - x.weight);
-  return { date: today, salesYesterday, billsYesterday, currency: 'INR', headline: `Yesterday: ${rs(salesYesterday)} from ${billsYesterday} bill(s).`, actions: acts.slice(0, 3).map(({ key, text, reason }) => ({ key, text, reason })), mode: 'suggest' };
+  return { date: today, salesYesterday, billsYesterday, currency: 'INR', headline: `Yesterday: ${rs(salesYesterday)} from ${billsYesterday} bill(s).`, actions: acts.slice(0, 3).map(({ key, text, reason }) => ({ key, text, reason })), mode: 'suggest', notes: staffDiscounts.slice(0, 1).map((d) => d.reason + ' Each is saved on its bill.') };
 }
 module.exports = { build };

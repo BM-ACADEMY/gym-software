@@ -97,7 +97,7 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, settingsOf, g
   // ---- leak checks ----
   router.get('/reports/leaks', wrap(async (req, res, tid) => {
     const today = todayIST(now()); const bills = await billsBetween(tid, addDays(today, -30), today);
-    res.json({ success: true, data: { note: 'Things that look unusual. They are hints, not proof.', heavyDiscounts: Lk.heavyDiscounts(bills), voidsByStaff: Lk.voidsByStaff(bills), cashDifferences: Lk.cashDifferences(await M.DayClose.find({ tenantId: tid, date: { $gte: addDays(today, -30) } }).lean()) } });
+    res.json({ success: true, data: { note: 'Things that look unusual. They are hints, not proof.', heavyDiscounts: Lk.heavyDiscounts(bills), voidsByStaff: Lk.voidsByStaff(bills), staffDiscounts: Lk.staffDiscounts(await M.BillDiscount.find({ tenantId: tid, date: { $gte: addDays(today, -30) } }).lean()), cashDifferences: Lk.cashDifferences(await M.DayClose.find({ tenantId: tid, date: { $gte: addDays(today, -30) } }).lean()) } });
   }));
 
   // ---- marketing suggestions (suggest only; sending needs the owner's switch and an approved template) ----

@@ -18,10 +18,10 @@ function model() {
     find: (f = {}) => q(rows.filter((d) => match(d, f))),
     findOne: (f = {}) => one(rows.find((d) => match(d, f))),
     create: async (v) => { const d = { _id: oid(), ...v }; rows.push(d); return wrapDoc({ ...d }); },
-    findOneAndUpdate: async (f, u, o = {}) => { let d = rows.find((x) => match(x, f)); if (!d) { if (!o.upsert) return null; d = { _id: oid(), ...Object.fromEntries(Object.entries(f).filter(([, v]) => typeof v !== 'object')) }; rows.push(d); } Object.assign(d, u.$set || {}); return { ...d }; },
+    findOneAndUpdate: async (f, u, o = {}) => { let d = rows.find((x) => match(x, f)); if (!d) { if (!o.upsert) return null; d = { _id: oid(), ...Object.fromEntries(Object.entries(f).filter(([, v]) => typeof v !== 'object')) }; rows.push(d); } Object.assign(d, u.$set || {}); for (const [k, v] of Object.entries(u.$inc || {})) d[k] = (d[k] || 0) + v; return { ...d }; },
     updateOne: async (f, u, o = {}) => { let d = rows.find((x) => match(x, f)); if (!d && o.upsert) { d = { _id: oid(), ...f }; rows.push(d); } if (d) Object.assign(d, u.$set || {}); },
   };
 }
 const mkRouter = () => { const r = {}; return { r, router: { use() {}, get: (p, h) => (r['GET ' + p] = h), post: (p, h) => (r['POST ' + p] = h), put: (p, h) => (r['PUT ' + p] = h) } }; };
-const call = async (h, req = {}) => { const o = { h: {} }; await h({ user: { id: 'u1', tenantId: 'a' }, params: {}, query: {}, body: {}, method: 'GET', ...req }, { set(k, v) { o.h[k] = v; }, status(c) { o.c = c; return this; }, json(b) { o.b = b; o.c = o.c || 200; }, send(b) { o.text = b; o.c = o.c || 200; } }); return o; };
+const call = async (h, req = {}) => { const o = { h: {} }; await h({ user: { id: 'u1', tenantId: 'a' }, params: {}, query: {}, body: {}, method: 'GET', ...req }, { statusCode: 200, set(k, v) { o.h[k] = v; }, status(c) { o.c = c; this.statusCode = c; return this; }, json(b) { o.b = b; o.c = o.c || 200; }, send(b) { o.text = b; o.c = o.c || 200; } }); return o; };
 module.exports = { model, mkRouter, call, oid };

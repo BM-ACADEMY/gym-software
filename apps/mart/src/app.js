@@ -5,7 +5,7 @@ const { makeBilling } = require('../../../packages/core-billing/src');
 const createPosRouter = require('../../../packages/core-pos/src/routes');
 const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
-const { createMartRouter, creditGuard } = require('./routes');
+const { createMartRouter, creditGuard, discountGuard } = require('./routes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 
 function missingSettings(env) {
@@ -36,7 +36,7 @@ function createApp({ express, mongoose, env = process.env }) {
   // Shared shop features (bills, items, stock, returns, CSV import, loyalty): same sign-in, same read-only rule for expired accounts,
   // and the pay-later limit is checked before a bill is saved.
   app.use('/api/mart/pos', protect, authorize(...roles), (req, res, next) => { const g = guardWrite(req); return g.ok ? next() : res.status(g.httpStatus || 402).json({ success: false, message: g.message, code: 'read_only' }); },
-    creditGuard({ mongoose, tenantOf }), createPosRouter({ express, mongoose, protect: noop, authorize: () => noop, tenantOf, roles, prefix: 'MART' }));
+    creditGuard({ mongoose, tenantOf }), discountGuard({ mongoose, tenantOf }), createPosRouter({ express, mongoose, protect: noop, authorize: () => noop, tenantOf, roles, prefix: 'MART' }));
   app.use('/api/mart', createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles }));
   return app;
 }

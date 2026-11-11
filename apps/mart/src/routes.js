@@ -6,6 +6,7 @@
 const makeModels = require('./models');
 const makePos = require('../../../packages/core-pos/src/models');
 const R = require('./reorder'); const Sh = require('./shelf'); const U = require('./udhaar'); const L = require('./leaks'); const S = require('./summary');
+const DP = require('./discountPolicy'); const bill = require('../../../packages/core-pos/src/bill');
 const A = require('./accounts'); const I = require('./insights');
 const shape = require('./shape'); const { istDay, addDays, valid } = require('./dates');
 
@@ -31,13 +32,49 @@ function creditGuard({ mongoose, tenantOf }) {
   };
 }
 
+// D-30: staff may give discounts; the owner sets the rule in Settings and always sees them. Runs BEFORE the shared bill route.
+// It prices the bill the same way the route does (item prices come from the shop's own list), checks the rule, then records
+// who gave the discount and the percent once the bill is saved. The owner (admin) is never limited; sub-admins count as staff.
+function discountGuard({ mongoose, tenantOf, now = () => new Date() }) {
+  const M = makeModels(mongoose); const P = makePos(mongoose);
+  return async (req, res, next) => {
+    try {
+      if (req.method !== 'POST' || req.path !== '/bills') return next();
+      const b = req.body || {}; const rawLines = Array.isArray(b.lines) ? b.lines.slice(0, 100) : [];
+      const tid = tenantOf(req); const lines = [];
+      for (const l of rawLines) {
+        if (l && l.itemId) { const id = toOid(String(l.itemId)); const it = id && await P.PosItem.findOne({ _id: id, tenantId: tid, isActive: true }).lean(); if (!it) return next(); lines.push({ name: it.name, unitPrice: it.price, qty: Number(l.qty), gstRate: it.gstRate, discount: l.discount }); }
+        else if (l) lines.push({ name: String(l.name || ''), unitPrice: l.unitPrice, qty: Number(l.qty), gstRate: l.gstRate || 0, discount: l.discount });
+      }
+      let calc; try { calc = bill.compute({ lines, billDiscount: b.billDiscount, taxMode: b.taxMode || 'none', gstMode: b.gstMode || 'cgst_sgst' }); } catch (e) { return next(); } // the shared route reports the real error
+      if (!calc.discount) return next();
+      const reason = typeof b.discountReason === 'string' ? b.discountReason.trim().slice(0, 120) : '';
+      if (reason.length < 3) return res.status(400).json({ success: false, message: 'A discount needs a reason.', code: 'discount_reason' });
+      const role = req.user && req.user.role === 'admin' ? 'owner' : 'staff';
+      const st = await M.Settings.findOne({ tenantId: tid }).lean();
+      const dc = DP.check({ role: role === 'owner' ? 'admin' : 'staff', discount: calc.discount, subtotal: calc.subtotal, rule: st && st.discountRule });
+      if (!dc.ok) return res.status(403).json({ success: false, message: dc.message, code: 'discount_rule' });
+      const json = res.json.bind(res);
+      res.json = (body) => {
+        const id = body && body.success && !body.duplicate && body.data && body.data._id;
+        if (!id) return json(body);
+        M.BillDiscount.create({ tenantId: tid, billId: id, day: istDay(now()), by: req.user.id, role, amount: calc.discount, percent: dc.percent, reason })
+          .then(() => M.ActivityLog.create({ tenantId: tid, job: 'discount', ref: String(id), level: role, action: 'discount', text: `${role === 'owner' ? 'Owner' : 'Staff'} gave ${dc.percent}% off (${calc.discount} rupees) on bill ${body.data.number}. Reason: ${reason}` }))
+          .catch((e) => console.error('discount record failed:', e.message)).then(() => json(body));
+        return res;
+      };
+      return next();
+    } catch (e) { console.error('discount guard failed:', e.message); return res.status(500).json({ success: false, message: 'Server error' }); }
+  };
+}
+
 function createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles = ['admin', 'subadmin'], now = () => new Date() }) {
   const router = express.Router(); const M = makeModels(mongoose); const P = makePos(mongoose);
   router.use(protect, authorize(...roles));
   if (guardWrite) router.use((req, res, next) => { const g = guardWrite(req); return g.ok ? next() : res.status(g.httpStatus || 402).json({ success: false, message: g.message, code: 'read_only' }); });
   const fail = (res, code, message) => res.status(code).json({ success: false, message });
   const wrap = (fn) => async (req, res) => { try { await fn(req, res, tenantOf(req)); } catch (err) { if (err.code === 'UDHAAR_INVALID') return fail(res, 400, err.message); if (err.name === 'ValidationError' || err.name === 'CastError') return fail(res, 400, 'Check the values you entered.'); console.error('Mart route failed:', err.message); return fail(res, 500, 'Server error'); } };
-  const settingsOf = async (tid) => ({ ...DEFAULTS, ...(((await M.Settings.findOne({ tenantId: tid }).lean()) || {})) });
+  const settingsOf = async (tid) => { const d = { ...DEFAULTS, ...(((await M.Settings.findOne({ tenantId: tid }).lean()) || {})) }; d.discountRule = DP.normalize(d.discountRule); return d; };
   const load = async (tid, sinceDays) => {
     const since = new Date(now().getTime() - sinceDays * 86400000);
     const [items, bills] = await Promise.all([P.PosItem.find({ tenantId: tid, isActive: true }).limit(5000).lean(), P.PosBill.find({ tenantId: tid, createdAt: { $gte: since } }).sort({ createdAt: -1 }).limit(5000).lean()]);
@@ -58,6 +95,12 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     if ('discountAlertPct' in b) { const v = clampInt(b.discountAlertPct, 5, 100, null); if (v === null) return fail(res, 400, 'Discount alert must be 5 to 100 percent.'); set.discountAlertPct = v; }
     if ('festivalUplift' in b) { const v = Number(b.festivalUplift); if (!(v >= 1 && v <= 5)) return fail(res, 400, 'Festival uplift must be 1 to 5.'); set.festivalUplift = v; }
     if ('defaultCreditLimit' in b) { if (b.defaultCreditLimit === null || b.defaultCreditLimit === '') set.defaultCreditLimit = null; else { const v = clampInt(b.defaultCreditLimit, 0, 10000000, null); if (v === null) return fail(res, 400, 'Credit limit must be whole rupees.'); set.defaultCreditLimit = v; } }
+    if ('discountRule' in b) {
+      if (!req.user || req.user.role !== 'admin') return fail(res, 403, 'Only the owner can change the discount rule.');
+      const r = b.discountRule || {}; if (!['any', 'limit', 'owner_only'].includes(r.staff)) return fail(res, 400, 'Choose who may give a discount: anyone, up to a limit, or owner only.');
+      const mp = r.staff === 'limit' ? r.maxPercent : DP.DEFAULT_RULE.maxPercent; if (!Number.isInteger(mp) || mp < 0 || mp > 100) return fail(res, 400, 'The limit must be a whole percent from 0 to 100.');
+      set.discountRule = { staff: r.staff, maxPercent: mp };
+    }
     if ('festivals' in b) { if (!Array.isArray(b.festivals) || b.festivals.length > 30) return fail(res, 400, 'Add up to 30 festival dates.'); const f = b.festivals.map((x) => ({ name: typeof (x || {}).name === 'string' ? x.name.trim().slice(0, 60) : '', date: x && x.date })); if (f.some((x) => x.name.length < 2 || !valid(x.date))) return fail(res, 400, 'Each festival needs a name and a date.'); set.festivals = f; }
     if (!Object.keys(set).length) return fail(res, 400, 'Nothing to change.');
     await M.Settings.updateOne({ tenantId: tid }, { $set: set }, { upsert: true });
@@ -99,7 +142,8 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
   }));
   router.get('/reports/leaks', wrap(async (req, res, tid) => {
     const st = await settingsOf(tid); const { bills } = await load(tid, clampInt(req.query.days, 1, 31, 7)); const b = shape.billsOf(bills);
-    res.json({ success: true, data: { heavyDiscounts: L.heavyDiscounts(b, { pct: st.discountAlertPct }), returnsByStaff: L.returnsByStaff(b) } });
+    const sd = await M.BillDiscount.find({ tenantId: tid, day: { $gte: addDays(today(), -30) } }).limit(5000).lean();
+    res.json({ success: true, data: { heavyDiscounts: L.heavyDiscounts(b, { pct: st.discountAlertPct }), returnsByStaff: L.returnsByStaff(b), staffDiscounts: L.staffDiscounts(sd) } });
   }));
   // The owner types what is on the shelf; nothing is changed, only compared with the system count.
   router.post('/reports/stock-check', wrap(async (req, res, tid) => {
@@ -117,7 +161,9 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     const dayBills = bills.filter((b) => istDay(b.createdAt) === day);
     const { entries } = await udhaarEntries(tid);
     const weekBills = shape.billsOf(bills.filter((b) => istDay(b.createdAt) >= addDays(t, -7)));
+    const sdRows = await M.BillDiscount.find({ tenantId: tid, day: { $gte: addDays(t, -7) } }).limit(5000).lean();
     const out = S.dailySummary({
+      staffDiscounts: L.staffDiscounts(sdRows),
       bills: shape.billsOf(dayBills), lowStock: its.filter((i) => i.trackStock && i.reorderLevel != null && i.qty <= i.reorderLevel),
       overdue: U.overdue(entries, t, st.overdueGraceDays), expiring: Sh.expiryList(its, t, 30),
       reorder: R.suggestReorder({ items: its, sales: shape.salesOf(bills), today: t, uplift: st.festivalUplift }),
@@ -237,4 +283,4 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
   }));
   return router;
 }
-module.exports = { createMartRouter, creditGuard, DEFAULTS };
+module.exports = { createMartRouter, creditGuard, discountGuard, DEFAULTS };

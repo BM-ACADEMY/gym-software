@@ -80,6 +80,24 @@ run('Mart routes (needs a test database)', () => {
     const csv = await as('A', 'get', '/api/mart/reports/ca-export'); expect(csv.headers['content-type']).toMatch(/text\/csv/); expect(csv.text.split('\n')[0]).toMatch(/^Type,Date/);
     expect((await as('B', 'get', '/api/mart/reports/profit-loss')).body.data.expenses).toBe(0);
   });
+  test('D-30 discount rule: owner sets it, staff limited, bill records who and percent, owner sees it', async () => {
+    // sign-up makes an owner (admin). A staff user (role subadmin) must be created directly for this test.
+    const U = mongoose.model('MartUser'); const A = await U.findOne({ email: 'a@example.com' }); const hash = (await U.findOne({ email: 'a@example.com' }).select('+passwordHash')).passwordHash;
+    await U.create({ tenantId: A.tenantId, name: 'Staff', email: 'staff@example.com', role: 'subadmin', passwordHash: hash });
+    const lg = await request(app).post('/api/mart/auth/login').set(H).send({ email: 'staff@example.com', password: 'a-long-password-1' }); expect(lg.status).toBe(200); cookies.S = lg.headers['set-cookie'][0].split(';')[0];
+    expect((await as('S', 'put', '/api/mart/settings').send({ discountRule: { staff: 'any' } })).status).toBe(403); // staff cannot change the rule
+    expect((await as('A', 'put', '/api/mart/settings').send({ discountRule: { staff: 'limit', maxPercent: 101 } })).status).toBe(400);
+    expect((await as('A', 'put', '/api/mart/settings').send({ discountRule: { staff: 'limit', maxPercent: 10 } })).status).toBe(200);
+    const item = (await as('A', 'get', '/api/mart/pos/items')).body.data[0];
+    const mk = (value, reason) => ({ lines: [{ itemId: item._id, qty: 1 }], billDiscount: { type: 'amount', value }, discountReason: reason, payments: [{ method: 'cash', amount: 1000 }] });
+    expect((await as('S', 'post', '/api/mart/pos/bills').send(mk(200, 'regular'))).status).toBe(403); // 33 percent
+    expect((await as('S', 'post', '/api/mart/pos/bills').send(mk(20, ''))).status).toBe(400); // no reason
+    expect((await as('S', 'post', '/api/mart/pos/bills').send(mk(20, 'regular customer'))).status).toBe(201);
+    expect((await as('A', 'post', '/api/mart/pos/bills').send(mk(300, 'owner choice'))).status).toBe(201); // owner not limited
+    const lk = await as('A', 'get', '/api/mart/reports/leaks'); expect(lk.body.data.staffDiscounts[0].count).toBe(1); expect(lk.body.data.staffDiscounts[0].total).toBe(20);
+    expect((await as('B', 'get', '/api/mart/reports/leaks')).body.data.staffDiscounts).toEqual([]);
+    expect((await as('A', 'get', '/api/mart/summary')).body.data.staffDiscounts.length).toBe(1);
+  });
   test('summary has at most three actions, each with a reason', async () => {
     const r = await as('A', 'get', '/api/mart/summary'); expect(r.status).toBe(200);
     expect(r.body.data.actions.length <= 3).toBe(true); for (const a of r.body.data.actions) expect(!!a.reason).toBe(true);

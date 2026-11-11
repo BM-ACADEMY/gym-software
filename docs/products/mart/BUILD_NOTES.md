@@ -17,3 +17,7 @@ Staff attendance, shifts, leave, payslip and commission wiring; staff roles beyo
 - Day-close cash sales use bill payments minus change; a bill edited later is not reflected.
 - Cost of goods uses the item's current cost price, not the price at purchase.
 - Prices in `plans.js` are an Assumption; the free entry tier is not built.
+
+## D-30 staff discounts (12 Nov): written, not yet tested
+Rule in `src/discountPolicy.js` (copy of Salon's): `any` | `limit` (default, 10 percent) | `owner_only`; owner (`admin`) never limited, sub-admin counts as staff. `discountGuard` in `routes.js` runs before the core-pos bill route: prices the bill from the shop's own item prices, needs a reason (3+ characters), refuses over-limit staff with 403, and after the bill is saved writes `MartBillDiscount` (who, role, percent, amount, reason) plus an activity line. Rule is saved by `PUT /settings` `discountRule` (owner only, 403 for staff). Owner sees it in `GET /reports/leaks` (`staffDiscounts`, per day) and in `GET /summary` (`staffDiscounts`, shown as a table on Today).
+Dev A: run the new D-30 test in `tests/routes.db.test.js`. Check that a discount typed as a per-line discount is also caught (guard prices lines the same way as the route). Known gap: core-pos bills do not store `discountBy`, so Mart keeps it in `MartBillDiscount`; if the guard's recording fails after the bill is saved, the bill stands and the failure is logged. The panel has no editor for the rule yet (API only): Phase 2.

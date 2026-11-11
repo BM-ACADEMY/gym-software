@@ -33,6 +33,6 @@ function threeActions({ overdue = [], expiring = [], reorder = [], discounts = [
   return c.sort((a, b) => b.rupees - a.rupees).slice(0, 3).map((x) => ({ ...x, currency: 'INR' }));
 }
 function dailySummary({ bills, lowStock = [], ...lists }) {
-  return { sales: salesOf(bills), lowStockCount: lowStock.length, udhaarOverdueTotal: (lists.overdue || []).reduce((a, x) => a + x.due, 0), actions: threeActions(lists) };
+  return { sales: salesOf(bills), lowStockCount: lowStock.length, udhaarOverdueTotal: (lists.overdue || []).reduce((a, x) => a + x.due, 0), actions: threeActions(lists), staffDiscounts: lists.staffDiscounts || [] };
 }
 module.exports = { salesOf, threeActions, dailySummary };

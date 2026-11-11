@@ -25,4 +25,10 @@ function stockMismatch(counts, { minRupees = 50 } = {}) {
 }
 // Day-end cash: expected = opening + cash sales - cash paid out.
 const cashMismatch = ({ expected, counted }) => { const diff = int(counted) - int(expected); return { diff, rupees: Math.abs(diff), currency: 'INR', ok: diff === 0, kind: diff < 0 ? 'short' : diff > 0 ? 'extra' : 'match' }; };
-module.exports = { heavyDiscounts, returnsByStaff, stockMismatch, cashMismatch };
+// D-30: discounts given by staff (not the owner), grouped per day, so the owner always knows. rows: { day, by, amount, percent, role }.
+function staffDiscounts(rows) {
+  const g = {};
+  for (const r of rows || []) if (r && r.role === 'staff' && int(r.amount) > 0) { const d = g[r.day] || (g[r.day] = { day: r.day, count: 0, total: 0, maxPercent: 0 }); d.count += 1; d.total += int(r.amount); d.maxPercent = Math.max(d.maxPercent, r.percent || 0); }
+  return Object.values(g).sort((a, b) => b.day.localeCompare(a.day)).map((d) => ({ ...d, currency: 'INR', reason: `On ${d.day} staff gave ${d.count} discount${d.count === 1 ? '' : 's'} worth ${d.total} rupees in all (largest ${d.maxPercent}%). Each one has a reason on the bill.` }));
+}
+module.exports = { staffDiscounts, heavyDiscounts, returnsByStaff, stockMismatch, cashMismatch };

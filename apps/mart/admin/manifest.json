@@ -123,6 +123,32 @@
               "type": "money"
             }
           ]
+        },
+        {
+          "label": "Discounts given by staff (last 7 days)",
+          "rows": "staffDiscounts",
+          "empty": "No staff discounts.",
+          "columns": [
+            {
+              "key": "day",
+              "label": "Day"
+            },
+            {
+              "key": "count",
+              "label": "Count",
+              "type": "number"
+            },
+            {
+              "key": "total",
+              "label": "Total",
+              "type": "money"
+            },
+            {
+              "key": "maxPercent",
+              "label": "Largest %",
+              "type": "number"
+            }
+          ]
         }
       ]
     },

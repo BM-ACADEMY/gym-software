@@ -38,3 +38,17 @@ app.get(/^(?!\/api).*/, (req, res) => res.sendFile(path.join(__dirname, '../clie
 - The page was never run. Treat every screen as untested.
 - Tamil and Hindi menu names (where present) are drafts and need a native speaker (M-06). Text inside the shared panel and billing screens is English only.
 - Icons are placeholders.
+
+## Day-to-day screens (CLIENT-05, written 12 Nov, not yet run by a person)
+Tabs shown when the owner or staff signs in: **Jobs**, **New job**, **Dues**, **Close the day**, **Panel** (the owner panel from the manifest). Billing opens the shared screen for walk-in sales. Code: `client/src/WashApp.jsx`, `Board.jsx`, `NewJob.jsx`, `DuesClose.jsx`, `ui.jsx`; all wording in `strings.js` (English only for now, Tamil and Hindi after native review, M-06).
+
+- **Jobs:** Waiting, Washing, Ready, Delivered today. Waiting: choose who is washing, Start, Cancel. Washing: Mark ready, or Cancel with one of three fixed reasons (the server needs a reason once washing began and tells the owner). Ready: Deliver, paid in full by cash, UPI or card, or Pay later (needs the owner's phone saved on the vehicle). Each card shows minutes in queue, in the wash, or waiting for pickup, and refreshes every 30 seconds. Photo references (before, after; size limit about 300 KB; the picture itself is not uploaded) and, for the owner only, a refund with a reason.
+- **New job:** type the number plate, Find vehicle; a new plate asks for the class and saves the vehicle; shows monthly pass washes left; pick class and extras; optional discount with a reason (the server applies the owner's limit and its message is shown as it is); Create job card.
+- **Dues:** who still owes, call button, Collect by cash, UPI or card.
+- **Close the day:** opening cash and cash counted; the server shows expected cash and the difference; the last 7 closings.
+
+Routes used (all under `/api/wash`): GET `/jobs` (with and without `?day=`), `/attendants`, `/price-list`, `/vehicles?q=`, `/passes?plate=`, `/dues/customers`, `/cash-closing`, `/jobs/:id/photos`; POST `/jobs`, `/jobs/:id/move`, `/jobs/:id/photos`, `/jobs/:id/collect`, `/jobs/:id/refund`, `/vehicles`, `/cash-closing`.
+
+Known gaps: no bay field on a job (the server has none, so only queue and wash time are shown); no picture upload (waits on the storage account, WSH-P1); no job card print; only the staff discount message from the server is shown, there is no approval request flow; vehicle lookup matches the start of the plate; `/pos` billing and the job board are two separate ways to take money.
+
+Dev A: after `npm install && npm run build`, sign in as the owner and as a staff login. Create a vehicle and a job, move it Waiting to Washing to Ready to Delivered (once paid, once pay later), check the Dues tab and Collect, cancel a washing job with a reason, try a staff discount above the limit (the server's message should show), save a photo reference and a refund as the owner (a staff login must be refused), then close the day.

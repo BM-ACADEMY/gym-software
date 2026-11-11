@@ -38,3 +38,35 @@ app.get(/^(?!\/api).*/, (req, res) => res.sendFile(path.join(__dirname, '../clie
 - The page was never run. Treat every screen as untested.
 - Tamil and Hindi menu names (where present) are drafts and need a native speaker (M-06). Text inside the shared panel and billing screens is English only.
 - Icons are placeholders.
+
+
+## Staff screens (CLIENT-03, written 12 Nov, not yet run by a person)
+
+The Dine client now has tabs next to the owner panel: **Tables, Kitchen, Bill, Pay later, Returns, Panel**. Files are in `apps/dine/client/src/screens/`.
+
+| Tab | What it does | Server routes used (all under `/api/dine`) |
+| --- | --- | --- |
+| Tables | Coloured table buttons (free, open, in kitchen, served, billed); tap to open or start an order; takeaway; bar tab only if pub mode is on | `GET /orders`, `POST /orders`, `GET /settings` |
+| Order (inside Tables) | Menu search and categories, size or type and extras, send to kitchen or bar, remove an item (reason needed once sent), mark served, print kitchen or bar ticket | `GET /menu`, `GET /orders/:id`, `POST /orders/:id/lines`, `POST /orders/:id/kot`, `POST /orders/:id/lines/:lineId/void`, `POST /orders/:id/served`, `GET /orders/:id/print/kot?station=` |
+| Kitchen | Big tickets for the kitchen or the bar, refreshes every 10 seconds, tap Served | `GET /kitchen?station=`, `POST /orders/:id/served` |
+| Bill | Make the bill with an optional discount (type, value, reason; the server's refusal message is shown as it is), service charge and GST lines, split equally or by items, payments (cash, UPI, card, pay later, loyalty points), reopen with a reason, print A5 or A4 | `POST /orders/:id/bill`, `/split`, `/pay`, `/reopen`, `GET /orders/:id/print/bill?size=` |
+| Pay later | Who owes (phone masked), collect a payment | `GET /credit/dues`, `POST /credit/payments` |
+| Returns | Pick a paid order, quantity per line, reason; refund shown from the server | `GET /orders?status=paid`, `POST /orders/:id/returns` |
+
+Words are in `screens/strings.js` (English complete, Tamil draft, needs a native speaker, M-06). There is no pricing or claims text.
+
+### What is not there yet
+- **Table list:** the server has no tables route. Table names are typed by the owner and kept in that browser (`localStorage`), so each phone or tablet has its own list. Orders on other table names still show under the grid.
+- **Role-based tab hiding:** the sign-in answer gives only `admin` or `subadmin`, not the Dine role (owner, manager, cashier, captain, kitchen, bartender). So every tab shows and the server answers "Not allowed for your role" where it should. A small server change (send `staffRole` in `GET /auth/me`) would let the screens hide tabs.
+- **Print pages** open in a new tab and rely on the sign-in cookie (they are GET pages).
+- **Not built:** table moves and merges, guest names on orders, item notes (the route takes none), kitchen sound alert, menu editing screen (owner panel covers menu), liquor items hidden when pub mode is off (server refuses them).
+- **Not run:** syntax-checked with esbuild only (all files compile, `main.jsx` bundles with react external). Nobody has run it in a browser.
+
+### Dev A steps for these screens
+1. `cd apps/dine/client && npm install && npm run build`, then `npm run dev` against a running Dine server.
+2. As owner: add two tables, open one, add a dish with a size and an extra, send to kitchen, open the Kitchen tab in a second window and press Served.
+3. Bill it: try a discount without a reason (should be refused), with a reason, and as a cashier above the owner's limit (the refusal text must show). Split by items for 2 guests, pay half cash and half UPI, print A5.
+4. Pay later: bill with the Pay later method and a guest name and 10-digit phone; check Pay later lists them; collect a part payment.
+5. Returns: return one line of a paid order with a reason; try returning more than was sold (must be refused).
+6. As kitchen role: only Kitchen should work; other tabs must show "Not allowed for your role".
+7. Switch the language box to Tamil and check nothing breaks (missing lines fall back to English).

@@ -9,6 +9,16 @@ const who = (req) => String((req.user && (req.user.email || req.user.id)) || 'un
 
 router.get('/', (req, res) => { res.set('Cache-Control', 'no-store'); res.json({ success: true, data: store.get().view() }); });
 
+// Trial length (days). Only affects gyms that sign up after the change. Declared before '/:key'.
+router.put('/trial', async (req, res) => {
+  try {
+    const { days, reason } = req.body || {};
+    const r = await store.get().saveTrial(days, who(req), reason);
+    if (r.error) return res.status(400).json({ success: false, message: r.error });
+    res.json({ success: true, data: store.get().view() });
+  } catch (e) { console.error('trial save failed:', e.message); res.status(500).json({ success: false, message: 'Server error' }); }
+});
+
 router.put('/:key', async (req, res) => {
   try {
     const { reason, confirmBelowFloor, ...patch } = req.body || {};

@@ -9,7 +9,10 @@
 
 const GST_RATE = 18;
 const GRACE_DAYS = 3;
-const TRIAL_DAYS = 14;
+const TRIAL_DAYS = 14; // code default; the owner can change the live value (SET-01, getTrialDays)
+const TRIAL = { days: TRIAL_DAYS };
+const getTrialDays = () => TRIAL.days;
+const setTrialDays = (n) => { TRIAL.days = Number.isInteger(n) && n >= 0 && n <= 90 ? n : TRIAL_DAYS; return TRIAL.days; };
 const TRIAL_PLAN_KEY = 'growth'; // trial gets Growth features and limits
 
 const PLANS = {
@@ -79,4 +82,4 @@ const priceFor = (planKey, cycle) => {
   return { base, gst, total: base + gst, currency: plan.currency };
 };
 
-module.exports = { PLANS, GST_RATE, GRACE_DAYS, TRIAL_DAYS, TRIAL_PLAN_KEY, getPlan, listPlans, priceFor };
+module.exports = { PLANS, GST_RATE, GRACE_DAYS, TRIAL_DAYS, getTrialDays, setTrialDays, TRIAL_PLAN_KEY, getPlan, listPlans, priceFor };

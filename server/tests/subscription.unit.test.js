@@ -1,6 +1,6 @@
 // Pure unit tests: no database needed.
 const { computeStatus, effectivePlan, trialDates, DAY } = require('../services/subscription');
-const { priceFor, getPlan, TRIAL_DAYS } = require('../config/plans');
+const { priceFor, getPlan, TRIAL_DAYS, setTrialDays } = require('../config/plans');
 
 const now = new Date('2026-12-01T00:00:00Z');
 const ago = (d) => new Date(now.getTime() - d * DAY);

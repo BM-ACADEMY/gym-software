@@ -52,3 +52,22 @@ describe('plan overrides (SET-01)', () => {
     expect(await s.load()).toBe(false); expect(P.growth.monthly).toBe(999);
   });
 });
+
+describe('trial length (SET-01)', () => {
+  const { getTrialDays, setTrialDays, TRIAL_DAYS } = require('../config/plans');
+  const { makeStore } = require('../services/planSettingsStore');
+  const { PLANS } = require('../config/plans');
+  test('live value follows the saved setting; bad values fall back to the default', async () => {
+    let saved = null;
+    const SystemSettings = { getSetting: async () => saved, setSetting: async (k, v) => { saved = v; } };
+    const st = makeStore({ SystemSettings, PLANS });
+    expect((await st.saveTrial(7, 'o', 'no')).error).toMatch(/reason/i);
+    expect((await st.saveTrial(120, 'o', 'too long a trial')).error).toMatch(/0 to 90/);
+    expect((await st.saveTrial(7, 'o', 'shorter trial test')).ok).toBe(true);
+    expect(getTrialDays()).toBe(7); expect(st.view().trial.days).toBe(7);
+    expect(saved.history[saved.history.length - 1].after.trialDays).toBe(7);
+    setTrialDays(-3); expect(getTrialDays()).toBe(TRIAL_DAYS);
+    const st2 = makeStore({ SystemSettings, PLANS }); await st2.load(); expect(getTrialDays()).toBe(7);
+    setTrialDays(TRIAL_DAYS);
+  });
+});

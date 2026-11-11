@@ -54,6 +54,25 @@ const PlanBox = ({ plan, floor, onSaved }) => {
   );
 };
 
+const TrialBox = ({ trial, onSaved }) => {
+  const [days, setDays] = useState(String(trial.days)); const [reason, setReason] = useState(''); const [msg, setMsg] = useState(''); const [busy, setBusy] = useState(false);
+  const save = async () => {
+    setBusy(true); setMsg('');
+    try { await apiClient.put('/root-admin/plan-settings/trial', { days: Number(days), reason }); setMsg('Saved. New sign-ups get this trial.'); setReason(''); await onSaved(); }
+    catch (err) { setMsg(err.response?.data?.message || 'Could not save.'); } finally { setBusy(false); }
+  };
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+      <p className="font-semibold text-gray-800">Free trial length</p>
+      <p className="text-sm text-gray-600">Standard is {trial.default} days. A change applies to gyms that sign up after it; gyms already on a trial keep their end date. 0 to {trial.max} days.</p>
+      <label className="block text-sm text-gray-700">Days<input type="number" min="0" max={trial.max} value={days} onChange={(e) => setDays(e.target.value)} className="block w-32 border border-gray-300 rounded-lg px-3 py-2" /></label>
+      <label className="block text-sm text-gray-700">Reason (5 to 200 characters)<input value={reason} onChange={(e) => setReason(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2" /></label>
+      <button type="button" disabled={busy} onClick={save} className="px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium disabled:opacity-50">Save trial length</button>
+      {msg && <p className="text-sm text-gray-700">{msg}</p>}
+    </div>
+  );
+};
+
 const PlanSettings = () => {
   const [data, setData] = useState(null); const [error, setError] = useState('');
   const load = async () => { try { setData((await apiClient.get('/root-admin/plan-settings')).data.data); } catch (err) { setError(err.response?.data?.message || 'Could not load the plans.'); } };
@@ -63,6 +82,7 @@ const PlanSettings = () => {
       <div className="flex items-center gap-3"><SlidersHorizontal className="w-6 h-6 text-teal-600" /><h1 className="text-2xl font-bold text-gray-900">Plan settings</h1></div>
       <p className="text-sm text-gray-600">Change a price or limit here and it is live for the pricing page and for checkout within a minute. No deploy needed. Gyms that already paid keep what they paid for. Prices are whole rupees before 18% GST.</p>
       {error && <p className="text-sm text-red-600">{error}</p>}
+      {data && data.trial && <TrialBox key={data.trial.days} trial={data.trial} onSaved={load} />}
       {data && data.plans.map((p) => <PlanBox key={p.key} plan={p} floor={data.floors[p.key]} onSaved={load} />)}
       {data && (
         <div className="bg-white rounded-xl border border-gray-200 p-4">

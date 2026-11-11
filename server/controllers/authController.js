@@ -7,7 +7,7 @@ const Member = require('../models/Member');
 const OtpRecord = require('../models/OtpRecord');
 const { generateToken } = require('../utils/jwt');
 const { trialDates } = require('../services/subscription');
-const { TRIAL_DAYS } = require('../config/plans');
+const { getTrialDays } = require('../config/plans');
 const { sendWelcome } = require('../services/ownerNotices');
 const { generateOtp, sendOtpSms, sendOtpEmail } = require('../utils/otp');
 
@@ -180,7 +180,7 @@ const signup = async (req, res) => {
     res.status(201).json({
       success: true,
       token,
-      trialDays: TRIAL_DAYS,
+      trialDays: getTrialDays(),
       trialEndsAt: subscriber.trialEndsAt,
       data: { id: admin._id, name: admin.name, email: admin.email, phone: admin.phone, role: admin.role, subscriberId: subscriber._id },
     });

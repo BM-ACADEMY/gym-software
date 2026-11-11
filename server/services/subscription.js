@@ -1,4 +1,4 @@
-const { getPlan, GRACE_DAYS, TRIAL_DAYS, TRIAL_PLAN_KEY } = require('../config/plans');
+const { getPlan, GRACE_DAYS, getTrialDays, TRIAL_PLAN_KEY } = require('../config/plans');
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -54,7 +54,7 @@ const effectivePlan = (subscriber, now = new Date()) => {
 };
 
 const trialDates = (now = new Date()) => ({
-  trialEndsAt: new Date(now.getTime() + TRIAL_DAYS * DAY),
+  trialEndsAt: new Date(now.getTime() + getTrialDays() * DAY),
 });
 
 module.exports = { computeStatus, effectivePlan, trialDates, DAY };

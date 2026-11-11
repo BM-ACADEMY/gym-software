@@ -13,6 +13,7 @@ const SP = require('./staffPay');
 const RT = require('./returns');
 const ST = require('./stock');
 const SO = require('./stockOps');
+const BP = require('./bookingPage');
 const LOY2 = require('../../../packages/core-pos/src/loyalty');
 const LOY = require('../../../packages/core-pos/src/loyalty');
 const { makeFail, makeWrap, field, str, plain, isId } = require('./routes');
@@ -257,6 +258,30 @@ function createSalonMoreRouter({ express, mongoose, protect, authorize, tenantOf
     moves.forEach((m) => { (by[String(m.productId)] = by[String(m.productId)] || []).push(m); });
     res.json({ success: true, data: products.map((p) => ({ id: String(p._id), name: p.name, stock: Math.round(p.stock || 0), unit: p.unit, reorderLevel: p.reorderLevel, low: (p.stock || 0) <= (p.reorderLevel || 0), ...ST.runOut({ stock: p.stock, moves: by[String(p._id)] || [], today: t }) })) });
   }));
+
+  // ---- (7) booking link for the QR poster. The owner prints the text as a QR code; no image is made here. ----
+  router.get('/settings/booking-qr', adminOnly, wrap(async (req, res, tid) => {
+    const t = await M.Tenant.findOne({ _id: tid }).lean(); if (!t || !t.bookingToken) return fail(res, 404, 'No booking link yet. Make one in Settings.');
+    const url = BP.bookingUrl(env, t.bookingToken); if (!url) return fail(res, 409, 'The public web address is not set on the server yet (SALON_PUBLIC_URL).');
+    res.json({ success: true, data: { url, qrText: url, text: 'Turn this link into a QR code and print it for the counter. Anyone with it can book, so make a new link if it spreads.' } });
+  }));
+
+  // ---- (7) Clinic notes. Fails closed until a lawyer has reviewed patient records and the server switch is turned on. Doctor and owner only. ----
+  const notesOn = (req, res, next) => (String(env.CLINIC_NOTES_ENABLED) === 'true' ? next() : fail(res, 503, 'Clinic notes are switched off until the legal review is done.'));
+  const docOrOwner = (req, res, next) => (req.user && ['admin', 'doctor'].includes(req.user.role) ? next() : fail(res, 403, 'Only the doctor or the owner can do this.'));
+  const clinicOnly = async (tid) => { const t = await M.Tenant.findOne({ _id: tid }).lean(); return t && t.preset === 'clinic'; };
+  router.post('/clinic/notes', notesOn, docOrOwner, wrap(async (req, res, tid) => {
+    if (!(await clinicOnly(tid))) return fail(res, 404, 'Not found'); const b = req.body || {}; const note = str(b.note, 2000); if (!note) throw field('Write the note.');
+    if (!isId(b.customerId) || !(await M.Customer.findOne({ _id: b.customerId, tenantId: tid }).lean())) return fail(res, 404, 'Patient not found.');
+    const d = await M.ClinicNote.create({ tenantId: tid, customerId: b.customerId, appointmentId: isId(b.appointmentId) ? b.appointmentId : undefined, note, by: String(req.user.id), byRole: req.user.role, date: today() });
+    await audit(tid, req, 'clinic.note.add', String(d._id)); res.status(201).json({ success: true, data: { id: String(d._id) } });
+  }));
+  router.get('/clinic/notes', notesOn, docOrOwner, wrap(async (req, res, tid) => {
+    if (!(await clinicOnly(tid))) return fail(res, 404, 'Not found'); if (!isId(req.query.customerId)) throw field('Pick a patient.');
+    const rows = await M.ClinicNote.find({ tenantId: tid, customerId: req.query.customerId }).sort({ date: -1 }).limit(100).lean();
+    await audit(tid, req, 'clinic.note.read', String(req.query.customerId)); res.json({ success: true, data: rows.map((r) => ({ id: String(r._id), date: r.date, note: r.note, byRole: r.byRole })) });
+  }));
+  router.get('/clinic/consent-text', wrap(async (req, res) => res.json({ success: true, data: { text: BP.CONSENT_TEXT, status: 'Draft wording. A lawyer must review it before patients see it for medical records.' } })));
 
   return router;
 }

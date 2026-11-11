@@ -11,6 +11,7 @@ const { buildBill } = require('./billing');
 const DP = require('./discountPolicy');
 const LR = require('./loyaltyRule');
 const SO = require('./stockOps');
+const BP = require('./bookingPage');
 const { dailySummary } = require('./summary');
 const { lapsed, dueForRebook } = require('./winback');
 const { startingServices, presetKeys } = require('./presets');
@@ -69,7 +70,7 @@ function makeBooker(M) {
   };
 }
 
-function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles = ['admin', 'staff'] }) {
+function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles = ['admin', 'staff', 'doctor'] }) {
   const router = express.Router(); const M = makeModels(mongoose); const booker = makeBooker(M);
   router.use(protect, authorize(...roles));
   if (guardWrite) router.use((req, res, next) => { const g = guardWrite(req); return g.ok ? next() : res.status(g.httpStatus || 402).json({ success: false, message: g.message, code: 'read_only' }); });
@@ -77,7 +78,7 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
   const adminOnly = (req, res, next) => (req.user && req.user.role === 'admin' ? next() : fail(res, 403, 'Only the owner can do this.'));
   const tenantDoc = (tid) => M.Tenant.findById(tid).lean();
   const today = () => B.istParts().date;
-  const maskIfStaff = (req, c) => (req.user.role === 'staff' ? { ...c, phone: B.maskPhone(c.phone) } : c);
+  const maskIfStaff = (req, c) => (req.user.role !== 'admin' ? { ...c, phone: B.maskPhone(c.phone) } : c);
 
   // ---- services ----
   router.get('/services', wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Service.find({ tenantId: tid }).sort({ name: 1 }).limit(200)).map(plain) })));
@@ -157,17 +158,18 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
   }));
   router.get('/appointments', wrap(async (req, res, tid) => {
     const date = str(req.query.date, 10) || today(); if (!B.validDate(date)) throw field('Pick a valid date.');
-    const q = { tenantId: tid, date }; if (req.user.role === 'staff' && req.user.staffId) q.staffId = req.user.staffId;
+    const q = { tenantId: tid, date }; if (req.user.role !== 'admin' && req.user.staffId) q.staffId = req.user.staffId;
     const rows = await M.Appointment.find(q).sort({ start: 1 }).limit(300).lean();
     const cs = await M.Customer.find({ tenantId: tid, _id: { $in: rows.map((r) => r.customerId) } }).lean(); const byId = {}; cs.forEach((c) => { byId[String(c._id)] = c; });
-    res.json({ success: true, data: rows.map((r) => ({ ...r, id: String(r._id), customer: byId[String(r.customerId)] ? { name: byId[String(r.customerId)].name, phone: req.user.role === 'staff' ? B.maskPhone(byId[String(r.customerId)].phone) : byId[String(r.customerId)].phone } : null })) });
+    res.json({ success: true, data: rows.map((r) => ({ ...r, id: String(r._id), customer: byId[String(r.customerId)] ? { name: byId[String(r.customerId)].name, phone: req.user.role !== 'admin' ? B.maskPhone(byId[String(r.customerId)].phone) : byId[String(r.customerId)].phone } : null })) });
   }));
   router.post('/appointments', wrap(async (req, res, tid) => {
     const t = await tenantDoc(tid); const b = req.body || {};
     const r = await booker.book(tid, t, { date: str(b.date, 10), start: b.start, staffId: str(b.staffId, 24), serviceKey: str(b.serviceKey, 40), name: b.name, phone: b.phone, consent: b.consentGiven === true, source: 'owner' });
+    if (t.preset === 'clinic' && BP.AREAS.includes(b.bodyArea)) { await M.Appointment.updateOne({ _id: r.appointment._id, tenantId: tid }, { $set: { bodyArea: b.bodyArea } }); r.appointment.bodyArea = b.bodyArea; }
     res.status(201).json({ success: true, data: plain(r.appointment) });
   }));
-  const own = async (req, tid) => { if (!isId(req.params.id)) return null; const q = { _id: req.params.id, tenantId: tid }; if (req.user.role === 'staff' && req.user.staffId) q.staffId = req.user.staffId; return M.Appointment.findOne(q); };
+  const own = async (req, tid) => { if (!isId(req.params.id)) return null; const q = { _id: req.params.id, tenantId: tid }; if (req.user.role !== 'admin' && req.user.staffId) q.staffId = req.user.staffId; return M.Appointment.findOne(q); };
   router.post('/appointments/:id/cancel', wrap(async (req, res, tid) => {
     const a = await own(req, tid); if (!a) return fail(res, 404, 'Not found');
     if (!['booked', 'pending'].includes(a.status)) return fail(res, 409, 'This visit can no longer be cancelled.');
@@ -197,7 +199,7 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
   router.post('/appointments/:id/noshow', finish('noshow'));
 
   // ---- walk-in queue ----
-  router.get('/queue', wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Queue.find({ tenantId: tid, date: today(), status: { $in: ['waiting', 'serving'] } }).sort({ createdAt: 1 }).limit(100).lean()).map((q) => ({ ...q, id: String(q._id), phone: req.user.role === 'staff' ? B.maskPhone(q.phone) : q.phone })) })));
+  router.get('/queue', wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Queue.find({ tenantId: tid, date: today(), status: { $in: ['waiting', 'serving'] } }).sort({ createdAt: 1 }).limit(100).lean()).map((q) => ({ ...q, id: String(q._id), phone: req.user.role !== 'admin' ? B.maskPhone(q.phone) : q.phone })) })));
   router.post('/queue', wrap(async (req, res, tid) => {
     const b = req.body || {}; if (str(b.name, 120).length < 2) throw field('Enter the name.');
     const phone = b.phone ? B.cleanPhone(b.phone) : undefined; if (phone && !B.validPhone(phone)) throw field('That phone number does not look right.');
@@ -373,6 +375,13 @@ function createPublicRouter({ express, mongoose, limiter = makeLimiter() }) {
       console.error('Salon public route failed:', err.message); return fail(res, 500, 'Server error');
     }
   };
+  router.get('/:token/page', async (req, res) => {
+    try {
+      const t = await tenantOfToken(req.params.token); if (!t) return fail(res, 404, 'This link is not valid.');
+      res.set({ 'content-type': 'text/html; charset=utf-8', 'content-security-policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'", 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' });
+      res.send(BP.page(t.businessName, { clinic: t.preset === 'clinic' }));
+    } catch (err) { console.error('Salon booking page failed:', err.message); fail(res, 500, 'Server error'); }
+  });
   router.get('/:token', guard(async (req, res, t, tid) => {
     const [services, staff] = await Promise.all([M.Service.find({ tenantId: tid, isActive: true }).lean(), M.Staff.find({ tenantId: tid, isActive: true }).lean()]);
     res.json({ success: true, data: { businessName: t.businessName, preset: t.preset, mode: t.bookingMode, services: services.map((s) => ({ key: s.key, name: s.name, mins: s.mins, price: s.price, currency: s.currency })), staff: staff.map((s) => ({ id: String(s._id), name: s.name, serviceKeys: s.serviceKeys })) } });
@@ -381,6 +390,7 @@ function createPublicRouter({ express, mongoose, limiter = makeLimiter() }) {
   router.post('/:token/book', guard(async (req, res, t, tid) => {
     const b = req.body || {};
     const r = await booker.book(tid, t, { date: str(b.date, 10), start: b.start, staffId: isId(b.staffId) ? b.staffId : '', serviceKey: str(b.serviceKey, 40), name: b.name, phone: b.phone, consent: b.consent, source: 'public' });
+    if (t.preset === 'clinic' && BP.AREAS.includes(b.bodyArea)) await M.Appointment.updateOne({ _id: r.appointment._id, tenantId: tid }, { $set: { bodyArea: b.bodyArea } });
     // The customer sees only their own booking details; a manage code lets them cancel (the id is not guessable: 24 hex).
     res.status(201).json({ success: true, data: { id: String(r.appointment._id), status: r.appointment.status, date: r.appointment.date, start: r.appointment.start, serviceName: r.appointment.serviceName, businessName: t.businessName } });
   }));

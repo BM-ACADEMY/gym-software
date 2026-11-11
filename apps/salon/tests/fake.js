@@ -40,7 +40,7 @@ function fakeRouter() { const routes = []; const add = (method) => (path, ...h) 
 // Runs the handler chain of one route, like Express would. Returns { code, body, headers }.
 async function call(router, method, path, req = {}) {
   const r = router.routes.find((x) => x.method === method && x.path === path); if (!r) throw new Error('no route ' + method + ' ' + path);
-  const out = { code: 200, headers: {} }; const res = { set: (k, v) => { out.headers[k] = v; return res; }, status: (c) => { out.code = c; return res; }, json: (b) => { out.body = b; return res; }, send: (b) => { out.body = b; return res; } };
+  const out = { code: 200, headers: {} }; const res = { set: (k, v) => { if (k && typeof k === 'object') Object.assign(out.headers, k); else out.headers[k] = v; return res; }, status: (c) => { out.code = c; return res; }, json: (b) => { out.body = b; return res; }, send: (b) => { out.body = b; return res; } };
   const full = { params: {}, query: {}, body: {}, ip: '1.1.1.1', ...req };
   for (const h of r.h) { let nexted = false; await h(full, res, () => { nexted = true; }); if (!nexted) break; }
   return out;

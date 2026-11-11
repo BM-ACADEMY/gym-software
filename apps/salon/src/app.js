@@ -6,6 +6,7 @@ const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createSalonRouter, createPublicRouter } = require('./routes');
 const { createSalonMoreRouter } = require('./routesMore');
+const { createInternalRouter } = require('./internalRoutes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 
 function missingSettings(env) {
@@ -28,6 +29,7 @@ function createApp({ express, mongoose, env = process.env }) {
   app.use('/api/salon/auth', createAuthRouter({ express, mongoose, billing, secret, termsVersion: env.SALON_TERMS_VERSION }));
   // Public booking link: the secret token is the key; consent tick required; rate limited.
   app.use('/api/salon-book', createPublicRouter({ express, mongoose }));
+  app.use('/api/internal', createInternalRouter({ express, mongoose, billing, key: env.INTERNAL_API_KEY }));
   const protect = sessionMiddleware(secret, M);
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));
   app.use('/api/salon', createSalonRouter({ express, mongoose, protect, authorize, tenantOf: (req) => req.user.tenantId, guardWrite: (req) => billing.guardWrite(req.subscription, req.method) }));

@@ -21,17 +21,20 @@ Run the plain checks: `node /path/to/ashim.js apps/salon/tests/<file>.test.js`. 
 | 10 Control | owner daily summary, audit trail records (expense, day close, export, discount; no customer details), 3 plan-priced tiers with staff unlimited | Audit trail screen, data export/delete on request, backups: Phase 2 or ops |
 | 11 Growth | not Phase 1 | |
 
-## Phase 2 list (nothing dropped silently)
-1. Staff attendance, shifts, leave, payslip (core payroll not wired).
-2. Customer CSV import (core-pos `csvImport` exists), loyalty points, packages and memberships (physio "session 4 of 10").
-3. Stock and product consumption per service, stock run-out estimate, stock-mismatch alert.
-4. Returns and voids on bills, void leak check, payment links, advance for long services via UPI.
-5. Reminders and message sending (24h and 2h before, review request, win-back text): needs approved WhatsApp templates `salon_*`, suggest-first.
-6. Public booking page screen and QR image; reschedule through the public link.
-7. Audit trail screen, export and delete on request (DPDP, lawyer review), print bill (core-pos `billHtml` exists, shop details not wired).
-8. Clinic specifics: doctor-only clinical notes, body-area picker, Tamil/Hindi text (native review). Lawyer review of patient records before any real clinic.
-9. Admin panel list screens that need date ranges (expenses, P&L, GST, export): routes exist, manifest screens for them not added yet.
-10. Super Admin counts for this product; plan self-checkout (core-billing wired for status and read-only guard only).
+## Phase 2 status (written, not yet tested by a human; plain-node and in-memory checks pass)
+Done in code:
+1. Staff: base salary, attendance, shifts, leave (request, decide), advances, payslip and month payslips (owner sees all; staff see own).
+2. Customers: CSV import (preview, then commit with consent confirmed), loyalty points (earn on bill, redeem, reversed on void), packages and memberships with guarded session use.
+3. Stock: products, purchases, counts (difference kept and alerted), per-service product use taken off at billing, restored on void, run-out estimate labelled "Estimate, not a promise" and "not enough data" when thin, low and negative stock alerts, retail product lines priced by the server.
+4. Voids and refunds (reason required, owner only, guarded so two at once cannot refund more than paid), void and refund leak checks, income, GST and cash-expected follow refunds. Payment links: not built.
+5. Accounts month view, staff-discount list, activity log, data export and delete on request (owner, typed DELETE).
+6. Public booking page as plain HTML (escaped name, consent box, strict security headers) and owner booking link text for a QR code (`GET /settings/booking-qr`, needs `SALON_PUBLIC_URL`). No QR image is made.
+7. Clinic: `doctor` role (masked phones, no money screens), body-area field on appointments, doctor-or-owner clinical notes behind `CLINIC_NOTES_ENABLED=true` (off by default, off until a lawyer reviews patient records), consent wording marked as draft.
+8. Super Admin counts: `GET /api/internal/admin-summary` with `x-internal-key` (`INTERNAL_API_KEY`), counts only, schema 1.
+
+Still not built: reminders and message sending (need approved WhatsApp templates), reschedule through the public link, payment links, print bill, plan self-checkout, Tamil/Hindi text (native review), date-range and file-download screens in the panel (CA CSV, customer export, CSV import and creating a refund stay API-only), QR image.
+
+Dev A steps: run `tests/routes.db.test.js` and the new routes on a real database; try double-spend and double-refund and double package use at once; for any bill made before the `refunded` field existed, set `refunded: 0` (none expected before launch); check the panel screens on a phone; open the booking page on a phone with a real link; set `SALON_PUBLIC_URL`, `INTERNAL_API_KEY`; leave `CLINIC_NOTES_ENABLED` unset.
 
 ## Open owner decisions
 Product name; price ladder (draft 149/299/499 is an Assumption, floor-price check SAL-P1 not done); CA wording for SAC and invoices; Meta templates; whether staff may give discounts (today staff can, with a reason, audited).

@@ -34,7 +34,7 @@ function createDineRouter({ express, mongoose, models, protect, tenantOf, planOf
       console.error('Dine route failed:', err.message); return fail(res, 500, 'Server error');
     }
   });
-  const settingsOf = async (tid) => { const t = await M.Tenant.findById(tid); const s = (t && t.settings) || {}; return { gstProfile: s.gstProfile || 'none', serviceChargePct: s.serviceChargePct || 0, pubMode: !!s.pubMode, festivals: s.festivals || [], happyRules: s.happyRules || [], reviewLink: s.reviewLink || '', venueName: (t && t.venueName) || 'us' }; };
+  const settingsOf = async (tid) => { const t = await M.Tenant.findById(tid); const s = (t && t.settings) || {}; return { gstProfile: s.gstProfile || 'none', serviceChargePct: s.serviceChargePct || 0, pubMode: !!s.pubMode, festivals: s.festivals || [], happyRules: s.happyRules || [], discountRule: D.discountPolicy.normalize(s.discountRule), reviewLink: s.reviewLink || '', venueName: (t && t.venueName) || 'us' }; };
   const log = (tid, req, action, ref) => M.Activity.create({ tenantId: tid, by: req.user.id, action, ref: ref ? String(ref).slice(0, 60) : undefined });
   const loadOrder = async (tid, id) => { if (!OID.test(String(id))) return null; return plain(await M.Order.findOne({ _id: id, tenantId: tid })); };
   // Optimistic save: only succeeds if nobody else changed the order since we read it (events grows by one on every change).
@@ -43,9 +43,9 @@ function createDineRouter({ express, mongoose, models, protect, tenantOf, planOf
     if (!r) { const e = new Error('Someone else just changed this order. Reload and try again.'); e.code = 'ORDER_INVALID'; throw e; }
     return plain(r);
   };
-  const priceOrder = (o, settings) => {
+  const priceOrder = (o, settings, discount) => {
     const live = D.live(o); const inp = D.toBillInput(live.map((l) => ({ ...l, itemId: l.itemKey })), settings.gstProfile);
-    const c = bill.compute({ lines: inp.lines, taxMode: inp.taxMode });
+    const c = bill.compute({ lines: inp.lines, taxMode: inp.taxMode, ...(discount ? { billDiscount: discount } : {}) });
     const sc = D.serviceCharge(c.taxable, settings.serviceChargePct);
     return { computed: c, serviceCharge: sc, grandTotal: c.total + sc, totals: { subtotal: c.subtotal, discount: c.discount, taxable: c.taxable, gst: c.gst, cgst: c.cgst, sgst: c.sgst, igst: c.igst, total: c.total, lines: c.lines.map((l) => ({ name: l.name, qty: l.qty, total: l.total, taxable: l.taxable, gst: l.gst, rate: l.rate, itemKey: l.itemId || null })) } };
   };
@@ -59,6 +59,11 @@ function createDineRouter({ express, mongoose, models, protect, tenantOf, planOf
     if (b.gstProfile !== undefined) { D.profileFor(b.gstProfile); set['settings.gstProfile'] = b.gstProfile; }
     if (b.serviceChargePct !== undefined) { const n = Number(b.serviceChargePct); if (!(n >= 0 && n <= 20)) return fail(res, 400, 'Service charge must be 0 to 20 percent.'); set['settings.serviceChargePct'] = n; }
     if (b.pubMode !== undefined) { if (b.pubMode === true && !(await planAllows(req, 'pubMode'))) return fail(res, 403, 'Pub mode is not in your plan.'); set['settings.pubMode'] = b.pubMode === true; }
+    if (b.discountRule !== undefined) { // D-30: only the owner sets who may give a discount
+      if (req.user.staffRole !== 'owner') return fail(res, 403, 'Only the owner can change the discount rule.');
+      if (!b.discountRule || typeof b.discountRule !== 'object') return fail(res, 400, 'Check the discount rule.');
+      set['settings.discountRule'] = D.discountPolicy.normalize(b.discountRule);
+    }
     if (b.reviewLink !== undefined) { const l = str(b.reviewLink, 300); if (l && !/^https:\/\//.test(l)) return fail(res, 400, 'Review link must start with https://'); set['settings.reviewLink'] = l; }
     if (Array.isArray(b.festivals)) set['settings.festivals'] = b.festivals.slice(0, 40).filter((f) => f && DATE.test(f.date || '') && str(f.name)).map((f) => ({ name: str(f.name, 60), date: f.date, offerIdea: str(f.offerIdea, 160) }));
     if (Array.isArray(b.happyRules)) {
@@ -136,14 +141,31 @@ function createDineRouter({ express, mongoose, models, protect, tenantOf, planOf
   });
   def('post', '/orders/:id/bill', 'bill', async (req, res, tid) => {
     const o = await loadOrder(tid, req.params.id); if (!o) return fail(res, 404, 'Order not found');
-    const settings = await settingsOf(tid); const billed = D.requestBill(o, now().toISOString(), req.user.id); const pr = priceOrder(billed, settings);
-    const saved = await saveOrder(tid, o, billed, { totals: pr.totals, serviceCharge: pr.serviceCharge, grandTotal: pr.grandTotal });
+    const settings = await settingsOf(tid); const billed = D.requestBill(o, now().toISOString(), req.user.id);
+    // D-30: a discount needs the 'discount' permission, a reason, and must fit the owner's rule (the owner is never limited).
+    const d = req.body && req.body.discount; let disc = null;
+    if (d) {
+      if (!D.can(req.user.staffRole, 'discount')) return fail(res, 403, 'Not allowed for your role.');
+      const type = d.type === 'amount' ? 'amount' : d.type === 'percent' ? 'percent' : null; const value = Number(d.value);
+      if (!type || !Number.isFinite(value) || value <= 0 || (type === 'amount' && !Number.isInteger(value)) || (type === 'percent' && value > 100)) return fail(res, 400, 'Check the discount.');
+      if (str(d.reason, 200).length < 3) return fail(res, 400, 'Write a reason for the discount.');
+      disc = { type, value, reason: str(d.reason, 200) };
+    }
+    const pr = priceOrder(billed, settings, disc && { type: disc.type, value: disc.value });
+    const extra = { totals: pr.totals, serviceCharge: pr.serviceCharge, grandTotal: pr.grandTotal, discount: 0, discountBy: null, discountById: null, discountPercent: 0, discountReason: null };
+    if (disc && pr.computed.discount > 0) {
+      const chk = D.discountPolicy.check({ role: D.discountRole(req.user.staffRole), discount: pr.computed.discount, subtotal: pr.computed.subtotal, rule: settings.discountRule });
+      if (!chk.ok) return fail(res, 403, chk.message);
+      Object.assign(extra, { discount: pr.computed.discount, discountBy: req.user.staffRole === 'owner' ? 'owner' : 'staff', discountById: req.user.id, discountPercent: chk.percent, discountReason: disc.reason });
+    }
+    const saved = await saveOrder(tid, o, billed, extra);
+    if (extra.discount) await log(tid, req, 'bill.discount', o.number + ' ' + extra.discountPercent + '% by ' + extra.discountBy);
     res.json({ success: true, data: saved, gstProfile: D.profileFor(settings.gstProfile), note: settings.gstProfile === 'none' ? null : 'GST profile is not yet confirmed by your CA.' });
   });
   def('post', '/orders/:id/reopen', 'bill', async (req, res, tid) => {
     const o = await loadOrder(tid, req.params.id); if (!o) return fail(res, 404, 'Order not found');
     const next = D.reopen(o, { reason: str(req.body && req.body.reason, 200), by: req.user.id }, now().toISOString());
-    const saved = await saveOrder(tid, o, next, { totals: null, grandTotal: null, serviceCharge: 0 }); await log(tid, req, 'order.reopen', o.number); res.json({ success: true, data: saved });
+    const saved = await saveOrder(tid, o, next, { totals: null, grandTotal: null, serviceCharge: 0, discount: 0, discountBy: null, discountById: null, discountPercent: 0, discountReason: null }); await log(tid, req, 'order.reopen', o.number); res.json({ success: true, data: saved });
   });
   def('post', '/orders/:id/split', 'bill', async (req, res, tid) => {
     const o = await loadOrder(tid, req.params.id); if (!o) return fail(res, 404, 'Order not found');

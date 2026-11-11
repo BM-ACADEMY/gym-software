@@ -5,7 +5,7 @@ const istParts = (d) => { const t = new Date(new Date(d).getTime() + IST); retur
 function orderToBill(o) {
   const t = o.totals || { lines: [], taxable: 0, cgst: 0, sgst: 0, igst: 0 };
   const p = istParts(o.paidAt || o.createdAt);
-  return { date: p.date, hour: p.hour, staffId: o.staffId || null, number: o.number, total: o.grandTotal, taxable: t.taxable, cgst: t.cgst, sgst: t.sgst, igst: t.igst, discount: t.discount || 0, subtotal: t.subtotal || 0, currency: o.currency || 'INR', lines: (t.lines || []).map((l) => ({ name: l.name, qty: l.qty, total: l.total, taxable: l.taxable, gst: l.gst, rate: l.rate, itemKey: l.itemKey || null })), payments: o.payments || [] };
+  return { date: p.date, hour: p.hour, staffId: o.staffId || null, number: o.number, total: o.grandTotal, taxable: t.taxable, cgst: t.cgst, sgst: t.sgst, igst: t.igst, discount: t.discount || 0, discountBy: o.discountBy || null, discountReason: o.discountReason || '', subtotal: t.subtotal || 0, currency: o.currency || 'INR', lines: (t.lines || []).map((l) => ({ name: l.name, qty: l.qty, total: l.total, taxable: l.taxable, gst: l.gst, rate: l.rate, itemKey: l.itemKey || null })), payments: o.payments || [] };
 }
 // Cash taken on one day: cash payments minus the change handed back (settle() stores received per method; change comes out of cash).
 function cashTaken(orders, date) {

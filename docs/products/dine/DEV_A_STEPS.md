@@ -7,3 +7,4 @@
 5. Create a recipe, sell the dish, check the ingredient quantity went down by the recipe amount once, not twice.
 6. Day close with a counted amount below expected: status `short`. CA export opens in a spreadsheet and a bill number starting with `=` shows as text.
 7. The route tests use spy models. A real-database route test file is still to be written (Phase 2 item DIN-QA).
+8. D-30 discounts: as a cashier, bill with a 10 percent discount (works, bill shows who and percent), then 11 percent (refused with the limit). As the owner set `discountRule` to `owner_only` in Settings: the cashier is refused. The owner summary shows "Staff gave N discounts worth Rs X".

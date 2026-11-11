@@ -41,4 +41,10 @@ function leakageFlags(d) {
   if (d.reopens >= 3) out.push({ code: 'reopens', reason: d.reopens + ' bills were reopened after printing. Check the reasons.' });
   return out;
 }
-module.exports = { bestWorst, slowHours, leakageFlags, med };
+// D-30: discounts given by staff (not the owner), per day, so the owner always sees them. bills carry discountBy ('owner'|'staff').
+function staffDiscounts(bills) {
+  const by = {};
+  for (const b of bills) if (b.discountBy === 'staff' && Math.round(b.discount || 0) > 0) { const d = by[b.date] || (by[b.date] = { date: b.date, count: 0, total: 0 }); d.count += 1; d.total += Math.round(b.discount); }
+  return Object.values(by).sort((a, b) => b.date.localeCompare(a.date)).map((d) => ({ ...d, currency: 'INR' }));
+}
+module.exports = { staffDiscounts, bestWorst, slowHours, leakageFlags, med };

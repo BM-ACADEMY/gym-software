@@ -3,11 +3,13 @@
 const ROLES = {
   owner: ['*'],
   manager: ['menu', 'orders', 'bill', 'void', 'discount', 'reports', 'stock', 'staff', 'cash', 'customers'],
-  cashier: ['orders', 'bill', 'cash', 'customers'],
+  cashier: ['orders', 'bill', 'discount', 'cash', 'customers'],
   captain: ['orders', 'customers'],
   kitchen: ['kot_view'],
   bartender: ['orders', 'kot_view'],
 };
+// D-30: the owner is never limited on discounts; everyone else is a 'staff' for the discount rule.
+const discountRole = (staffRole) => (staffRole === 'owner' ? 'admin' : 'staff');
 const can = (role, action) => { const r = ROLES[role]; return !!r && (r.includes('*') || r.includes(action)); };
 // punches: [{ at: ISO, kind:'in'|'out' }] for one person. Returns minutes worked; an 'in' with no 'out' is reported, not guessed.
 function hoursWorked(punches) {
@@ -19,4 +21,4 @@ function hoursWorked(punches) {
   if (open) problems.push('No clock-out after ' + open);
   return { minutes: mins, hours: Math.round((mins / 60) * 10) / 10, problems };
 }
-module.exports = { ROLES, can, hoursWorked };
+module.exports = { ROLES, can, discountRole, hoursWorked };

@@ -1,7 +1,7 @@
 'use strict';
 // Wash Phase 2 routes (13 Nov). Mounted from routes.js, so the same sign-in, role check, read-only guard and tenant filter
 // apply. EVERY query filters by tenantId. Written, not yet tested by a person.
-const A = require('./accounts'); const PH = require('./photos'); const MONEY = require('./money'); const BK = require('./booking'); const PAY = require('./payroll'); const AT = require('./attendance'); const { dayTotals } = require('./incentive');
+const A = require('./accounts'); const PH = require('./photos'); const MONEY = require('./money'); const DR = require('./dataRights'); const VI = require('./vehiclesImport'); const V = require('./vehicles'); const BK = require('./booking'); const PAY = require('./payroll'); const AT = require('./attendance'); const { dayTotals } = require('./incentive');
 
 function mountMore(ctx) {
   const { router, M, wrap, fail, plain, now, dayOf, ownerOnly, range, pnlFor, idOk, priceList } = ctx;
@@ -116,6 +116,53 @@ function mountMore(ctx) {
     const st = (req.body || {}).status; if (!['accepted', 'declined'].includes(st)) return fail(res, 400, 'Choose accepted or declined');
     if (!idOk(req.params.id)) return fail(res, 400, 'Unknown request');
     const d = await M.Booking.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: { status: st } }, { new: true }); if (!d) return fail(res, 404, 'Request not found');
+    res.json({ success: true });
+  }));
+  // ---- import the old register into Vehicles: preview first, save only when the owner confirms ----
+  const existingPlates = async (tid) => new Set((await M.Vehicle.find({ tenantId: tid }).limit(20000)).map((d) => plain(d).plate));
+  router.post('/vehicles/import/preview', wrap(async (req, res, tid) => {
+    const r = VI.parseVehicles((req.body || {}).csv, await existingPlates(tid)); if (r.error) return fail(res, 400, r.error);
+    res.json({ success: true, data: { total: r.total, ok: r.rows.length, willUpdate: r.duplicates, willAdd: r.rows.length - r.duplicates, errors: r.errors.slice(0, 50), errorCount: r.errors.length, sample: r.rows.slice(0, 10), truncated: r.truncated } });
+  }));
+  router.post('/vehicles/import/commit', ownerOnly, wrap(async (req, res, tid) => {
+    const r = VI.parseVehicles((req.body || {}).csv, await existingPlates(tid)); if (r.error) return fail(res, 400, r.error);
+    if (r.errors.length && (req.body || {}).skipErrors !== true) return fail(res, 400, r.errors.length + ' rows have problems. Fix them, or confirm to skip those rows.');
+    let added = 0; let updated = 0;
+    for (const v of r.rows) {
+      const set = { klass: v.klass }; if (v.ownerName) set.ownerName = v.ownerName; if (v.ownerPhone) set.ownerPhone = v.ownerPhone;
+      await M.Vehicle.findOneAndUpdate({ tenantId: tid, plate: v.plate }, { $set: set, $setOnInsert: { tenantId: tid, plate: v.plate } }, { upsert: true, new: true });
+      if (v.exists) updated += 1; else added += 1;
+    }
+    await audit(tid, req, 'vehicles.import', `${added} added, ${updated} updated, ${r.errors.length} skipped`);
+    res.status(201).json({ success: true, data: { added, updated, skipped: r.errors.length } });
+  }));
+  // ---- export and delete on request (owner only) ----
+  router.get('/export', ownerOnly, wrap(async (req, res, tid) => {
+    const lim = 20000; const q = { tenantId: tid };
+    const [tenant, vehicles, jobs, passes, expenses, closings, attendants, attendance, shifts, refunds, collections, bookings, photos, pl] = await Promise.all([M.Tenant.findOne({ _id: tid }), M.Vehicle.find(q).limit(lim), M.Job.find(q).limit(lim), M.Pass.find(q).limit(lim), M.Expense.find(q).limit(lim), M.CashClosing.find(q).limit(lim), M.Attendant.find(q).limit(lim), M.Attendance.find(q).limit(lim), M.Shift.find(q).limit(lim), M.Refund.find(q).limit(lim), M.Collection.find(q).limit(lim), M.Booking.find(q).limit(lim), M.Photo.find(q).limit(lim), M.PriceList.findOne(q)]);
+    const data = { vehicles, jobs, passes, expenses, cashClosings: closings, attendants, attendance, shifts, refunds, collections, bookings, photos };
+    for (const k of Object.keys(data)) data[k] = data[k].map(plain); data.priceList = pl ? plain(pl) : null;
+    await audit(tid, req, 'data.export', 'full data export downloaded');
+    res.set('Content-Type', 'application/json; charset=utf-8'); res.set('Content-Disposition', `attachment; filename="wash-data-${dayOf(now())}.json"`); res.set('Cache-Control', 'no-store');
+    res.send(JSON.stringify(DR.shapeExport({ tenant: tenant && plain(tenant), data, now: now() })));
+  }));
+  router.post('/vehicles/:plate/anonymise', ownerOnly, wrap(async (req, res, tid) => {
+    const plate = V.normalizePlate(req.params.plate); if (!V.validPlate(plate)) return fail(res, 400, 'That number plate does not look right');
+    const v = await M.Vehicle.findOne({ tenantId: tid, plate }); if (!v) return fail(res, 404, 'Vehicle not found');
+    await M.Vehicle.updateOne({ tenantId: tid, plate }, { $set: { ownerName: '', ownerPhone: undefined, doNotContact: true } });
+    for (const b of await M.Booking.find({ tenantId: tid, plate, status: 'new' }).limit(50)) await M.Booking.updateOne({ _id: b._id, tenantId: tid }, { $set: { name: 'Removed on request', phone: '0000000000', note: '' } });
+    await audit(tid, req, 'data.anonymise', `owner details removed for ${plate}; money records kept`);
+    res.json({ success: true, message: 'Name and phone removed. The bills and money records stay so your accounts still add up.' });
+  }));
+  router.post('/account/delete-request', ownerOnly, wrap(async (req, res, tid) => {
+    const c = DR.checkDeleteRequest(req.body); if (c.error) return fail(res, 400, c.error);
+    await M.Tenant.updateOne({ _id: tid }, { $set: { deleteRequestedAt: now(), bookingToken: undefined } });
+    await audit(tid, req, 'account.delete_requested', `delete request recorded; booking link switched off; data is removed after ${DR.WAIT_DAYS} days unless cancelled`);
+    res.status(202).json({ success: true, message: `Your request is recorded. Export your data now if you need it. It will be removed after ${DR.WAIT_DAYS} days unless you cancel.` });
+  }));
+  router.post('/account/delete-request/cancel', ownerOnly, wrap(async (req, res, tid) => {
+    await M.Tenant.updateOne({ _id: tid }, { $set: { deleteRequestedAt: undefined } });
+    await audit(tid, req, 'account.delete_cancelled', 'delete request cancelled');
     res.json({ success: true });
   }));
 }

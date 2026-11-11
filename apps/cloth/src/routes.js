@@ -135,6 +135,7 @@ function createClothRouter({ express, M, protect, authorize, tenantOf, planOf = 
     res.json({ success: true, data: SM.build({ today, salesYesterday: y.total, billsYesterday: y.bills, alterations: A.lists(jobs.map((j) => ({ ...j, id: String(j._id) })), today), followups: F.lists(await customerRows(tid), today), staffDiscounts: Lk.staffDiscounts(await M.BillDiscount.find({ tenantId: tid, date: { $gte: addDays(today, -1) } }).lean()), slow: g.slow, gaps: g.gaps, supplierDue: s.supplierDue }) });
   }));
   require('./routesMore')({ router, M, wrap, fail, str, todayIST, addDays, settingsOf, gather, customerRows, billsBetween, now });
+  require('./routesPhase2')({ router, M, wrap, fail, str, todayIST, addDays, settingsOf, billsBetween, now });
   return router;
 }
 module.exports = { createClothRouter, todayIST };

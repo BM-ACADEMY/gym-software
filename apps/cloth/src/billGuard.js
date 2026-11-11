@@ -5,6 +5,7 @@
 //        stock is taken first (refused when short), and given back if the bill is not saved.
 // If the shared route refuses the bill (for example a staff discount over the limit), the stock taken here is given back (non-201 answer).
 const { makeDiscountHook } = require('../../../packages/core-pos/src/discountHook');
+const BC = require('./barcode');
 const ID = /^[0-9a-fA-F]{24}$/;
 const istDay = (d) => new Date(d.getTime() + 5.5 * 3600000).toISOString().slice(0, 10);
 
@@ -29,9 +30,12 @@ const guard = ({ M, now = () => new Date() }) => async (req, res, next) => {
         if (!ID.test(String(l.variantId))) return fail(400, 'Bad item id.');
         const v = await M.Variant.findOne({ _id: l.variantId, tenantId: tid, isActive: true });
         if (!v) return fail(404, 'An item on the bill was not found.');
-        const qty = Number(l.qty); if (!Number.isInteger(qty) || qty < 1) return fail(400, 'Quantity must be a whole number of pieces.');
+        let qty = Number(l.qty); let take;
+        if (v.unit === 'metre') { // fabric: the bill line is in metres (2 decimals), the stock is in whole centimetres (CLO-06)
+          take = BC.metresToCm(l.metres != null ? l.metres : l.qty); if (take === null) return fail(400, 'Enter metres with up to 2 decimals, for example 2.5.'); qty = BC.cmToMetres(take);
+        } else { if (!Number.isInteger(qty) || qty < 1) return fail(400, 'Quantity must be a whole number of pieces.'); take = qty; }
         const line = { name: `${v.style} ${v.size} ${v.colour}`, unitPrice: v.mrp, qty, gstRate: v.gstRate, discount: l.discount, staffId: l.staffId };
-        rewritten.push(line); pricing.push(line); plan.push({ v, qty });
+        rewritten.push(line); pricing.push(line); plan.push({ v, qty: take });
       } else if (l && l.itemId) {
         const item = await M.PosItem.findOne({ _id: l.itemId, tenantId: tid, isActive: true });
         rewritten.push(l); if (item) pricing.push({ name: item.name, unitPrice: item.price, qty: Number(l.qty), gstRate: item.gstRate, discount: l.discount });

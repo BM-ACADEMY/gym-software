@@ -24,4 +24,12 @@ function staffDiscounts(rows) {
   for (const r of rows || []) if (r.by === 'staff' && r.discount > 0) { const d = by[r.date] || (by[r.date] = { date: r.date, count: 0, total: 0 }); d.count++; d.total += r.discount; }
   return Object.values(by).sort((a, b) => (a.date < b.date ? 1 : -1)).map((d) => ({ ...d, currency: 'INR', reason: `Staff gave ${d.count} discount${d.count === 1 ? '' : 's'} worth Rs ${d.total} on ${d.date}.` }));
 }
-module.exports = { staffDiscounts, heavyDiscounts, voidsByStaff, cashDifferences };
+// CLO-11: physical count against the system stock. rows: [{variantName, expected, counted, date, unit}] (unit 'metre' means centimetres).
+// Only differences are listed; a few pieces short on a fast seller is normal, so the owner decides. Hints, not proof.
+const metres = (cm) => `${Math.round(cm) / 100} m`;
+function stockMismatches(rows, minDiff = 1) {
+  return (rows || []).filter((r) => r && Number.isFinite(r.expected) && Number.isFinite(r.counted) && Math.abs(r.counted - r.expected) >= minDiff)
+    .map((r) => { const diff = r.counted - r.expected; const f = r.unit === 'metre' ? metres : (n) => String(n); return { name: r.variantName, date: r.date, expected: r.expected, counted: r.counted, difference: diff, reason: `${r.variantName}: counted ${f(r.counted)}, system said ${f(r.expected)} (${diff < 0 ? f(-diff) + ' short' : f(diff) + ' extra'}) on ${r.date}.` }; })
+    .sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));
+}
+module.exports = { stockMismatches, staffDiscounts, heavyDiscounts, voidsByStaff, cashDifferences };

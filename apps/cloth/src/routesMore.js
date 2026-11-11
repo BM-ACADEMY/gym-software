@@ -95,9 +95,14 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, settingsOf, g
   }));
 
   // ---- leak checks ----
+  const stockMismatchItems = async (tid, today) => {
+    const moves = await M.StockMove.find({ tenantId: tid, type: 'count', date: { $gte: addDays(today, -30) } }).sort({ date: -1 }).limit(500).lean(); if (!moves.length) return [];
+    const byId = {}; (await M.Variant.find({ tenantId: tid }).limit(5000).lean()).forEach((v) => { byId[String(v._id)] = v; });
+    return Lk.stockMismatches(moves.map((m) => { const v = byId[String(m.variantId)] || {}; return { variantName: `${v.style || 'Item'} ${v.size || ''} ${v.colour || ''}`.trim(), expected: m.expected, counted: m.qty, date: m.date, unit: v.unit || 'piece' }; }));
+  };
   router.get('/reports/leaks', wrap(async (req, res, tid) => {
     const today = todayIST(now()); const bills = await billsBetween(tid, addDays(today, -30), today);
-    res.json({ success: true, data: { note: 'Things that look unusual. They are hints, not proof.', heavyDiscounts: Lk.heavyDiscounts(bills), voidsByStaff: Lk.voidsByStaff(bills), staffDiscounts: Lk.staffDiscounts(await M.BillDiscount.find({ tenantId: tid, date: { $gte: addDays(today, -30) } }).lean()), cashDifferences: Lk.cashDifferences(await M.DayClose.find({ tenantId: tid, date: { $gte: addDays(today, -30) } }).lean()) } });
+    res.json({ success: true, data: { note: 'Things that look unusual. They are hints, not proof.', heavyDiscounts: Lk.heavyDiscounts(bills), voidsByStaff: Lk.voidsByStaff(bills), staffDiscounts: Lk.staffDiscounts(await M.BillDiscount.find({ tenantId: tid, date: { $gte: addDays(today, -30) } }).lean()), cashDifferences: Lk.cashDifferences(await M.DayClose.find({ tenantId: tid, date: { $gte: addDays(today, -30) } }).lean()), stockMismatch: await stockMismatchItems(tid, today) } });
   }));
 
   // ---- marketing suggestions (suggest only; sending needs the owner's switch and an approved template) ----

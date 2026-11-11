@@ -1,7 +1,7 @@
 'use strict';
 // Cloth routes, Phase 2 (wave A). Written, not yet tested by a person. Every query filters by tenantId (the shop).
 // Added in steps: 1 barcode/scan/fabric, 2 staff pay, 3 sales breakdown + Tally-style CSV, 5 data rights + audit, 6 stock count, 7 returns.
-const BC = require('./barcode'); const PR = require('./payrollRules'); const SR = require('./salesReports'); const Ac = require('./accounts'); const PK = require('./pickup'); const DR = require('./dataRights');
+const BC = require('./barcode'); const PR = require('./payrollRules'); const SR = require('./salesReports'); const Ac = require('./accounts'); const PK = require('./pickup'); const DR = require('./dataRights'); const Lk = require('./leaks');
 
 module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBetween, settingsOf }) => {
   const audit = (tid, req, action, text) => M.Audit.create({ tenantId: tid, action, text: String(text || '').slice(0, 200), by: req.user.id });
@@ -125,6 +125,28 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBet
     if (ownerOnly(req, res)) return;
     const rows = await M.Audit.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(Math.min(Number(req.query.limit) || 100, 500)).lean();
     res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows.map((r) => ({ id: String(r._id), at: r.createdAt || null, action: r.action, text: r.text })) });
+  }));
+
+  // ---- 6. physical stock count and mismatch alert ----
+  // counted: pieces (whole number) or, for fabric, metres. adjust:true also sets the system stock to the count (owner only).
+  router.post('/variants/:id/count', wrap(async (req, res, tid) => {
+    const v = await M.Variant.findOne({ _id: req.params.id, tenantId: tid, isActive: true }); if (!v) return fail(res, 404, 'Variant not found');
+    const b = req.body || {}; const fabric = v.unit === 'metre';
+    const counted = fabric ? BC.metresToCm(b.counted) : (Number.isInteger(b.counted) && b.counted >= 0 && b.counted <= 100000 ? b.counted : null);
+    const zeroOk = fabric && Number(b.counted) === 0 ? 0 : counted; // 0 metres is a valid count
+    if (zeroOk === null) return fail(res, 400, fabric ? 'Counted metres: up to 2 decimals.' : 'Counted pieces must be a whole number.');
+    const diff = zeroOk - v.qty; const adjust = b.adjust === true;
+    if (adjust && req.user.role !== 'admin') return fail(res, 403, 'Only the owner can change the system stock to match a count.');
+    await M.StockMove.create({ tenantId: tid, variantId: v._id, type: 'count', qty: zeroOk, expected: v.qty, difference: diff, date: todayIST(now()), reason: str(b.reason, 200), by: req.user.id });
+    if (adjust && diff !== 0) { const u = await M.Variant.findOneAndUpdate({ _id: v._id, tenantId: tid, qty: v.qty }, { $set: { qty: zeroOk } }); if (!u) return fail(res, 409, 'Stock changed while you were saving. Count again.'); await audit(tid, req, 'stock.count_adjust', `${String(v._id)} ${v.qty} -> ${zeroOk}`); }
+    res.json({ success: true, data: { expected: v.qty, counted: zeroOk, difference: diff, adjusted: adjust && diff !== 0, unit: fabric ? 'centimetres' : 'pieces' } });
+  }, { write: true }));
+  router.get('/reports/stock-mismatch', wrap(async (req, res, tid) => {
+    const since = addDays(todayIST(now()), -30);
+    const moves = await M.StockMove.find({ tenantId: tid, type: 'count', date: { $gte: since } }).sort({ date: -1 }).limit(500).lean();
+    const vs = await M.Variant.find({ tenantId: tid }).limit(5000).lean(); const byId = {}; vs.forEach((v) => { byId[String(v._id)] = v; });
+    const rows = moves.map((m) => { const v = byId[String(m.variantId)] || {}; return { variantName: `${v.style || 'Item'} ${v.size || ''} ${v.colour || ''}`.trim(), expected: m.expected, counted: m.qty, date: m.date, unit: v.unit || 'piece' }; });
+    res.json({ success: true, data: { note: 'Counts of the last 30 days that did not match. Hints, not proof.', items: Lk.stockMismatches(rows) } });
   }));
 
   return { audit, ownerOnly };

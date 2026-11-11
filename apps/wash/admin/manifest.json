@@ -51,6 +51,33 @@
       "stats": "predictions"
     },
     {
+      "key": "accounts",
+      "label": "Accounts",
+      "screen": "stats",
+      "stats": "accounts",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "leaks",
+      "label": "Discounts and voids",
+      "screen": "stats",
+      "stats": "leaks",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "audit",
+      "label": "Audit trail",
+      "screen": "resource",
+      "resource": "audit",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
       "key": "discount",
       "label": "Discounts",
       "screen": "settings",
@@ -166,6 +193,141 @@
           ]
         }
       ]
+    },
+    "accounts": {
+      "label": "Accounts (this month)",
+      "endpoint": "/accounts/overview",
+      "refreshMs": 120000,
+      "cards": [
+        {
+          "label": "Revenue (after refunds)",
+          "path": "pnl.revenue",
+          "type": "money"
+        },
+        {
+          "label": "Expenses",
+          "path": "pnl.expenses",
+          "type": "money"
+        },
+        {
+          "label": "Attendant incentive",
+          "path": "pnl.incentive",
+          "type": "money"
+        },
+        {
+          "label": "Profit",
+          "path": "pnl.profit",
+          "type": "money"
+        },
+        {
+          "label": "Customers still owe",
+          "path": "customerDueTotal",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Customers who owe you",
+          "rows": "customerDues",
+          "empty": "Nobody owes you right now.",
+          "columns": [
+            {
+              "key": "plate",
+              "label": "Vehicle"
+            },
+            {
+              "key": "job",
+              "label": "Job"
+            },
+            {
+              "key": "day",
+              "label": "Day",
+              "type": "date"
+            },
+            {
+              "key": "due",
+              "label": "Owes",
+              "type": "money"
+            },
+            {
+              "key": "note",
+              "label": "Note"
+            }
+          ]
+        },
+        {
+          "label": "You owe suppliers",
+          "rows": "supplierDues",
+          "empty": "No unpaid supplier bills.",
+          "columns": [
+            {
+              "key": "supplier",
+              "label": "Supplier"
+            },
+            {
+              "key": "due",
+              "label": "Due",
+              "type": "money"
+            },
+            {
+              "key": "oldest",
+              "label": "Since",
+              "type": "date"
+            }
+          ]
+        }
+      ]
+    },
+    "leaks": {
+      "label": "Discounts and voids (last 30 days)",
+      "endpoint": "/leaks",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Discounts given by staff",
+          "rows": "staffDiscounts",
+          "empty": "No staff discounts in the last 30 days.",
+          "columns": [
+            {
+              "key": "date",
+              "label": "Day",
+              "type": "date"
+            },
+            {
+              "key": "count",
+              "label": "How many",
+              "type": "number"
+            },
+            {
+              "key": "total",
+              "label": "Worth",
+              "type": "money"
+            }
+          ]
+        },
+        {
+          "label": "Jobs cancelled after washing began",
+          "rows": "voids",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "date",
+              "label": "Day",
+              "type": "date"
+            },
+            {
+              "key": "count",
+              "label": "How many",
+              "type": "number"
+            },
+            {
+              "key": "total",
+              "label": "Worth",
+              "type": "money"
+            }
+          ]
+        }
+      ]
     }
   },
   "resources": {
@@ -253,6 +415,48 @@
             "key": "state",
             "equals": "waiting"
           }
+        },
+        {
+          "label": "Cancel: customer left",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "cancelled",
+            "reason": "Customer left before the wash finished"
+          },
+          "when": {
+            "key": "state",
+            "equals": "washing"
+          },
+          "confirm": "Tap again to cancel this started job (the owner is told)"
+        },
+        {
+          "label": "Cancel: problem with the vehicle",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "cancelled",
+            "reason": "Problem found with the vehicle"
+          },
+          "when": {
+            "key": "state",
+            "equals": "washing"
+          },
+          "confirm": "Tap again to cancel this started job (the owner is told)"
+        },
+        {
+          "label": "Cancel: other (owner told)",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "cancelled",
+            "reason": "Cancelled after washing began, other reason"
+          },
+          "when": {
+            "key": "state",
+            "equals": "washing"
+          },
+          "confirm": "Tap again to cancel this started job (the owner is told)"
         },
         {
           "label": "Delivered, paid cash",
@@ -536,6 +740,29 @@
           "max": 120
         }
       ]
+    },
+    "audit": {
+      "label": "Audit trail",
+      "endpoint": "/audit",
+      "empty": "Nothing recorded yet.",
+      "readOnly": true,
+      "columns": [
+        {
+          "key": "createdAt",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "action",
+          "label": "What",
+          "type": "pill"
+        },
+        {
+          "key": "text",
+          "label": "Details"
+        }
+      ],
+      "fields": []
     }
   },
   "settings": {

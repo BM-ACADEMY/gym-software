@@ -234,11 +234,16 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
     res.json({ success: true, data: A.cashBook({ openingFloat: float, jobs: jobs.map(plain), expenses: ex.map(plain) }) });
   }));
   router.get('/accounts/dues', wrap(async (req, res, tid) => res.json({ success: true, data: A.supplierDues((await M.Expense.find({ tenantId: tid, paid: false }).limit(1000)).map(plain)) })));
+  // Profit and loss for a range. Revenue is what was billed on delivered jobs minus refunds given in the same range.
+  const pnlFor = async (tid, r) => {
+    const [jobs, ex, pl, refunds] = await Promise.all([M.Job.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to }, state: 'delivered' }).limit(5000), M.Expense.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(5000), priceList(tid), M.Refund.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(5000)]);
+    const js = jobs.map(plain); const inc = Object.values(dayTotals(js, pl.incentive)).reduce((s, x) => s + x.incentive, 0);
+    const refunded = refunds.map(plain).reduce((s, x) => s + (x.amount || 0), 0);
+    return { ...A.profitLoss({ revenue: js.reduce((s, j) => s + (j.total || 0), 0) - refunded, expenses: ex.map(plain), incentive: inc }), refunded, from: r.from, to: r.to };
+  };
   router.get('/accounts/pnl', wrap(async (req, res, tid) => {
     const r = range(req.query); if (!r) return fail(res, 400, 'Choose a date range of up to one year');
-    const [jobs, ex, pl] = await Promise.all([M.Job.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to }, state: 'delivered' }).limit(5000), M.Expense.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(5000), priceList(tid)]);
-    const js = jobs.map(plain); const inc = Object.values(dayTotals(js, pl.incentive)).reduce((s, x) => s + x.incentive, 0);
-    res.json({ success: true, data: { ...A.profitLoss({ revenue: js.reduce((s, j) => s + (j.total || 0), 0), expenses: ex.map(plain), incentive: inc }), from: r.from, to: r.to } });
+    res.json({ success: true, data: await pnlFor(tid, r) });
   }));
   router.get('/accounts/export.csv', wrap(async (req, res, tid) => {
     const r = range(req.query); if (!r) return fail(res, 400, 'Choose a date range of up to one year');
@@ -294,6 +299,7 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
     const rows = (await M.Attendance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).limit(2000)).map(plain);
     res.json({ success: true, data: { month, summary: AT.monthSummary(rows, month) } });
   }));
+  require('./routesMore')({ router, M, wrap, fail, plain, str, isInt, dayOf, idOk, ownerOnly, now, priceList, range, pnlFor, DAYRE, METHODS });
   return router;
 }
 module.exports = { createWashRouter, dayOf };

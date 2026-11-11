@@ -1,0 +1,10 @@
+{
+  "name": "@afra/mart",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mart: billing, stock, udhaar and daily summary for kirana and mini marts. Billing, stock, returns, CSV import and loyalty come from packages/core-pos. Written, not yet tested by a person.",
+  "main": "src/index.js",
+  "dependencies": { "express": "^5.2.1", "mongoose": "^9.7.4" },
+  "scripts": { "test": "jest" },
+  "license": "UNLICENSED"
+}

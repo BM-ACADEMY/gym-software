@@ -1,0 +1,236 @@
+{
+  "product": "dine",
+  "title": "Dine",
+  "nav": [
+    {
+      "key": "orders",
+      "label": "Open orders",
+      "screen": "resource",
+      "resource": "orders"
+    },
+    {
+      "key": "menu",
+      "label": "Menu",
+      "screen": "resource",
+      "resource": "menu"
+    },
+    {
+      "key": "cash",
+      "label": "Cash book",
+      "screen": "resource",
+      "resource": "cash"
+    },
+    {
+      "key": "dues",
+      "label": "Supplier dues",
+      "screen": "resource",
+      "resource": "dues"
+    },
+    {
+      "key": "winback",
+      "label": "Bring back",
+      "screen": "resource",
+      "resource": "winback"
+    },
+    {
+      "key": "festivals",
+      "label": "Festival ideas",
+      "screen": "resource",
+      "resource": "festivals"
+    }
+  ],
+  "resources": {
+    "orders": {
+      "label": "Open orders",
+      "endpoint": "/orders",
+      "readOnly": true,
+      "empty": "No open orders.",
+      "columns": [
+        {
+          "key": "number",
+          "label": "Order"
+        },
+        {
+          "key": "table",
+          "label": "Table"
+        },
+        {
+          "key": "type",
+          "label": "Type"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ]
+    },
+    "menu": {
+      "label": "Menu",
+      "endpoint": "/menu",
+      "empty": "No dishes yet. Add your first one.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Dish"
+        },
+        {
+          "key": "category",
+          "label": "Category"
+        },
+        {
+          "key": "price",
+          "label": "Price (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "gstRate",
+          "label": "GST %",
+          "type": "number"
+        },
+        {
+          "key": "kind",
+          "label": "Kind",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "key",
+          "label": "Short code (letters, no spaces)",
+          "required": true,
+          "max": 40
+        },
+        {
+          "key": "name",
+          "label": "Dish name",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "max": 60
+        },
+        {
+          "key": "price",
+          "label": "Price in whole rupees before GST",
+          "type": "number",
+          "min": 0,
+          "required": true
+        },
+        {
+          "key": "gstRate",
+          "label": "GST percent (ask your CA)",
+          "type": "number",
+          "min": 0,
+          "max": 28
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "DELETE",
+          "path": "/menu/:key"
+        }
+      ]
+    },
+    "cash": {
+      "label": "Cash book",
+      "endpoint": "/cash/entries",
+      "readOnly": true,
+      "empty": "No cash entries.",
+      "columns": [
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "key": "type",
+          "label": "In or out",
+          "type": "pill"
+        },
+        {
+          "key": "amount",
+          "label": "Rs",
+          "type": "number"
+        },
+        {
+          "key": "category",
+          "label": "Category"
+        }
+      ]
+    },
+    "dues": {
+      "label": "Supplier dues",
+      "endpoint": "/supplier-dues",
+      "readOnly": true,
+      "empty": "You owe no supplier.",
+      "columns": [
+        {
+          "key": "supplier",
+          "label": "Supplier"
+        },
+        {
+          "key": "due",
+          "label": "Due (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "oldest",
+          "label": "Oldest bill",
+          "type": "date"
+        }
+      ]
+    },
+    "winback": {
+      "label": "Bring back",
+      "endpoint": "/customers/win-back",
+      "readOnly": true,
+      "empty": "Nobody is overdue.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Customer"
+        },
+        {
+          "key": "daysAway",
+          "label": "Days away",
+          "type": "number"
+        },
+        {
+          "key": "reason",
+          "label": "Why"
+        }
+      ]
+    },
+    "festivals": {
+      "label": "Festival ideas",
+      "endpoint": "/marketing/festivals",
+      "readOnly": true,
+      "empty": "No festival in the next 14 days. Add festivals in Settings.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Festival"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "key": "daysAway",
+          "label": "Days",
+          "type": "number"
+        },
+        {
+          "key": "idea",
+          "label": "Idea"
+        }
+      ]
+    }
+  },
+  "settings": {}
+}

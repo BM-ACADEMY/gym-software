@@ -18,5 +18,11 @@ function byItem(bills) {
   for (const b of bills) for (const l of b.lines) { const g = (m[l.name] = m[l.name] || { qty: 0, sales: 0 }); g.qty += l.qty; g.sales += l.total; }
   return rows(m, 'name').sort((a, b) => b.sales - a.sales);
 }
+// Sold quantity and sales before GST per menu item key, for food cost and recipe maths: [{ dishKey, qty, revenue }].
+function byItemKeys(bills) {
+  const m = {};
+  for (const b of bills) for (const l of b.lines) { if (!l.itemKey) continue; const g = (m[l.itemKey] = m[l.itemKey] || { dishKey: l.itemKey, qty: 0, revenue: 0 }); g.qty += l.qty; g.revenue += l.taxable || 0; }
+  return Object.values(m);
+}
 // Sales per item for insights.bestWorst: { key, name, qty, revenue } (revenue = taxable).
-module.exports = { byDay, byWeek, byMonth, byStaff, byHour, byItem, mondayOf };
+module.exports = { byDay, byWeek, byMonth, byStaff, byHour, byItem, byItemKeys, mondayOf };

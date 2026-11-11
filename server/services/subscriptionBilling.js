@@ -164,10 +164,15 @@ const verifyWebhookSignature = (rawBody, signature, secret) => {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 };
 
+const { recordRefund: recordRefundOn } = require('./refundRecord');
+const recordRefund = (refund) => recordRefundOn(SubscriptionPayment, refund);
+
 const handleWebhook = async (rawBody, signature) => {
   const secret = await webhookSecret();
   if (!verifyWebhookSignature(rawBody, signature, secret)) throw fail(401, 'Invalid webhook signature');
   const event = JSON.parse(rawBody.toString('utf8'));
+  // PAY-2: a refund Razorpay has finished. Record it once per refund id; the gym's plan is NOT ended automatically.
+  if (event.event === 'refund.processed') return recordRefund(event?.payload?.refund?.entity);
   const payment = event?.payload?.payment?.entity;
   if (!payment) return { ignored: true };
 
@@ -184,4 +189,4 @@ const handleWebhook = async (rawBody, signature) => {
   return { ignored: true };
 };
 
-module.exports = { buildQuote, startCheckout, activate, confirmCheckout, handleWebhook, verifyWebhookSignature, usageOf };
+module.exports = { buildQuote, startCheckout, activate, confirmCheckout, handleWebhook, recordRefund, verifyWebhookSignature, usageOf };

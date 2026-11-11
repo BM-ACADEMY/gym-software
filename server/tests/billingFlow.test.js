@@ -174,4 +174,26 @@ describe('subscription billing flow', () => {
     expect(sub.billingCycle).toBe('monthly');
     expect(sub.paidUntil.getTime()).toBe(p.periodEnd.getTime());
   });
+
+  test('refund webhook (PAY-2): a full refund marks the payment refunded once; a partial one keeps it paid; unknown or unsigned is ignored', async () => {
+    const t = await createTenant({ subscriber: { state: 'Puducherry', trialEndsAt: new Date(Date.now() + 86400000) } });
+    const co = await request(app).post('/api/admin/subscription/checkout').set(auth(t)).send({ plan: 'growth', cycle: 'monthly' });
+    const cap = JSON.stringify({ event: 'payment.captured', payload: { payment: { entity: { id: 'pay_r1', order_id: co.body.data.orderId, amount: 117900 } } } });
+    await request(app).post('/api/payments/razorpay-webhook').set('Content-Type', 'application/json').set('X-Razorpay-Signature', sign(cap, 'whsec_test')).send(cap);
+    const refund = (id, paise) => JSON.stringify({ event: 'refund.processed', payload: { refund: { entity: { id, payment_id: 'pay_r1', amount: paise } } } });
+    const send = (raw, sig) => request(app).post('/api/payments/razorpay-webhook').set('Content-Type', 'application/json').set('X-Razorpay-Signature', sig).send(raw);
+    expect((await send(refund('rfnd_1', 50000), 'nope')).status).toBe(401);
+    const part = refund('rfnd_1', 50000);
+    expect((await send(part, sign(part, 'whsec_test'))).status).toBe(200);
+    let p = await SubscriptionPayment.findOne({ razorpayPaymentId: 'pay_r1' });
+    expect(p.status).toBe('paid'); expect(p.refundedAmount).toBe(500); expect(p.refundNeedsReview).toBe(true);
+    await send(part, sign(part, 'whsec_test')); // same refund again: counted once
+    p = await SubscriptionPayment.findOne({ razorpayPaymentId: 'pay_r1' }); expect(p.refundedAmount).toBe(500);
+    const rest = refund('rfnd_2', 67900);
+    await send(rest, sign(rest, 'whsec_test'));
+    p = await SubscriptionPayment.findOne({ razorpayPaymentId: 'pay_r1' });
+    expect(p.status).toBe('refunded'); expect(p.refundedAmount).toBe(1179); expect(p.refundIds).toEqual(['rfnd_1', 'rfnd_2']);
+    const unknown = JSON.stringify({ event: 'refund.processed', payload: { refund: { entity: { id: 'rfnd_9', payment_id: 'pay_none', amount: 100 } } } });
+    expect((await send(unknown, sign(unknown, 'whsec_test'))).status).toBe(200);
+  });
 });

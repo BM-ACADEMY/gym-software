@@ -8,7 +8,12 @@ const schema = new mongoose.Schema(
     planKey: { type: String, enum: ['solo', 'starter', 'growth', 'pro'], required: true },
     cycle: { type: String, enum: ['monthly', 'yearly'], required: true },
     startMode: { type: String, enum: ['now', 'extend'], default: 'now' },
-    status: { type: String, enum: ['created', 'paid', 'failed'], default: 'created' },
+    status: { type: String, enum: ['created', 'paid', 'failed', 'refunded'], default: 'created' },
+    // PAY-2 refund: set only from Razorpay's signed refund.processed message. Whole rupees; each refund id is counted once.
+    refundedAmount: { type: Number, default: 0 },
+    refundIds: { type: [String], default: [] },
+    refundedAt: Date,
+    refundNeedsReview: { type: Boolean, default: false }, // a person decides whether the gym's plan should end
     // Whole rupees.
     base: Number,
     credit: { type: Number, default: 0 },

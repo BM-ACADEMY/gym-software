@@ -6,8 +6,8 @@ Written 29 Oct 2026. Domain and email are in `docs/DOMAIN_AND_EMAIL_SETUP.md`. L
 | Step | Who |
 | --- | --- |
 | Confirm the Razorpay account is in the company name with GSTIN and bank details verified | M |
-| Create test keys; put `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` only in `/etc/gymdesk/gymdesk.env` (mode 600), never in git or chat | D |
-| Set the webhook URL `https://fit.afraventures.in/api/webhooks/razorpay` (check the exact path in `server/controllers/webhooks.js`) and the same secret in the dashboard | D |
+| Create test keys. Type the key id and key secret into **Root Admin > Settings > Payment gateway** (not the env file; corrected 12 Nov after Monisha's PAY-1 test). The webhook secret may go in Root Admin too, or as `RAZORPAY_WEBHOOK_SECRET` in `/etc/gymdesk/gymdesk.env` (mode 600). Never in git, chat or the sheet | D |
+| Set the webhook URL `https://fit.afraventures.in/api/payments/razorpay-webhook` and the same secret in the Razorpay dashboard. Tick these events: `payment.captured`, `order.paid`, `payment.failed`, `refund.processed` (refunds are recorded since 12 Nov; the gym's plan is not ended automatically) | D |
 | Test payment, failed payment, duplicate webhook and a refund in test mode; confirm invoice number and GST split | D |
 | Switch to live keys only after the CA check (M-04) and the test pass | M + D |
 | Each new product uses the same account; add its plan ids when its pricing is approved (Tier 3) | later |

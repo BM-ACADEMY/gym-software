@@ -6,6 +6,7 @@ const { status } = require('./pass');
 const { pickupDelayed } = require('./jobs');
 const { dayTotals, ranking } = require('./incentive');
 const { idleMinutes } = require('./bays');
+const { staffDiscounts, voids } = require('./leaks');
 
 function summarize({ today, nowIso, jobs = [], vehicles = [], passes = [], closing = null, rules, open = 540, close = 1260, bayCount = 1, bayJobs = [] }) {
   const delivered = jobs.filter((j) => j.state === 'delivered');
@@ -16,7 +17,8 @@ function summarize({ today, nowIso, jobs = [], vehicles = [], passes = [], closi
   const perBay = bayJobs.length ? bayJobs : Array.from({ length: Math.max(1, bayCount) }, () => []);
   const idle = perBay.reduce((s, b) => s + idleMinutes(open, close, b), 0);
   const totals = dayTotals(jobs, rules);
-  const facts = { jobsDelivered: delivered.length, jobsOpen: jobs.filter((j) => ['waiting', 'washing', 'ready'].includes(j.state)).length, revenue, currency: 'INR', pay, idleMinutes: idle, ranking: ranking(totals).slice(0, 3) };
+  const leaks = { staffDiscounts: staffDiscounts(jobs), voids: voids(jobs) };
+  const facts = { leaks, jobsDelivered: delivered.length, jobsOpen: jobs.filter((j) => ['waiting', 'washing', 'ready'].includes(j.state)).length, revenue, currency: 'INR', pay, idleMinutes: idle, ranking: ranking(totals).slice(0, 3) };
 
   // Candidate actions. Each has an amount at stake (rupees, or null), a reason, and never sends anything.
   const acts = [];
@@ -27,6 +29,8 @@ function summarize({ today, nowIso, jobs = [], vehicles = [], passes = [], closi
   const unpaid = delivered.filter((j) => paidOn(j) < owed(j));
   if (unpaid.length) acts.push({ key: 'unpaid', weight: 3, text: `Collect payment on ${unpaid.length} delivered job${unpaid.length > 1 ? 's' : ''}`, reason: 'Delivered but the payments entered are less than the job total', rupees: unpaid.reduce((s, j) => s + (owed(j) - paidOn(j)), 0) });
   if (closing && closing.flag) acts.push({ key: 'cash', weight: 3, text: 'Check yesterday\'s cash count with the staff', reason: `Cash counted was Rs ${Math.abs(closing.diff)} ${closing.diff < 0 ? 'short' : 'over'} of what the bills say`, rupees: Math.abs(closing.diff) });
+  const sd = leaks.staffDiscounts[0]; if (sd) acts.push({ key: 'staffDiscounts', weight: 2, text: `Look at ${sd.count} staff discount${sd.count > 1 ? 's' : ''} given today`, reason: `Staff gave discounts worth Rs ${sd.total}; each has a reason on the job`, rupees: sd.total });
+  const vd = leaks.voids[0]; if (vd) acts.push({ key: 'voids', weight: 2, text: `Ask why ${vd.count} started job${vd.count > 1 ? 's were' : ' was'} cancelled`, reason: `Cancelled after washing began, worth Rs ${vd.total}`, rupees: vd.total });
   const expiring = passes.map((p) => ({ p, s: status(p, today) })).filter((x) => x.s.remind && !x.s.expired);
   if (expiring.length) acts.push({ key: 'passes', weight: 2, text: `Offer renewal to ${expiring.length} monthly pass customer${expiring.length > 1 ? 's' : ''}`, reason: 'Pass ends within 5 days or has one wash left', rupees: expiring.reduce((s, x) => s + (x.p.price || 0), 0) });
   const due = dueForWash(vehicles, today);

@@ -27,5 +27,5 @@ function model() {
     findOneAndUpdate: async (q, u, o = {}) => { let r = rows.find((x) => match(x, q)); if (!r && o.upsert) { r = { _id: oid(), createdAt: new Date(), ...(u.$setOnInsert || {}) }; rows.push(r); } if (r) Object.assign(r, u.$set || {}); return r ? wrapDoc(r) : null; },
   };
 }
-const makeFakeModels = () => ({ PriceList: model(), Vehicle: model(), Attendant: model(), Job: model(), Pass: model(), CashClosing: model(), Expense: model(), Attendance: model(), UsageLog: model() });
+const makeFakeModels = () => ({ PriceList: model(), Vehicle: model(), Attendant: model(), Job: model(), Pass: model(), CashClosing: model(), Expense: model(), Attendance: model(), UsageLog: model(), Audit: model() });
 module.exports = { makeFakeModels };

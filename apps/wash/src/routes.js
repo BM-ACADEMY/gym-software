@@ -5,6 +5,7 @@
 const makeModels = require('./models');
 const V = require('./vehicles'); const J = require('./jobs'); const P = require('./pass'); const C = require('./cashclose'); const { checkCap } = require('./plans');
 const { summarize } = require('./summary');
+const DP = require('./discountPolicy'); const L = require('./leaks');
 const A = require('./accounts'); const R = require('./reports'); const PR = require('./predict'); const MK = require('./marketing'); const AT = require('./attendance'); const { dayTotals } = require('./incentive');
 
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -111,7 +112,21 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
     const pass = passes.map(plain).find((p) => P.status(p, today).usable);
     const t = now(); const count = await M.Job.countDocuments({ tenantId: tid, day: today });
     const base = J.newJob({ plate, klass, services: q.lines, now: t });
-    const job = await M.Job.create({ tenantId: tid, number: count + 1, plate, klass, lines: q.lines, total: q.total, currency: 'INR', state: base.state, passId: pass ? pass.id : undefined, passCovered: pass ? q.lines[0].amount : 0, day: today });
+    // D-30: staff may give a discount inside the owner's rule; a reason is always required; the owner is told.
+    const passCovered = pass ? q.lines[0].amount : 0; let discount = 0; let reason = '';
+    if (b.discount !== undefined && b.discount !== null) {
+      const d = b.discount || {}; reason = str(b.discountReason, 120);
+      if (reason.length < 3) return fail(res, 400, 'Write the reason for the discount');
+      if (!['amount', 'percent'].includes(d.type) || !Number.isFinite(d.value) || d.value < 0) return fail(res, 400, 'Discount is a rupee amount or a percent');
+      discount = d.type === 'percent' ? Math.round((q.total * Math.min(d.value, 100)) / 100) : Math.round(d.value);
+      if (discount > q.total - passCovered) return fail(res, 400, 'Discount cannot be more than what the customer pays');
+    }
+    const role = req.user && req.user.role === 'admin' ? 'admin' : 'staff';
+    const rule = ((await priceList(tid)).discountRule);
+    const chk = DP.check({ role, discount, subtotal: q.total, rule });
+    if (!chk.ok) return fail(res, 403, chk.message);
+    const job = await M.Job.create({ tenantId: tid, number: count + 1, plate, klass, lines: q.lines, subtotal: q.total, total: q.total - discount, discount, discountReason: discount ? reason : undefined, discountPercent: discount ? chk.percent : undefined, discountBy: discount ? (role === 'admin' ? 'owner' : 'staff') : undefined, currency: 'INR', state: base.state, passId: pass ? pass.id : undefined, passCovered, day: today });
+    if (discount) await M.Audit.create({ tenantId: tid, action: 'job.discount', text: `#${job.number} ${chk.percent}% by ${role === 'admin' ? 'owner' : 'staff'}: ${reason}`, by: req.user && req.user.id });
     res.status(201).json({ success: true, data: plain(job), passFound: !!pass });
   }));
   router.get('/jobs', wrap(async (req, res, tid) => {
@@ -164,6 +179,23 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
     res.status(201).json({ success: true, data: plain(d) });
   }));
   router.get('/cash-closing', wrap(async (req, res, tid) => res.json({ success: true, data: (await M.CashClosing.find({ tenantId: tid }).sort({ day: -1 }).limit(31)).map(plain) })));
+
+  // ---- settings (owner only): who may give a discount ----
+  const ownerOnly = (req, res, next) => (req.user && req.user.role === 'admin' ? next() : res.status(403).json({ success: false, message: 'Only the owner can change settings.' }));
+  router.get('/settings', ownerOnly, wrap(async (req, res, tid) => res.json({ success: true, data: { discountRule: DP.normalize((await priceList(tid)).discountRule) } })));
+  router.put('/settings', ownerOnly, wrap(async (req, res, tid) => {
+    const b = req.body || {}; if (!b.discountRule || typeof b.discountRule !== 'object') return fail(res, 400, 'Nothing to change');
+    const rule = DP.normalize(b.discountRule);
+    await M.PriceList.findOneAndUpdate({ tenantId: tid }, { $set: { discountRule: rule }, $setOnInsert: { tenantId: tid } }, { upsert: true, new: true });
+    await M.Audit.create({ tenantId: tid, action: 'settings.discountRule', text: `staff ${rule.staff}${rule.staff === 'limit' ? ' up to ' + rule.maxPercent + '%' : ''}`, by: req.user && req.user.id });
+    res.json({ success: true, data: { discountRule: rule } });
+  }));
+  router.get('/leaks', ownerOnly, wrap(async (req, res, tid) => {
+    const from = new Date(now().getTime() - 30 * 86400000); const f = dayOf(from);
+    const jobs = (await M.Job.find({ tenantId: tid, day: { $gte: f } }).limit(5000)).map(plain);
+    res.json({ success: true, data: { staffDiscounts: L.staffDiscounts(jobs), voids: L.voids(jobs), list: L.leakList({ jobs }) } });
+  }));
+  router.get('/audit', ownerOnly, wrap(async (req, res, tid) => res.json({ success: true, data: (await M.Audit.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(100)).map(plain) })));
 
   // ---- owner summary and suggestions (nothing is sent from here) ----
   const build = async (tid) => {

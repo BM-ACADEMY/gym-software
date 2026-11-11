@@ -7,13 +7,20 @@ const mk = async (role = 'subadmin', rule) => {
   const v = await M.Variant.create({ tenantId: 'a', style: 'SH', size: 'M', colour: 'Blue', mrp: 1000, gstRate: 5, qty: 5 });
   return { M, v, g: guard({ M, now: NOW }), role };
 };
-// Runs the guard, then a stand-in for the shared bill route (saves with the given status code).
+// Runs the variant guard, then a stand-in for the shared bill route that calls the discount hooks the way core-pos does.
+const bill = require('../../../packages/core-pos/src/bill');
 const run = async ({ M, g, role }, body, { saveStatus = 201 } = {}) => {
   const out = {}; let nexted = false;
   const res = { statusCode: 200, status(c) { this.statusCode = c; return this; }, json(b) { out.b = b; out.c = this.statusCode; return Promise.resolve(); } };
   const req = { method: 'POST', path: '/bills', user: { id: 'u1', tenantId: 'a', role }, body };
   await g(req, res, () => { nexted = true; });
-  if (nexted) { await res.status(saveStatus).json({ success: saveStatus === 201, data: { _id: 'b1', number: 'CL-1' } }); }
+  if (nexted) {
+    const hk = guard.discountHooks({ M, now: NOW }); let fields = {}; let refused = null;
+    const calc = bill.compute({ lines: req.body.lines.map((l) => ({ name: l.name, unitPrice: l.unitPrice, qty: l.qty, gstRate: l.gstRate || 0 })), billDiscount: req.body.billDiscount });
+    try { fields = (await hk.beforeBill({ req, tid: 'a', body: req.body, calc })).fields; } catch (e) { refused = e; }
+    if (refused) await res.status(refused.code === 'BILL_FORBIDDEN' ? 403 : 400).json({ success: false, message: refused.message });
+    else { const doc = { _id: 'b1', number: 'CL-1', ...fields }; if (saveStatus === 201) await hk.afterBill({ req, tid: 'a', doc, calc }); await res.status(saveStatus).json({ success: saveStatus === 201, data: doc }); }
+  }
   out.nexted = nexted; out.body = req.body; return out;
 };
 describe('D-30 discount rule (Cloth)', () => {
@@ -21,9 +28,9 @@ describe('D-30 discount rule (Cloth)', () => {
     expect(DP.normalize(undefined)).toEqual({ staff: 'limit', maxPercent: 10 });
     expect(DP.check({ role: 'staff', discount: 101, subtotal: 1000 }).ok).toBe(false); expect(DP.check({ role: 'admin', discount: 900, subtotal: 1000, rule: { staff: 'owner_only' } }).ok).toBe(true);
   });
-  test('staff over the limit is refused with a message and no stock is taken', async () => {
-    const s = await mk(); const r = await run(s, { lines: [{ variantId: s.v._id, qty: 1 }], billDiscount: { type: 'amount', value: 300 } });
-    expect(r.c).toBe(403); expect(r.b.message).toMatch(/up to 10%/); expect(r.nexted).toBe(false); expect(s.M.Variant.rows[0].qty).toBe(5); expect(s.M.BillDiscount.rows.length).toBe(0);
+  test('staff over the limit is refused with a message and the stock taken for the bill is given back', async () => {
+    const s = await mk(); const r = await run(s, { lines: [{ variantId: s.v._id, qty: 1 }], billDiscount: { type: 'amount', value: 300 }, discountReason: 'regular' });
+    expect(r.c).toBe(403); expect(r.b.message).toMatch(/up to 10%/); expect(s.M.Variant.rows[0].qty).toBe(5); expect(s.M.BillDiscount.rows.length).toBe(0);
   });
   test('staff within the limit: bill goes on, who and percent saved, audit line written', async () => {
     const s = await mk(); const r = await run(s, { lines: [{ variantId: s.v._id, qty: 1 }], billDiscount: { type: 'amount', value: 100 }, discountReason: 'regular' });
@@ -31,9 +38,9 @@ describe('D-30 discount rule (Cloth)', () => {
     expect(s.M.Audit.rows[0].text).toBe('CL-1 10% by staff');
   });
   test('owner rule from Settings applies: owner_only blocks staff, higher limit allows; the owner gives any discount', async () => {
-    const a = await mk('subadmin', { staff: 'owner_only' }); expect((await run(a, { lines: [{ variantId: a.v._id, qty: 1 }], billDiscount: { type: 'amount', value: 1 } })).c).toBe(403);
-    const b = await mk('subadmin', { staff: 'limit', maxPercent: 30 }); expect((await run(b, { lines: [{ variantId: b.v._id, qty: 1 }], billDiscount: { type: 'amount', value: 300 } })).nexted).toBe(true);
-    const c = await mk('admin', { staff: 'owner_only' }); await run(c, { lines: [{ variantId: c.v._id, qty: 1 }], billDiscount: { type: 'amount', value: 500 } }); expect(c.M.BillDiscount.rows[0].by).toBe('owner'); expect(c.M.BillDiscount.rows[0].percent).toBe(50);
+    const a = await mk('subadmin', { staff: 'owner_only' }); expect((await run(a, { lines: [{ variantId: a.v._id, qty: 1 }], billDiscount: { type: 'amount', value: 1 }, discountReason: 'regular' })).c).toBe(403);
+    const b = await mk('subadmin', { staff: 'limit', maxPercent: 30 }); expect((await run(b, { lines: [{ variantId: b.v._id, qty: 1 }], billDiscount: { type: 'amount', value: 300 }, discountReason: 'regular' })).c).toBe(201);
+    const c = await mk('admin', { staff: 'owner_only' }); await run(c, { lines: [{ variantId: c.v._id, qty: 1 }], billDiscount: { type: 'amount', value: 500 }, discountReason: 'festival' }); expect(c.M.BillDiscount.rows[0].by).toBe('owner'); expect(c.M.BillDiscount.rows[0].percent).toBe(50);
   });
   test('settings route: only the owner changes the rule; value is normalised; GET shows it', async () => {
     const { r, router } = mkRouter(); const M = { Settings: model(), BillDiscount: model() };

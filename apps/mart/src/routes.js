@@ -5,6 +5,7 @@
 // Every query filters by tenantId (and runs inside the shop's tenant context set by the session middleware).
 const makeModels = require('./models');
 const makePos = require('../../../packages/core-pos/src/models');
+const { makeDiscountHook } = require('../../../packages/core-pos/src/discountHook');
 const R = require('./reorder'); const Sh = require('./shelf'); const U = require('./udhaar'); const L = require('./leaks'); const S = require('./summary');
 const DP = require('./discountPolicy'); const bill = require('../../../packages/core-pos/src/bill');
 const A = require('./accounts'); const I = require('./insights');
@@ -32,40 +33,19 @@ function creditGuard({ mongoose, tenantOf }) {
   };
 }
 
-// D-30: staff may give discounts; the owner sets the rule in Settings and always sees them. Runs BEFORE the shared bill route.
-// It prices the bill the same way the route does (item prices come from the shop's own list), checks the rule, then records
-// who gave the discount and the percent once the bill is saved. The owner (admin) is never limited; sub-admins count as staff.
-function discountGuard({ mongoose, tenantOf, now = () => new Date() }) {
-  const M = makeModels(mongoose); const P = makePos(mongoose);
-  return async (req, res, next) => {
-    try {
-      if (req.method !== 'POST' || req.path !== '/bills') return next();
-      const b = req.body || {}; const rawLines = Array.isArray(b.lines) ? b.lines.slice(0, 100) : [];
-      const tid = tenantOf(req); const lines = [];
-      for (const l of rawLines) {
-        if (l && l.itemId) { const id = toOid(String(l.itemId)); const it = id && await P.PosItem.findOne({ _id: id, tenantId: tid, isActive: true }).lean(); if (!it) return next(); lines.push({ name: it.name, unitPrice: it.price, qty: Number(l.qty), gstRate: it.gstRate, discount: l.discount }); }
-        else if (l) lines.push({ name: String(l.name || ''), unitPrice: l.unitPrice, qty: Number(l.qty), gstRate: l.gstRate || 0, discount: l.discount });
-      }
-      let calc; try { calc = bill.compute({ lines, billDiscount: b.billDiscount, taxMode: b.taxMode || 'none', gstMode: b.gstMode || 'cgst_sgst' }); } catch (e) { return next(); } // the shared route reports the real error
-      if (!calc.discount) return next();
-      const reason = typeof b.discountReason === 'string' ? b.discountReason.trim().slice(0, 120) : '';
-      if (reason.length < 3) return res.status(400).json({ success: false, message: 'A discount needs a reason.', code: 'discount_reason' });
-      const role = req.user && req.user.role === 'admin' ? 'owner' : 'staff';
-      const st = await M.Settings.findOne({ tenantId: tid }).lean();
-      const dc = DP.check({ role: role === 'owner' ? 'admin' : 'staff', discount: calc.discount, subtotal: calc.subtotal, rule: st && st.discountRule });
-      if (!dc.ok) return res.status(403).json({ success: false, message: dc.message, code: 'discount_rule' });
-      const json = res.json.bind(res);
-      res.json = (body) => {
-        const id = body && body.success && !body.duplicate && body.data && body.data._id;
-        if (!id) return json(body);
-        M.BillDiscount.create({ tenantId: tid, billId: id, day: istDay(now()), by: req.user.id, role, amount: calc.discount, percent: dc.percent, reason })
-          .then(() => M.ActivityLog.create({ tenantId: tid, job: 'discount', ref: String(id), level: role, action: 'discount', text: `${role === 'owner' ? 'Owner' : 'Staff'} gave ${dc.percent}% off (${calc.discount} rupees) on bill ${body.data.number}. Reason: ${reason}` }))
-          .catch((e) => console.error('discount record failed:', e.message)).then(() => json(body));
-        return res;
-      };
-      return next();
-    } catch (e) { console.error('discount guard failed:', e.message); return res.status(500).json({ success: false, message: 'Server error' }); }
-  };
+// D-30 (POS-01): staff may give discounts; the owner sets the rule in Settings and always sees them. The shared bill route
+// calls these hooks, so the rule lives in packages/core-pos/src/discountHook.js. The bill itself now carries discountBy and
+// discountPercent; MartBillDiscount stays as the owner's per-day report record (reports read it) and is written after the bill is saved.
+function discountHooks({ mongoose, now = () => new Date() }) {
+  const M = makeModels(mongoose);
+  return makeDiscountHook({
+    getRule: async (tid) => { const st = await M.Settings.findOne({ tenantId: tid }).lean(); return st && st.discountRule; },
+    onDiscount: async ({ req, tid, doc, calc }) => {
+      const role = doc.discountBy; const reason = doc.discountReason || '';
+      await M.BillDiscount.create({ tenantId: tid, billId: doc._id, day: istDay(now()), by: req.user.id, role, amount: calc.discount, percent: doc.discountPercent, reason });
+      await M.ActivityLog.create({ tenantId: tid, job: 'discount', ref: String(doc._id), level: role, action: 'discount', text: `${role === 'owner' ? 'Owner' : 'Staff'} gave ${doc.discountPercent}% off (${calc.discount} rupees) on bill ${doc.number}. Reason: ${reason}` });
+    },
+  });
 }
 
 function createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles = ['admin', 'subadmin'], now = () => new Date() }) {
@@ -283,4 +263,4 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
   }));
   return router;
 }
-module.exports = { createMartRouter, creditGuard, discountGuard, DEFAULTS };
+module.exports = { createMartRouter, creditGuard, discountHooks, DEFAULTS };

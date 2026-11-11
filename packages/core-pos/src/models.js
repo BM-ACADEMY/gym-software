@@ -44,6 +44,7 @@ module.exports = (mongoose) => {
     status: { type: String, enum: ['paid', 'partial', 'unpaid', 'credit', 'returned'], required: true },
     pointsEarned: { type: Number, default: 0 }, pointsUsed: { type: Number, default: 0 },
     returnedQty: { type: [Number], default: [] }, returnedAmount: { type: Number, default: 0 }, // part returns (returns.js)
+    discountBy: { type: String, enum: ['owner', 'staff'] }, discountPercent: Number, discountReason: { type: String, maxlength: 120 }, // D-30, set by a product's beforeBill hook
     clientId: { type: String }, // set by an offline device so a retry never creates a second bill
     by: Schema.Types.ObjectId,
   }, [[{ tenantId: 1, number: 1 }, { unique: true }], [{ tenantId: 1, createdAt: -1 }, {}],

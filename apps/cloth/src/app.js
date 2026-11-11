@@ -7,7 +7,7 @@ const corePos = require('../../../packages/core-pos/src');
 const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createClothRouter } = require('./routes');
-const createBillGuard = require('./billGuard');
+const createBillGuard = require('./billGuard'); const { discountHooks } = createBillGuard;
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
 const { runUnscoped } = require('../../../packages/core-server/src');
 
@@ -41,7 +41,7 @@ function createApp({ express, mongoose, env = process.env }) {
     return rows.map((b) => ({ id: String(b._id), number: b.number, date: new Date(b.createdAt.getTime() + 5.5 * 3600000).toISOString().slice(0, 10), total: b.total, discount: b.discount || 0, status: b.status, by: b.by && String(b.by), customerId: b.customerId && String(b.customerId), taxable: b.taxable, gst: b.gst, lines: b.lines || [] }));
   };
   app.use('/api/cloth', createClothRouter({ ...common, M, billsBetween, planOf: (req) => billing.computeStatus(req.subscription).planKey, guardWrite: (req) => { const g = billing.guardWrite(req.subscription, req.method); return g.ok ? null : { status: g.httpStatus, message: g.message }; }, salesOfDay }));
-  app.use('/api/pos', protect, authorize('admin', 'subadmin'), createBillGuard({ M }), corePos.createPosRouter({ ...common, mongoose, prefix: 'CL' }));
+  app.use('/api/pos', protect, authorize('admin', 'subadmin'), createBillGuard({ M }), corePos.createPosRouter({ ...common, mongoose, prefix: 'CL', ...discountHooks({ M }) }));
   return app;
 }
 module.exports = { createApp, missingSettings };

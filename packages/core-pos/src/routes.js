@@ -17,7 +17,12 @@ const fyOf = (date) => {
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const num = (v) => (v === '' || v === null || v === undefined ? undefined : Number(v));
 
-module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['admin', 'subadmin'], loyaltyRules, prefix = 'BILL', shopOf }) => {
+// Optional hooks (POS-01). A product passes them to enforce its own rules in one place:
+//   beforeBill({ req, tid, body, calc }): runs after the bill is worked out and before any stock is taken or anything saved.
+//     It may throw an error with code 'BILL_INVALID' (answers 400) or 'BILL_FORBIDDEN' (answers 403), or return
+//     { fields: { discountBy, discountPercent, discountReason } } which is saved on the bill itself (only those three keys).
+//   afterBill({ req, tid, doc, calc }): runs after the bill is saved; a failure here is logged and never undoes the bill.
+module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['admin', 'subadmin'], loyaltyRules, prefix = 'BILL', shopOf, beforeBill, afterBill }) => {
   const router = express.Router();
   const M = makeModels(mongoose);
   router.use(protect, authorize(...roles));
@@ -25,6 +30,7 @@ module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['a
   const fail = (res, code, message) => res.status(code).json({ success: false, message });
   const wrap = (fn) => async (req, res) => {
     try { await fn(req, res, tenantOf(req)); } catch (err) {
+      if (err.code === 'BILL_FORBIDDEN') return fail(res, 403, err.message);
       if (['BILL_INVALID', 'LOYALTY_INVALID', 'STOCK_INVALID'].includes(err.code)) return fail(res, 400, err.message);
       if (err.code === 11000) return fail(res, 409, 'That value is already used.');
       if (err.name === 'ValidationError' || err.name === 'CastError') return fail(res, 400, 'Check the values you entered.');
@@ -161,6 +167,14 @@ module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['a
     }
     const calc = bill.compute({ lines, billDiscount: b.billDiscount, taxMode: b.taxMode || 'none', gstMode: b.gstMode || 'cgst_sgst' });
 
+    let hookFields = {};
+    if (typeof beforeBill === 'function') {
+      const h = await beforeBill({ req, tid, body: b, calc });
+      const f = (h && h.fields) || {};
+      if (['owner', 'staff'].includes(f.discountBy)) hookFields.discountBy = f.discountBy;
+      if (Number.isFinite(f.discountPercent)) hookFields.discountPercent = Math.round(f.discountPercent);
+      if (typeof f.discountReason === 'string') hookFields.discountReason = f.discountReason.trim().slice(0, 120);
+    }
     const payments = Array.isArray(b.payments) ? b.payments.map((p) => ({ method: p.method, amount: p.amount })) : [];
     let pointsUsed = 0;
     if (Number(b.redeemPoints) > 0) {
@@ -185,7 +199,7 @@ module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['a
       const doc = await M.PosBill.create({ tenantId: tid, number: await nextNumber(tid, now), customerId: customer?._id, lines: calc.lines,
         subtotal: calc.subtotal, discount: calc.discount, taxable: calc.taxable, gst: calc.gst, cgst: calc.cgst, sgst: calc.sgst, igst: calc.igst, total: calc.total,
         taxMode: calc.taxMode, gstMode: calc.gstMode, currency: 'INR', payments, received: s.received, change: s.change, credit: s.credit, due: s.due, status: s.status === 'credit' ? 'credit' : s.status,
-        pointsUsed, pointsEarned: 0, clientId, by: req.user.id });
+        pointsUsed, pointsEarned: 0, clientId, by: req.user.id, ...hookFields });
       for (const t of taken) await M.PosStockMove.create({ tenantId: tid, itemId: t.id, type: 'sale', qty: t.qty, billId: doc._id, by: req.user.id });
       if (customer) {
         const earned = loyalty.earn(s.received - payments.filter((p) => p.method === 'loyalty' || p.method === 'giftcard').reduce((a, p) => a + Math.round(Number(p.amount) || 0), 0), loyaltyRules);
@@ -194,6 +208,7 @@ module.exports = ({ express, mongoose, protect, authorize, tenantOf, roles = ['a
         if (s.credit) await M.PosCustomer.updateOne({ _id: customer._id, tenantId: tid }, { $inc: { creditDue: s.credit } });
         if (earned) { doc.pointsEarned = earned; await doc.save(); }
       }
+      if (typeof afterBill === 'function') { try { await afterBill({ req, tid, doc, calc }); } catch (e) { console.error('afterBill failed:', e.message); } }
       res.status(201).json({ success: true, data: doc });
     } catch (err) {
       for (const u of taken) await M.PosItem.updateOne({ _id: u.id, tenantId: tid }, { $inc: { qty: u.qty } }); // bill not saved: give the stock back

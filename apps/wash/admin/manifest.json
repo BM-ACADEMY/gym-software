@@ -15,6 +15,21 @@
       "resource": "jobs"
     },
     {
+      "key": "bookings",
+      "label": "Booking requests",
+      "screen": "resource",
+      "resource": "bookings"
+    },
+    {
+      "key": "bookinglink",
+      "label": "Booking link",
+      "screen": "stats",
+      "stats": "bookinglink",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
       "key": "vehicles",
       "label": "Vehicles",
       "screen": "resource",
@@ -383,6 +398,17 @@
               "label": "How it was worked out"
             }
           ]
+        }
+      ]
+    },
+    "bookinglink": {
+      "label": "Your booking link",
+      "endpoint": "/booking-link",
+      "cards": [
+        {
+          "label": "Path (put your website address in front, then make a QR from it)",
+          "path": "path",
+          "type": "text"
         }
       ]
     }
@@ -859,6 +885,64 @@
         }
       ],
       "fields": []
+    },
+    "bookings": {
+      "label": "Booking requests",
+      "endpoint": "/bookings",
+      "empty": "No new requests. Share your booking link to get some.",
+      "readOnly": true,
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "slot",
+          "label": "Time"
+        },
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "phone",
+          "label": "Phone"
+        },
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "pickup",
+          "label": "Pickup?",
+          "type": "bool"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        }
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "Accept (I will call)",
+          "method": "POST",
+          "path": "/bookings/:id/status",
+          "body": {
+            "status": "accepted"
+          }
+        },
+        {
+          "label": "Decline",
+          "method": "POST",
+          "path": "/bookings/:id/status",
+          "body": {
+            "status": "declined"
+          },
+          "confirm": "Tap again to decline"
+        }
+      ]
     }
   },
   "settings": {

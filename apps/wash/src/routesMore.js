@@ -1,7 +1,7 @@
 'use strict';
 // Wash Phase 2 routes (13 Nov). Mounted from routes.js, so the same sign-in, role check, read-only guard and tenant filter
 // apply. EVERY query filters by tenantId. Written, not yet tested by a person.
-const A = require('./accounts'); const PH = require('./photos'); const MONEY = require('./money'); const PAY = require('./payroll'); const AT = require('./attendance'); const { dayTotals } = require('./incentive');
+const A = require('./accounts'); const PH = require('./photos'); const MONEY = require('./money'); const BK = require('./booking'); const PAY = require('./payroll'); const AT = require('./attendance'); const { dayTotals } = require('./incentive');
 
 function mountMore(ctx) {
   const { router, M, wrap, fail, plain, now, dayOf, ownerOnly, range, pnlFor, idOk, priceList } = ctx;
@@ -94,6 +94,29 @@ function mountMore(ctx) {
     const month = /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : dayOf(now()).slice(0, 7);
     const one = (await slips(tid, month, req.params.id))[0]; if (!one) return fail(res, 404, 'Attendant not found');
     res.set('Cache-Control', 'no-store'); res.json({ success: true, data: one });
+  }));
+  // ---- booking link (owner) and the requests that arrive through it ----
+  router.get('/booking-link', ownerOnly, wrap(async (req, res, tid) => {
+    let t = await M.Tenant.findOne({ _id: tid }); if (!t) return fail(res, 404, 'Business not found');
+    let token = t.bookingToken;
+    if (!token) { token = BK.newToken(); await M.Tenant.updateOne({ _id: tid }, { $set: { bookingToken: token } }); await audit(tid, req, 'booking.link', 'booking link created'); }
+    res.set('Cache-Control', 'no-store');
+    res.json({ success: true, data: { path: '/api/wash-book/' + token, note: 'Put your website address in front of this path. For a QR code, paste the full address into any free QR maker.' } });
+  }));
+  router.post('/booking-link/rotate', ownerOnly, wrap(async (req, res, tid) => {
+    const token = BK.newToken(); await M.Tenant.updateOne({ _id: tid }, { $set: { bookingToken: token } });
+    await audit(tid, req, 'booking.rotate', 'booking link replaced; the old link stops working');
+    res.json({ success: true, data: { path: '/api/wash-book/' + token } });
+  }));
+  router.get('/bookings', wrap(async (req, res, tid) => {
+    const status = ['new', 'accepted', 'declined'].includes(req.query.status) ? req.query.status : 'new';
+    res.json({ success: true, data: (await M.Booking.find({ tenantId: tid, status }).sort({ day: 1 }).limit(100)).map(plain) });
+  }));
+  router.post('/bookings/:id/status', wrap(async (req, res, tid) => {
+    const st = (req.body || {}).status; if (!['accepted', 'declined'].includes(st)) return fail(res, 400, 'Choose accepted or declined');
+    if (!idOk(req.params.id)) return fail(res, 400, 'Unknown request');
+    const d = await M.Booking.findOneAndUpdate({ _id: req.params.id, tenantId: tid }, { $set: { status: st } }, { new: true }); if (!d) return fail(res, 404, 'Request not found');
+    res.json({ success: true });
   }));
 }
 module.exports = mountMore;

@@ -190,16 +190,18 @@ function createDineRouter({ express, mongoose, models, protect, tenantOf, planOf
     }
     // Loyalty: points the customer asks to use are paid in as rupees (a 'loyalty' payment); points are earned on what is actually paid.
     let redeemed = { points: 0, rupees: 0 };
+    const lr = D.loyaltyRule.normalize(settings.loyalty);
     if (Number(body.redeemPoints) > 0) {
+      if (!lr.enabled) return fail(res, 400, 'Loyalty points are not switched on.');
       if (!hasPhone) return fail(res, 400, 'Points need the customer\'s mobile number.');
       const bal = D.loyalty.balanceOf((await M.Loyalty.find({ tenantId: tid, phone }).limit(2000)).map(plain));
-      redeemed = D.loyalty.redeem({ requestedPoints: Number(body.redeemPoints), balance: bal, billTotal: o.grandTotal }, settings.loyalty);
+      redeemed = D.loyalty.redeem({ requestedPoints: Number(body.redeemPoints), balance: bal, billTotal: o.grandTotal }, lr);
       if (redeemed.rupees > 0) payments.push({ method: 'loyalty', amount: redeemed.rupees });
     }
     const s = bill.settle(o.grandTotal, payments);
     if (s.status !== 'paid' && s.status !== 'credit') return fail(res, 400, 'Payment is short by Rs ' + s.due + '.');
     const t = now(); const events = [...o.events, { at: t.toISOString(), by: req.user.id, what: 'paid' }];
-    const earned = hasPhone ? D.loyalty.earn(Math.max(0, s.received - s.change - redeemed.rupees), settings.loyalty) : 0;
+    const earned = hasPhone && lr.enabled ? D.loyalty.earn(Math.max(0, s.received - s.change - redeemed.rupees), lr) : 0;
     const r = await M.Order.findOneAndUpdate({ _id: o.id, tenantId: tid, status: 'billed' }, { $set: { status: 'paid', payments, settle: { received: s.received, change: s.change }, credit: s.credit, customerPhone: hasPhone ? phone : undefined, pointsEarned: earned, pointsUsed: redeemed.points, paidAt: t, events } }, { new: true });
     if (!r) return fail(res, 409, 'This order was already paid.');
     if (s.credit > 0) { await M.Credit.create({ tenantId: tid, orderId: o.id, orderNumber: o.number, phone, name: cname, amount: s.credit, date: D.istParts(t).date }); await log(tid, req, 'order.credit', o.number + ' Rs ' + s.credit); }

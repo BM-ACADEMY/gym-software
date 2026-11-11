@@ -8,6 +8,7 @@ const PR = require('./print');
 const IM = require('./importers');
 const PV = require('./privacy');
 const PE = require('./people');
+const BD = require('./birthdays');
 
 function addPhase2Routes(ctx) {
   const { def, M, D, fail, log, str, plain, settingsOf, now, OID, DATE, loadOrder, range, startOf, addDays } = ctx;
@@ -201,6 +202,27 @@ function addPhase2Routes(ctx) {
     const leaves = (await M.Leave.find({ tenantId: tid, userId, status: 'approved' }).limit(100)).map(plain);
     const slip = PE.payslip({ month, pay: plain(pay), hours: hw.hours, leave: PE.leaveInMonth(leaves, month), advances: Number(req.query.advances) || 0, otherDeductions: Number(req.query.deductions) || 0 });
     await log(tid, req, 'payslip.view', userId); res.json({ success: true, data: { ...slip, hoursProblems: hw.problems } });
+  });
+  // ---- 7. loyalty settings and balance, birthday suggestions (core-pos loyalty maths; off until the owner switches it on) ----
+  def('put', '/settings/loyalty', 'staff', async (req, res, tid) => {
+    const r = D.loyaltyRule.normalize(req.body); await M.Tenant.updateOne({ _id: tid }, { $set: { 'settings.loyalty': r } }); await log(tid, req, 'settings.loyalty'); res.json({ success: true, data: r });
+  });
+  def('get', '/settings/loyalty', 'orders', async (req, res, tid) => res.json({ success: true, data: D.loyaltyRule.normalize((await settingsOf(tid)).loyalty) }));
+  def('get', '/loyalty/:phone', 'customers', async (req, res, tid) => {
+    const phone = str(req.params.phone, 15); if (!/^\d{10}$/.test(phone)) return fail(res, 400, 'Give a 10-digit mobile number.');
+    const rows = (await M.Loyalty.find({ tenantId: tid, phone }).limit(2000)).map(plain);
+    res.json({ success: true, data: { balance: D.loyalty.balanceOf(rows), entries: rows.slice(-20).map((r) => ({ date: r.date, points: r.points, reason: r.reason })) } });
+  });
+  def('put', '/customers/:id/birthday', 'customers', async (req, res, tid) => {
+    const b = str(req.body && req.body.birthday, 5); if (b && !BD.validMmdd(b)) return fail(res, 400, 'Birthday must be month and day like 03-27.');
+    if (!OID.test(String(req.params.id))) return fail(res, 404, 'Guest not found');
+    const r = await M.Customer.findOneAndUpdate({ _id: req.params.id, tenantId: tid, anonymised: { $ne: true } }, { $set: { birthday: b } }); if (!r) return fail(res, 404, 'Guest not found'); res.json({ success: true });
+  });
+  def('get', '/customers/birthdays', 'customers', async (req, res, tid) => {
+    const days = Math.min(30, Math.max(0, Math.floor(Number(req.query.days)) || 7)); const s = await settingsOf(tid); const today = D.istParts(now()).date;
+    const cs = (await M.Customer.find({ tenantId: tid, birthday: { $exists: true, $ne: '' } }).limit(5000)).map(plain).map((c) => ({ id: c.id, name: c.name, birthday: c.birthday, doNotContact: c.doNotContact, anonymised: c.anonymised }));
+    const list = BD.birthdaysSoon(cs, today, days).map((c) => ({ ...c, message: BD.suggestion(c.name, s.venueName === 'us' ? '' : s.venueName), note: 'Suggestion only. Send it yourself; an automatic message needs an approved WhatsApp template.' }));
+    res.json({ success: true, data: list });
   });
   // Link only: nothing is sent. The guest taps Send in their own WhatsApp.
   def('get', '/order-link', 'orders', async (req, res, tid) => {

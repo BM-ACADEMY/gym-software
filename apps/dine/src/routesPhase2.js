@@ -5,6 +5,7 @@
 const crypto = require('crypto');
 const P = require('./publicPages');
 const PR = require('./print');
+const IM = require('./importers');
 
 function addPhase2Routes(ctx) {
   const { def, M, D, fail, log, str, plain, settingsOf, now, OID, DATE, loadOrder } = ctx;
@@ -75,6 +76,36 @@ function addPhase2Routes(ctx) {
     if (plan.points !== 0 && o.customerPhone) await M.Loyalty.create({ tenantId: tid, phone: o.customerPhone, points: plan.points, reason: 'return', orderNumber: o.number, date: D.istParts(now()).date });
     if (plan.cashBack > 0 && (o.payments || []).some((p) => p.method === 'cash')) await M.CashEntry.create({ tenantId: tid, date: D.istParts(now()).date, type: 'out', amount: plan.cashBack, category: 'refund', note: 'Return on ' + o.number, by: req.user.id, currency: 'INR' });
     await log(tid, req, 'order.return', o.number + ' Rs ' + plan.refund); res.json({ success: true, data: { refund: plan.refund, cashBack: plan.cashBack, creditReduction: plan.creditReduction, returnedAmount: plan.returnedAmount, fullyReturned: plan.fullyReturned } });
+  });
+  // ---- 4. CSV import: ingredients, recipes, guests. Preview saves nothing; commit re-reads the same file on the server. ----
+  const csvOf = (req) => { const c = req.body && req.body.csv; if (typeof c !== 'string' || !c.trim()) { const e = new Error('Send the file text as "csv".'); e.code = 'IMPORT_INVALID'; throw e; } if (c.length > 150000) { const e = new Error('The file is too big. Send fewer rows at a time.'); e.code = 'IMPORT_INVALID'; throw e; } return c; };
+  const sum = (r, extra) => ({ good: r.ok.length, problems: r.errors.length, errors: r.errors.slice(0, 50), sample: r.ok.slice(0, 5), ...(extra || {}) });
+  const loadIng = async (tid) => (await M.Ingredient.find({ tenantId: tid }).limit(2000)).map((i) => ({ id: String(i._id), name: i.name }));
+  const loadDishes = async (tid) => (await M.MenuItem.find({ tenantId: tid, isActive: true }).limit(1000)).map((m) => ({ key: m.key, name: m.name }));
+  def('post', '/import/ingredients/preview', 'stock', async (req, res, tid) => { const r = IM.parseIngredients(csvOf(req)); const have = new Set((await loadIng(tid)).map((i) => i.name.toLowerCase())); res.json({ success: true, data: sum(r, { alreadyThere: r.ok.filter((x) => have.has(x.name.toLowerCase())).length }) }); });
+  def('post', '/import/ingredients/commit', 'stock', async (req, res, tid) => {
+    const r = IM.parseIngredients(csvOf(req)); const have = new Set((await loadIng(tid)).map((i) => i.name.toLowerCase())); let added = 0; let skipped = 0;
+    for (const x of r.ok) { if (have.has(x.name.toLowerCase())) { skipped += 1; continue; } await M.Ingredient.create({ tenantId: tid, name: x.name, unit: x.unit, costPerUnit: x.costPerUnit, qty: x.qty, reorderLevel: x.reorderLevel }); added += 1; }
+    await log(tid, req, 'import.ingredients', added + ' added'); res.json({ success: true, data: { added, skippedExisting: skipped, problems: r.errors.length, errors: r.errors.slice(0, 50) } });
+  });
+  def('post', '/import/recipes/preview', 'stock', async (req, res, tid) => { const r = IM.parseRecipes(csvOf(req), await loadDishes(tid), await loadIng(tid)); res.json({ success: true, data: sum({ ok: r.ok, errors: r.errors }, { dishes: r.ok.length }) }); });
+  def('post', '/import/recipes/commit', 'stock', async (req, res, tid) => {
+    const r = IM.parseRecipes(csvOf(req), await loadDishes(tid), await loadIng(tid));
+    for (const x of r.ok) await M.Recipe.findOneAndUpdate({ tenantId: tid, dishKey: x.dishKey }, { $set: { portion: x.portion, parts: x.parts } }, { upsert: true });
+    await log(tid, req, 'import.recipes', r.ok.length + ' dishes'); res.json({ success: true, data: { saved: r.ok.length, problems: r.errors.length, errors: r.errors.slice(0, 50) } });
+  });
+  def('post', '/import/guests/preview', 'customers', async (req, res, tid) => { const r = IM.parseGuests(csvOf(req)); res.json({ success: true, data: sum(r, { ignoredCredit: r.ignoredCredit, note: r.ignoredCredit ? 'Opening credit in the file is not imported. Pay-later comes only from real bills.' : undefined }) }); });
+  def('post', '/import/guests/commit', 'customers', async (req, res, tid) => {
+    const r = IM.parseGuests(csvOf(req)); let added = 0; let existing = 0; let points = 0; const date = D.istParts(now()).date;
+    for (const g of r.ok) {
+      if (g.phone) {
+        const had = await M.Customer.findOne({ tenantId: tid, phone: g.phone });
+        if (had) { existing += 1; continue; }
+        await M.Customer.create({ tenantId: tid, name: g.name, phone: g.phone, visits: [] }); added += 1;
+        if (g.points > 0) { await M.Loyalty.create({ tenantId: tid, phone: g.phone, points: g.points, reason: 'opening', date }); points += g.points; }
+      } else { await M.Customer.create({ tenantId: tid, name: g.name, visits: [] }); added += 1; }
+    }
+    await log(tid, req, 'import.guests', added + ' added'); res.json({ success: true, data: { added, alreadyThere: existing, openingPoints: points, problems: r.errors.length, errors: r.errors.slice(0, 50) } });
   });
   // Link only: nothing is sent. The guest taps Send in their own WhatsApp.
   def('get', '/order-link', 'orders', async (req, res, tid) => {

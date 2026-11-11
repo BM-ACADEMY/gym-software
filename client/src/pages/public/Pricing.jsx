@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../../components/public/Navbar';
 import Footer from '../../components/public/Footer';
 import apiClient from '../../api/client';
+import useSiteContent from '../../hooks/useSiteContent';
 
 // Keep in step with server/config/plans.js (prices exclude 18% GST).
 const plans = [
@@ -42,7 +43,10 @@ const fromServer = (list) => list.map((p) => ({ name: p.name, blurb: BLURBS[p.ke
 
 const rupees = (n) => `₹${n.toLocaleString('en-IN')}`;
 
+const PRICING_TEXT = { headline: 'Simple pricing. Start free for 14 days.', subline: 'No card needed. No setup fee. Pay in advance, no auto-renewal.' };
+
 const Pricing = () => {
+  const text = useSiteContent('pricing', PRICING_TEXT);
   const [cycle, setCycle] = useState('yearly');
   const [shown, setShown] = useState(plans);
   useEffect(() => { apiClient.get('/public/plans').then((r) => { const l = r.data && r.data.data && r.data.data.plans; if (Array.isArray(l) && l.length) setShown(fromServer(l)); }).catch(() => {}); }, []);
@@ -53,8 +57,8 @@ const Pricing = () => {
 
       <section className="pt-32 pb-16 bg-gradient-to-br from-gray-950 via-teal-950 to-gray-900 text-center">
         <div className="max-w-2xl mx-auto px-4">
-          <h1 className="text-4xl font-extrabold text-white mb-4">Simple pricing. Start free for 14 days.</h1>
-          <p className="text-gray-300 text-lg">No card needed. No setup fee. Pay in advance, no auto-renewal.</p>
+          <h1 className="text-4xl font-extrabold text-white mb-4">{text.headline}</h1>
+          <p className="text-gray-300 text-lg">{text.subline}</p>
         </div>
       </section>
 

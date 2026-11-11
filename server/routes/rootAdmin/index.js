@@ -6,6 +6,7 @@ router.use('/subscribers', require('./subscribers'));
 router.use('/plan-creation', require('./planCreation'));
 router.use('/plan-features', require('./planFeatures'));
 router.use('/plan-settings', require('./planSettings'));
+router.use('/site-content', require('./siteContent'));
 router.use('/coupons', require('./coupons'));
 router.use('/promo-codes', require('./promoCodes'));
 router.use('/analytics', require('./analytics'));

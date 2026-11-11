@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import Navbar from '../../components/public/Navbar';
 import Footer from '../../components/public/Footer';
+import useSiteContent from '../../hooks/useSiteContent';
 
-const faqs = [
+const FALLBACK_FAQS = [
   { q: 'What is GymDesk?', a: 'GymDesk is web-based software for running a gym: members, plans, payments and dues, attendance, trainers, and WhatsApp reminders. You use it in a browser on a phone or computer.' },
   { q: 'Is there a free trial?', a: 'Yes. 14 days with Growth plan features, no card needed. After that the account becomes read-only until you choose a plan.' },
   { q: 'Which plan is right for my gym?', a: 'Solo for up to 50 members, Starter up to 150, Growth up to 500, Pro for bigger gyms. You can upgrade any time and the unused value of your current plan is credited.' },
@@ -18,6 +19,7 @@ const faqs = [
 ];
 
 const Faq = () => {
+  const faqs = useSiteContent('faq', FALLBACK_FAQS);
   const [open, setOpen] = useState(0);
 
   return (

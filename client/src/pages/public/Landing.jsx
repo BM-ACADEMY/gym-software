@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/public/Navbar';
 import Footer from '../../components/public/Footer';
+import useSiteContent from '../../hooks/useSiteContent';
 
 // ─── Feature Block ──────────────────────────────────────────────────────────
 const FeatureBlock = ({ title, description, items, imageIcon, reverse }) => {
@@ -55,7 +56,10 @@ const FeatureBlock = ({ title, description, items, imageIcon, reverse }) => {
 };
 
 // ─── Main Landing Page ───────────────────────────────────────────────────────
+const LANDING_TEXT = { badge: 'Gym Management Software Made in India', line1: 'Gym management', line2: 'software for', line3: 'fitness industry', subline: 'Run members, payments and attendance, send WhatsApp reminders automatically, and get AI plans and weekly insights. Made for gyms in India.' };
+
 const Landing = () => {
+  const text = useSiteContent('landing', LANDING_TEXT);
 
   const features = [
     { icon: '👥', title: 'Members Management', desc: 'Streamline member profiles, attendance, payments & communication.' },
@@ -88,15 +92,15 @@ const Landing = () => {
             <div className="lg:w-1/2 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-500/20 border border-teal-500/30 mb-6">
                 <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
-                <span className="text-teal-300 text-sm font-medium">Gym Management Software Made in India</span>
+                <span className="text-teal-300 text-sm font-medium">{text.badge}</span>
               </div>
               <h1 className="text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight">
-                Gym management<br />
-                <span className="bg-gradient-to-r from-teal-400 to-teal-300 bg-clip-text text-transparent">software for</span><br />
-                fitness industry
+                {text.line1}<br />
+                <span className="bg-gradient-to-r from-teal-400 to-teal-300 bg-clip-text text-transparent">{text.line2}</span><br />
+                {text.line3}
               </h1>
               <p className="mt-6 text-lg text-gray-300 leading-relaxed max-w-xl">
-                Run members, payments and attendance, send WhatsApp reminders automatically, and get AI plans and weekly insights. Made for gyms in India.
+                {text.subline}
               </p>
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link

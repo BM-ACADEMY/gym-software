@@ -3,15 +3,17 @@ import { Link } from 'react-router-dom';
 import Navbar from '../../components/public/Navbar';
 import Footer from '../../components/public/Footer';
 import { HELP_ARTICLES } from '../../config/helpArticles';
+import useSiteContent from '../../hooks/useSiteContent';
 import { company } from '../../config/company';
 
 const Help = () => {
+  const articles = useSiteContent('help', HELP_ARTICLES);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(null);
   const q = query.trim().toLowerCase();
   const list = q
-    ? HELP_ARTICLES.filter((a) => (a.q + ' ' + a.a.join(' ')).toLowerCase().includes(q))
-    : HELP_ARTICLES;
+    ? articles.filter((a) => (a.q + ' ' + a.a.join(' ')).toLowerCase().includes(q))
+    : articles;
 
   return (
     <div className="min-h-screen">

@@ -34,6 +34,7 @@ app.use('/api', rateLimit({ name: 'api', windowMs: 60 * 1000, max: 300 }));
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/public/plans', require('./routes/publicPlans'));
+app.use('/api/public/site-content', require('./routes/publicSiteContent'));
 app.use('/api/root-admin', rootAdminRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/subadmin', subAdminRoutes);

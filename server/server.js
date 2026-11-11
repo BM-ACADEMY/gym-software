@@ -23,7 +23,12 @@ if (process.env.NODE_ENV === 'production') {
 // SET-01: plan prices and limits saved in Root Admin are laid over config/plans.js. Started before the database is ready;
 // the first read waits for the connection, then it is re-read every minute so every server process stays in step.
 const planSettings = require('./services/planSettings').init({ SystemSettings: require('./models/SystemSettings'), PLANS: require('./config/plans').PLANS });
-Promise.resolve(connectDB()).then(() => { planSettings.load(); setInterval(() => planSettings.load(), 60 * 1000).unref(); });
+const dbReady = Promise.resolve(connectDB());
+dbReady.then(() => { planSettings.load(); setInterval(() => planSettings.load(), 60 * 1000).unref(); });
+
+// D-28: site wording saved in Root Admin > Site content, re-read every minute like the plan settings.
+const siteContent = require('./services/siteContentLive').init({ SystemSettings: require('./models/SystemSettings') });
+dbReady.then(() => { siteContent.load(); setInterval(() => siteContent.load(), 60 * 1000).unref(); });
 
 const PORT = process.env.PORT || 5000;
 

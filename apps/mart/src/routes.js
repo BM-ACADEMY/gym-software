@@ -9,7 +9,7 @@ const { makeDiscountHook } = require('../../../packages/core-pos/src/discountHoo
 const R = require('./reorder'); const Sh = require('./shelf'); const U = require('./udhaar'); const L = require('./leaks'); const S = require('./summary');
 const DP = require('./discountPolicy'); const bill = require('../../../packages/core-pos/src/bill');
 const A = require('./accounts'); const I = require('./insights'); const { gstSummary } = require('./gstSummary');
-const PV = require('./privacy'); const PR = require('./payroll'); const PM = require('./permissions'); const shape = require('./shape'); const { istDay, addDays, valid } = require('./dates');
+const UPI = require('./upi'); const PV = require('./privacy'); const PR = require('./payroll'); const PM = require('./permissions'); const shape = require('./shape'); const { istDay, addDays, valid } = require('./dates');
 
 const toOid = (v) => (typeof v === 'string' && /^[a-f0-9]{24}$/i.test(v) ? v : null);
 const clampInt = (v, lo, hi, d) => { const n = Number(v); return Number.isInteger(n) && n >= lo && n <= hi ? n : d; };
@@ -80,6 +80,8 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     if ('festivalUplift' in b) { const v = Number(b.festivalUplift); if (!(v >= 1 && v <= 5)) return fail(res, 400, 'Festival uplift must be 1 to 5.'); set.festivalUplift = v; }
     if (b.clearCreditLimit === true) { if (b.defaultCreditLimit !== undefined && b.defaultCreditLimit !== null && b.defaultCreditLimit !== '') return fail(res, 400, 'Either type a limit or tick "remove the limit", not both.'); set.defaultCreditLimit = null; }
     else if ('defaultCreditLimit' in b) { if (b.defaultCreditLimit === null || b.defaultCreditLimit === '') set.defaultCreditLimit = null; else { const v = clampInt(b.defaultCreditLimit, 0, 10000000, null); if (v === null) return fail(res, 400, 'Credit limit must be whole rupees.'); set.defaultCreditLimit = v; } }
+    if ('upiId' in b) { const v = typeof b.upiId === 'string' ? b.upiId.trim() : ''; if (v && !UPI.validVpa(v)) return fail(res, 400, 'That UPI id does not look right (for example shopname@bank).'); set.upiId = v; }
+    if ('upiName' in b) set.upiName = typeof b.upiName === 'string' ? b.upiName.trim().slice(0, 40) : '';
     if ('discountRule' in b) {
       if (!req.user || req.user.role !== 'admin') return fail(res, 403, 'Only the owner can change the discount rule.');
       const r = b.discountRule || {}; if (!['any', 'limit', 'owner_only'].includes(r.staff)) return fail(res, 400, 'Choose who may give a discount: anyone, up to a limit, or owner only.');
@@ -367,6 +369,20 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     const rows = staff.map((x) => { const p = PR.payslip({ name: x.name, monthlySalary: x.monthlySalary, month, marks: marks.filter((m) => String(m.staffId) === String(x._id)), advances: adv.filter((a) => String(a.staffId) === String(x._id)), joinedOn: x.joinedOn }); return { id: String(x._id), ...p, text: PR.slipText(p) }; });
     res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows, month, total: rows.reduce((a, r) => a + r.net, 0), currency: 'INR', note: 'Pay the staff yourself. These are draft figures until every day is marked.' });
   }));
+
+  // ---- UPI payment links (we build the link; we cannot see or confirm the money) ----
+  router.get('/upi-links', wrap(async (req, res, tid) => { res.set('Cache-Control', 'no-store'); res.json({ success: true, data: (await M.UpiLink.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(100).lean()).map((l) => ({ id: String(l._id), at: l.createdAt, amount: l.amount, note: l.note, link: l.link, status: l.status })) }); }));
+  router.post('/upi-links', wrap(async (req, res, tid) => {
+    const b = req.body || {}; const st = await M.Settings.findOne({ tenantId: tid }).lean(); const r = UPI.buildLink({ vpa: st && st.upiId, payeeName: st && st.upiName, amount: b.amount, note: b.note });
+    if (r.error) return fail(res, 400, r.error);
+    const d = await M.UpiLink.create({ tenantId: tid, amount: r.amount, note: UPI.clean(b.note, 40) || undefined, link: r.link, status: 'created', by: String(req.user.id) });
+    await audit(tid, req, 'upi_link', d._id); res.status(201).json({ success: true, data: { id: String(d._id), link: r.link }, note: 'Show or send this link. Check your UPI app or bank before you mark it paid: we cannot see the money.' });
+  }));
+  const linkAction = (status) => wrap(async (req, res, tid) => {
+    const id = toOid(req.params.id); const d = id ? await M.UpiLink.findOne({ _id: id, tenantId: tid }) : null; if (!d) return fail(res, 404, 'Not found'); if (d.status !== 'created') return fail(res, 409, 'This link is already closed.');
+    await M.UpiLink.updateOne({ _id: id, tenantId: tid, status: 'created' }, { $set: { status } }); await audit(tid, req, 'upi_link_' + status, id); res.json({ success: true });
+  });
+  router.post('/upi-links/:id/paid', linkAction('marked_paid')); router.post('/upi-links/:id/cancel', linkAction('cancelled'));
 
   // ---- festival dates the owner types (we never guess dates) ----
   router.get('/festivals', wrap(async (req, res, tid) => { const st = await M.Settings.findOne({ tenantId: tid }).lean(); res.json({ success: true, data: ((st && st.festivals) || []).map((f) => ({ id: String(f._id), name: f.name, date: f.date })) }); }));

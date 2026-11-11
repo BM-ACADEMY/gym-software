@@ -22,7 +22,7 @@ const RULES = [
   ['*', /^\/(reports|summary|marketing)(\/|$)/, 'reports'],
   ['*', /^\/audit$/, 'audit'], ['*', /^\/privacy(\/|$)/, 'privacy'], ['*', /^\/team(\/|$)/, 'team'],
   ['*', /^\/(attendance)(\/|$)/, 'attendance'], ['*', /^\/(staff|advances|payroll)(\/|$)/, 'payroll'],
-  ['*', /^\/upi(\/|$)/, 'bill'],
+  ['*', /^\/upi-links(\/|$)/, 'bill'],
 ];
 const permFor = (method, path) => { for (const [m, re, perm] of RULES) if ((m === '*' || m === method) && re.test(path)) return perm; return null; };
 

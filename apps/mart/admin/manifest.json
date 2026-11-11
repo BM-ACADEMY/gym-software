@@ -99,6 +99,17 @@
       ]
     },
     {
+      "key": "upi",
+      "label": "UPI payment links",
+      "screen": "resource",
+      "resource": "upi",
+      "roles": [
+        "admin",
+        "subadmin",
+        "cashier"
+      ]
+    },
+    {
       "key": "profit",
       "label": "Profit",
       "screen": "stats",
@@ -1171,6 +1182,73 @@
           "confirm": "Tap again to switch off"
         }
       ]
+    },
+    "upi": {
+      "label": "UPI payment links",
+      "endpoint": "/upi-links",
+      "empty": "No link made yet.",
+      "intro": "Set your UPI id under My settings first. We only make the link; the customer pays in their own UPI app. Check your UPI app or bank before you mark a link paid: we cannot see the money.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "Made",
+          "type": "date"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        },
+        {
+          "key": "link",
+          "label": "Link"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "note",
+          "label": "Note (shown in the customer's UPI app)",
+          "type": "text",
+          "max": 40
+        }
+      ],
+      "actions": [
+        {
+          "label": "Mark paid",
+          "method": "POST",
+          "path": "/upi-links/:id/paid",
+          "when": {
+            "key": "status",
+            "equals": "created"
+          },
+          "confirm": "I checked: tap again"
+        },
+        {
+          "label": "Cancel",
+          "method": "POST",
+          "path": "/upi-links/:id/cancel",
+          "when": {
+            "key": "status",
+            "equals": "created"
+          }
+        }
+      ]
     }
   },
   "settings": {
@@ -1250,6 +1328,18 @@
           "key": "clearCreditLimit",
           "label": "Remove the udhaar limit (leave the number above empty)",
           "type": "bool"
+        },
+        {
+          "key": "upiId",
+          "label": "Your UPI id (for payment links)",
+          "type": "text",
+          "max": 80
+        },
+        {
+          "key": "upiName",
+          "label": "Name shown in the customer's UPI app",
+          "type": "text",
+          "max": 40
         }
       ]
     }

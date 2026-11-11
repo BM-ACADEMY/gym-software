@@ -57,6 +57,12 @@
       ]
     },
     {
+      "key": "ideas",
+      "label": "Ideas",
+      "screen": "resource",
+      "resource": "ideas"
+    },
+    {
       "key": "announcements",
       "label": "Announcements",
       "screen": "resource",
@@ -798,6 +804,128 @@
         }
       ],
       "toolbar": []
+    },
+    "ideas": {
+      "label": "Ideas and suggestions",
+      "endpoint": "/ideas",
+      "canAdd": true,
+      "readOnly": true,
+      "searchable": true,
+      "empty": "No ideas yet. Add one, or press Load starting ideas.",
+      "columns": [
+        {
+          "key": "title",
+          "label": "Idea"
+        },
+        {
+          "key": "detail",
+          "label": "Why"
+        },
+        {
+          "key": "area",
+          "label": "For",
+          "type": "pill"
+        },
+        {
+          "key": "impact",
+          "label": "Impact",
+          "type": "pill"
+        },
+        {
+          "key": "version",
+          "label": "Version",
+          "type": "pill"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        },
+        {
+          "key": "by",
+          "label": "Added by"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Plan for v2",
+          "method": "POST",
+          "path": "/ideas/:id/v2"
+        },
+        {
+          "label": "Plan for v3",
+          "method": "POST",
+          "path": "/ideas/:id/v3"
+        },
+        {
+          "label": "Start",
+          "method": "POST",
+          "path": "/ideas/:id/doing"
+        },
+        {
+          "label": "Done",
+          "method": "POST",
+          "path": "/ideas/:id/done"
+        },
+        {
+          "label": "Drop",
+          "method": "POST",
+          "path": "/ideas/:id/drop",
+          "confirm": true
+        },
+        {
+          "label": "Reopen",
+          "method": "POST",
+          "path": "/ideas/:id/reopen"
+        }
+      ],
+      "toolbar": [
+        {
+          "label": "Load starting ideas",
+          "method": "POST",
+          "path": "/ideas/seed",
+          "done": "Done."
+        }
+      ],
+      "fields": [
+        {
+          "key": "title",
+          "label": "Idea (short)",
+          "required": true
+        },
+        {
+          "key": "detail",
+          "label": "Why it would help (no links)",
+          "type": "textarea"
+        },
+        {
+          "key": "area",
+          "label": "For which product",
+          "type": "select",
+          "options": [
+            "all",
+            "fit",
+            "groom",
+            "mart",
+            "dine",
+            "cloth",
+            "wash",
+            "hire",
+            "admin",
+            "marketing"
+          ]
+        },
+        {
+          "key": "impact",
+          "label": "How much it would help",
+          "type": "select",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      ]
     }
   }
 }

@@ -2,12 +2,13 @@ const { createWashRouter } = require('../src/routes');
 const { makeFakeModels } = require('./fakeModels');
 const fs = require('fs');
 function harness() {
-  const h = {}; const router = { use: () => {}, get: (p, f) => (h['GET ' + p] = f), post: (p, f) => (h['POST ' + p] = f), put: (p, f) => (h['PUT ' + p] = f) };
+  const h = {}; const router = { use: () => {}, get: (p, ...f) => (h['GET ' + p] = f), post: (p, ...f) => (h['POST ' + p] = f), put: (p, ...f) => (h['PUT ' + p] = f) };
   const M = makeFakeModels(); let clock = new Date('2026-11-12T08:00:00Z');
   createWashRouter({ express: { Router: () => router }, models: M, protect: 'P', authorize: () => 'A', tenantOf: (req) => req.user.tenantId, planOf: () => 'growth', now: () => clock });
   const call = async (key, tenant, { body = {}, query = {}, params = {}, role = 'admin' } = {}) => {
     const o = { headers: {} }; const req = { user: { id: 'u', tenantId: tenant, role }, body, query, params };
-    await h[key](req, { set: (k, v) => { o.headers[k] = v; }, send: (b) => { o.text = b; }, status(c) { o.c = c; return this; }, json(b) { o.b = b; if (!o.c) o.c = 200; } });
+    const res = { set: (k, v) => { o.headers[k] = v; }, send: (b) => { o.text = b; }, status(c) { o.c = c; return this; }, json(b) { o.b = b; if (!o.c) o.c = 200; } };
+    const chain = h[key]; for (let i = 0; i < chain.length; i++) { let went = false; await chain[i](req, res, () => { went = true; }); if (!went) break; }
     return o;
   };
   return { call, M, h };

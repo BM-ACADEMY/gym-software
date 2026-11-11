@@ -5,7 +5,7 @@
 const makeModels = require('./models');
 const V = require('./vehicles'); const J = require('./jobs'); const P = require('./pass'); const C = require('./cashclose'); const { checkCap } = require('./plans');
 const { summarize } = require('./summary');
-const DP = require('./discountPolicy'); const L = require('./leaks');
+const DP = require('./discountPolicy'); const MONEY = require('./money'); const L = require('./leaks');
 const A = require('./accounts'); const R = require('./reports'); const PR = require('./predict'); const MK = require('./marketing'); const AT = require('./attendance'); const { dayTotals } = require('./incentive');
 
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -157,8 +157,10 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
       const owe = job.total - (job.passId ? job.passCovered || 0 : 0);
       const pays = Array.isArray(b.payments) ? b.payments : (METHODS.includes(b.payAllWith) && owe > 0 ? [{ method: b.payAllWith, amount: owe }] : []); // payAllWith: one tap, full amount by one method
       if (pays.some((p) => !p || !METHODS.includes(p.method) || !isInt(p.amount) || p.amount <= 0)) return fail(res, 400, 'Each payment needs cash, upi or card and a whole-rupee amount');
-      const sum = pays.reduce((s, p) => s + p.amount, 0);
-      if (sum !== owe) return fail(res, 400, 'Payments must add up to Rs ' + owe);
+      const vehRow = await M.Vehicle.findOne({ tenantId: tid, plate: job.plate });
+      const dd = MONEY.dueAfterDelivery({ owe, pays, payLater: b.payLater === true, hasPhone: !!(vehRow && vehRow.ownerPhone) });
+      if (dd.error) return fail(res, 400, dd.error);
+      if (dd.due) { set.due = dd.due; set.dueNote = str(b.dueNote, 120); }
       if (job.passId) {
         const pd = await M.Pass.findOne({ _id: job.passId, tenantId: tid }); if (!pd) return fail(res, 409, 'The monthly pass was not found');
         const used = P.useWash(plain(pd), job.day);
@@ -168,6 +170,7 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
       await M.Vehicle.updateOne({ tenantId: tid, plate: job.plate }, { $set: { lastWash: dayOf(t) } });
     }
     await M.Job.updateOne({ _id: req.params.id, tenantId: tid }, { $set: set });
+    if (set.due) await M.Audit.create({ tenantId: tid, action: 'job.due', text: `job ${job.number} delivered with Rs ${set.due} still to pay`, by: req.user && req.user.id });
     if (set.cancelReason) await M.Audit.create({ tenantId: tid, action: 'job.cancel', text: `job ${job.number} cancelled after washing began: ${set.cancelReason}`, by: req.user && req.user.id });
     res.json({ success: true, data: { ...job, ...set } });
   }));
@@ -178,8 +181,9 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
     if (await M.CashClosing.findOne({ tenantId: tid, day })) return fail(res, 409, 'This day is already closed');
     const float = b.openingFloat === undefined ? 0 : b.openingFloat; if (!isInt(float) || float < 0) return fail(res, 400, 'Opening cash is whole rupees');
     const jobs = (await M.Job.find({ tenantId: tid, day, state: 'delivered' })).map(plain);
-    const bills = jobs.flatMap((j) => (j.payments || []).map((p) => ({ method: p.method, amount: p.amount })));
-    const r = C.closing({ bills, openingFloat: float, declared: b.declared });
+    const [late, refunds] = await Promise.all([M.Collection.find({ tenantId: tid, day }), M.Refund.find({ tenantId: tid, day })]);
+    const bills = [...jobs.flatMap((j) => (j.payments || []).map((p) => ({ method: p.method, amount: p.amount }))), ...late.map(plain).map((c) => ({ method: c.method, amount: c.amount }))];
+    const r = C.closing({ bills, refunds: refunds.map(plain).map((x) => ({ method: x.method, amount: x.amount })), openingFloat: float, declared: b.declared });
     if (r.error) return fail(res, 400, r.error);
     const d = await M.CashClosing.create({ tenantId: tid, day, expected: r.expected, declared: r.declared, diff: r.diff, flag: r.flag, openingFloat: float, upiTotal: r.upiTotal, cardTotal: r.cardTotal, by: req.user && req.user.id });
     res.status(201).json({ success: true, data: plain(d) });
@@ -230,8 +234,8 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
   router.get('/expenses', wrap(async (req, res, tid) => { const r = range(req.query); if (!r) return fail(res, 400, 'Choose a date range of up to one year'); res.json({ success: true, data: (await M.Expense.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).sort({ day: -1 }).limit(500)).map(plain) }); }));
   router.get('/accounts/cash-book', wrap(async (req, res, tid) => {
     const day = DAYRE.test(req.query.day || '') ? req.query.day : dayOf(now()); const float = Number.isInteger(Number(req.query.float)) ? Math.max(0, Number(req.query.float)) : 0;
-    const [jobs, ex] = await Promise.all([M.Job.find({ tenantId: tid, day, state: 'delivered' }).limit(500), M.Expense.find({ tenantId: tid, day }).limit(500)]);
-    res.json({ success: true, data: A.cashBook({ openingFloat: float, jobs: jobs.map(plain), expenses: ex.map(plain) }) });
+    const [jobs, ex, late, refunds] = await Promise.all([M.Job.find({ tenantId: tid, day, state: 'delivered' }).limit(500), M.Expense.find({ tenantId: tid, day }).limit(500), M.Collection.find({ tenantId: tid, day }).limit(500), M.Refund.find({ tenantId: tid, day }).limit(500)]);
+    res.json({ success: true, data: A.cashBook({ openingFloat: float, jobs: jobs.map(plain), expenses: ex.map(plain), collections: late.map(plain), refunds: refunds.map(plain) }) });
   }));
   router.get('/accounts/dues', wrap(async (req, res, tid) => res.json({ success: true, data: A.supplierDues((await M.Expense.find({ tenantId: tid, paid: false }).limit(1000)).map(plain)) })));
   // Profit and loss for a range. Revenue is what was billed on delivered jobs minus refunds given in the same range.
@@ -247,9 +251,9 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
   }));
   router.get('/accounts/export.csv', wrap(async (req, res, tid) => {
     const r = range(req.query); if (!r) return fail(res, 400, 'Choose a date range of up to one year');
-    const [jobs, ex] = await Promise.all([M.Job.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(10000), M.Expense.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(10000)]);
+    const [jobs, ex, late, refunds] = await Promise.all([M.Job.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(10000), M.Expense.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(10000), M.Collection.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(10000), M.Refund.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(10000)]);
     res.set('Content-Type', 'text/csv; charset=utf-8'); res.set('Content-Disposition', `attachment; filename="wash-accounts-${r.from}-to-${r.to}.csv"`);
-    res.send(A.caCsv({ jobs: jobs.map(plain), expenses: ex.map(plain) }));
+    res.send(A.caCsv({ jobs: jobs.map(plain), expenses: ex.map(plain), collections: late.map(plain), refunds: refunds.map(plain) }));
   }));
 
   // ---- sales reports ----

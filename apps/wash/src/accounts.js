@@ -10,9 +10,11 @@ function checkExpense(e) {
   return { ok: true };
 }
 // Cash book for one day: every cash movement in order. Opening float, cash received from jobs, cash expenses paid out.
-function cashBook({ openingFloat = 0, jobs = [], expenses = [] }) {
+function cashBook({ openingFloat = 0, jobs = [], expenses = [], collections = [], refunds = [] }) {
   const rows = [{ what: 'Opening cash', in: openingFloat, out: 0 }];
   for (const j of jobs) for (const p of j.payments || []) if (p.method === 'cash') rows.push({ what: `Wash ${j.plate}`, in: p.amount, out: 0 });
+  for (const c of collections) if (c.method === 'cash') rows.push({ what: `Due collected ${c.plate || ''}`.trim(), in: c.amount, out: 0 });
+  for (const x of refunds) if (x.method === 'cash') rows.push({ what: `Refund ${x.plate || ''}: ${x.reason || ''}`.trim(), in: 0, out: x.amount });
   for (const x of expenses) if (x.paid !== false && x.cash !== false) rows.push({ what: `${x.category}${x.note ? ': ' + x.note : ''}`, in: 0, out: x.amount });
   const totalIn = rows.reduce((s, r) => s + r.in, 0); const totalOut = rows.reduce((s, r) => s + r.out, 0);
   return { rows, totalIn, totalOut, closing: totalIn - totalOut, currency: 'INR' };
@@ -32,10 +34,12 @@ function profitLoss({ revenue, expenses = [], incentive = 0 }) {
   return { revenue, expenses: spent, incentive, cost, profit, byCategory: byCat, words, currency: 'INR' };
 }
 // CSV for the CA. Cells starting with = + - @ are prefixed so a spreadsheet never runs them as a formula.
-const cell = (v) => { let s = String(v === undefined || v === null ? '' : v); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-function caCsv({ jobs = [], expenses = [] }) {
+const cell = (v) => { if (typeof v === 'number' && Number.isFinite(v)) return String(v); let s = String(v === undefined || v === null ? '' : v); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function caCsv({ jobs = [], expenses = [], collections = [], refunds = [] }) {
   const lines = ['type,date,reference,description,method,amount_inr'];
   for (const j of jobs) { if (j.state !== 'delivered') continue; for (const p of j.payments || []) lines.push(['sale', j.day, '#' + j.number, j.plate, p.method, p.amount].map(cell).join(',')); if (j.passCovered) lines.push(['sale', j.day, '#' + j.number, j.plate + ' (monthly pass)', 'pass', j.passCovered].map(cell).join(',')); }
+  for (const c of collections) lines.push(['sale', c.day, c.plate || '', 'due collected', c.method, c.amount].map(cell).join(','));
+  for (const x of refunds) lines.push(['refund', x.day, x.plate || '', x.reason || '', x.method, -x.amount].map(cell).join(','));
   for (const x of expenses) lines.push(['expense', x.day, x.supplier || '', x.category + (x.note ? ': ' + x.note : ''), x.paid === false ? 'unpaid' : 'paid', x.amount].map(cell).join(','));
   return lines.join('\n') + '\n';
 }

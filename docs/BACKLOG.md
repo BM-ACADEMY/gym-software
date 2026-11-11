@@ -179,6 +179,15 @@ Priority: L = before launch (only these three, see D-03), A = first month after 
 | CLIENT-05 | Wash screens: job-card board with cancel-after-start reason, vehicle lookup by registration and pass balance | L | 2 | IN PROGRESS (worker running) |
 | CLIENT-06 | Mart billing extras (barcode, scale) and the shared panel additions in CORE-UI-01 (password field, download link, Tamil and Hindi strings) | M | 2 | IN PROGRESS (worker running) |
 | CLIENT-07 | Real app icons for the five products; serve each client's `dist` behind its domain (Dev A, steps in CLIENT.md) | S | 2 | TODO (needs artwork and Dev A) |
+| SAL-08 | Salon month accounts screens, staff-discount list, activity log | M | 2 | WRITTEN 12 Nov, not yet tested by a person; all 13 Salon plain-node test files pass (in-memory stand-in); manifest has 18 nav items |
+| SAL-09 | Salon customer data export and delete on request | S | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-10 | Salon CSV import, loyalty points, packages with guarded session use | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-11 | Salon staff pay: salary, attendance, shifts, leave, advances, payslips | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-12 | Salon voids and refunds (reason, owner only, guarded against double refund; income, GST, cash follow refunds) | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-13 | Salon retail stock: products, purchases, counts, per-service product use, run-out estimate, mismatch and low-stock alerts | M | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-14 | Salon public booking page (plain HTML, consent box, strict headers), QR link text, Clinic extras (doctor role, body-area field, clinical notes off unless `CLINIC_NOTES_ENABLED=true`, draft consent wording for lawyer review) | M | 2 | WRITTEN 12 Nov, not yet tested by a person; Dev A sets `SALON_PUBLIC_URL`, `INTERNAL_API_KEY` |
+| SAL-15 | Salon counts-only `GET /api/internal/admin-summary` | S | 2 | WRITTEN 12 Nov, not yet tested by a person |
+| SAL-16 | Salon not built: reminders and sending (templates), reschedule through public link, payment links, print bill, plan checkout, Tamil/Hindi, QR image, panel date-range and download screens | L | 2 | TODO |
 | CLINIC-01 | Clinic sector (doctor, physio, dental, skin): a preset of the Salon appointment product (D-29), not a separate app. Owner shared a clinic booking demo on 12 Nov as the look to follow. Needs owner decisions: name, price ladder, whose design it is | M | 3 | TODO (idea only; nothing built). Sensitive health data needs lawyer review first |
 | SA-06 | Plan and limit overrides and feature flags per gym, each with a logged reason | A | 2 | PARKED for Kamarudeen (Tier 3): design and questions in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |
 | SA-07 | View-as-gym for support: read-only, logged, time-limited | A | 2 | PARKED for Kamarudeen and the lawyer (Tier 3): recommend a counts-only support snapshot instead; design in `docs/SUPER_ADMIN_SUPPORT_TOOLS.md` |

@@ -6,6 +6,7 @@ const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createDineRouter } = require('./routes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
+const { createPublicRouter } = require('./publicRoutes');
 
 function missingSettings(env) {
   const out = [];
@@ -26,6 +27,7 @@ function createApp({ express, mongoose, env = process.env }) {
   const M = makeModels(mongoose);
   const secret = env.DINE_SESSION_SECRET;
   app.use('/api/dine/auth', createAuthRouter({ express, mongoose, billing, secret, termsVersion: env.DINE_TERMS_VERSION }));
+  app.use('/dine-public', createPublicRouter({ express, models: M }));
   const protect = sessionMiddleware(secret, M);
   app.use('/api/dine', createDineRouter({
     express, mongoose, models: M, protect,

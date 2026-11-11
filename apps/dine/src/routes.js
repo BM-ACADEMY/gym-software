@@ -321,6 +321,7 @@ function createDineRouter({ express, mongoose, models, protect, tenantOf, planOf
     const summary = D.dailySummary({ date, bills, leak, close: closeRow ? { expected: closeRow.expected, counted: closeRow.counted } : null, foodCost: fc, byHour: D.byHour(hist).map((h) => ({ hour: h.hour, sales: Math.round(h.sales / 14) })), stock: ingDocs.map((i) => ({ id: String(i._id), name: i.name, qty: i.qty })), dailyUse: await avgUse(tid, hist), customers: cs, menu, venue: s.venueName, pubMode: s.pubMode });
     res.json({ success: true, data: summary });
   });
+  require('./routesPhase2').addPhase2Routes({ router, def, M, D, fail, log, str, plain, settingsOf, now, OID, DATE, loadOrder, saveOrder, priceOrder, paidBills, range, startOf, addDays, tenantOf });
   return router;
 }
 module.exports = { createDineRouter };

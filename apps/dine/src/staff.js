@@ -2,8 +2,8 @@
 // Staff basics (area 2 and 3). Roles decide what each person may do; hours come from punches. Payslips use the core payroll later (Phase 2).
 const ROLES = {
   owner: ['*'],
-  manager: ['menu', 'orders', 'bill', 'void', 'discount', 'reports', 'stock', 'staff', 'cash', 'customers'],
-  cashier: ['orders', 'bill', 'discount', 'cash', 'customers'],
+  manager: ['returns', 'payroll', 'menu', 'orders', 'bill', 'void', 'discount', 'reports', 'stock', 'staff', 'cash', 'customers', 'credit'],
+  cashier: ['orders', 'bill', 'discount', 'cash', 'customers', 'credit'],
   captain: ['orders', 'customers'],
   kitchen: ['kot_view'],
   bartender: ['orders', 'kot_view'],

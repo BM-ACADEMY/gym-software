@@ -19,7 +19,8 @@ function model() {
     findOne: (f = {}) => one(rows.find((d) => match(d, f))),
     create: async (v) => { const d = { _id: oid(), ...v }; rows.push(d); return wrapDoc({ ...d }); },
     findOneAndUpdate: async (f, u, o = {}) => { let d = rows.find((x) => match(x, f)); if (!d) { if (!o.upsert) return null; d = { _id: oid(), ...Object.fromEntries(Object.entries(f).filter(([, v]) => typeof v !== 'object')) }; rows.push(d); } Object.assign(d, u.$set || {}); for (const [k, v] of Object.entries(u.$inc || {})) d[k] = (d[k] || 0) + v; return { ...d }; },
-    updateOne: async (f, u, o = {}) => { let d = rows.find((x) => match(x, f)); if (!d && o.upsert) { d = { _id: oid(), ...f }; rows.push(d); } if (d) Object.assign(d, u.$set || {}); },
+    updateOne: async (f, u, o = {}) => { let d = rows.find((x) => match(x, f)); if (!d && o.upsert) { d = { _id: oid(), ...f }; rows.push(d); } if (d) { Object.assign(d, u.$set || {}); Object.keys(u.$unset || {}).forEach((k) => delete d[k]); } },
+    updateMany: async (f, u) => { rows.filter((x) => match(x, f)).forEach((d) => { Object.assign(d, u.$set || {}); Object.keys(u.$unset || {}).forEach((k) => delete d[k]); }); },
   };
 }
 const mkRouter = () => { const r = {}; return { r, router: { use() {}, get: (p, h) => (r['GET ' + p] = h), post: (p, h) => (r['POST ' + p] = h), put: (p, h) => (r['PUT ' + p] = h) } }; };

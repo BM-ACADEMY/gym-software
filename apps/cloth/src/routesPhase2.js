@@ -1,11 +1,11 @@
 'use strict';
 // Cloth routes, Phase 2 (wave A). Written, not yet tested by a person. Every query filters by tenantId (the shop).
 // Added in steps: 1 barcode/scan/fabric, 2 staff pay, 3 sales breakdown + Tally-style CSV, 5 data rights + audit, 6 stock count, 7 returns.
-const BC = require('./barcode'); const PR = require('./payrollRules'); const SR = require('./salesReports'); const Ac = require('./accounts'); const PK = require('./pickup');
+const BC = require('./barcode'); const PR = require('./payrollRules'); const SR = require('./salesReports'); const Ac = require('./accounts'); const PK = require('./pickup'); const DR = require('./dataRights');
 
 module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBetween, settingsOf }) => {
   const audit = (tid, req, action, text) => M.Audit.create({ tenantId: tid, action, text: String(text || '').slice(0, 200), by: req.user.id });
-  const ownerOnly = (req, res) => (req.user.role === 'admin' ? null : fail(res, 403, 'Only the owner can do this.'));
+  const ownerOnly = (req, res) => { if (req.user.role === 'admin') return false; fail(res, 403, 'Only the owner can do this.'); return true; }; // true = refused, the answer is already sent
 
   // ---- 1. barcode labels, scan, fabric by the metre ----
   const activeVariants = (tid) => M.Variant.find({ tenantId: tid, isActive: true }).sort({ style: 1 }).limit(2000).lean();
@@ -49,7 +49,7 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBet
   const monthArg = (req) => { const m = str(req.query.month, 7) || todayIST(now()).slice(0, 7); return /^\d{4}-(0[1-9]|1[0-2])$/.test(m) ? m : null; };
   const staffOf = (tid, id) => M.Staff.findOne({ _id: id, tenantId: tid, isActive: true });
   router.put('/staff/:id/shift', wrap(async (req, res, tid) => {
-    const g = ownerOnly(req, res); if (g) return g;
+    if (ownerOnly(req, res)) return;
     const v = PR.validShift(req.body); if (v.error) return fail(res, 400, v.error);
     const u = await M.Staff.findOneAndUpdate({ _id: req.params.id, tenantId: tid, isActive: true }, { $set: { shift: v.value } }, { returnDocument: 'after' }); if (!u) return fail(res, 404, 'Staff member not found');
     await audit(tid, req, 'staff.shift', String(u._id)); res.json({ success: true, data: { id: String(u._id), shift: u.shift } });
@@ -61,7 +61,7 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBet
     res.json({ success: true, data: PR.leaveFor({ allowance: (await settingsOf(tid)).leaveAllowance, marksYear: marks, month }) });
   }));
   router.get('/staff/:id/payslip', wrap(async (req, res, tid) => {
-    const g = ownerOnly(req, res); if (g) return g;
+    if (ownerOnly(req, res)) return;
     const s = await staffOf(tid, req.params.id); if (!s) return fail(res, 404, 'Staff member not found');
     const month = monthArg(req); if (!month) return fail(res, 400, 'Month must look like 2026-11.');
     const st = await settingsOf(tid); const last = new Date(Date.UTC(+month.slice(0, 4), +month.slice(5), 0)).getUTCDate();
@@ -84,7 +84,7 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBet
     res.json({ success: true, data: SR.report(await billsBetween(tid, r.from, r.to), by) });
   }));
   router.get('/export/tally.csv', wrap(async (req, res, tid) => {
-    const g = ownerOnly(req, res); if (g) return g;
+    if (ownerOnly(req, res)) return;
     const r = range(req); if (!r) return fail(res, 400, 'Give a valid from and to date.');
     const bills = await billsBetween(tid, r.from, r.to); const ids = [...new Set(bills.map((b) => b.customerId).filter(Boolean))];
     const names = {}; if (ids.length && M.PosCustomer) for (const c of await M.PosCustomer.find({ tenantId: tid, _id: { $in: ids } }).select('name').lean()) names[String(c._id)] = c.name;
@@ -100,6 +100,32 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBet
     await audit(tid, req, rotate ? 'pickup.rotate' : 'pickup.link', String(j._id));
     res.json({ success: true, data: { path: '/api/cloth-pickup/' + token, qrText: '/api/cloth-pickup/' + token, note: 'Give the customer the full link (your address plus this path) or print it as a QR. Rotating makes the old link stop working.' } });
   }, { write: true }));
+
+  // ---- 5. data export, delete on request, audit trail (owner only) ----
+  router.get('/export/all.json', wrap(async (req, res, tid) => {
+    if (ownerOnly(req, res)) return;
+    const lim = (m, sort) => m.find({ tenantId: tid }).sort(sort || {}).limit(DR.CAP + 1).lean();
+    const data = DR.shopExport({ tenant: await M.Tenant.findOne({ _id: tid }).lean(), variants: await lim(M.Variant), alterations: await lim(M.Alteration), staff: await lim(M.Staff), attendance: await lim(M.Attendance), expenses: await lim(M.Expense), dayCloses: await lim(M.DayClose), supplierBills: await lim(M.SupplierBill), customers: M.PosCustomer ? await lim(M.PosCustomer) : [], customerInfo: await lim(M.CustomerInfo), settings: await M.Settings.findOne({ tenantId: tid }).lean(), bills: await billsBetween(tid, '2020-01-01', todayIST(now())) });
+    await audit(tid, req, 'export.all', 'full shop export');
+    res.set('Content-Type', 'application/json; charset=utf-8'); res.set('Content-Disposition', 'attachment; filename="shop-data.json"'); res.set('Cache-Control', 'no-store'); res.send(JSON.stringify(data));
+  }));
+  // Delete = anonymise the person; bills stay (the shop must keep its sales and tax records).
+  router.post('/customers/:id/delete', wrap(async (req, res, tid) => {
+    if (ownerOnly(req, res)) return;
+    if (!DR.confirmOk(req.body && req.body.confirm)) return fail(res, 400, 'Type DELETE to confirm. This removes the customer\'s name and phone. Bills stay for your records.');
+    const c = M.PosCustomer ? await M.PosCustomer.findOne({ _id: req.params.id, tenantId: tid }) : null; if (!c) return fail(res, 404, 'Customer not found');
+    const a = DR.anonymiseCustomer(now());
+    await M.PosCustomer.updateOne({ _id: c._id, tenantId: tid }, a.customer);
+    await M.CustomerInfo.updateOne({ tenantId: tid, customerId: c._id }, a.info);
+    await M.Alteration.updateMany({ tenantId: tid, customerId: c._id }, a.alteration);
+    await audit(tid, req, 'customer.anonymise', String(c._id));
+    res.json({ success: true, message: 'The customer\'s name and contact details are removed. Their bills stay.' });
+  }, { write: true }));
+  router.get('/audit', wrap(async (req, res, tid) => {
+    if (ownerOnly(req, res)) return;
+    const rows = await M.Audit.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(Math.min(Number(req.query.limit) || 100, 500)).lean();
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows.map((r) => ({ id: String(r._id), at: r.createdAt || null, action: r.action, text: r.text })) });
+  }));
 
   return { audit, ownerOnly };
 };

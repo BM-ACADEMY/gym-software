@@ -54,3 +54,19 @@ Owner's brief (Kamar, 12 Nov): every product must help the owner in today's AI w
 
 ## 6. What we cannot finish by writing code (stays on the human list)
 Running anything against a real database; Meta template approvals; CA wording on SAC/HSN and invoices; lawyer review; real owner interviews; Dev B attacks; screen tests by staff.
+
+## 7. All-in-one standard (owner, 12 Nov): a business on one of our products needs no other software
+Every product covers these eleven areas, in that business's own words. Where a core module already exists (CORE.md) the product uses it; it does not rebuild it.
+1. **Accounts:** cash book, day close (cash counted vs expected), expenses by category, supplier dues, customer dues, profit and loss in plain words, GST summary and a CSV or Tally-style export for the CA. We do not file GST (Decision).
+2. **Operations:** the daily work of that business (appointments, orders, job cards, stock, tables) with staff roles and permissions, so each person sees only what they need.
+3. **Staff:** attendance, shifts, commission or incentive, payslip (core payroll), leave.
+4. **Sales and revenue:** bills, split payments, UPI and payment links, returns, discounts with a reason, day, week and month sales by item, staff and hour.
+5. **Customers:** phone-keyed record, history, notes, birthdays, loyalty and packages, dues, do-not-contact, import from the old register or sheet.
+6. **Appointments or orders:** a booking link or QR, reminders, reschedule and cancel without a phone call, walk-ins.
+7. **Marketing:** win-back list with ready messages, festival and season offers, review requests, a shareable page or QR. Suggest first; sending only when the owner switches it on, and only approved WhatsApp templates.
+8. **Prediction (estimates, labelled as estimates, Assumption until checked against real data):** next month's sales range from the last months, expected busy and slow days and hours, stock that will run out in N days, customers likely to lapse, cash needed for dues. Always show the reason and the data it used; never present a forecast as a promise.
+9. **Alerts and leak checks:** unusual discounts, voids, cash difference, stock mismatch, sudden drop in repeat customers.
+10. **Control and safety:** daily and weekly owner summary, audit trail, data export and delete on request, backups, works on a slow phone, installable.
+11. **Growth later (not Phase 1):** multiple branches, online ordering or a marketplace, accounting software integrations, e-invoice when a business crosses the limit.
+
+Each product's scope file lists which of these are Phase 1 and which are later; none may be silently dropped. Claude checks this list in every product's QA workbook.

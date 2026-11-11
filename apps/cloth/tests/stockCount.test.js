@@ -21,3 +21,18 @@ describe('stock count and mismatch alert (CLO-11)', () => {
     expect((await call(r['GET /reports/stock-mismatch'], { ...B, query: {} })).b.data.items.length).toBe(0);
   });
 });
+describe('returns route (CLO-12)', () => {
+  const bid = 'aaaaaaaaaaaaaaaaaaaaaaaa';
+  test('restores the sold variant once, never more than sold, reason needed, other shop cannot', async () => {
+    const { r, M } = mk(); const v = await M.Variant.create({ tenantId: 'a', style: 'Kurta', size: 'M', colour: 'B', mrp: 1, qty: 8, isActive: true }); const vid = String(v._id);
+    await M.StockMove.create({ tenantId: 'a', variantId: vid, type: 'sale', qty: 2, billId: bid });
+    const P = (b, x = A) => ({ ...x, method: 'POST', body: { billId: bid, ...b } });
+    expect((await call(r['POST /returns'], P({ items: [{ variantId: vid, qty: 1 }], reason: 'x' }))).c).toBe(400);
+    expect((await call(r['POST /returns'], P({ items: [{ variantId: vid, qty: 1 }], reason: 'wrong size' }, B))).c).toBe(404);
+    const ok = await call(r['POST /returns'], P({ items: [{ variantId: vid, qty: 1 }], reason: 'wrong size' })); expect(ok.c).toBe(201); expect(M.Variant.rows[0].qty).toBe(9);
+    expect((await call(r['POST /returns'], P({ items: [{ variantId: vid, qty: 2 }], reason: 'wrong size' }))).c).toBe(400); expect(M.Variant.rows[0].qty).toBe(9);
+    expect((await call(r['POST /returns'], P({ items: [{ variantId: vid, qty: 1 }], reason: 'changed mind', kind: 'exchange' }))).c).toBe(201); expect(M.Variant.rows[0].qty).toBe(10);
+    expect((await call(r['POST /returns'], { ...A, method: 'POST', body: { billId: 'bad', items: [] } })).c).toBe(400);
+    expect(M.Audit.rows.filter((a) => a.action === 'stock.return').length).toBe(1);
+  });
+});

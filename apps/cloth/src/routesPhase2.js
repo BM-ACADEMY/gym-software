@@ -1,7 +1,7 @@
 'use strict';
 // Cloth routes, Phase 2 (wave A). Written, not yet tested by a person. Every query filters by tenantId (the shop).
 // Added in steps: 1 barcode/scan/fabric, 2 staff pay, 3 sales breakdown + Tally-style CSV, 5 data rights + audit, 6 stock count, 7 returns.
-const BC = require('./barcode'); const PR = require('./payrollRules'); const SR = require('./salesReports'); const Ac = require('./accounts'); const PK = require('./pickup'); const DR = require('./dataRights'); const Lk = require('./leaks');
+const BC = require('./barcode'); const PR = require('./payrollRules'); const SR = require('./salesReports'); const Ac = require('./accounts'); const PK = require('./pickup'); const DR = require('./dataRights'); const Lk = require('./leaks'); const RR = require('./returnsRules');
 
 module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBetween, settingsOf }) => {
   const audit = (tid, req, action, text) => M.Audit.create({ tenantId: tid, action, text: String(text || '').slice(0, 200), by: req.user.id });
@@ -148,6 +148,24 @@ module.exports = ({ router, M, wrap, fail, str, todayIST, addDays, now, billsBet
     const rows = moves.map((m) => { const v = byId[String(m.variantId)] || {}; return { variantName: `${v.style || 'Item'} ${v.size || ''} ${v.colour || ''}`.trim(), expected: m.expected, counted: m.qty, date: m.date, unit: v.unit || 'piece' }; });
     res.json({ success: true, data: { note: 'Counts of the last 30 days that did not match. Hints, not proof.', items: Lk.stockMismatches(rows) } });
   }));
+
+  // ---- 7. return or exchange: put the exact size and colour back in stock (money side: core-pos return-lines) ----
+  router.post('/returns', wrap(async (req, res, tid) => {
+    const b = req.body || {}; if (!/^[0-9a-fA-F]{24}$/.test(String(b.billId))) return fail(res, 400, 'Choose the bill.');
+    const sales = await M.StockMove.find({ tenantId: tid, billId: b.billId, type: 'sale' }).lean(); if (!sales.length) return fail(res, 404, 'No sale with stock found for that bill.');
+    const done = await M.StockMove.find({ tenantId: tid, billId: b.billId, type: 'return_in' }).lean();
+    const vs = await M.Variant.find({ tenantId: tid }).limit(5000).lean(); const units = {}; vs.forEach((v) => { units[String(v._id)] = v.unit || 'piece'; });
+    const p = RR.plan({ sales, done, items: b.items, units, reason: b.reason, kind: b.kind }); if (p.error) return fail(res, 400, p.error);
+    const made = [];
+    for (const m of p.moves) made.push({ m, row: await M.StockMove.create({ tenantId: tid, variantId: m.variantId, type: 'return_in', qty: m.qty, date: todayIST(now()), billId: b.billId, reason: `${p.kind}: ${p.reason}`, by: req.user.id }) });
+    // Re-check after writing: two people returning the same item at once must not put stock back twice.
+    const after = await M.StockMove.find({ tenantId: tid, billId: b.billId, type: 'return_in' }).lean(); const tot = {}; after.forEach((x) => { tot[String(x.variantId)] = (tot[String(x.variantId)] || 0) + x.qty; });
+    const sold = {}; sales.forEach((x) => { sold[String(x.variantId)] = (sold[String(x.variantId)] || 0) + x.qty; });
+    if (made.some((x) => tot[String(x.m.variantId)] > sold[String(x.m.variantId)])) { for (const x of made) await M.StockMove.updateOne({ _id: x.row._id, tenantId: tid }, { $set: { type: 'return_void' } }); return fail(res, 409, 'Another return was saved at the same time. Open the bill and try again.'); }
+    for (const x of made) await M.Variant.findOneAndUpdate({ _id: x.m.variantId, tenantId: tid }, { $inc: { qty: x.m.qty } });
+    await audit(tid, req, 'stock.' + p.kind, `${b.billId} ${p.moves.length} item(s): ${p.reason}`);
+    res.status(201).json({ success: true, data: { restored: p.moves.length, kind: p.kind }, next: 'Now refund the money with Return on the bill (shared bill return), so points and pay-later are reversed too.' });
+  }, { write: true }));
 
   return { audit, ownerOnly };
 };

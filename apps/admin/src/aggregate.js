@@ -10,7 +10,7 @@ function cleanSummary(raw, expectProduct) {
   const list = (a) => (Array.isArray(a) ? a.slice(0, 20).map((x) => ({ name: str(x && x.name), kind: str(x && x.kind, 20), daysLeft: Number.isInteger(x && x.daysLeft) ? x.daysLeft : null })) : []);
   return {
     product: expectProduct, at: str(raw.at, 40), currency: 'INR',
-    businesses: { total: num(b.total), trial: num(b.trial), paying: num(b.paying), grace: num(b.grace), expired: num(b.expired), suspended: num(b.suspended), signups7d: num(b.signups7d) },
+    businesses: { total: num(b.total), trial: num(b.trial), paying: num(b.paying), grace: num(b.grace), expired: num(b.expired), suspended: num(b.suspended), signups7d: num(b.signups7d), active7d: b.active7d === undefined || b.active7d === null ? null : num(b.active7d) },
     mrr: num(raw.mrr), collectedThisMonth: num(raw.collectedThisMonth),
     endingSoon: list(raw.endingSoon), renewalsDue: list(raw.renewalsDue),
     ai: { callsToday: num(ai.callsToday), costTodayInr: num(ai.costTodayInr), budgetInr: num(ai.budgetInr), stopped: !!ai.stopped },
@@ -21,6 +21,7 @@ function cleanSummary(raw, expectProduct) {
 // results: [{ product, ok, summary?, error?, fetchedAt }]. staleAfterMs: older than this is shown as stale.
 function combine(results, now = new Date(), staleAfterMs = 15 * 60 * 1000) {
   const products = results.map((r) => {
+    if (!r.ok && r.error === 'not configured') return { product: r.product, state: 'not_connected', error: 'not connected yet' };
     if (!r.ok) return { product: r.product, state: 'unreachable', error: str(r.error, 120) };
     let s; try { s = cleanSummary(r.summary, r.product); } catch (e) { return { product: r.product, state: 'bad_reply', error: e.message }; }
     const age = now - new Date(r.fetchedAt || 0);
@@ -32,12 +33,12 @@ function combine(results, now = new Date(), staleAfterMs = 15 * 60 * 1000) {
   return {
     currency: 'INR', at: new Date(now).toISOString(), products,
     totals: {
-      businesses: sum((p) => p.businesses.total), paying: sum((p) => p.businesses.paying), trial: sum((p) => p.businesses.trial),
+      businesses: sum((p) => p.businesses.total), active7d: sum((p) => p.businesses.active7d || 0), paying: sum((p) => p.businesses.paying), trial: sum((p) => p.businesses.trial),
       mrr: sum((p) => p.mrr), openTickets: sum((p) => p.openTickets), aiCostTodayInr: Math.round(sum((p) => p.ai.costTodayInr) * 100) / 100,
       aiBudgetInr: budgetInr, whatsappSentToday: sum((p) => p.whatsappSentToday),
     },
     attention: [
-      ...products.filter((p) => p.state !== 'ok').map((p) => ({ level: p.state === 'stale' ? 'warn' : 'error', product: p.product, text: `${p.product}: ${p.state.replace('_', ' ')}` })),
+      ...products.filter((p) => p.state !== 'ok' && p.state !== 'not_connected').map((p) => ({ level: p.state === 'stale' ? 'warn' : 'error', product: p.product, text: `${p.product}: ${p.state.replace('_', ' ')}` })),
       ...live.filter((p) => p.ai.stopped).map((p) => ({ level: 'error', product: p.product, text: `${p.product}: AI switched off by the daily budget` })),
       ...live.flatMap((p) => p.endingSoon.filter((e) => e.daysLeft !== null && e.daysLeft <= 3).map((e) => ({ level: 'warn', product: p.product, text: `${e.name}: ${e.kind} ends in ${e.daysLeft} day(s)` }))),
     ],

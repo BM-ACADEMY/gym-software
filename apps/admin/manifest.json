@@ -123,6 +123,11 @@
           "type": "number"
         },
         {
+          "label": "Active in 7 days",
+          "path": "totals.active7d",
+          "type": "number"
+        },
+        {
           "label": "On trial",
           "path": "totals.trial",
           "type": "number"
@@ -175,6 +180,11 @@
             {
               "key": "businesses.paying",
               "label": "Paying",
+              "type": "number"
+            },
+            {
+              "key": "businesses.active7d",
+              "label": "Active 7 days",
               "type": "number"
             },
             {
@@ -237,6 +247,11 @@
             {
               "key": "whatsappSentToday",
               "label": "WhatsApp today",
+              "type": "number"
+            },
+            {
+              "key": "businesses.active7d",
+              "label": "Active 7 days",
               "type": "number"
             }
           ]

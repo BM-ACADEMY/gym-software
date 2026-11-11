@@ -52,6 +52,15 @@
       "roles": [
         "admin"
       ]
+    },
+    {
+      "key": "audit",
+      "label": "Audit trail",
+      "screen": "resource",
+      "resource": "audit",
+      "roles": [
+        "admin"
+      ]
     }
   ],
   "stats": {
@@ -332,6 +341,13 @@
           "done": "Consent withdrawn."
         },
         {
+          "label": "Remove personal details",
+          "method": "POST",
+          "path": "/candidates/:id/anonymise",
+          "confirm": "Tap again: removes name, phone and email for good",
+          "done": "Personal details removed."
+        },
+        {
           "label": "Delete",
           "method": "DELETE",
           "path": "/candidates/:id",
@@ -564,6 +580,32 @@
             "equals": "overdue"
           },
           "done": "Marked paid."
+        }
+      ]
+    },
+    "audit": {
+      "label": "Audit trail",
+      "endpoint": "/audit",
+      "readOnly": true,
+      "searchable": false,
+      "empty": "Nothing yet. Exports, removals and consent changes show here.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "who",
+          "label": "Who"
+        },
+        {
+          "key": "action",
+          "label": "What"
+        },
+        {
+          "key": "ref",
+          "label": "Record"
         }
       ]
     }

@@ -18,6 +18,7 @@ const autopilot = require('./autopilot');
 const consent = require('./consent');
 const extract = require('./extract');
 const consentForm = require('./consentForm');
+const DR = require('./dataRights');
 
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const monthStart = () => { const n = new Date(); return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), 1)); };
@@ -46,6 +47,8 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
       return fail(res, 500, 'Server error');
     }
   };
+  const adminOnly = (req, res, next) => (req.user && req.user.role === 'admin' ? next() : fail(res, 403, 'Only the agency owner can do this.'));
+  const audit = (tid, req, action, ref) => M.Audit.create({ tenantId: tid, ...DR.auditEntry(req, action, ref) });
   const countUsed = (tid, kind) => M.UsageLog.countDocuments({ tenantId: tid, kind, createdAt: { $gte: monthStart() } });
 
   // ---- candidates ----
@@ -120,13 +123,42 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
   router.post('/candidates/:id/withdraw-consent', wrap(async (req, res, tid) => {
     const c = await M.Candidate.findOneAndUpdate({ _id: req.params.id, tenantId: tid, consent: { $ne: null } }, { $set: { 'consent.withdrawnAt': new Date(), doNotContact: true } }, { new: true });
     if (!c) return fail(res, 404, 'Candidate or consent not found');
+    await audit(tid, req, 'candidate.consent_withdrawn', c._id);
     res.json({ success: true, data: toPlain(c) });
   }));
   router.delete('/candidates/:id', wrap(async (req, res, tid) => {
     const c = await M.Candidate.findOneAndDelete({ _id: req.params.id, tenantId: tid });
     if (!c) return fail(res, 404, 'Candidate not found');
     await M.Entry.deleteMany({ tenantId: tid, candidateId: c._id });
+    await audit(tid, req, 'candidate.deleted', c._id);
     res.json({ success: true });
+  }));
+  // Data rights on request. Export: everything held about one person. Anonymise: wipe the person, keep the placement and fee rows.
+  router.get('/candidates/:id/export', adminOnly, wrap(async (req, res, tid) => {
+    const c = await M.Candidate.findOne({ _id: req.params.id, tenantId: tid }).lean();
+    if (!c) return fail(res, 404, 'Candidate not found');
+    const entries = await M.Entry.find({ tenantId: tid, candidateId: c._id }).lean();
+    await audit(tid, req, 'candidate.exported', c._id);
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: DR.candidateExport(c, entries) });
+  }));
+  router.post('/candidates/:id/anonymise', adminOnly, wrap(async (req, res, tid) => {
+    const cur = await M.Candidate.findOne({ _id: req.params.id, tenantId: tid, anonymisedAt: { $exists: false } }).select('consent').lean();
+    if (!cur) return fail(res, 404, 'Candidate not found, or already removed');
+    const c = await M.Candidate.findOneAndUpdate({ _id: req.params.id, tenantId: tid, anonymisedAt: { $exists: false } }, DR.anonymiseUpdate(new Date(), !!(cur.consent && cur.consent.source)), { new: true });
+    if (!c) return fail(res, 404, 'Candidate not found, or already removed');
+    await audit(tid, req, 'candidate.anonymised', c._id);
+    res.json({ success: true, message: 'Personal details removed. The placement and fee records are kept.' });
+  }));
+  // Agency-wide export (owner only). Never contains other agencies' rows: every query carries tenantId.
+  router.get('/export', adminOnly, wrap(async (req, res, tid) => {
+    const q = { tenantId: tid }; const lim = DR.CAP + 1;
+    const [candidates, clients, jobs, entries, fees] = await Promise.all([M.Candidate.find(q).limit(lim).lean(), M.Client.find(q).limit(lim).lean(), M.Job.find(q).limit(lim).lean(), M.Entry.find(q).limit(lim).lean(), M.Fee.find(q).limit(lim).lean()]);
+    await audit(tid, req, 'agency.exported');
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: DR.agencyExport({ tenant: await M.Tenant.findById(tid).lean(), candidates, clients, jobs, entries, fees }) });
+  }));
+  router.get('/audit', adminOnly, wrap(async (req, res, tid) => {
+    const rows = await M.Audit.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(200).lean();
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows.map((r) => ({ id: String(r._id), at: r.createdAt, who: r.who, action: r.action, ref: r.ref || '' })) });
   }));
 
   // ---- clients and jobs ----

@@ -2,7 +2,7 @@
 // Super Admin server (SA-11). FAILS CLOSED: until a real sign-in with two-step verification is plugged into
 // `auth` (task SA-11b), every route answers 503. This file never invents a weak login.
 const express = require('express');
-const { createAdminRouter, collectAll, readConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createHealthRouter, createAuditRouter, makeAuditStore, createAnnouncementsRouter, createPublicAnnouncementsRouter, makeAnnouncementStore, createIdeasRouter, makeIdeaStore, createPushRouter, makePushStore, makeAiBudget, makeSender, collectAccounts } = require('./src');
+const { createAdminRouter, collectAll, readConfig, readAllConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createHealthRouter, createAuditRouter, makeAuditStore, createAnnouncementsRouter, createPublicAnnouncementsRouter, makeAnnouncementStore, createIdeasRouter, makeIdeaStore, createPushRouter, makePushStore, makeAiBudget, makeSender, collectAccounts } = require('./src');
 
 const app = express();
 app.disable('x-powered-by');
@@ -20,7 +20,7 @@ if (auth && typeof auth.protect === 'function' && typeof auth.authorize === 'fun
   // Marketing to-do (needs a database for the admin app's own data; stays closed without MONGODB_URI)
   if (process.env.MONGODB_URI) {
     const mongoose = require('mongoose');
-    const getFacts = async () => combine(await collectAll(readConfig()));
+    const getFacts = async () => combine(await collectAll(readAllConfig()));
     const auditStore = makeAuditStore(mongoose); saveAudit = auditStore.record;
     app.use('/api/admin/audit', createAuditRouter({ express, protect: auth.protect, authorize: auth.authorize, store: auditStore, audit }));
     const annStore = makeAnnouncementStore(mongoose);
@@ -43,7 +43,7 @@ if (auth && typeof auth.protect === 'function' && typeof auth.authorize === 'fun
   app.use('/api/admin/health', createHealthRouter({ express, protect: auth.protect, authorize: auth.authorize, getAccounts: () => collectAccounts(readConfig()), audit: audit }));
   app.use('/api/admin/accounts', createAccountsRouter({ express, protect: auth.protect, authorize: auth.authorize, getAccounts: () => collectAccounts(readConfig()), audit: audit }));
   app.use('/api/admin/sales', createSalesRouter({ express, protect: auth.protect, authorize: auth.authorize, getAccounts: () => collectAccounts(readConfig()), audit: audit }));
-  app.use('/api/admin', createAdminRouter({ express, protect: auth.protect, authorize: auth.authorize, collectAll, readConfig }));
+  app.use('/api/admin', createAdminRouter({ express, protect: auth.protect, authorize: auth.authorize, collectAll, readConfig: readAllConfig }));
 } else {
   app.use('/api', closed);
 }

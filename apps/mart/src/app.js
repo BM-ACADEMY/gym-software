@@ -2,6 +2,7 @@
 // Builds the Mart server. FAILS CLOSED: if a required setting is missing, every /api route answers 503 and nothing else runs.
 // Required settings (server settings file only, never git): MONGODB_URI, MART_SESSION_SECRET (32+ characters).
 const { makeBilling } = require('../../../packages/core-billing/src');
+const { mountBilling, rawBodyCapture } = require('../../../packages/core-billing/src/checkout');
 const createPosRouter = require('../../../packages/core-pos/src/routes');
 const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
@@ -20,7 +21,7 @@ function missingSettings(env) {
 function createApp({ express, mongoose, env = process.env }) {
   const app = express();
   app.disable('x-powered-by');
-  app.use(express.json({ limit: '2mb' }));
+  app.use(express.json({ limit: '2mb', verify: rawBodyCapture }));
   const missing = missingSettings(env);
   app.get('/api/health', (req, res) => res.json({ ok: missing.length === 0 }));
   if (missing.length) { app.use('/api', (req, res) => res.status(503).json({ success: false, message: 'Mart is not set up yet.' })); return app; }
@@ -33,6 +34,7 @@ function createApp({ express, mongoose, env = process.env }) {
   app.use('/api/internal', createInternalRouter({ express, mongoose, billing, key: env.INTERNAL_API_KEY, dailyBudgetInr: Number(env.MART_DAILY_AI_BUDGET_INR) || 300 }));
   const protect = sessionMiddleware(secret, M);
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));
+  mountBilling({ app, express, mongoose, M, protect, authorize, billing, config: { plans: billingPlans(), ...BILLING }, env, product: { key: 'mart', name: 'Mart', invoicePrefix: 'MART' }, nameOf: (t) => t.shopName }); // sign-up to payment to renewal
   const tenantOf = (req) => req.user.tenantId;
   const guardWrite = (req) => billing.guardWrite(req.subscription, req.method);
   const roles = PM.ROLES; // admin, subadmin, cashier, stockkeeper: what each may do is decided by permissions.js (server side)

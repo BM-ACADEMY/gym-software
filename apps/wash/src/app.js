@@ -3,6 +3,7 @@
 // Required settings (server settings file only, never git): MONGODB_URI, WASH_SESSION_SECRET (32+ characters).
 // No AI call is made anywhere in this slice. Written, not yet tested by a person.
 const { makeBilling } = require('../../../packages/core-billing/src');
+const { mountBilling, rawBodyCapture } = require('../../../packages/core-billing/src/checkout');
 const createPosRouter = require('../../../packages/core-pos/src/routes');
 const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
@@ -21,7 +22,7 @@ function missingSettings(env) {
 function createApp({ express, mongoose, env = process.env }) {
   const app = express();
   app.disable('x-powered-by');
-  app.use(express.json({ limit: '1mb' }));
+  app.use(express.json({ limit: '1mb', verify: rawBodyCapture }));
   const missing = missingSettings(env);
   app.get('/api/health', (req, res) => res.json({ ok: missing.length === 0 }));
   if (missing.length) { app.use('/api', (req, res) => res.status(503).json({ success: false, message: 'Wash is not set up yet.' })); return app; }
@@ -36,6 +37,7 @@ function createApp({ express, mongoose, env = process.env }) {
   app.use('/api/internal/wash', createInternalRouter({ express, mongoose, billing, key: env.INTERNAL_API_KEY }));
   const protect = sessionMiddleware(secret, M);
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));
+  mountBilling({ app, express, mongoose, M, protect, authorize, billing, config: { plans: billingPlans(), ...BILLING }, env, product: { key: 'wash', name: 'Wash', invoicePrefix: 'WASH' }, nameOf: (t) => t.businessName }); // sign-up to payment to renewal
   const planOf = (req) => billing.computeStatus(req.subscription).planKey;
   const guardWrite = (req) => billing.guardWrite(req.subscription, req.method);
   app.use('/api/wash', createWashRouter({ express, mongoose, protect, authorize, tenantOf: (req) => req.user.tenantId, planOf, guardWrite }));

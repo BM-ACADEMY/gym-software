@@ -1,0 +1,86 @@
+# Runs every test and every front-end build on each push to phase1-autopilot (and on pull requests).
+# Written 13 Nov, not yet run. It replaces most of what Dev A would do by hand. No secrets are used: the session
+# secrets below are throw-away test values that only exist inside the test run.
+name: ci
+on:
+  push:
+    branches: [phase1-autopilot]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  MONGODB_TEST_URI: mongodb://127.0.0.1:27017/afra_ci_test
+  SALON_SESSION_SECRET: ci-only-salon-secret-0123456789abcdef
+  MART_SESSION_SECRET: ci-only-mart-secret-0123456789abcdef
+  DINE_SESSION_SECRET: ci-only-dine-secret-0123456789abcdef
+  CLOTH_SESSION_SECRET: ci-only-cloth-secret-0123456789abcdef
+  WASH_SESSION_SECRET: ci-only-wash-secret-0123456789abcdef
+  HIRE_SESSION_SECRET: ci-only-hire-secret-0123456789abcdef
+
+jobs:
+  products:
+    name: products (${{ matrix.ws }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ws: [apps/salon, apps/mart, apps/dine, apps/cloth, apps/wash, apps/hire, apps/admin, packages/core-pos, packages/core-billing, packages/core-server, packages/core-autopilot, packages/core-ai-guard, packages/core-whatsapp]
+    services:
+      mongo:
+        image: mongo:7
+        ports: ['27017:27017']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-audit --no-fund
+      - run: npx jest --runInBand --passWithNoTests
+        working-directory: ${{ matrix.ws }}
+
+  core-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-audit --no-fund
+      - run: npx vitest run
+        working-directory: packages/core-ui
+
+  clients:
+    name: client build (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [salon, mart, dine, cloth, wash]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-audit --no-fund
+      - run: npm install --no-audit --no-fund
+        working-directory: apps/${{ matrix.app }}/client
+      - run: npm run build
+        working-directory: apps/${{ matrix.app }}/client
+
+  gym:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports: ['27017:27017']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+        working-directory: server
+      - run: npm test
+        working-directory: server
+      - run: npm ci
+        working-directory: client
+      - run: npm test
+        working-directory: client
+      - run: npm run build
+        working-directory: client

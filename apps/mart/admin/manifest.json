@@ -200,6 +200,16 @@
       ]
     },
     {
+      "key": "shifts",
+      "label": "Staff shifts",
+      "screen": "resource",
+      "resource": "shifts",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
       "key": "advances",
       "label": "Salary advances",
       "screen": "resource",
@@ -218,10 +228,28 @@
       ]
     },
     {
+      "key": "leave",
+      "label": "Paid leave balance",
+      "screen": "resource",
+      "resource": "leave",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
       "key": "team",
       "label": "Team logins",
       "screen": "resource",
       "resource": "team",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "teampass",
+      "label": "Reset a team password",
+      "screen": "resource",
+      "resource": "teampass",
       "roles": [
         "admin"
       ]
@@ -233,6 +261,18 @@
       "settings": "limits",
       "roles": [
         "admin"
+      ]
+    },
+    {
+      "key": "mypassword",
+      "label": "My password",
+      "screen": "resource",
+      "resource": "mypassword",
+      "roles": [
+        "admin",
+        "subadmin",
+        "cashier",
+        "stockkeeper"
       ]
     }
   ],
@@ -1172,7 +1212,7 @@
       "endpoint": "/payroll",
       "readOnly": true,
       "empty": "Add staff first.",
-      "intro": "Draft figures. You pay the staff yourself. A draft means some days are not marked.",
+      "intro": "Draft figures. You pay the staff yourself. A draft means some days are not marked. \"Print all payslips\" saves one page with a slip per sheet: open it and print it from your browser.",
       "columns": [
         {
           "key": "name",
@@ -1202,6 +1242,14 @@
           "key": "draft",
           "label": "Draft",
           "type": "bool"
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Print all payslips (this month)",
+          "path": "/payslip/print",
+          "filename": "payslips.html",
+          "done": "Saved"
         }
       ]
     },
@@ -1243,7 +1291,7 @@
         }
       ],
       "canAdd": true,
-      "intro": "Cashier, stock keeper and manager logins. Add one with a name, email, role and a password of at least 8 characters, and tell the person their password yourself. Switch a login off any time.",
+      "intro": "Cashier, stock keeper and manager logins. Add one with a name, email, role and a password of at least 8 characters (a new password later needs 10), and tell the person their password yourself. Switch a login off any time.",
       "fields": [
         {
           "key": "name",
@@ -1316,6 +1364,10 @@
           "key": "status",
           "label": "Status",
           "type": "pill"
+        },
+        {
+          "key": "qr",
+          "label": "QR picture (open this address while signed in)"
         }
       ],
       "fields": [
@@ -1396,6 +1448,173 @@
           "done": "Sample data removed."
         }
       ]
+    },
+    "leave": {
+      "label": "Paid leave balance",
+      "endpoint": "/leave-balance",
+      "readOnly": true,
+      "empty": "Add staff first.",
+      "intro": "Paid leave used this calendar year, per person. Set the yearly allowance under My settings. Leave marked beyond the allowance is paid as unpaid leave. Draft rule: check it with your CA or labour adviser.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Staff"
+        },
+        {
+          "key": "used",
+          "label": "Used this year",
+          "type": "number"
+        },
+        {
+          "key": "remaining",
+          "label": "Left",
+          "type": "number"
+        }
+      ]
+    },
+    "shifts": {
+      "label": "Staff shifts",
+      "endpoint": "/shifts",
+      "empty": "No shifts this month.",
+      "intro": "Plan who works when. Type the staff name exactly as in your staff list and the times as 24 hour HH:MM (09:00 to 18:00). A shift stays on one day: for a night shift add two shifts. Two shifts for one person cannot overlap.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "staff",
+          "label": "Staff"
+        },
+        {
+          "key": "start",
+          "label": "From"
+        },
+        {
+          "key": "end",
+          "label": "To"
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        }
+      ],
+      "fields": [
+        {
+          "key": "staff",
+          "label": "Staff name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "day",
+          "label": "Day (empty means today)",
+          "type": "date"
+        },
+        {
+          "key": "start",
+          "label": "From (HH:MM)",
+          "type": "text",
+          "required": true,
+          "max": 5
+        },
+        {
+          "key": "end",
+          "label": "To (HH:MM)",
+          "type": "text",
+          "required": true,
+          "max": 5
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "max": 80
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "DELETE",
+          "path": "/shifts/:id",
+          "confirm": "Tap again to remove"
+        }
+      ]
+    },
+    "teampass": {
+      "label": "Reset a team password",
+      "endpoint": "/team/password",
+      "empty": "No password changed yet.",
+      "intro": "Forgot a password? Type the person's email and a new password of at least 10 characters, then tell them yourself. Their old sign-in stops working at once. This list shows who changed what and when, never a password.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "login",
+          "label": "Login"
+        },
+        {
+          "key": "action",
+          "label": "Changed by"
+        }
+      ],
+      "fields": [
+        {
+          "key": "email",
+          "label": "Email of the team login",
+          "type": "email",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "New password (10 or more characters)",
+          "type": "password",
+          "min": 10,
+          "max": 100,
+          "required": true
+        }
+      ]
+    },
+    "mypassword": {
+      "label": "My password",
+      "endpoint": "/my-password",
+      "empty": "You have not changed it yet.",
+      "intro": "Type your current password and a new one of at least 10 characters. You will be signed out and must sign in again with the new password.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "Changed",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "current",
+          "label": "Current password",
+          "type": "password",
+          "min": 1,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "New password (10 or more characters)",
+          "type": "password",
+          "min": 10,
+          "max": 100,
+          "required": true
+        }
+      ]
     }
   },
   "settings": {
@@ -1436,6 +1655,12 @@
           "min": 1,
           "max": 5,
           "default": 1
+        },
+        {
+          "key": "paidLeaveAllowance",
+          "label": "Paid leave days per year (empty for no limit)",
+          "min": 0,
+          "max": 60
         }
       ],
       "fields": [

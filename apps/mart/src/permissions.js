@@ -21,7 +21,7 @@ const RULES = [
   ['*', /^\/(suppliers|purchases)(\/|$)/, 'purchases'],
   ['*', /^\/(reports|summary|marketing)(\/|$)/, 'reports'],
   ['*', /^\/audit$/, 'audit'], ['*', /^\/privacy(\/|$)/, 'privacy'], ['*', /^\/team(\/|$)/, 'team'],
-  ['POST', /^\/my-password$/, 'self'], // every signed-in person may change their own password
+  ['*', /^\/my-password$/, 'self'], // every signed-in person may change their own password
   ['*', /^\/(attendance|shifts)(\/|$)/, 'attendance'], ['*', /^\/(staff|advances|payroll|leave-balance|payslip)(\/|$)/, 'payroll'],
   ['*', /^\/upi-links(\/|$)/, 'bill'],
 ];

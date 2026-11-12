@@ -1,6 +1,6 @@
 const { model, mkRouter, call } = require('./fake');
 const { createMartRouter } = require('../src/routes');
-const PM = require('../src/permissions'); const PR = require('../src/payroll'); const SH = require('../src/shifts'); const S = require('../src/session'); const { payslipHtml } = require('../src/payslipPage');
+const PM = require('../src/permissions'); const PR = require('../src/payroll'); const SH = require('../src/shifts'); const S = require('../src/session'); const { payslipHtml, payslipsHtml } = require('../src/payslipPage');
 const { sessionMiddleware } = require('../src/authRoutes');
 const mk = () => {
   const { r, router } = mkRouter();
@@ -16,7 +16,7 @@ const run = (role, method, path) => { let out = 'next'; PM.gate(PM.permFor)({ us
 describe('permissions for the new routes', () => {
   test('every role may change its own password; team password, leave, slips are owner only; managers may enter shifts', () => {
     for (const role of ['admin', 'subadmin', 'cashier', 'stockkeeper']) expect(run(role, 'POST', '/my-password')).toBe('next');
-    expect(run('hacker', 'POST', '/my-password')).toBe(403); expect(run('cashier', 'GET', '/my-password')).toBe(403);
+    expect(run('hacker', 'POST', '/my-password')).toBe(403); expect(run('cashier', 'GET', '/my-password')).toBe('next');
     for (const p of ['/team/password', '/leave-balance', '/payslip/print']) { expect(run('subadmin', 'GET', p)).toBe(403); expect(run('cashier', 'POST', p)).toBe(403); }
     expect(run('subadmin', 'POST', '/shifts')).toBe('next'); expect(run('cashier', 'POST', '/shifts')).toBe(403); expect(run('cashier', 'GET', '/upi-links/abc/qr.svg')).toBe('next'); expect(run('stockkeeper', 'GET', '/upi-links/abc/qr.svg')).toBe(403);
   });
@@ -46,6 +46,7 @@ describe('my password (self change)', () => {
     expect((await post(mine, { current: 'oldpassword1', password: 'short' })).c).toBe(400);
     expect((await post(mine, { current: 'oldpassword1', password: 'oldpassword1' })).c).toBe(400);
     const ok = await post(mine, { current: 'oldpassword1', password: 'newpassword1' }); expect(ok.c).toBe(200); expect(ok.b.signedOut).toBe(true); expect(ok.h['Set-Cookie']).toMatch(/Max-Age=0/);
+    const hist = await call(r['GET /my-password'], { ...mine }); expect(hist.b.data.length).toBe(1); expect(JSON.stringify(hist.b).includes('h:')).toBe(false); expect((await call(r['GET /my-password'], { user: { id: 'x', tenantId: 'a', role: 'cashier' } })).b.data.length).toBe(0); expect((await call(r['GET /my-password'], { user: { id: String(me._id), tenantId: 'b', role: 'admin' } })).b.data.length).toBe(0);
     expect(M.User.rows[0].passwordHash).toBe('h:newpassword1'); expect(M.User.rows[0].passwordChangedAt instanceof Date).toBe(true);
     for (let i = 0; i < 5; i++) await post(mine, { current: 'wrong', password: 'newpassword2' });
     expect((await post(mine, { current: 'newpassword1', password: 'newpassword3' })).c).toBe(429);
@@ -66,6 +67,7 @@ describe('UPI QR image', () => {
   test('own link gives an svg, another shop gets 404, an over-long link is refused', async () => {
     const { r, M } = mk(); const l = await M.UpiLink.create({ tenantId: 'a', amount: 250, link: 'upi://pay?pa=shop@upi&pn=Shop&am=250&cu=INR', status: 'created' });
     const ok = await call(r['GET /upi-links/:id/qr.svg'], { ...CASH, params: { id: String(l._id) } }); expect(ok.c).toBe(200); expect(ok.h['Content-Type']).toMatch(/image\/svg\+xml/); expect(ok.text.startsWith('<svg')).toBe(true); expect(ok.h['Cache-Control']).toBe('no-store');
+    const lst = await call(r['GET /upi-links'], { ...A }); expect(lst.b.data[0].qr).toBe('/api/mart/upi-links/' + String(l._id) + '/qr.svg'); expect((await call(r['GET /upi-links'], { ...B })).b.data.length).toBe(0);
     expect((await call(r['GET /upi-links/:id/qr.svg'], { ...B, params: { id: String(l._id) } })).c).toBe(404);
     expect((await call(r['GET /upi-links/:id/qr.svg'], { ...A, params: { id: 'zzz' } })).c).toBe(404);
     const big = await M.UpiLink.create({ tenantId: 'a', amount: 1, link: 'x'.repeat(5000), status: 'created' }); expect((await call(r['GET /upi-links/:id/qr.svg'], { ...A, params: { id: String(big._id) } })).c).toBe(400);
@@ -119,6 +121,11 @@ describe('payslip print page', () => {
     expect(ok.text.includes('<script>alert(1)</script>')).toBe(false); expect(ok.text.includes('&lt;script&gt;')).toBe(true); expect(ok.text.includes('Raja &lt;b&gt;Mart')).toBe(true); expect(/<script/i.test(ok.text)).toBe(false);
     expect((await get(B, { staffId: String(s._id), month: '2026-11' })).c).toBe(404); expect((await get(SUB, { staffId: String(s._id) })).c).toBe(403);
     expect((await get(A, { staffId: 'nope' })).c).toBe(400); expect((await get(A, { staffId: String(s._id), month: '2026-13' })).c).toBe(400);
+  });
+  test('without staffId everyone in this shop gets one slip each, never another shop', async () => {
+    const { r, M } = mk(); await M.Staff.create({ tenantId: 'a', name: 'One', monthlySalary: 3000 }); await M.Staff.create({ tenantId: 'a', name: 'Two', monthlySalary: 3000 }); await M.Staff.create({ tenantId: 'b', name: 'Other', monthlySalary: 3000 });
+    const all = await call(r['GET /payslip/print'], { ...A, query: { month: '2026-11' } }); expect(all.c).toBe(200); expect((all.text.match(/<section>/g) || []).length).toBe(2); expect(all.text.includes('Other')).toBe(false);
+    expect((await call(r['GET /payslip/print'], { user: { id: 'u9', tenantId: 'zzz', role: 'admin' }, query: {} })).c).toBe(404);
   });
   test('html builder shows the draft warning and the leave line', () => {
     const p = PR.payslip({ name: 'A', monthlySalary: 3000, month: '2026-11', marks: [{ day: '2026-11-01', status: 'paid_leave' }], leave: { allowance: 0, usedBefore: 0 } });

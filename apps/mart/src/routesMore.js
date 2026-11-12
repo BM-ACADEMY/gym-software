@@ -1,7 +1,7 @@
 'use strict';
 // MRT-12 routes, mounted by createMartRouter: change password, UPI QR image, paid leave balance, shifts, printable payslip.
 // Same rules as routes.js: every query filters by tenantId; owner-only routes check ownerOnly; role access is in permissions.js.
-const PR = require('./payroll'); const SH = require('./shifts'); const QR = require('./qr'); const { payslipHtml } = require('./payslipPage'); const S = require('./session');
+const PR = require('./payroll'); const SH = require('./shifts'); const QR = require('./qr'); const { payslipsHtml } = require('./payslipPage'); const S = require('./session');
 const { MIN_PASSWORD, MAX_FAILS, LOCK_MS } = require('./signup');
 
 function mountMore({ router, M, wrap, fail, audit, ownerOnly, toOid, today, now, monthOf, settingsOf, staffByName, hashFn, verifyFn, valid, addDays }) {
@@ -24,6 +24,11 @@ function mountMore({ router, M, wrap, fail, audit, ownerOnly, toOid, today, now,
     const rows = await M.Audit.find({ tenantId: tid, action: { $in: ['team_password', 'self_password'] } }).sort({ createdAt: -1 }).limit(100).lean();
     const users = await M.User.find({ tenantId: tid }).limit(200).lean(); const nm = Object.fromEntries(users.map((x) => [String(x._id), x.name || x.email]));
     res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows.map((r) => ({ id: String(r._id), at: r.createdAt, action: r.action === 'team_password' ? 'Owner changed' : 'Changed own', login: r.action === 'team_password' ? nm[r.ref] || '' : nm[r.by] || '' })) });
+  }));
+  // The person's own password-change history (the panel's list screen); never a hash.
+  router.get('/my-password', wrap(async (req, res, tid) => {
+    const rows = await M.Audit.find({ tenantId: tid, action: 'self_password', by: String(req.user.id) }).sort({ createdAt: -1 }).limit(20).lean();
+    res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows.map((x) => ({ id: String(x._id), at: x.createdAt })) });
   }));
   // Anyone signed in changes their own password. Needs the current one; five wrong tries lock it for 15 minutes.
   router.post('/my-password', wrap(async (req, res, tid) => {
@@ -65,13 +70,13 @@ function mountMore({ router, M, wrap, fail, audit, ownerOnly, toOid, today, now,
     const used = {}; for (const r of rows) used[String(r.staffId)] = (used[String(r.staffId)] || 0) + 1;
     res.set('Cache-Control', 'no-store'); res.json({ success: true, year: month.slice(0, 4), allowance, data: staff.map((x) => ({ id: String(x._id), name: x.name, used: used[String(x._id)] || 0, remaining: allowance === null ? null : Math.max(0, allowance - (used[String(x._id)] || 0)) })), note: allowance === null ? 'No yearly limit is set. Set one in Settings to count paid leave.' : 'Paid leave marked beyond the allowance is paid as unpaid leave.' });
   }));
-  // Printable one-page payslip (owner only). Opens as a page; print it from the browser.
+  // Printable payslips (owner only): one staff member with ?staffId=, or everyone (one per page) without it. Opens as a page; print it from the browser.
   router.get('/payslip/print', wrap(async (req, res, tid) => {
-    if (!ownerOnly(req, res)) return; const id = toOid(String(req.query.staffId || '')); if (!id) return fail(res, 400, 'Choose a staff member.');
+    if (!ownerOnly(req, res)) return; const raw = req.query.staffId; const id = raw === undefined || raw === '' ? null : toOid(String(raw)); if (raw !== undefined && raw !== '' && !id) return fail(res, 400, 'Choose a staff member.');
     if (req.query.month !== undefined && !PR.validMonth(req.query.month)) return fail(res, 400, 'Month must look like 2026-11.');
-    const month = monthOf(req.query.month); const rows = await slipsFor(tid, month, id); if (!rows.length) return fail(res, 404, 'Not found');
-    const t = await M.Tenant.findOne({ _id: tid }).lean(); await audit(tid, req, 'payslip_print', id);
-    res.set('Content-Type', 'text/html; charset=utf-8'); res.set('Cache-Control', 'no-store'); res.set('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'"); res.set('X-Content-Type-Options', 'nosniff'); res.send(payslipHtml(rows[0].slip, t && t.shopName));
+    const month = monthOf(req.query.month); const rows = await slipsFor(tid, month, id || undefined); if (!rows.length) return fail(res, 404, 'Not found');
+    const t = await M.Tenant.findOne({ _id: tid }).lean(); await audit(tid, req, 'payslip_print', id || 'all');
+    res.set('Content-Type', 'text/html; charset=utf-8'); res.set('Cache-Control', 'no-store'); res.set('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'"); res.set('X-Content-Type-Options', 'nosniff'); res.send(payslipsHtml(rows.map((r2) => r2.slip), t && t.shopName, `Payslips ${month}`));
   }));
 
   // ---- shifts ----

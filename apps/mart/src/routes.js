@@ -372,7 +372,7 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
   }));
 
   // ---- UPI payment links (we build the link; we cannot see or confirm the money) ----
-  router.get('/upi-links', wrap(async (req, res, tid) => { res.set('Cache-Control', 'no-store'); res.json({ success: true, data: (await M.UpiLink.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(100).lean()).map((l) => ({ id: String(l._id), at: l.createdAt, amount: l.amount, note: l.note, link: l.link, status: l.status })) }); }));
+  router.get('/upi-links', wrap(async (req, res, tid) => { res.set('Cache-Control', 'no-store'); res.json({ success: true, data: (await M.UpiLink.find({ tenantId: tid }).sort({ createdAt: -1 }).limit(100).lean()).map((l) => ({ id: String(l._id), at: l.createdAt, amount: l.amount, note: l.note, link: l.link, qr: `/api/mart/upi-links/${l._id}/qr.svg`, status: l.status })) }); }));
   router.post('/upi-links', wrap(async (req, res, tid) => {
     const b = req.body || {}; const st = await M.Settings.findOne({ tenantId: tid }).lean(); const r = UPI.buildLink({ vpa: st && st.upiId, payeeName: st && st.upiName, amount: b.amount, note: b.note });
     if (r.error) return fail(res, 400, r.error);

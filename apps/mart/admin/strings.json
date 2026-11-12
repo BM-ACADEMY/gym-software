@@ -27,7 +27,11 @@
     "team": "Team logins",
     "limits": "My settings",
     "start": "Start here",
-    "setup": "Set-up checklist"
+    "setup": "Set-up checklist",
+    "leave": "Paid leave balance",
+    "shifts": "Staff shifts",
+    "teampass": "Reset a team password",
+    "mypassword": "My password"
   },
   "ta": {
     "today": "இன்று",
@@ -53,7 +57,11 @@
     "team": "குழு உள்நுழைவுகள்",
     "limits": "என் அமைப்புகள்",
     "start": "இங்கே தொடங்குங்கள்",
-    "setup": "அமைப்புப் பட்டியல்"
+    "setup": "அமைப்புப் பட்டியல்",
+    "leave": "சம்பளத்துடன் விடுப்பு நிலுவை",
+    "shifts": "ஊழியர் ஷிஃப்ட்",
+    "teampass": "குழு கடவுச்சொல் மாற்று",
+    "mypassword": "என் கடவுச்சொல்"
   },
   "hi": {
     "today": "आज",
@@ -79,6 +87,10 @@
     "team": "टीम के लॉगिन",
     "limits": "मेरी सेटिंग",
     "start": "यहाँ से शुरू करें",
-    "setup": "सेट-अप सूची"
+    "setup": "सेट-अप सूची",
+    "leave": "वेतन सहित छुट्टी शेष",
+    "shifts": "स्टाफ शिफ्ट",
+    "teampass": "टीम का पासवर्ड बदलें",
+    "mypassword": "मेरा पासवर्ड"
   }
 }

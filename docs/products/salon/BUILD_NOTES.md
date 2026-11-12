@@ -38,3 +38,13 @@ Dev A steps: run `tests/routes.db.test.js` and the new routes on a real database
 
 ## Open owner decisions
 Product name; price ladder (draft 149/299/499 is an Assumption, floor-price check SAL-P1 not done); CA wording for SAC and invoices; Meta templates; whether staff may give discounts (today staff can, with a reason, audited).
+
+## Final list (13 Nov, written, not yet tested by a human; plain-node checks pass)
+- **QR picture:** `apps/salon/src/qrSvg.js` (no packages; byte mode, level M, versions 1 to 10, up to about 210 characters). Checked here by drawing the code and decoding it with an image reader for versions 1 to 10; **not yet scanned by a phone**. Route `GET /api/salon/settings/booking-qr.svg` (owner only, needs `SALON_PUBLIC_URL`).
+- **Print bill:** `GET /api/salon/bills/:id/print?size=A5|A4` (shared core-pos page, escaped, no script). Owner any bill; staff only today's bill with the phone masked; voided bills refused.
+- **Reminders:** `GET /api/salon/reminders/suggestions` lists tomorrow's booked visits with a drafted message each, only for customers who agreed to be contacted. Suggest only: nothing is sent; marked "needs approved template". The owner gets a tap-to-open WhatsApp link (she sends it herself); staff see a masked phone and no link.
+- **Customer reschedule:** `POST /api/salon-book/:token/appointments/:id/reschedule` (body: phone, date, start). Same slot rules as a new public booking; booked or waiting visits only.
+- **Date ranges:** reports and accounts routes accept `?days=N` (1 to 366, ending today). Owner panel screens added for Sales 7/30/90, Profit 30/90, GST 30 and Reminders.
+- **Tests:** `tests/final1.test.js` (7 tests: QR, reminders pure and route, print, QR route, reschedule, days range), each with a cross-business check.
+Dev A: run `tests/final1.test.js` with the rest on CI; open the QR picture and scan it with two phones; print one bill to paper or PDF on A5.
+Still not built: sending reminders (templates), payment links, plan self-checkout, Tamil and Hindi review (M-06), a QR button in the owner panel.

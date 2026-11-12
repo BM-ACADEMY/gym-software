@@ -2,14 +2,20 @@ import { useEffect, useState } from 'react';
 import { COLOR, S, msgOf, usePoll } from './ui.js';
 
 const OPEN = ['open', 'sent', 'served', 'billed'];
-const loadTables = () => { try { return JSON.parse(window.localStorage.getItem('dine:tables') || '[]'); } catch (e) { return []; } };
-const saveTables = (l) => { try { window.localStorage.setItem('dine:tables', JSON.stringify(l)); } catch (e) { /* optional */ } };
+// The table list now lives on the server (GET and PUT /settings/tables), so every phone and tablet shows the same tables.
+// An older list kept in this browser is used once: shown, and saved to the server if this login may change settings.
+const oldLocal = () => { try { const v = JSON.parse(window.localStorage.getItem('dine:tables') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
 
 // Table view: each table is a big coloured button. Colour = state of its order. Tap to open the order, or to start one on a free table.
 export default function Tables({ api, t, pub, onOpenOrder }) {
   const { data, error, loading, reload } = usePoll(async () => (await api.get('/orders')).data, 10000, []);
-  const [tables, setTables] = useState(loadTables); const [name, setName] = useState(''); const [type, setType] = useState('dine_in'); const [msg, setMsg] = useState('');
-  useEffect(() => saveTables(tables), [tables]);
+  const [tables, setTables] = useState([]); const [name, setName] = useState(''); const [type, setType] = useState('dine_in'); const [msg, setMsg] = useState('');
+  const saveList = async (list) => { setMsg(''); try { const r = await api.put('/settings/tables', { tables: list }); setTables(r.data.tables); return true; } catch (e) { setMsg(msgOf(e, t)); return false; } };
+  useEffect(() => {
+    let live = true;
+    api.get('/settings/tables').then((r) => { if (!live) return; const server = (r.data && r.data.tables) || []; if (server.length) { setTables(server); return; } const local = oldLocal(); if (local.length) { setTables(local); saveList(local); } }).catch((e) => { if (live) setMsg(msgOf(e, t)); });
+    return () => { live = false; };
+  }, [api]); // eslint-disable-line react-hooks/exhaustive-deps
   const orders = (data || []).filter((o) => OPEN.includes(o.status));
   const byTable = {}; orders.forEach((o) => { if (o.table) byTable[o.table] = o; });
   const others = orders.filter((o) => !o.table || !tables.includes(o.table));
@@ -17,7 +23,8 @@ export default function Tables({ api, t, pub, onOpenOrder }) {
     setMsg('');
     try { const r = await api.post('/orders', { type: kind, ...(table ? { table } : {}) }); onOpenOrder(r.data.id); } catch (e) { setMsg(msgOf(e, t)); }
   };
-  const addTable = () => { const n = name.trim().slice(0, 20); if (!n || tables.includes(n)) return; setTables([...tables, n]); setName(''); };
+  const addTable = async () => { const n = name.trim().slice(0, 20); if (!n || tables.some((x) => x.toLowerCase() === n.toLowerCase())) return; if (await saveList([...tables, n])) setName(''); };
+  const removeTable = (n) => saveList(tables.filter((x) => x !== n));
   const label = (o) => (o.type === 'dine_in' ? t('t_dine_in') : o.type === 'takeaway' ? t('t_takeaway') : t('t_bar')) + (o.table ? ' ' + o.table : '') + ' · ' + o.number;
   return (
     <div style={S.page}>
@@ -35,6 +42,7 @@ export default function Tables({ api, t, pub, onOpenOrder }) {
       <div style={S.card}>
         <label>{t('table_name')}<input style={S.input} value={name} onChange={(e) => setName(e.target.value)} maxLength={20} /></label>
         <button type="button" style={S.big} onClick={addTable}>{t('add_table')}</button>
+        <div style={S.row}>{tables.map((tb) => <button key={tb} type="button" style={{ ...S.big, minHeight: 36, padding: '4px 10px' }} aria-label={t('remove_table') + ' ' + tb} onClick={() => removeTable(tb)}>{tb} ✕</button>)}</div>
       </div>
       <div style={S.card}>
         <strong>{t('new_order')}</strong>

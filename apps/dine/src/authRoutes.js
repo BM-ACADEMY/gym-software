@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const makeModels = require('./models');
 const { signUp, signIn } = require('./signup');
 const S = require('./session');
+const { roleOf } = require('./staff');
 const { runWithTenant, runUnscoped } = require('../../../packages/core-server/src');
 
 const hashPassword = async (pw) => { const salt = crypto.randomBytes(16); const h = crypto.scryptSync(pw, salt, 64, { N: 16384, r: 8, p: 1 }); return `scrypt$16384$${salt.toString('base64')}$${h.toString('base64')}`; };
@@ -44,7 +45,11 @@ function createAuthRouter({ express, mongoose, billing, secret, termsVersion }) 
   router.get('/me', handle(async (req, res) => {
     const p = S.verify(S.readCookie(req.headers.cookie), secret); if (!p) return fail(res, 401, 'Please sign in.');
     const t = await M.Tenant.findById(p.tid); if (!t) return fail(res, 401, 'Please sign in.');
-    res.json({ success: true, venueName: t.venueName, role: p.role, subscription: billing.computeStatus(t) });
+    // The Dine role (owner, manager, cashier, captain, kitchen, bartender) and what it may do, so the screens can hide tabs the server would refuse.
+    const u = await runWithTenant(String(p.tid), () => M.User.findOne({ _id: p.uid, tenantId: p.tid, isActive: { $ne: false } }).lean());
+    if (!u) return fail(res, 401, 'Please sign in.');
+    const { staffRole, allowed } = roleOf(u);
+    res.json({ success: true, venueName: t.venueName, role: p.role, staffRole, allowed, subscription: billing.computeStatus(t) });
   }));
   return router;
 }

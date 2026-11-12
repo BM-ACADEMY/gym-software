@@ -39,6 +39,30 @@
       "resource": "dues"
     },
     {
+      "key": "credit",
+      "label": "Pay later",
+      "screen": "resource",
+      "resource": "credit"
+    },
+    {
+      "key": "returns",
+      "label": "Returns",
+      "screen": "resource",
+      "resource": "returns"
+    },
+    {
+      "key": "payslips",
+      "label": "Payslips",
+      "screen": "resource",
+      "resource": "payslips"
+    },
+    {
+      "key": "payslipsPrev",
+      "label": "Payslips last month",
+      "screen": "resource",
+      "resource": "payslipsPrev"
+    },
+    {
       "key": "winback",
       "label": "Bring back",
       "screen": "resource",
@@ -55,6 +79,12 @@
       "label": "Discounts",
       "screen": "settings",
       "settings": "discount"
+    },
+    {
+      "key": "loyalty",
+      "label": "Loyalty points",
+      "screen": "settings",
+      "settings": "loyalty"
     }
   ],
   "resources": {
@@ -305,6 +335,156 @@
           "done": "Sample data removed."
         }
       ]
+    },
+    "credit": {
+      "label": "Pay later: who owes you",
+      "endpoint": "/credit/dues",
+      "readOnly": true,
+      "empty": "Nobody owes you anything.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Guest"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "owing",
+          "label": "Owes (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "oldest",
+          "label": "Since",
+          "type": "date"
+        },
+        {
+          "key": "days",
+          "label": "Days",
+          "type": "number"
+        }
+      ]
+    },
+    "returns": {
+      "label": "Returns and refunds",
+      "endpoint": "/returns",
+      "readOnly": true,
+      "empty": "No returns yet.",
+      "columns": [
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "key": "number",
+          "label": "Order"
+        },
+        {
+          "key": "refund",
+          "label": "Refund (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "serviceChargeRefund",
+          "label": "Service charge back (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "reason",
+          "label": "Reason"
+        },
+        {
+          "key": "restocked",
+          "label": "Put back in stock",
+          "type": "bool"
+        }
+      ]
+    },
+    "payslips": {
+      "label": "Payslips: this month",
+      "endpoint": "/payslips",
+      "readOnly": true,
+      "empty": "Set each person's pay first.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Staff"
+        },
+        {
+          "key": "month",
+          "label": "Month"
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number"
+        },
+        {
+          "key": "gross",
+          "label": "Gross (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "advances",
+          "label": "Advances (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "net",
+          "label": "To pay (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "problems",
+          "label": "Punch problems",
+          "type": "number"
+        }
+      ]
+    },
+    "payslipsPrev": {
+      "label": "Payslips: last month",
+      "endpoint": "/payslips?month=prev",
+      "readOnly": true,
+      "empty": "Set each person's pay first.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Staff"
+        },
+        {
+          "key": "month",
+          "label": "Month"
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number"
+        },
+        {
+          "key": "gross",
+          "label": "Gross (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "advances",
+          "label": "Advances (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "net",
+          "label": "To pay (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "problems",
+          "label": "Punch problems",
+          "type": "number"
+        }
+      ]
     }
   },
   "settings": {
@@ -343,6 +523,55 @@
           "showWhen": {
             "key": "discountRule.staff",
             "equals": "limit"
+          }
+        }
+      ]
+    },
+    "loyalty": {
+      "label": "Loyalty points",
+      "endpoint": "/settings/loyalty",
+      "intro": "Off until you switch it on. Guests earn points on what they actually pay; you decide the value.",
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "Give loyalty points",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "earnPer100",
+          "label": "Points earned for every Rs 100 paid",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 5,
+          "showWhen": {
+            "key": "enabled",
+            "equals": true
+          }
+        },
+        {
+          "key": "pointValueRupees",
+          "label": "One point is worth (Rs)",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "default": 1,
+          "showWhen": {
+            "key": "enabled",
+            "equals": true
+          }
+        },
+        {
+          "key": "minRedeem",
+          "label": "Smallest number of points a guest can use",
+          "type": "number",
+          "min": 1,
+          "max": 10000,
+          "default": 50,
+          "showWhen": {
+            "key": "enabled",
+            "equals": true
           }
         }
       ]

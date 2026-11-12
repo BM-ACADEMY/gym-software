@@ -20,6 +20,9 @@ function overlaps(existing, s) {
   const a = mins(s.from); const b = a + ((mins(s.to) - a + 1440) % 1440);
   return (existing || []).some((e) => { const c = mins(e.from); const d = c + ((mins(e.to) - c + 1440) % 1440); return a < d && c < b; });
 }
+// The same check across dates: a shift of 22:00 to 02:00 on the 12th also uses the first two hours of the 13th. existing: [{ date, from, to }].
+const absSpan = (x) => { const a = Math.round(Date.parse(x.date + 'T00:00:00Z') / 60000) + mins(x.from); return [a, a + ((mins(x.to) - mins(x.from) + 1440) % 1440)]; };
+function overlapsAcrossDays(existing, s) { const [a, b] = absSpan(s); return (existing || []).some((e) => { const [c, d] = absSpan({ ...e, date: e.date || s.date }); return a < d && c < b; }); }
 function checkLeave({ from, to, reason }) {
   if (!DATE.test(from || '') || !DATE.test(to || '')) bad('Give the first and last day of leave.');
   if (to < from) bad('The last day cannot be before the first day.');
@@ -43,4 +46,4 @@ function payslip({ month, pay, hours, leave, advances = 0, otherDeductions = 0 }
   return { month, currency: 'INR', basis: rate ? 'hourly' : 'monthly', hours: Number(hours) || 0, ratePerHour: rate, monthly, unpaidLeaveDays: unpaid, paidLeaveDays: (leave && leave.paid) || 0, gross, advances: int(advances), otherDeductions: int(otherDeductions), net, carryForward: carry,
     note: 'PF, ESI and income tax are not worked out here. Your CA handles those.' };
 }
-module.exports = { checkShift, overlaps, checkLeave, leaveInMonth, payslip, monthDays };
+module.exports = { checkShift, overlaps, overlapsAcrossDays, checkLeave, leaveInMonth, payslip, monthDays };

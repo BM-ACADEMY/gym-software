@@ -55,12 +55,19 @@ The Dine client now has tabs next to the owner panel: **Tables, Kitchen, Bill, P
 
 Words are in `screens/strings.js` (English complete, Tamil draft, needs a native speaker, M-06). There is no pricing or claims text.
 
-### What is not there yet
-- **Table list:** the server has no tables route. Table names are typed by the owner and kept in that browser (`localStorage`), so each phone or tablet has its own list. Orders on other table names still show under the grid.
-- **Role-based tab hiding:** the sign-in answer gives only `admin` or `subadmin`, not the Dine role (owner, manager, cashier, captain, kitchen, bartender). So every tab shows and the server answers "Not allowed for your role" where it should. A small server change (send `staffRole` in `GET /auth/me`) would let the screens hide tabs.
+### What changed in the final list (13 Nov, written, not yet tested by a person)
+- **Table list is on the server now:** `GET` and `PUT /api/dine/settings/tables` (owner or manager saves; anyone who takes orders reads). Every phone shows the same tables. A list left in a browser by the older version is used once and saved to the server if this login may.
+- **Tabs follow the role:** `GET /api/dine/auth/me` now also answers `staffRole` and `allowed` (the role's action list). The tab bar hides tabs the role cannot use (kitchen sees only Kitchen, captain sees Tables only). If `allowed` is missing the page shows every tab and the server refuses, as before.
+- **Import tab** (owner or manager): ingredients, recipes, guests from a CSV file or pasted rows. "Check first" saves nothing; "Save" re-reads the same text on the server.
+- **Owner panel screens added:** Pay later (who owes), Returns and refunds, Payslips (this month and last month), Loyalty points settings.
+- **Returns:** the service charge is now refunded in proportion to what is returned (part returns add up to the whole). Food is put back in stock only if the returning person asks (`restock: true`); cooked food usually cannot be reused. There is no tick box for restock on the Returns tab yet.
+- **Shifts:** an overnight shift (for example 22:00 to 02:00) now blocks the early hours of the next day and the evening before.
+
+### Still not there
+- Table moves and merges, guest names on orders, item notes, kitchen sound alert, a menu editing screen (the owner panel covers menu), a restock tick box on the Returns tab.
+- Loyalty settings screen leaves the "largest share of a bill that points can pay" at its default (the shared screen has no decimal field).
 - **Print pages** open in a new tab and rely on the sign-in cookie (they are GET pages).
-- **Not built:** table moves and merges, guest names on orders, item notes (the route takes none), kitchen sound alert, menu editing screen (owner panel covers menu), liquor items hidden when pub mode is off (server refuses them).
-- **Not run:** syntax-checked with esbuild only (all files compile, `main.jsx` bundles with react external). Nobody has run it in a browser.
+- **Not run:** syntax-checked with esbuild only. Nobody has run it in a browser.
 
 ### Dev A steps for these screens
 1. `cd apps/dine/client && npm install && npm run build`, then `npm run dev` against a running Dine server.

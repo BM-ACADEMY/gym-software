@@ -58,12 +58,17 @@ Files in `apps/salon/client/src`: `Screens.jsx` (the four screens), `strings.js`
 
 **Checked here:** esbuild syntax check on every file, and a server-side render of all four tabs for salon and clinic in English and Tamil. Nothing was run in a browser or against the server.
 
-**Not built (gaps):**
-- No customer picker on the bill, so a bill is not linked to a customer yet (the route accepts `customerId`).
-- No product lines (retail items) on the bill and no card or wallet detail.
-- No "create customer" form (customers are created by booking).
-- Day view is a list per day with a staff filter, not a time grid.
-- No printing or WhatsApp copy of the bill.
+**Added in the final list (13 Nov, written, not yet tested by a person):**
+- Day: a **Time grid** view next to the list (one column per person, one row per half hour; tap an empty box to start a booking for that person).
+- Bill: a **customer picker** (search by name or number) and a **New customer** form (name, 10-digit mobile, consent tick); the bill is saved with `customerId`. **Retail product lines** (`GET /products`, sent as `productId` + `qty`; price and GST come from the server). After saving: **Print bill** (A5 or A4, opens the server's printable page in a new tab via `GET /bills/:id/print`) and **Copy bill message** (copies plain text to paste into WhatsApp yourself; nothing is sent).
+- Owner panel: Reminders for tomorrow, Sales 7/30/90 days, Profit 30/90 days, GST 30 days.
+- Customer booking page: after booking, **Change time** and **Cancel booking** (the customer's own phone is the key).
+
+**Still not built (gaps):**
+- No card or wallet detail on payments.
+- Reminders are suggest only: no message is sent from the app (needs approved WhatsApp templates).
+- A retail line cannot carry a per-line discount on the bill screen.
 - Appointments with `pending` status can be accepted only by the owner (server rule).
+- The QR picture is a link (`/api/salon/settings/booking-qr.svg`, owner signed in); there is no button for it in the owner panel yet.
 
 **Dev A steps:** (1) `cd apps/salon/client && npm install && npm run build`. (2) Start the Salon server and `npm run dev`. (3) Sign up as a clinic once and a salon once and check the wording. (4) As owner: book a visit, move it, mark Done, make a bill with a 50% discount, then sign in as a staff login and try the same discount: it must be refused with the limit message. (5) As staff: Customers must show masked numbers. (6) Tap Save twice quickly on a bill: only one bill should exist.

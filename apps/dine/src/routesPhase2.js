@@ -63,7 +63,8 @@ function addPhase2Routes(ctx) {
     await log(tid, req, 'credit.payment', 'Rs ' + amount); res.json({ success: true, data: { applied: parts.length, amount } });
   });
   // Return some lines of a PAID order. Needs a reason; the refund is worked out by core-pos returns.plan (cumulative rounding, so partial returns add up).
-  // Service charge is not refunded by this route (owner handles it by hand); recipe stock is NOT put back (food is not re-stocked).
+  // Service charge is refunded in proportion to what is returned (cumulative rounding, so part returns add up to the whole). Food is NOT put back in stock
+  // unless the person returning ticks "restock" (cooked food usually cannot be reused); then the recipe's ingredients for the returned dishes go back on the shelf.
   def('post', '/orders/:id/returns', 'returns', async (req, res, tid) => {
     const o = await loadOrder(tid, req.params.id); if (!o) return fail(res, 404, 'Order not found');
     if (o.status !== 'paid') return fail(res, 400, 'Only a paid order can have a return.');
@@ -72,13 +73,22 @@ function addPhase2Routes(ctx) {
     const pos = require('../../../packages/core-pos/src/returns');
     const b = { lines: tl.map((l) => ({ name: l.name, qty: l.qty, total: l.total, itemId: l.itemKey || null })), total: o.totals ? o.totals.total : 0, credit: o.credit || 0, payments: o.payments || [], pointsEarned: o.pointsEarned || 0, pointsUsed: o.pointsUsed || 0 };
     let plan; try { plan = pos.plan({ bill: b, items: req.body && req.body.items, returnedQty: o.returnedQty || [] }); } catch (e) { return fail(res, 400, e.message); }
-    const entry = { at: now().toISOString(), by: req.user.id, reason, lines: plan.lines.map((l) => ({ name: l.name, qty: l.qty, refund: l.refund })), refund: plan.refund, cashBack: plan.cashBack, creditReduction: plan.creditReduction, loyaltyBack: plan.loyaltyBack };
-    const r = await M.Order.findOneAndUpdate({ _id: o.id, tenantId: tid, status: 'paid', returnedAmount: o.returnedAmount || 0 }, { $set: { returnedQty: plan.nextReturnedQty, returnedAmount: plan.returnedAmount }, $push: { returns: entry, events: { at: entry.at, by: req.user.id, what: 'return' } } }, { new: true });
+    const scTotal = Math.round(o.serviceCharge || 0); const scDone = Math.round(o.serviceChargeRefunded || 0); const billTotal = b.total;
+    const scCum = scTotal > 0 && billTotal > 0 ? Math.min(scTotal, Math.round((scTotal * plan.returnedAmount) / billTotal)) : 0; const scBack = Math.max(0, scCum - scDone);
+    const restock = !!(req.body && req.body.restock === true);
+    const entry = { at: now().toISOString(), by: req.user.id, reason, lines: plan.lines.map((l) => ({ name: l.name, qty: l.qty, refund: l.refund })), refund: plan.refund, cashBack: plan.cashBack, creditReduction: plan.creditReduction, loyaltyBack: plan.loyaltyBack, serviceChargeRefund: scBack, restocked: restock };
+    const r = await M.Order.findOneAndUpdate({ _id: o.id, tenantId: tid, status: 'paid', returnedAmount: o.returnedAmount || 0 }, { $set: { returnedQty: plan.nextReturnedQty, returnedAmount: plan.returnedAmount, serviceChargeRefunded: scDone + scBack }, $push: { returns: entry, events: { at: entry.at, by: req.user.id, what: 'return' } } }, { new: true });
     if (!r) return fail(res, 409, 'Someone else just changed this order. Reload and try again.');
     if (plan.creditReduction > 0) await M.Credit.updateOne({ tenantId: tid, orderId: o.id }, { $inc: { amount: -plan.creditReduction } });
     if (plan.points !== 0 && o.customerPhone) await M.Loyalty.create({ tenantId: tid, phone: o.customerPhone, points: plan.points, reason: 'return', orderNumber: o.number, date: D.istParts(now()).date });
-    if (plan.cashBack > 0 && (o.payments || []).some((p) => p.method === 'cash')) await M.CashEntry.create({ tenantId: tid, date: D.istParts(now()).date, type: 'out', amount: plan.cashBack, category: 'refund', note: 'Return on ' + o.number, by: req.user.id, currency: 'INR' });
-    await log(tid, req, 'order.return', o.number + ' Rs ' + plan.refund); res.json({ success: true, data: { refund: plan.refund, cashBack: plan.cashBack, creditReduction: plan.creditReduction, returnedAmount: plan.returnedAmount, fullyReturned: plan.fullyReturned } });
+    if (restock) {
+      const back = plan.lines.filter((l) => l.itemId).map((l) => ({ dishKey: l.itemId, qty: l.qty }));
+      const recipes = Object.fromEntries((await M.Recipe.find({ tenantId: tid, dishKey: { $in: [...new Set(back.map((x) => x.dishKey))] } })).map((x) => [x.dishKey, { portion: x.portion, parts: x.parts }]));
+      const put = D.deductions(back, recipes).used;
+      for (const id of Object.keys(put)) if (OID.test(id)) await M.Ingredient.updateOne({ _id: id, tenantId: tid }, { $inc: { qty: put[id] } });
+    }
+    if (plan.cashBack + scBack > 0 && (o.payments || []).some((p) => p.method === 'cash')) await M.CashEntry.create({ tenantId: tid, date: D.istParts(now()).date, type: 'out', amount: plan.cashBack + scBack, category: 'refund', note: 'Return on ' + o.number, by: req.user.id, currency: 'INR' });
+    await log(tid, req, 'order.return', o.number + ' Rs ' + plan.refund); res.json({ success: true, data: { refund: plan.refund, serviceChargeRefund: scBack, restocked: restock, cashBack: plan.cashBack, creditReduction: plan.creditReduction, returnedAmount: plan.returnedAmount, fullyReturned: plan.fullyReturned } });
   });
   // ---- 4. CSV import: ingredients, recipes, guests. Preview saves nothing; commit re-reads the same file on the server. ----
   const csvOf = (req) => { const c = req.body && req.body.csv; if (typeof c !== 'string' || !c.trim()) { const e = new Error('Send the file text as "csv".'); e.code = 'IMPORT_INVALID'; throw e; } if (c.length > 150000) { const e = new Error('The file is too big. Send fewer rows at a time.'); e.code = 'IMPORT_INVALID'; throw e; } return c; };
@@ -161,8 +171,8 @@ function addPhase2Routes(ctx) {
   def('post', '/shifts', 'payroll', async (req, res, tid) => {
     const b = req.body || {}; if (!OID.test(String(b.userId))) return fail(res, 400, 'Choose the staff member.');
     const u = await M.User.findOne({ _id: b.userId, tenantId: tid }); if (!u) return fail(res, 404, 'Staff member not found');
-    const s = PE.checkShift(b); const same = (await M.Shift.find({ tenantId: tid, userId: b.userId, date: s.date, removed: { $ne: true } }).limit(20)).map(plain);
-    if (PE.overlaps(same, s)) return fail(res, 409, 'This person already has a shift at that time.');
+    const s = PE.checkShift(b); const near = (await M.Shift.find({ tenantId: tid, userId: b.userId, date: { $gte: addDays(s.date, -1), $lte: addDays(s.date, 1) }, removed: { $ne: true } }).limit(60)).map(plain);
+    if (PE.overlapsAcrossDays(near, s)) return fail(res, 409, 'This person already has a shift at that time.');
     const d = await M.Shift.create({ tenantId: tid, userId: b.userId, date: s.date, from: s.from, to: s.to, note: str(b.note, 100) });
     await log(tid, req, 'shift.add', d._id); res.status(201).json({ success: true, data: plain(d) });
   });
@@ -192,16 +202,38 @@ function addPhase2Routes(ctx) {
     const u = await M.User.findOne({ _id: req.params.userId, tenantId: tid }); if (!u) return fail(res, 404, 'Staff member not found');
     await M.StaffPay.findOneAndUpdate({ tenantId: tid, userId: req.params.userId }, { $set: { ratePerHour: rate, monthly } }, { upsert: true }); await log(tid, req, 'staff.pay', req.params.userId); res.json({ success: true });
   });
-  def('get', '/payslip', 'payroll', async (req, res, tid) => {
-    const month = String(req.query.month || ''); const userId = String(req.query.userId || '');
-    if (!MONTH.test(month) || !OID.test(userId)) return fail(res, 400, 'Choose the staff member and a month like 2026-11.');
-    const pay = await M.StaffPay.findOne({ tenantId: tid, userId }); if (!pay) return fail(res, 400, 'Set this person\'s pay first.');
+  // One person's payslip for a month, or null if their pay has not been set. Shared by /payslip and the owner's list /payslips.
+  const slipFor = async (tid, userId, month, advances, deductions) => {
+    const pay = await M.StaffPay.findOne({ tenantId: tid, userId }); if (!pay) return null;
     const from = month + '-01'; const to = month + '-' + String(PE.monthDays(month)).padStart(2, '0');
     const punches = (await M.Punch.find({ tenantId: tid, userId, at: { $gte: startOf(from).toISOString(), $lt: startOf(addDays(to, 1)).toISOString() } }).limit(2000)).map(plain);
     const hw = D.hoursWorked(punches.map((p) => ({ at: p.at, kind: p.kind })));
     const leaves = (await M.Leave.find({ tenantId: tid, userId, status: 'approved' }).limit(100)).map(plain);
-    const slip = PE.payslip({ month, pay: plain(pay), hours: hw.hours, leave: PE.leaveInMonth(leaves, month), advances: Number(req.query.advances) || 0, otherDeductions: Number(req.query.deductions) || 0 });
-    await log(tid, req, 'payslip.view', userId); res.json({ success: true, data: { ...slip, hoursProblems: hw.problems } });
+    const slip = PE.payslip({ month, pay: plain(pay), hours: hw.hours, leave: PE.leaveInMonth(leaves, month), advances: Number(advances) || 0, otherDeductions: Number(deductions) || 0 });
+    return { ...slip, hoursProblems: hw.problems };
+  };
+  def('get', '/payslip', 'payroll', async (req, res, tid) => {
+    const month = String(req.query.month || ''); const userId = String(req.query.userId || '');
+    if (!MONTH.test(month) || !OID.test(userId)) return fail(res, 400, 'Choose the staff member and a month like 2026-11.');
+    const slip = await slipFor(tid, userId, month, req.query.advances, req.query.deductions); if (!slip) return fail(res, 400, 'Set this person\'s pay first.');
+    await log(tid, req, 'payslip.view', userId); res.json({ success: true, data: slip });
+  });
+  // Everyone's payslip for one month in one list (owner panel). month = 2026-11, or "prev" for last month; no month means this month.
+  def('get', '/payslips', 'payroll', async (req, res, tid) => {
+    const cur = D.istParts(now()).date.slice(0, 7); const prev = addDays(cur + '-01', -1).slice(0, 7); const q = String(req.query.month || '');
+    const month = q === 'prev' ? prev : MONTH.test(q) ? q : cur;
+    const pays = await M.StaffPay.find({ tenantId: tid }).limit(200); const rows = [];
+    for (const p of pays) {
+      const userId = String(p.userId); const u = await M.User.findOne({ _id: userId, tenantId: tid }); const slip = await slipFor(tid, userId, month);
+      if (u && slip) rows.push({ id: userId, name: u.name || u.email, month, hours: slip.hours, basis: slip.basis, gross: slip.gross, advances: slip.advances, net: slip.net, problems: slip.hoursProblems.length, currency: 'INR' });
+    }
+    await log(tid, req, 'payslip.list', month); res.json({ success: true, data: rows });
+  });
+  // Recent returns across paid orders, newest first (owner panel list).
+  def('get', '/returns', 'returns', async (req, res, tid) => {
+    const orders = (await M.Order.find({ tenantId: tid, returnedAmount: { $gt: 0 } }).sort({ paidAt: -1 }).limit(100)).map(plain); const rows = [];
+    for (const o of orders) for (const r of o.returns || []) rows.push({ id: o.id + ':' + String(r.at), number: o.number, at: r.at, date: String(r.at || '').slice(0, 10), refund: r.refund, serviceChargeRefund: r.serviceChargeRefund || 0, reason: r.reason, restocked: !!r.restocked, currency: 'INR' });
+    rows.sort((a, b) => String(b.at).localeCompare(String(a.at))); res.json({ success: true, data: rows.slice(0, 200) });
   });
   // ---- 7. loyalty settings and balance, birthday suggestions (core-pos loyalty maths; off until the owner switches it on) ----
   def('put', '/settings/loyalty', 'staff', async (req, res, tid) => {
@@ -223,6 +255,18 @@ function addPhase2Routes(ctx) {
     const cs = (await M.Customer.find({ tenantId: tid, birthday: { $exists: true, $ne: '' } }).limit(5000)).map(plain).map((c) => ({ id: c.id, name: c.name, birthday: c.birthday, doNotContact: c.doNotContact, anonymised: c.anonymised }));
     const list = BD.birthdaysSoon(cs, today, days).map((c) => ({ ...c, message: BD.suggestion(c.name, s.venueName === 'us' ? '' : s.venueName), note: 'Suggestion only. Send it yourself; an automatic message needs an approved WhatsApp template.' }));
     res.json({ success: true, data: list });
+  });
+  // ---- the venue's table list: set once by the owner or manager, the same on every phone and tablet (it used to live in each browser) ----
+  const cleanTables = (v) => {
+    if (!Array.isArray(v) || v.length > 60) return { error: 'Send a list of up to 60 table names.' };
+    const out = []; const seen = new Set();
+    for (const x of v) { const n = typeof x === 'string' ? x.trim().replace(/\s+/g, ' ') : ''; if (!n || n.length > 20 || !/^[\p{L}\p{M}\p{N} .#/_-]+$/u.test(n)) return { error: 'Each table name must be 1 to 20 letters, numbers or spaces.' }; if (seen.has(n.toLowerCase())) return { error: 'The table "' + n + '" is listed twice.' }; seen.add(n.toLowerCase()); out.push(n); }
+    return { value: out };
+  };
+  def('get', '/settings/tables', 'orders', async (req, res, tid) => { const v = await getVenue(tid); res.json({ success: true, data: { tables: Array.isArray(v.tables) ? v.tables : [] } }); });
+  def('put', '/settings/tables', 'staff', async (req, res, tid) => {
+    const r = cleanTables(req.body && req.body.tables); if (r.error) return fail(res, 400, r.error);
+    await setVenue(tid, { tables: r.value }); await log(tid, req, 'settings.tables', r.value.length + ' tables'); res.json({ success: true, data: { tables: r.value } });
   });
   // Link only: nothing is sent. The guest taps Send in their own WhatsApp.
   def('get', '/order-link', 'orders', async (req, res, tid) => {

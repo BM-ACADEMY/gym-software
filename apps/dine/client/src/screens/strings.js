@@ -1,9 +1,10 @@
 // All wording for the Dine screens in one place. English is complete. Tamil lines are drafts and need a native speaker's check (M-06);
 // any line missing in Tamil falls back to English. No prices, offers or claims are written here.
 const en = {
-  tabs_tables: 'Tables', tabs_kitchen: 'Kitchen', tabs_bill: 'Bill', tabs_credit: 'Pay later', tabs_returns: 'Returns', tabs_panel: 'Panel',
+  imp_title: 'Bring in a spreadsheet', imp_help: 'Save your sheet as CSV. Press Check first: nothing is saved until you press Save.', imp_ingredients: 'Ingredients', imp_recipes: 'Recipes', imp_guests: 'Guests', imp_file: 'Choose a CSV file', imp_paste: 'Or paste the rows here', imp_check: 'Check first', imp_save: 'Save', imp_good: 'Good rows', imp_problems: 'Problems', imp_there: 'Already there', imp_saved: 'Saved.', imp_row: 'Row', imp_big: 'The file is too big. Send fewer rows at a time.',
+  tabs_tables: 'Tables', tabs_kitchen: 'Kitchen', tabs_bill: 'Bill', tabs_credit: 'Pay later', tabs_returns: 'Returns', tabs_import: 'Import', tabs_panel: 'Panel',
   loading: 'Loading…', retry: 'Try again', back: 'Back', refresh: 'Refresh', close: 'Close', save: 'Save', cancel: 'Cancel', yes: 'Yes', no: 'No',
-  tables_title: 'Open tables and orders', new_order: 'New order', table_name: 'Table name or number', add_table: 'Add table', order_type: 'Type', t_dine_in: 'Dine in', t_takeaway: 'Takeaway', t_bar: 'Bar tab',
+  tables_title: 'Open tables and orders', new_order: 'New order', table_name: 'Table name or number', add_table: 'Add table', remove_table: 'Remove table', order_type: 'Type', t_dine_in: 'Dine in', t_takeaway: 'Takeaway', t_bar: 'Bar tab',
   free: 'Free', open: 'Open', sent: 'In kitchen', served: 'Served', billed: 'Billed', no_orders: 'No open orders yet. Pick a table to start one.', pub_note: 'Bar tabs and drinks with alcohol are on because pub mode is switched on in settings.',
   order: 'Order', items: 'Items', no_items: 'Nothing added yet.', add_item: 'Add', menu_search: 'Search the menu', variant: 'Size or type', extras: 'Extras', qty: 'Quantity', note_kot: 'Goes on the kitchen ticket',
   send_kot: 'Send to kitchen / bar', served_all: 'Mark all served', void: 'Remove', void_reason: 'Reason (needed once it is sent)', void_confirm: 'Remove this item', go_bill: 'Go to bill', sent_ok: 'Sent. Print the ticket if you need one.',

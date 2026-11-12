@@ -21,4 +21,6 @@ function hoursWorked(punches) {
   if (open) problems.push('No clock-out after ' + open);
   return { minutes: mins, hours: Math.round((mins / 60) * 10) / 10, problems };
 }
-module.exports = { ROLES, can, discountRole, hoursWorked };
+// What a signed-in user is called and may do. A user with no saved Dine role: the owner login is the owner, anyone else is treated as a manager (same as the session check).
+const roleOf = (user) => { const staffRole = (user && user.staffRole) || (user && user.role === 'admin' ? 'owner' : 'manager'); return { staffRole, allowed: ROLES[staffRole] || [] }; };
+module.exports = { ROLES, can, discountRole, hoursWorked, roleOf };

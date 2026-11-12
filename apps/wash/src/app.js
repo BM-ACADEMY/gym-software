@@ -5,6 +5,8 @@
 const { makeBilling } = require('../../../packages/core-billing/src');
 const { mountBilling, rawBodyCapture } = require('../../../packages/core-billing/src/checkout');
 const createPosRouter = require('../../../packages/core-pos/src/routes');
+const { createFirstWinRouter } = require('../../../packages/core-pos/src/firstWin');
+const { makeConfig: firstWinConfig } = require('./firstWin');
 const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createWashRouter } = require('./routes');
@@ -40,6 +42,8 @@ function createApp({ express, mongoose, env = process.env }) {
   mountBilling({ app, express, mongoose, M, protect, authorize, billing, config: { plans: billingPlans(), ...BILLING }, env, product: { key: 'wash', name: 'Wash', invoicePrefix: 'WASH' }, nameOf: (t) => t.businessName }); // sign-up to payment to renewal
   const planOf = (req) => billing.computeStatus(req.subscription).planKey;
   const guardWrite = (req) => billing.guardWrite(req.subscription, req.method);
+  // First win in five minutes + set-up checklist (owner only, tenant scoped).
+  app.use('/api/wash', createFirstWinRouter({ express, mongoose, protect, tenantOf: (req) => req.user.tenantId, guardWrite, config: firstWinConfig(M) }));
   app.use('/api/wash', createWashRouter({ express, mongoose, protect, authorize, tenantOf: (req) => req.user.tenantId, planOf, guardWrite }));
   // Shared shop features (customers, bills with GST, loyalty, CSV import) from the core package, same sign-in and same read-only guard.
   const posGuard = (req, res, next) => { const g = guardWrite(req); return g.ok ? next() : res.status(g.httpStatus || 402).json({ success: false, message: g.message, code: 'read_only' }); };

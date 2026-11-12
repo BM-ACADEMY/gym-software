@@ -5,6 +5,9 @@ const { makeBilling } = require('../../../packages/core-billing/src');
 const { mountBilling, rawBodyCapture } = require('../../../packages/core-billing/src/checkout');
 const createPosRouter = require('../../../packages/core-pos/src/routes');
 const { billingPlans, BILLING } = require('./plans');
+const { firstWin: FW } = require('../../../packages/core-pos/src');
+const makePos = require('../../../packages/core-pos/src/models');
+const { makeConfig: firstWinConfig } = require('./firstWin');
 const makeModels = require('./models');
 const { createMartRouter, creditGuard, discountHooks } = require('./routes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
@@ -43,6 +46,8 @@ function createApp({ express, mongoose, env = process.env }) {
   // and the pay-later limit is checked before a bill is saved.
   app.use('/api/mart/pos', protect, authorize(...roles), (req, res, next) => { const g = guardWrite(req); return g.ok ? next() : res.status(g.httpStatus || 402).json({ success: false, message: g.message, code: 'read_only' }); },
     PM.gate(PM.posPermFor), creditGuard({ mongoose, tenantOf }), createPosRouter({ express, mongoose, protect: noop, authorize: () => noop, tenantOf, roles, prefix: 'MART', ...discountHooks({ mongoose }) }));
+  // First win in five minutes + set-up checklist (owner only, tenant scoped).
+  app.use('/api/mart', FW.createFirstWinRouter({ express, mongoose, protect, tenantOf, guardWrite, config: firstWinConfig(M, makePos(mongoose)) }));
   app.use('/api/mart', createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles }));
   return app;
 }

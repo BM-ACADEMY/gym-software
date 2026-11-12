@@ -25,7 +25,9 @@
     "advances": "Salary advances",
     "payroll": "Payslips",
     "team": "Team logins",
-    "limits": "My settings"
+    "limits": "My settings",
+    "start": "Start here",
+    "setup": "Set-up checklist"
   },
   "ta": {
     "today": "இன்று",
@@ -49,7 +51,9 @@
     "advances": "சம்பள முன்பணம்",
     "payroll": "சம்பள சீட்டு",
     "team": "குழு உள்நுழைவுகள்",
-    "limits": "என் அமைப்புகள்"
+    "limits": "என் அமைப்புகள்",
+    "start": "இங்கே தொடங்குங்கள்",
+    "setup": "அமைப்புப் பட்டியல்"
   },
   "hi": {
     "today": "आज",
@@ -73,6 +77,8 @@
     "advances": "वेतन एडवांस",
     "payroll": "वेतन पर्ची",
     "team": "टीम के लॉगिन",
-    "limits": "मेरी सेटिंग"
+    "limits": "मेरी सेटिंग",
+    "start": "यहाँ से शुरू करें",
+    "setup": "सेट-अप सूची"
   }
 }

@@ -31,12 +31,12 @@ export function Credit({ api, t }) {
 // Returns: pick a paid order, choose how many of each line come back, give a reason. The server works out the refund.
 export function Returns({ api, t }) {
   const { data, error, loading, reload } = usePoll(async () => (await api.get('/orders', { status: 'paid' })).data, 0, []);
-  const [order, setOrder] = useState(null); const [qty, setQty] = useState({}); const [reason, setReason] = useState(''); const [msg, setMsg] = useState(''); const [ok, setOk] = useState('');
+  const [order, setOrder] = useState(null); const [qty, setQty] = useState({}); const [reason, setReason] = useState(''); const [restock, setRestock] = useState(false); const [msg, setMsg] = useState(''); const [ok, setOk] = useState('');
   const lines = (order && order.totals && order.totals.lines) || [];
   const go = async () => {
     setMsg(''); setOk('');
     const items = lines.map((_, i) => ({ lineIndex: i, qty: Number(qty[i] || 0) })).filter((x) => x.qty > 0);
-    try { const r = await api.post('/orders/' + order.id + '/returns', { items, reason }); setOk(t('return_ok') + ' ' + t('refund') + ': ' + rs(r.data.refund)); setOrder(null); setQty({}); setReason(''); reload(); } catch (e) { setMsg(msgOf(e, t)); }
+    try { const r = await api.post('/orders/' + order.id + '/returns', { items, reason, restock }); setOk(t('return_ok') + ' ' + t('refund') + ': ' + rs(r.data.refund) + (r.data.serviceChargeRefund ? ' + ' + t('sc_back') + ': ' + rs(r.data.serviceChargeRefund) : '')); setRestock(false); setOrder(null); setQty({}); setReason(''); reload(); } catch (e) { setMsg(msgOf(e, t)); }
   };
   return (
     <div style={S.page}>
@@ -54,6 +54,7 @@ export function Returns({ api, t }) {
               <input style={{ ...S.input, width: 90 }} inputMode="decimal" aria-label={t('return_qty') + ' ' + l.name} placeholder="0" value={qty[i] || ''} onChange={(e) => setQty({ ...qty, [i]: e.target.value.replace(/[^\d.]/g, '') })} />
             </div>))}
           <label>{t('return_reason')}<input style={S.input} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} /></label>
+          <label style={{ display: 'block', marginBottom: 10 }}><input type="checkbox" checked={restock} onChange={(e) => setRestock(e.target.checked)} /> {t('return_restock')}</label>
           <div style={S.row}><button type="button" style={S.primary} onClick={go}>{t('return_go')}</button><button type="button" style={S.big} onClick={() => setOrder(null)}>{t('cancel')}</button></div>
         </div>)}
     </div>

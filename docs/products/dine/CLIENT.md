@@ -60,11 +60,11 @@ Words are in `screens/strings.js` (English complete, Tamil draft, needs a native
 - **Tabs follow the role:** `GET /api/dine/auth/me` now also answers `staffRole` and `allowed` (the role's action list). The tab bar hides tabs the role cannot use (kitchen sees only Kitchen, captain sees Tables only). If `allowed` is missing the page shows every tab and the server refuses, as before.
 - **Import tab** (owner or manager): ingredients, recipes, guests from a CSV file or pasted rows. "Check first" saves nothing; "Save" re-reads the same text on the server.
 - **Owner panel screens added:** Pay later (who owes), Returns and refunds, Payslips (this month and last month), Loyalty points settings.
-- **Returns:** the service charge is now refunded in proportion to what is returned (part returns add up to the whole). Food is put back in stock only if the returning person asks (`restock: true`); cooked food usually cannot be reused. There is no tick box for restock on the Returns tab yet.
+- **Returns:** the service charge is now refunded in proportion to what is returned (part returns add up to the whole). Food is put back in stock only if the returning person asks (`restock: true`); cooked food usually cannot be reused.
 - **Shifts:** an overnight shift (for example 22:00 to 02:00) now blocks the early hours of the next day and the evening before.
 
 ### Still not there
-- Table moves and merges, guest names on orders, item notes, kitchen sound alert, a menu editing screen (the owner panel covers menu), a restock tick box on the Returns tab.
+- Table moves and merges, guest names on orders, item notes, kitchen sound alert, a menu editing screen (the owner panel covers menu).
 - Loyalty settings screen leaves the "largest share of a bill that points can pay" at its default (the shared screen has no decimal field).
 - **Print pages** open in a new tab and rely on the sign-in cookie (they are GET pages).
 - **Not run:** syntax-checked with esbuild only. Nobody has run it in a browser.

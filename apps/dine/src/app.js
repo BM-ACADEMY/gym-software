@@ -4,6 +4,8 @@
 const { makeBilling } = require('../../../packages/core-billing/src');
 const { mountBilling, rawBodyCapture } = require('../../../packages/core-billing/src/checkout');
 const { billingPlans, BILLING } = require('./plans');
+const { firstWin: FW } = require('../../../packages/core-pos/src');
+const { makeConfig: firstWinConfig } = require('./firstWin');
 const makeModels = require('./models');
 const { createDineRouter } = require('./routes');
 const { createAuthRouter, sessionMiddleware } = require('./authRoutes');
@@ -34,6 +36,8 @@ function createApp({ express, mongoose, env = process.env }) {
   const protect = sessionMiddleware(secret, M);
   const authorize = (...roles) => (req, res, next) => (roles.includes(req.user && req.user.role) ? next() : res.status(403).json({ success: false, message: 'Not allowed.' }));
   mountBilling({ app, express, mongoose, M, protect, authorize, billing, config: { plans: billingPlans(), ...BILLING }, env, product: { key: 'dine', name: 'Dine', invoicePrefix: 'DINE' }, nameOf: (t) => t.venueName }); // sign-up to payment to renewal
+  // First win in five minutes + set-up checklist (owner only, tenant scoped).
+  app.use('/api/dine', FW.createFirstWinRouter({ express, mongoose, protect, tenantOf: (req) => req.user.tenantId, guardWrite: (req) => billing.guardWrite(req.subscription, req.method), config: firstWinConfig(M) }));
   app.use('/api/dine', createDineRouter({
     express, mongoose, models: M, protect,
     tenantOf: (req) => req.user.tenantId,

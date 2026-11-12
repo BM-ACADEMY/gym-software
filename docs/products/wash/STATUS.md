@@ -55,12 +55,12 @@ Not done: the admin manifest has no discount fields on the job form (the nested 
 | App install files | Manifest, service worker (never caches the API) and three icons | `pwa/` (see its README) |
 
 ### Still not done in Wash (nothing dropped silently)
-- **QR image:** the owner gets the link path; the QR picture itself needs a QR library or a free QR maker (no dependency added without asking).
-- **Panel buttons for:** register import, data export download, anonymise, delete request, refunds, collecting a due, photos, shifts entry and pay settings after creation. The routes exist; the shared panel can only list, add simple records and press fixed buttons. These need a small custom screen in core-ui.
-- **Photo upload itself:** needs the cloud storage account (owner decision, WSH-P1). Until then the app can only store references.
-- **Pay advances and deductions** on payslips; GST on refunds (CA question).
+- (done in WSH-10 below) **QR image**.
+- (mostly done in WSH-10 below; see its own not-done list) **Panel buttons for:** register import, data export download, anonymise, delete request, refunds, collecting a due, photos, shifts entry and pay settings after creation. The routes exist; the shared panel can only list, add simple records and press fixed buttons. These need a small custom screen in core-ui.
+- (mostly done in WSH-10 below; see its own not-done list) **Photo upload itself:** needs the cloud storage account (owner decision, WSH-P1). Until then the app can only store references.
+- (mostly done in WSH-10 below; see its own not-done list) **Pay advances and deductions** on payslips; GST on refunds (CA question).
 - **WhatsApp sending** (templates `wash_*` not approved), customer reminders.
-- Sales reports do not subtract refunds (the P&L and cash book do).
+- (mostly done in WSH-10 below; see its own not-done list) Sales reports do not subtract refunds (the P&L and cash book do).
 - **Panel offers Cancel for started jobs only with fixed reasons**; a free-text reason is API-only.
 
 ### Dev A: what to run for Phase 2
@@ -71,3 +71,45 @@ Not done: the admin manifest has no discount fields on the job form (the nested 
 5. Import a small CSV of vehicles (preview, then commit); export the data and check no passwords and no other business appear; anonymise one vehicle; ask for deletion with the exact words and cancel it.
 6. `GET /api/internal/wash/admin-summary` without the key gives 401, with it gives counts.
 7. Dev B: another business's job, booking, photo and refund ids on every new route; the booking page with a script in the business name or note; CSV with formulas.
+
+## WSH-10 (13 Nov): written, not yet tested by a person
+Plain-node tests pass here (`tests/wsh10.test.js` plus the older files; in-memory stand-in for the database; the photo folder test uses a real temporary folder). Every new route has a test and each checks that another business sees or changes nothing. Nothing has been run in a browser or with a real database.
+
+| Item | What was written | Where |
+| --- | --- | --- |
+| QR for the booking link | `GET /booking-link/qr.svg` (owner). Address = `WASH_PUBLIC_URL` (https only) if set, else the address the owner is using now. Panel: "Download the QR picture" on the Booking link screen. Pure-JS encoder, no new dependency; same code and checks as Mart (82 codes decoded by OpenCV) | `qr.js`, `routesWave3.js` |
+| Booking request to job | `POST /bookings/:id/convert` (owner). Claims the request first (two taps make one job), price from the price list, uses a monthly pass if one is active, job is dated today. The customer's phone and name are NOT copied to the vehicle (they agreed to be answered, not marketed to). Panel button "Make a job" | `routesWave3.js` |
+| Advances and deductions | `POST/GET /pay-adjustments` (owner). A deduction needs a reason. Payslip now shows `advances`, `deductions`, `net`, and `carryForward` when they are more than the pay (pay never goes below 0). Panel screen "Advances and deductions" | `payroll.js`, `routesMore.js` |
+| Sales report minus refunds | `GET /reports/sales` rows now have `revenue`, `refunded`, `net`; totals `total`, `refundedTotal`, `netTotal`. By day a refund counts on the refund day (same as cash book and P&L); by class, attendant or hour it counts against the original job. A refund whose job is missing is shown as `unplacedRefunds`, not hidden | `reports.js`, `routes.js` |
+| Photo upload | `POST /jobs/:id/photos/upload?kind=before|after`, body = the JPEG, WebP or PNG. 300 KB limit, the file's first bytes must match its type, six per kind per job, stored in the folder `WASH_PHOTO_DIR` (absolute path) as `<business>/<job>/<random>.jpg`. 503 "not set up" if the folder is not set. `GET /photos/:id/file` is signed-in and own business only, and only for files this feature stored (a reference typed into the older route can never read a file). `POST /photos/:id/remove` (owner) deletes the file and record. The app shrinks the photo on the phone first (`client/src/photoFit.js`). Storage is behind a small interface (`storage.js`: put, get, remove); a cloud adapter is a second file | `storage.js`, `routesWave3.js`, `client/src/Board.jsx` |
+| Job card | `GET /jobs/:id/card`: one-page HTML, every value escaped, no scripts, no-store. App button "Print job card" opens it | `jobCard.js` |
+| Bay | `bay` on a job (1 to 12 letters, digits, spaces, dashes). Set when creating a job or later with `POST /jobs/:id/bay` until the job is finished. Shown on the board, the card and the job form | `bays.js` |
+| Panel buttons | Refunds (by number plate), Customers who owe you (paid in full: cash, UPI or card), Job photos (list and remove), Bring in your old register (check first, then save), Shifts (typed name), Advances and deductions, Make a job on bookings. `GET /shifts` now returns a plain list: before, the Shifts screen would have shown nothing | `admin/manifest.json` |
+
+### Owner decisions and settings this needs
+- **WSH-P1 (owner):** where photos should live long term. Today: a folder on the server (`WASH_PHOTO_DIR`, must be on a disk that is backed up; Hostinger VPS disk assumed, not checked). A cloud account would cost money and is not set up. A 300 KB photo x 12 per job x 40 jobs a day is about 144 MB a day for a busy shop (arithmetic from the limits, an estimate): decide how long photos are kept before this fills a small disk. Nothing deletes old photos yet.
+- **Server settings to add to `deploy/env/wash.env.example`** (outside this fork's folders, parent to do): `WASH_PHOTO_DIR` (absolute path, owned by the app user, mode 700) and `WASH_PUBLIC_URL` (https address of the Wash site, no trailing slash).
+- Pay advances: nothing is filed or paid by the software; the owner pays. Whether an advance must be recovered within one month is the owner's rule; the carry-forward shows the rest.
+
+### Still not done in Wash (nothing dropped silently)
+- Panel buttons for data export beyond the existing "Download all my business data" on the Audit screen, anonymise and delete request (routes exist, use the API or Dev A).
+- Part-payment of a due from the panel (the app has it; the panel does "paid in full" only).
+- Photo cleanup by age, thumbnails on the server, a cloud adapter.
+- Per-job "Print card" and photo capture are in the app only (the panel cannot open a page or pick a file; proposed core-ui link and file field types).
+- GST on refunds (CA question), WhatsApp sending (templates `wash_*` not approved).
+- Bookings: a request with no number plate cannot be turned into a job from the panel (add the job from the job board).
+
+### Dev A: what to run for WSH-10
+1. `cd apps/wash && npm test` (20 files). Set `WASH_PHOTO_DIR=/some/absolute/folder` and `WASH_PUBLIC_URL=https://...` and restart.
+2. Booking link screen: download the QR picture and scan it with a phone camera: it must open the booking page. Then send a request from that page; on the Booking requests screen tap Make a job (needs a plate and a class on the request, or a known vehicle): the job appears on the board; tap again: refused.
+3. In the app: open a job, Photos, take a photo: it appears as a thumbnail; try a file over 300 KB that cannot be shrunk and a text file renamed .jpg (refused); sign in as another business and open `/api/wash/photos/<id>/file`: 404. Without `WASH_PHOTO_DIR`: "not set up".
+4. Advances: add an advance and a deduction (without a reason: refused); Payslips shows the net. Refunds by plate: refund more than paid (refused); Sales report by day shows the refund taken off.
+5. Print job card: opens a page with the plate, bay and total; print preview fits one page.
+6. Dev B: other business's job, booking, photo ids on every new route; a plate or business name with script tags on the card page; a photo whose first bytes are PHP or HTML.
+
+### Proposed backlog rows (for the parent to add)
+- WSH-11 Owner decision WSH-P1: photo storage place and how long photos are kept; then a clean-up job and (if cloud) an adapter.
+- WSH-12 Human test of WSH-10 (list above) including the QR scan and the photo upload on a real phone.
+- CORE-UI-02 Link action type and a file-pick field type in the panel (print pages, QR pictures, photo upload).
+- CORE-QR-01 One shared QR package for Mart and Wash with its test.
+

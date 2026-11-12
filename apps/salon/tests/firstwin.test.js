@@ -9,8 +9,8 @@ async function setup() {
 const owner = (t) => ({ user: { tenantId: t, role: 'admin', email: 'o@x.in' } }); const staff = (t) => ({ user: { tenantId: t, role: 'staff' } });
 describe('Salon first win and set-up checklist', () => {
   test('pure: percent and ONE next action', () => {
-    const s = FW.buildSetup({ steps: [{ key: 'service' }, { key: 'staff' }, { key: 'booking_link', manual: true }], autoDone: { service: true }, marks: {} });
-    expect(s.percent).toBe(33); expect(s.next.key).toBe('staff'); expect(s.complete).toBe(false);
+    const s = FW.buildSetup({ steps: [{ key: 'prices_set' }, { key: 'staff_ready' }, { key: 'booking_link_shared', manual: true }], autoDone: { prices_set: true }, marks: {} });
+    expect(s.percent).toBe(33); expect(s.next.key).toBe('staff_ready'); expect(s.complete).toBe(false);
   });
   test('owner only', async () => {
     const s = await setup(); expect((await call(s.router, 'GET', '/first-win', staff(s.A))).code).toBe(403); expect((await call(s.router, 'POST', '/setup/sample', staff(s.A))).code).toBe(403);
@@ -24,7 +24,7 @@ describe('Salon first win and set-up checklist', () => {
     expect((await s.M.Customer.find({ tenantId: s.A }).lean()).length).toBe(3); expect((await s.M.Bill.find({ tenantId: s.A }).lean()).length).toBe(3);
     expect((await call(s.router, 'POST', '/setup/sample', owner(s.A))).code).toBe(409);
     const g = await call(s.router, 'GET', '/first-win', owner(s.A)); expect(g.body.data.mode).toBe('sample'); expect(g.body.data.sampleOn).toBe(true);
-    const st = await call(s.router, 'GET', '/setup', owner(s.A)); expect(st.body.data.steps.find((x) => x.key === 'customer').done).toBe(false);
+    const st = await call(s.router, 'GET', '/setup', owner(s.A)); expect(st.body.data.steps.find((x) => x.key === 'first_bill').done).toBe(false);
     expect((await call(s.router, 'POST', '/setup/sample/remove', owner(s.A))).code).toBe(200);
     expect((await s.M.Customer.find({ tenantId: s.A }).lean()).length).toBe(0); expect((await s.M.Bill.find({ tenantId: s.A }).lean()).length).toBe(0);
   });
@@ -34,14 +34,18 @@ describe('Salon first win and set-up checklist', () => {
     expect((await s.M.Customer.find({ tenantId: s.B }).lean()).length).toBe(1);
     await s.M.Customer.create({ tenantId: s.A, name: 'Mine', phone: '9840099999' }); expect((await call(s.router, 'POST', '/setup/sample', owner(s.A))).code).toBe(400);
   });
-  test('real bill: the number is theirs; manual step ticks only manual keys; tenants separate', async () => {
+  test('real records: the number is theirs (quiet customers and rupees); manual step ticks only manual keys; tenants separate', async () => {
     const s = await setup(); const d = FW.istToday();
-    await s.M.Bill.create({ tenantId: s.A, number: 'B1', date: d, subtotal: 500, discount: 50, status: 'paid' });
-    const r = await call(s.router, 'GET', '/first-win', owner(s.A)); expect(r.body.data.mode).toBe('real'); expect(r.body.data.count).toBe(1); expect(r.body.data.rupees).toBe(450);
+    await s.M.Service.create({ tenantId: s.A, key: 'cut', name: 'Cut', mins: 30, price: 400 });
+    await s.M.Customer.create({ tenantId: s.A, name: 'Old', phone: '9840011111', lastVisit: FW.addDays(d, -90), lastServiceKey: 'cut' });
+    await s.M.Customer.create({ tenantId: s.A, name: 'Optout', phone: '9840022222', lastVisit: FW.addDays(d, -90), lastServiceKey: 'cut', doNotContact: true });
+    await s.M.Customer.create({ tenantId: s.A, name: 'New', phone: '9840033333', lastVisit: FW.addDays(d, -3), lastServiceKey: 'cut' });
+    const r = await call(s.router, 'GET', '/first-win', owner(s.A)); expect(r.body.data.mode).toBe('real'); expect(r.body.data.count).toBe(1); expect(r.body.data.rupees).toBe(400);
     expect((await call(s.router, 'GET', '/first-win', owner(s.B))).body.data.mode).toBe('sample');
-    expect((await call(s.router, 'POST', '/setup/steps/:key/done', { ...owner(s.A), params: { key: 'bill' } })).code).toBe(400);
-    expect((await call(s.router, 'POST', '/setup/steps/:key/done', { ...owner(s.A), params: { key: 'booking_link' } })).code).toBe(200);
-    const st = await call(s.router, 'GET', '/setup', owner(s.A)); expect(st.body.data.steps.find((x) => x.key === 'booking_link').done).toBe(true);
-    expect((await call(s.router, 'GET', '/setup', owner(s.B))).body.data.steps.find((x) => x.key === 'booking_link').done).toBe(false);
+    expect((await call(s.router, 'POST', '/setup/steps/:key/done', { ...owner(s.A), params: { key: 'first_bill' } })).code).toBe(400);
+    expect((await call(s.router, 'POST', '/setup/steps/:key/done', { ...owner(s.A), params: { key: 'booking_link_shared' } })).code).toBe(200);
+    const st = await call(s.router, 'GET', '/setup', owner(s.A)); expect(st.body.data.steps.find((x) => x.key === 'booking_link_shared').done).toBe(true); expect(st.body.data.steps.find((x) => x.key === 'prices_set').done).toBe(true);
+    expect((await call(s.router, 'GET', '/setup', owner(s.B))).body.data.steps.find((x) => x.key === 'booking_link_shared').done).toBe(false);
+    expect(st.body.data.steps[0].label).toBe('Set your prices');
   });
 });

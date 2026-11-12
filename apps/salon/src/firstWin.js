@@ -1,28 +1,29 @@
 'use strict';
 // Salon: "first win in five minutes" and the set-up checklist. Uses the shared module in core-pos.
-// The one number: this week's bills and rupees from the owner's OWN records; until then a clearly labelled sample.
+// The one number (the owner's loss): customers who have not been back in 60 days and about how many rupees they are worth,
+// worked out from the owner's OWN records; until they have any, a clearly labelled sample.
 // Sample records are Salon customers and bills named "Sample ..."; their ids are kept so removal deletes exactly those.
 const { firstWin: FW } = require('../../../packages/core-pos/src');
 
 const STEPS = [
-  { key: 'service' }, { key: 'staff' }, { key: 'customer' }, { key: 'bill' },
-  { key: 'booking_link', manual: true }, { key: 'discount_rule', manual: true },
+  { key: 'prices_set' }, { key: 'staff_ready' }, { key: 'first_bill' },
+  { key: 'suggestion_viewed', manual: true }, { key: 'booking_link_shared', manual: true },
 ];
+const QUIET_DAYS = 60;
 
 function makeConfig(M) {
   const ours = (rows, ids, k) => { const skip = new Set((ids[k] || []).map(String)); return rows.filter((r) => !skip.has(String(r._id))); };
-  const weekStart = () => FW.addDays(FW.istToday(), -6);
   return {
     product: 'salon', steps: STEPS, sampleDefaults: { count: 12, rupees: 14400 },
     async auto(tid, ids = {}) {
-      const [sv, st, cu, bi] = await Promise.all([M.Service.find({ tenantId: tid }).lean(), M.Staff.find({ tenantId: tid }).lean(), M.Customer.find({ tenantId: tid }).lean(), M.Bill.find({ tenantId: tid }).lean()]);
-      return { service: sv.length > 0, staff: st.length > 0, customer: ours(cu, ids, 'customers').length > 0, bill: ours(bi, ids, 'bills').length > 0 };
+      const [sv, st, bi] = await Promise.all([M.Service.find({ tenantId: tid }).lean(), M.Staff.find({ tenantId: tid }).lean(), M.Bill.find({ tenantId: tid }).lean()]);
+      return { prices_set: sv.some((x) => x.price > 0), staff_ready: st.length > 0, first_bill: ours(bi, ids, 'bills').length > 0 };
     },
     async metric(tid, ids = {}) {
-      const all = ours(await M.Bill.find({ tenantId: tid }).lean(), ids, 'bills');
-      const wk = all.filter((b) => b.date >= weekStart() && b.status !== 'void' && b.status !== 'voided');
-      const rupees = wk.reduce((t, b) => t + (Number.isInteger(b.subtotal) ? b.subtotal - (b.discount || 0) : 0), 0);
-      return { haveReal: all.length > 0, count: wk.length, rupees };
+      const [cu, sv] = await Promise.all([M.Customer.find({ tenantId: tid }).lean(), M.Service.find({ tenantId: tid }).lean()]);
+      const mine = ours(cu, ids, 'customers'); const price = Object.fromEntries(sv.map((x) => [x.key, x.price || 0])); const cut = FW.addDays(FW.istToday(), -QUIET_DAYS);
+      const quiet = mine.filter((c) => c.lastVisit && c.lastVisit < cut && !c.doNotContact && !c.anonymisedAt);
+      return { haveReal: mine.length > 0, count: quiet.length, rupees: quiet.reduce((t, c) => t + (price[c.lastServiceKey] || 0), 0) };
     },
     async hasRealActivity(tid, ids = {}) {
       const [cu, bi] = await Promise.all([M.Customer.find({ tenantId: tid }).lean(), M.Bill.find({ tenantId: tid }).lean()]);

@@ -87,6 +87,42 @@
       ]
     },
     {
+      "key": "sales7",
+      "label": "Sales: last 7 days",
+      "screen": "stats",
+      "stats": "sales7"
+    },
+    {
+      "key": "sales30",
+      "label": "Sales: last 30 days",
+      "screen": "stats",
+      "stats": "sales30"
+    },
+    {
+      "key": "sales90",
+      "label": "Sales: last 90 days",
+      "screen": "stats",
+      "stats": "sales90"
+    },
+    {
+      "key": "pnl30",
+      "label": "Profit: last 30 days",
+      "screen": "stats",
+      "stats": "pnl30"
+    },
+    {
+      "key": "pnl90",
+      "label": "Profit: last 90 days",
+      "screen": "stats",
+      "stats": "pnl90"
+    },
+    {
+      "key": "gst30",
+      "label": "GST: last 30 days",
+      "screen": "stats",
+      "stats": "gst30"
+    },
+    {
       "key": "expenses",
       "label": "Expenses",
       "screen": "resource",
@@ -368,7 +404,7 @@
       "attention": "attention",
       "cards": [
         {
-          "label": "Bills this week",
+          "label": "Customers not back in 60 days",
           "path": "count",
           "type": "number"
         },
@@ -401,6 +437,215 @@
           ]
         }
       ]
+    },
+    "sales7": {
+      "label": "Sales: last 7 days",
+      "endpoint": "/reports/sales?days=7",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales (before GST)",
+          "path": "total",
+          "type": "money"
+        },
+        {
+          "label": "Bills",
+          "path": "bills",
+          "type": "number"
+        },
+        {
+          "label": "Average bill",
+          "path": "average",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Sales by service",
+          "rows": "byService",
+          "empty": "No sales in this period.",
+          "columns": [
+            {
+              "key": "key",
+              "label": "Service or item"
+            },
+            {
+              "key": "amount",
+              "label": "Sales",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "sales30": {
+      "label": "Sales: last 30 days",
+      "endpoint": "/reports/sales?days=30",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales (before GST)",
+          "path": "total",
+          "type": "money"
+        },
+        {
+          "label": "Bills",
+          "path": "bills",
+          "type": "number"
+        },
+        {
+          "label": "Average bill",
+          "path": "average",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Sales by service",
+          "rows": "byService",
+          "empty": "No sales in this period.",
+          "columns": [
+            {
+              "key": "key",
+              "label": "Service or item"
+            },
+            {
+              "key": "amount",
+              "label": "Sales",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "sales90": {
+      "label": "Sales: last 90 days",
+      "endpoint": "/reports/sales?days=90",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales (before GST)",
+          "path": "total",
+          "type": "money"
+        },
+        {
+          "label": "Bills",
+          "path": "bills",
+          "type": "number"
+        },
+        {
+          "label": "Average bill",
+          "path": "average",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Sales by service",
+          "rows": "byService",
+          "empty": "No sales in this period.",
+          "columns": [
+            {
+              "key": "key",
+              "label": "Service or item"
+            },
+            {
+              "key": "amount",
+              "label": "Sales",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "pnl30": {
+      "label": "Profit: last 30 days",
+      "endpoint": "/accounts/pnl?days=30",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales (before GST)",
+          "path": "income",
+          "type": "money"
+        },
+        {
+          "label": "Staff commission",
+          "path": "commission",
+          "type": "money"
+        },
+        {
+          "label": "Expenses",
+          "path": "expenseTotal",
+          "type": "money"
+        },
+        {
+          "label": "Profit",
+          "path": "profit",
+          "type": "money"
+        },
+        {
+          "label": "Discounts given",
+          "path": "discountsGiven",
+          "type": "money"
+        }
+      ],
+      "tables": []
+    },
+    "pnl90": {
+      "label": "Profit: last 90 days",
+      "endpoint": "/accounts/pnl?days=90",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales (before GST)",
+          "path": "income",
+          "type": "money"
+        },
+        {
+          "label": "Staff commission",
+          "path": "commission",
+          "type": "money"
+        },
+        {
+          "label": "Expenses",
+          "path": "expenseTotal",
+          "type": "money"
+        },
+        {
+          "label": "Profit",
+          "path": "profit",
+          "type": "money"
+        },
+        {
+          "label": "Discounts given",
+          "path": "discountsGiven",
+          "type": "money"
+        }
+      ],
+      "tables": []
+    },
+    "gst30": {
+      "label": "GST: last 30 days (for your CA; we do not file GST)",
+      "endpoint": "/accounts/gst?days=30",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales (before GST)",
+          "path": "taxable",
+          "type": "money"
+        },
+        {
+          "label": "GST collected",
+          "path": "gst",
+          "type": "money"
+        },
+        {
+          "label": "GST after returns",
+          "path": "netGst",
+          "type": "money"
+        }
+      ],
+      "tables": []
     }
   },
   "resources": {

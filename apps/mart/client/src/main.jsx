@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AdminShell, PosScreen } from '../../../../packages/core-ui/src/index.js';
+import { AdminShell, PosScreen, PlanPayment } from '../../../../packages/core-ui/src/index.js';
 import pure from '../../../../packages/core-pos/src/pure.js';
 import AuthGate from './AuthGate.jsx';
 import product from './product.js';
@@ -42,6 +42,7 @@ const btn = { padding: '6px 12px', border: '1px solid #ccc', borderRadius: 6, ba
 function App({ me, signedOut }) {
   const [lang, setLang] = useState(() => store().getItem('mart:lang') || 'en');
   const [view, setView] = useState('panel');
+  const [plan, setPlan] = useState(false); // the Plan and payment screen
   const pick = (l) => { setLang(l); try { store().setItem('mart:lang', l); } catch (e) { /* optional */ } };
   const logout = async () => { try { await call('POST', '/auth/logout', {}); } catch (e) { /* signing out anyway */ } signedOut(); };
   return (
@@ -50,10 +51,13 @@ function App({ me, signedOut }) {
         <strong style={{ flex: 1 }}>{me[product.meName] || product.title}</strong>
         {product.posBase && <button type="button" onClick={() => setView(view === 'billing' ? 'panel' : 'billing')} style={btn}>{view === 'billing' ? 'Back to the panel' : 'Billing'}</button>}
         {product.hasStrings && <select aria-label="Language" value={lang} onChange={(e) => pick(e.target.value)} style={btn}><option value="en">English</option><option value="ta">தமிழ்</option><option value="hi">हिन्दी</option></select>}
+        <button type="button" onClick={() => setPlan(!plan)} style={btn}>{plan ? 'Back' : 'Plan and payment'}</button>
         <button type="button" onClick={logout} style={btn}>Sign out</button>
       </header>
       <div style={{ flex: 1, overflow: 'auto' }}>
+        {plan ? <PlanPayment api={api} role={me.role} productName={product.title} accent={product.accent} /> : <>
         {view === 'billing' ? <PosScreen api={posApi} rules={posRules} basePath="/mart/pos" askDiscountReason allowDecimalQty creditNeedsCustomer loadOwing={loadOwing} /> : <AdminShell manifest={manifest} api={api} role={me.role} lang={lang} strings={strings} />}
+        </>}
       </div>
     </div>
   );

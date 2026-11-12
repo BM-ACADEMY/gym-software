@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AdminShell, PosScreen } from '../../../../packages/core-ui/src/index.js';
+import { AdminShell, PosScreen, PlanPayment } from '../../../../packages/core-ui/src/index.js';
 import pure from '../../../../packages/core-pos/src/pure.js';
 import AuthGate from './AuthGate.jsx';
 import WashApp from './WashApp.jsx';
@@ -43,6 +43,7 @@ const btn = { padding: '6px 12px', border: '1px solid #ccc', borderRadius: 6, ba
 function App({ me, signedOut }) {
   const [lang, setLang] = useState(() => store().getItem('wash:lang') || 'en');
   const [view, setView] = useState('screens');
+  const [plan, setPlan] = useState(false); // the Plan and payment screen
   const shown = useMemo(() => translate(manifest, lang), [lang]);
   const pick = (l) => { setLang(l); try { store().setItem('wash:lang', l); } catch (e) { /* optional */ } };
   const logout = async () => { try { await call('POST', '/auth/logout', {}); } catch (e) { /* signing out anyway */ } signedOut(); };
@@ -52,11 +53,14 @@ function App({ me, signedOut }) {
         <strong style={{ flex: 1 }}>{me[product.meName] || product.title}</strong>
         {product.posBase && <button type="button" onClick={() => setView(view === 'billing' ? 'panel' : 'billing')} style={btn}>{view === 'billing' ? 'Back to the jobs' : 'Billing'}</button>}
         {product.hasStrings && <select aria-label="Language" value={lang} onChange={(e) => pick(e.target.value)} style={btn}><option value="en">English</option><option value="ta">தமிழ்</option><option value="hi">हिन्दी</option></select>}
+        <button type="button" onClick={() => setPlan(!plan)} style={btn}>{plan ? 'Back' : 'Plan and payment'}</button>
         <button type="button" onClick={logout} style={btn}>Sign out</button>
       </header>
       {lang !== 'en' && <p style={{ margin: 0, padding: '4px 12px', background: '#fff4e5', fontSize: 12 }}>Tamil and Hindi menu names are drafts and still need a native speaker's check.</p>}
       <div style={{ flex: 1, overflow: 'auto' }}>
+        {plan ? <PlanPayment api={api} role={me.role} productName={product.title} accent={product.accent} /> : <>
         {view === 'billing' ? <PosScreen api={posApi} rules={posRules} basePath="/pos" /> : <WashApp api={api} role={me.role} panel={<AdminShell manifest={shown} api={api} role={me.role} />} />}
+        </>}
       </div>
     </div>
   );

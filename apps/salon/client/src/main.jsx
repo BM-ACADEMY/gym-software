@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AdminShell } from '../../../../packages/core-ui/src/index.js';
+import { AdminShell, PlanPayment } from '../../../../packages/core-ui/src/index.js';
 import AuthGate from './AuthGate.jsx';
 import product from './product.js';
 import SalonScreens from './Screens.jsx';
@@ -35,6 +35,7 @@ function App({ me, signedOut }) {
   const t = useMemo(() => textFor(uiLang), [uiLang]);
   // Staff logins start on the day view; the owner too. The manifest panel (accounts, settings, reports) stays one tab away.
   const [view, setView] = useState('day');
+  const [plan, setPlan] = useState(false); // the Plan and payment screen
   const pickUi = (l) => { setUiLang(l); try { store().setItem('salon:ui', l); } catch (e) { /* optional */ } };
   const TABS = ['day', 'queue', 'bill', 'people', 'panel'];
   const shown = useMemo(() => translate(manifest, lang), [lang]);
@@ -46,6 +47,7 @@ function App({ me, signedOut }) {
         <strong style={{ flex: 1 }}>{me[product.meName] || product.title}</strong>
         <select aria-label="Screen language" value={uiLang} onChange={(e) => pickUi(e.target.value)} style={btn}><option value="en">English</option><option value="ta">தமிழ்</option></select>
         {product.hasStrings && <select aria-label="Language" value={lang} onChange={(e) => pick(e.target.value)} style={btn}><option value="en">English</option><option value="ta">தமிழ்</option><option value="hi">हिन्दी</option></select>}
+        <button type="button" onClick={() => setPlan(!plan)} style={btn}>{plan ? 'Back' : 'Plan and payment'}</button>
         <button type="button" onClick={logout} style={btn}>Sign out</button>
       </header>
       <nav aria-label="Sections" style={{ display: 'flex', gap: 6, padding: '6px 8px', overflowX: 'auto', borderBottom: '1px solid #eee' }}>
@@ -54,7 +56,9 @@ function App({ me, signedOut }) {
       {uiLang === 'ta' && <p style={{ margin: 0, padding: '4px 12px', background: '#fff4e5', fontSize: 12 }}>Tamil screen text is a draft and still needs a native speaker's check. Missing words show in English.</p>}
       {lang !== 'en' && <p style={{ margin: 0, padding: '4px 12px', background: '#fff4e5', fontSize: 12 }}>Tamil and Hindi menu names are drafts and still need a native speaker's check.</p>}
       <div style={{ flex: 1, overflow: 'auto' }}>
+        {plan ? <PlanPayment api={api} role={me.role} productName={product.title} accent={product.accent} /> : <>
         {view === 'panel' ? <AdminShell manifest={shown} api={api} role={me.role} /> : <SalonScreens api={api} me={me} t={t} tab={view} />}
+        </>}
       </div>
     </div>
   );

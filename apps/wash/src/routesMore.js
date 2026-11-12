@@ -41,10 +41,13 @@ function mountMore(ctx) {
   }));
   router.post('/jobs/:id/collect', wrap(async (req, res, tid) => {
     const job = await jobOf(req, tid); if (!job) return fail(res, 404, 'Job not found');
-    const j = plain(job); const c = MONEY.checkCollection({ due: j.due, pays: (req.body || {}).payments });
+    const j = plain(job); const body = req.body || {};
+    // payAllWith: the panel button "collected in cash/upi/card" takes the whole amount still due in one go.
+    const pays = body.payAllWith && !body.payments ? (MONEY.METHODS.includes(body.payAllWith) && Number.isInteger(j.due) && j.due >= 1 ? [{ method: body.payAllWith, amount: j.due }] : null) : body.payments;
+    const c = MONEY.checkCollection({ due: j.due, pays });
     if (c.error) return fail(res, 400, c.error);
     const day = dayOf(now());
-    for (const p of req.body.payments) await M.Collection.create({ tenantId: tid, jobId: String(job._id), plate: j.plate, day, amount: p.amount, method: p.method, by: req.user && req.user.id });
+    for (const p of pays) await M.Collection.create({ tenantId: tid, jobId: String(job._id), plate: j.plate, day, amount: p.amount, method: p.method, by: req.user && req.user.id });
     await M.Job.updateOne({ _id: req.params.id, tenantId: tid }, { $set: { due: c.left, collected: (j.collected || 0) + c.collected } });
     await audit(tid, req, 'job.collect', `job ${j.number}: Rs ${c.collected} collected, Rs ${c.left} still due`);
     res.json({ success: true, data: { collected: c.collected, due: c.left } });
@@ -64,14 +67,20 @@ function mountMore(ctx) {
   // ---- shifts, pay settings and payslips (owner only for money) ----
   router.post('/shifts', wrap(async (req, res, tid) => {
     const b = req.body || {}; const c = PAY.checkShift(b); if (c.error) return fail(res, 400, c.error);
-    if (!idOk(b.attendantId)) return fail(res, 400, 'Choose the attendant');
-    const a = await M.Attendant.findOne({ _id: b.attendantId, tenantId: tid, isActive: true }); if (!a) return fail(res, 400, 'Unknown attendant');
+    // The attendant is chosen by id (apps) or by typed name (the panel form has no id picker).
+    let a = null;
+    if (b.attendantId !== undefined && b.attendantId !== '') { if (!idOk(b.attendantId)) return fail(res, 400, 'Choose the attendant'); a = await M.Attendant.findOne({ _id: b.attendantId, tenantId: tid, isActive: true }); }
+    else if (typeof b.attendant === 'string' && b.attendant.trim()) { const hits = await M.Attendant.find({ tenantId: tid, name: b.attendant.trim(), isActive: true }).limit(2); if (hits.length > 1) return fail(res, 409, 'Two attendants have that name. Rename one so they differ.'); a = hits[0] || null; }
+    else return fail(res, 400, 'Choose the attendant');
+    if (!a) return fail(res, 400, 'Unknown attendant. Type the name exactly as in your list.');
     const d = await M.Shift.findOneAndUpdate({ tenantId: tid, attendantId: String(a._id), day: c.value.day }, { $set: { from: c.value.from, to: c.value.to }, $setOnInsert: { tenantId: tid, attendantId: String(a._id), day: c.value.day } }, { upsert: true, new: true });
     res.status(201).json({ success: true, data: { ...plain(d), hours: c.value.hours } });
   }));
   router.get('/shifts', wrap(async (req, res, tid) => {
     const month = /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : dayOf(now()).slice(0, 7);
-    res.json({ success: true, data: { month, rows: (await M.Shift.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).sort({ day: 1 }).limit(1000)).map(plain) } });
+    const [rows, people] = await Promise.all([M.Shift.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).sort({ day: 1 }).limit(1000), M.Attendant.find({ tenantId: tid }).limit(200)]);
+    const nm = {}; for (const x of people.map(plain)) nm[String(x._id)] = x.name;
+    res.json({ success: true, data: { month, rows: rows.map(plain).map((s) => ({ ...s, attendant: nm[String(s.attendantId)] || '' })) } });
   }));
   router.put('/attendants/:id/pay', ownerOnly, wrap(async (req, res, tid) => {
     const c = PAY.checkPay(req.body); if (c.error) return fail(res, 400, c.error);
@@ -81,9 +90,10 @@ function mountMore(ctx) {
     res.json({ success: true });
   }));
   const slips = async (tid, month, onlyId) => {
+    const adj = (await M.PayAdjust.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).limit(3000)).map(plain); const sumAdj = (id, kind) => adj.filter((x) => String(x.attendantId) === id && x.kind === kind).reduce((s, x) => s + (x.amount || 0), 0);
     const [people, att, jobs, pl] = await Promise.all([M.Attendant.find({ tenantId: tid, isActive: true }).sort({ name: 1 }).limit(100), M.Attendance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).limit(3000), M.Job.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' }, state: 'delivered' }).limit(10000), priceList(tid)]);
     const sum = AT.monthSummary(att.map(plain), month); const inc = dayTotals(jobs.map(plain), pl.incentive);
-    return people.map(plain).filter((p) => !onlyId || p.id === onlyId).map((p) => ({ id: p.id, ...PAY.payslip({ month, name: p.name, monthlySalary: p.monthlySalary, paidLeavePerMonth: p.paidLeavePerMonth === undefined ? 1 : p.paidLeavePerMonth, att: sum[p.id] || {}, incentive: (inc[p.id] || {}).incentive || 0, jobs: (inc[p.id] || {}).jobs || 0 }) }));
+    return people.map(plain).filter((p) => !onlyId || p.id === onlyId).map((p) => ({ id: p.id, ...PAY.payslip({ month, name: p.name, monthlySalary: p.monthlySalary, paidLeavePerMonth: p.paidLeavePerMonth === undefined ? 1 : p.paidLeavePerMonth, att: sum[p.id] || {}, incentive: (inc[p.id] || {}).incentive || 0, jobs: (inc[p.id] || {}).jobs || 0, advances: sumAdj(p.id, 'advance'), deductions: sumAdj(p.id, 'deduction') }) }));
   };
   router.get('/payslips', ownerOnly, wrap(async (req, res, tid) => {
     const month = /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : dayOf(now()).slice(0, 7);
@@ -124,9 +134,8 @@ function mountMore(ctx) {
     const r = VI.parseVehicles((req.body || {}).csv, await existingPlates(tid)); if (r.error) return fail(res, 400, r.error);
     res.json({ success: true, data: { total: r.total, ok: r.rows.length, willUpdate: r.duplicates, willAdd: r.rows.length - r.duplicates, errors: r.errors.slice(0, 50), errorCount: r.errors.length, sample: r.rows.slice(0, 10), truncated: r.truncated } });
   }));
-  router.post('/vehicles/import/commit', ownerOnly, wrap(async (req, res, tid) => {
-    const r = VI.parseVehicles((req.body || {}).csv, await existingPlates(tid)); if (r.error) return fail(res, 400, r.error);
-    if (r.errors.length && (req.body || {}).skipErrors !== true) return fail(res, 400, r.errors.length + ' rows have problems. Fix them, or confirm to skip those rows.');
+  // Saves a parsed register (shared with the panel's one-box import in routesWave3.js).
+  const commitVehicles = async (tid, req, r) => {
     let added = 0; let updated = 0;
     for (const v of r.rows) {
       const set = { klass: v.klass }; if (v.ownerName) set.ownerName = v.ownerName; if (v.ownerPhone) set.ownerPhone = v.ownerPhone;
@@ -134,7 +143,13 @@ function mountMore(ctx) {
       if (v.exists) updated += 1; else added += 1;
     }
     await audit(tid, req, 'vehicles.import', `${added} added, ${updated} updated, ${r.errors.length} skipped`);
-    res.status(201).json({ success: true, data: { added, updated, skipped: r.errors.length } });
+    return { added, updated, skipped: r.errors.length };
+  };
+  ctx.commitVehicles = commitVehicles; ctx.audit = audit;
+  router.post('/vehicles/import/commit', ownerOnly, wrap(async (req, res, tid) => {
+    const r = VI.parseVehicles((req.body || {}).csv, await existingPlates(tid)); if (r.error) return fail(res, 400, r.error);
+    if (r.errors.length && (req.body || {}).skipErrors !== true) return fail(res, 400, r.errors.length + ' rows have problems. Fix them, or confirm to skip those rows.');
+    res.status(201).json({ success: true, data: await commitVehicles(tid, req, r) });
   }));
   // ---- export and delete on request (owner only) ----
   router.get('/export', ownerOnly, wrap(async (req, res, tid) => {

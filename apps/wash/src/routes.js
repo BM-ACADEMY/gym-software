@@ -6,7 +6,7 @@ const makeModels = require('./models');
 const V = require('./vehicles'); const J = require('./jobs'); const P = require('./pass'); const C = require('./cashclose'); const { checkCap } = require('./plans');
 const { summarize } = require('./summary');
 const DP = require('./discountPolicy'); const MONEY = require('./money'); const L = require('./leaks');
-const A = require('./accounts'); const R = require('./reports'); const PR = require('./predict'); const MK = require('./marketing'); const AT = require('./attendance'); const { dayTotals } = require('./incentive');
+const BAYS = require('./bays'); const A = require('./accounts'); const R = require('./reports'); const PR = require('./predict'); const MK = require('./marketing'); const AT = require('./attendance'); const { dayTotals } = require('./incentive');
 
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const isInt = (n) => Number.isInteger(n);
@@ -15,7 +15,7 @@ const METHODS = ['cash', 'upi', 'card'];
 const plain = (d) => { const o = d && d.toObject ? d.toObject() : d; return o ? { ...o, id: String(o._id) } : o; };
 const okRule = (r) => r && (r.type === 'flat' || r.type === 'percent') && Number.isFinite(r.value) && r.value >= 0 && (r.type !== 'percent' || r.value <= 100);
 
-function createWashRouter({ express, mongoose, models, protect, authorize, tenantOf, planOf, guardWrite, now = () => new Date(), roles = ['admin', 'subadmin'] }) {
+function createWashRouter({ express, mongoose, models, protect, authorize, tenantOf, planOf, guardWrite, now = () => new Date(), roles = ['admin', 'subadmin'], photoStore }) {
   const router = express.Router(); const M = models || makeModels(mongoose);
   router.use(protect, authorize(...roles));
   if (guardWrite) router.use((req, res, next) => { const g = guardWrite(req); return g.ok ? next() : res.status(g.httpStatus || 402).json({ success: false, message: g.message, code: 'read_only' }); });
@@ -117,6 +117,7 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
     const passes = await M.Pass.find({ tenantId: tid, plate, endsOn: { $gte: today } }).sort({ endsOn: 1 });
     const pass = passes.map(plain).find((p) => P.status(p, today).usable);
     const t = now(); const count = await M.Job.countDocuments({ tenantId: tid, day: today });
+    const bayC = BAYS.checkBay(b.bay); if (bayC.error) return fail(res, 400, bayC.error);
     const base = J.newJob({ plate, klass, services: q.lines, now: t });
     // D-30: staff may give a discount inside the owner's rule; a reason is always required; the owner is told.
     const passCovered = pass ? q.lines[0].amount : 0; let discount = 0; let reason = '';
@@ -131,7 +132,7 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
     const rule = ((await priceList(tid)).discountRule);
     const chk = DP.check({ role, discount, subtotal: q.total, rule });
     if (!chk.ok) return fail(res, 403, chk.message);
-    const job = await M.Job.create({ tenantId: tid, number: count + 1, plate, klass, lines: q.lines, subtotal: q.total, total: q.total - discount, discount, discountReason: discount ? reason : undefined, discountPercent: discount ? chk.percent : undefined, discountBy: discount ? (role === 'admin' ? 'owner' : 'staff') : undefined, currency: 'INR', state: base.state, passId: pass ? pass.id : undefined, passCovered, day: today });
+    const job = await M.Job.create({ tenantId: tid, number: count + 1, plate, klass, lines: q.lines, subtotal: q.total, total: q.total - discount, discount, discountReason: discount ? reason : undefined, discountPercent: discount ? chk.percent : undefined, discountBy: discount ? (role === 'admin' ? 'owner' : 'staff') : undefined, currency: 'INR', state: base.state, bay: bayC.value, passId: pass ? pass.id : undefined, passCovered, day: today });
     if (discount) await M.Audit.create({ tenantId: tid, action: 'job.discount', text: `#${job.number} ${chk.percent}% by ${role === 'admin' ? 'owner' : 'staff'}: ${reason}`, by: req.user && req.user.id });
     res.status(201).json({ success: true, data: plain(job), passFound: !!pass });
   }));
@@ -265,7 +266,11 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
   // ---- sales reports ----
   router.get('/reports/sales', wrap(async (req, res, tid) => {
     const r = range(req.query); if (!r) return fail(res, 400, 'Choose a date range of up to one year');
-    const out = R.salesBy((await M.Job.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to }, state: 'delivered' }).limit(10000)).map(plain), String(req.query.by || 'day'));
+    const by = String(req.query.by || 'day');
+    const [jobs, refunds] = await Promise.all([M.Job.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to }, state: 'delivered' }).limit(10000), M.Refund.find({ tenantId: tid, day: { $gte: r.from, $lte: r.to } }).limit(10000)]);
+    // A refund is placed on the class, attendant or hour of its original job (found by id in this business only).
+    const ids = [...new Set(refunds.map((x) => String(x.jobId)))]; const byId = {}; if (by !== 'day' && ids.length) for (const j of (await M.Job.find({ tenantId: tid, _id: { $in: ids } }).limit(10000)).map(plain)) byId[String(j._id)] = j;
+    const out = R.salesBy(jobs.map(plain), by, refunds.map(plain), byId);
     if (out.error) return fail(res, 400, out.error); res.json({ success: true, data: { ...out, from: r.from, to: r.to } });
   }));
 
@@ -309,7 +314,9 @@ function createWashRouter({ express, mongoose, models, protect, authorize, tenan
     const rows = (await M.Attendance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).limit(2000)).map(plain);
     res.json({ success: true, data: { month, summary: AT.monthSummary(rows, month) } });
   }));
-  require('./routesMore')({ router, M, wrap, fail, plain, str, isInt, dayOf, idOk, ownerOnly, now, priceList, range, pnlFor, DAYRE, METHODS });
+  const more = { router, M, wrap, fail, plain, str, isInt, dayOf, idOk, ownerOnly, now, priceList, range, pnlFor, DAYRE, METHODS, express, photoStore };
+  require('./routesMore')(more);
+  require('./routesWave3')(more);
   return router;
 }
 module.exports = { createWashRouter, dayOf };

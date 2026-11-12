@@ -22,10 +22,11 @@ function model() {
     find: (q) => chain(rows.filter((r) => match(r, q))),
     findOne: async (q) => { const r = rows.find((x) => match(x, q)); return r ? wrapDoc(r) : null; },
     create: async (v) => { const d = { _id: oid(), createdAt: new Date(), ...v }; rows.push(d); return wrapDoc(d); },
+    deleteOne: async (q) => { const i = rows.findIndex((x) => match(x, q)); if (i >= 0) rows.splice(i, 1); return { deletedCount: i >= 0 ? 1 : 0 }; },
     countDocuments: async (q) => rows.filter((r) => match(r, q)).length,
     updateOne: async (q, u) => { const r = rows.find((x) => match(x, q)); if (r) Object.assign(r, u.$set || {}); return { matchedCount: r ? 1 : 0 }; },
     findOneAndUpdate: async (q, u, o = {}) => { let r = rows.find((x) => match(x, q)); if (!r && o.upsert) { r = { _id: oid(), createdAt: new Date(), ...(u.$setOnInsert || {}) }; rows.push(r); } if (r) Object.assign(r, u.$set || {}); return r ? wrapDoc(r) : null; },
   };
 }
-const makeFakeModels = () => ({ PriceList: model(), Vehicle: model(), Attendant: model(), Job: model(), Pass: model(), CashClosing: model(), Expense: model(), Attendance: model(), UsageLog: model(), Audit: model(), Tenant: model(), Photo: model(), Refund: model(), Collection: model(), Shift: model(), Booking: model() });
+const makeFakeModels = () => ({ PriceList: model(), Vehicle: model(), Attendant: model(), Job: model(), Pass: model(), CashClosing: model(), Expense: model(), Attendance: model(), UsageLog: model(), Audit: model(), Tenant: model(), Photo: model(), Refund: model(), Collection: model(), Shift: model(), Booking: model(), PayAdjust: model() });
 module.exports = { makeFakeModels };

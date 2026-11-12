@@ -21,4 +21,11 @@ function idleMinutes(open, close, jobs) {
   for (const [s, e] of sorted) { const from = Math.max(s, curEnd); if (e > from) { busy += e - from; curEnd = e; } }
   return Math.max(0, close - open) - busy;
 }
-module.exports = { schedule, idleMinutes };
+// Which bay a job is in: a short label the owner chooses (Bay 1, A, Outside). Empty clears it. Letters, digits, space and dash only.
+const BAY = /^[A-Za-z0-9][A-Za-z0-9 -]{0,11}$/;
+function checkBay(v) {
+  if (v === undefined || v === null || v === '') return { value: undefined };
+  const s = typeof v === 'string' ? v.trim() : '';
+  return BAY.test(s) ? { value: s } : { error: 'A bay name is 1 to 12 letters, digits, spaces or dashes' };
+}
+module.exports = { schedule, idleMinutes, checkBay };

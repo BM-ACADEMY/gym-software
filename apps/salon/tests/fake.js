@@ -27,7 +27,7 @@ function fakeMongoose() {
       insertMany: async (a) => { for (const d of a) await M.create(d); },
       updateOne: async (q, u) => { const r = rows.find((x) => matches(x, q)); if (r) { Object.assign(r, u.$set || {}); unique(r, r); } return { matchedCount: r ? 1 : 0 }; },
       updateMany: async (q, u) => { rows.filter((x) => matches(x, q)).forEach((r) => Object.assign(r, u.$set || {})); },
-      findOneAndUpdate: async (q, u, o = {}) => { let r = rows.find((x) => matches(x, q)); if (!r && o.upsert) { r = { _id: newId(), createdAt: new Date() }; for (const [k, v] of Object.entries(q)) if (typeof v !== 'object') r[k] = v; rows.push(r); } if (!r) return null; if (u.$inc) for (const [k, v] of Object.entries(u.$inc)) r[k] = (r[k] || 0) + v; Object.assign(r, u.$set || {}); return wrap(r); },
+      findOneAndUpdate: async (q, u, o = {}) => { let r = rows.find((x) => matches(x, q)); if (!r && o.upsert) { r = { _id: newId(), createdAt: new Date() }; for (const [k, v] of Object.entries(q)) if (typeof v !== 'object') r[k] = v; rows.push(r); } if (!r) return null; if (u.$inc) for (const [k, v] of Object.entries(u.$inc)) r[k] = (r[k] || 0) + v; for (const [k, v] of Object.entries(u.$set || {})) { const ps = k.split('.'); let o = r; ps.slice(0, -1).forEach((p) => { o[p] = o[p] && typeof o[p] === 'object' ? o[p] : {}; o = o[p]; }); o[ps[ps.length - 1]] = v; } return wrap(r); },
       deleteMany: async (q) => { for (let i = rows.length - 1; i >= 0; i -= 1) if (matches(rows[i], q)) rows.splice(i, 1); },
       countDocuments: async (q) => rows.filter((r) => matches(r, q)).length,
     };

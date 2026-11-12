@@ -13,6 +13,11 @@ function page(businessName, { clinic = false } = {}) {
 (function(){var base=location.pathname.replace(/\\/page\\/?$/,'');var app=document.getElementById('app'),msg=document.getElementById('msg'),sel={};
 function say(t){msg.textContent=t}function el(t,x,p){var e=document.createElement(t);if(x)e.textContent=x;if(p)p.appendChild(e);return e}
 function j(u,o){return fetch(base+u,o).then(function(r){return r.json().then(function(b){if(!r.ok||!b.success)throw new Error(b.message||'Something went wrong.');return b.data})})}
+function done(r,body){app.textContent='';var info=el('p','Booked: '+r.serviceName+' on '+r.date+'. '+(r.status==='pending'?'The business will confirm it.':''),app);
+var ch=el('button','Change time',app);ch.type='button';var cx=el('button','Cancel booking',app);cx.type='button';var box=el('div','',app);
+cx.onclick=function(){cx.disabled=true;j('/appointments/'+r.id+'/cancel',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone:body.phone})}).then(function(){app.textContent='';say('Your booking is cancelled.')}).catch(function(e){cx.disabled=false;say(e.message)})};
+ch.onclick=function(){box.textContent='';var nd=el('input','',box);nd.type='date';var list=el('div','',box);
+nd.onchange=function(){list.textContent='';if(!nd.value)return;j('/slots?date='+encodeURIComponent(nd.value)+'&serviceKey='+encodeURIComponent(body.serviceKey)+(body.staffId?'&staffId='+encodeURIComponent(body.staffId):'')).then(function(q){var l=q.slots||[];if(!l.length)say('No times free that day.');else say('');l.forEach(function(x){var lab=('0'+Math.floor(x/60)).slice(-2)+':'+('0'+x%60).slice(-2);var b=el('button',lab,list);b.type='button';b.onclick=function(){j('/appointments/'+r.id+'/reschedule',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone:body.phone,date:nd.value,start:x})}).then(function(m){info.textContent='Moved to '+m.date+' at '+lab+'.';box.textContent='';say('')}).catch(function(e){say(e.message)})}})}).catch(function(e){say(e.message)})}}}
 j('').then(function(d){app.textContent='';
 var l1=el('label','Service',app),s=el('select','',app);d.services.forEach(function(x){var o=el('option',x.name+' ('+x.mins+' min'+(x.price?', Rs '+x.price:'')+')',s);o.value=x.key});
 var l2=el('label','Date',app),dt=el('input','',app);dt.type='date';
@@ -24,7 +29,7 @@ ${clinic ? "var al=el('label','Area',app);var ar=el('select','',app);" + JSON.st
 var cl=el('label','',app);cl.className='c';var cb=el('input','',cl);cb.type='checkbox';el('span',${JSON.stringify(CONSENT_TEXT)},cl);
 var go=el('button','Book',app);go.type='button';go.onclick=function(){say('');if(!sel.start){say('Pick a time first.');return}if(!cb.checked){say('Please tick the box to agree.');return}
 var body={date:dt.value,start:sel.start,staffId:sel.staffId||'',serviceKey:s.value,name:nm.value,phone:ph.value,consent:true};${clinic ? 'body.bodyArea=ar.value;' : ''}
-go.disabled=true;j('/book',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}).then(function(r){app.textContent='';el('p','Booked: '+r.serviceName+' on '+r.date+'. '+(r.status==='pending'?'The business will confirm it.':''),app)}).catch(function(e){go.disabled=false;say(e.message)})}
+go.disabled=true;j('/book',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}).then(function(r){done(r,body)}).catch(function(e){go.disabled=false;say(e.message)})}
 }).catch(function(e){app.textContent='';say(e.message)})})();
 </script></body></html>`;
 }

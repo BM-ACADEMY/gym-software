@@ -266,7 +266,7 @@ function createSalonRouter({ express, mongoose, protect, authorize, tenantOf, gu
   // ---- accounts: expenses, dues, day close, P&L, GST, CA export (owner only; we do not file GST) ----
   const refundsIn = (tid, from, to) => M.Return.find({ tenantId: tid, date: { $gte: from, $lte: to } }).limit(5000).lean();
   const audit = (tid, req, action, ref) => M.Audit.create({ tenantId: tid, by: req.user.id, action, ref }).catch(() => {});
-  const range = (req) => { const from = str(req.query.from, 10); const to = str(req.query.to, 10); if (!B.validDate(from) || !B.validDate(to) || from > to || B.daysBetween(from, to) > 366) throw field('Pick from and to dates (up to one year).'); return { from, to }; };
+  const range = (req) => { const dn = Number(req.query.days); if (!req.query.from && !req.query.to && Number.isInteger(dn) && dn >= 1 && dn <= 366) return { from: B.addDays(today(), -(dn - 1)), to: today() }; const from = str(req.query.from, 10); const to = str(req.query.to, 10); if (!B.validDate(from) || !B.validDate(to) || from > to || B.daysBetween(from, to) > 366) throw field('Pick from and to dates (up to one year).'); return { from, to }; };
   // The panel's list screen sends no dates: default to the last 60 days (D-28: nothing to type to see the list).
   const rangeOr = (req, days) => (req.query.from || req.query.to ? range(req) : { from: B.addDays(today(), -days), to: today() });
   router.get('/expenses', adminOnly, wrap(async (req, res, tid) => { const { from, to } = rangeOr(req, 60); res.json({ success: true, data: (await M.Expense.find({ tenantId: tid, date: { $gte: from, $lte: to } }).sort({ date: -1 }).limit(500)).map(plain) }); }));
@@ -399,6 +399,20 @@ function createPublicRouter({ express, mongoose, limiter = makeLimiter() }) {
     const c = a ? await M.Customer.findOne({ _id: a.customerId, tenantId: tid }) : null;
     if (!a || !c || c.phone !== ph) return fail(res, 404, 'Booking not found.');
     await M.Appointment.updateOne({ _id: a._id, tenantId: tid }, { $set: { status: 'cancelled', active: false } }); res.json({ success: true });
+  }));
+  // The customer moves their own booking: they must give the phone number it was made with. Same slot checks as a new public booking.
+  router.post('/:token/appointments/:id/reschedule', guard(async (req, res, t, tid) => {
+    const b = req.body || {}; const ph = B.cleanPhone(b.phone); const date = str(b.date, 10);
+    const a = isId(req.params.id) ? await M.Appointment.findOne({ _id: req.params.id, tenantId: tid, active: true }) : null;
+    const c = a ? await M.Customer.findOne({ _id: a.customerId, tenantId: tid }) : null;
+    if (!a || !c || c.phone !== ph) return fail(res, 404, 'Booking not found.');
+    if (!['booked', 'pending'].includes(a.status)) return fail(res, 409, 'This booking cannot be moved now. Please call the business.');
+    if (!B.validDate(date) || !Number.isInteger(b.start)) return fail(res, 400, 'Pick a new date and time.');
+    const staffId = String(a.staffId);
+    const others = (await M.Appointment.find({ tenantId: tid, staffId, date, active: true, _id: { $ne: a._id } }).lean()).map((x) => ({ start: x.start, end: x.start + x.mins }));
+    B.checkStart({ tenant: t, date, start: b.start, mins: a.mins, booked: others, publicBooking: true });
+    await M.Appointment.updateOne({ _id: a._id, tenantId: tid }, { $set: { date, start: b.start } });
+    res.json({ success: true, data: { id: String(a._id), date, start: b.start } });
   }));
   return router;
 }

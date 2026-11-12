@@ -28,7 +28,7 @@ function Day({ api, role, t, w, clinic }) {
   const [date, setDate] = useState(istToday()); const [staffId, setStaffId] = useState('');
   const [refs] = useLoad(async () => ({ staff: (await api.get('/staff')).data.filter((s) => s.isActive !== false), services: (await api.get('/services')).data.filter((s) => s.isActive !== false) }), []);
   const [list, reload] = useLoad(async () => (await api.get('/appointments', { date })).data, [date]);
-  const [form, setForm] = useState(null); const [moving, setMoving] = useState(null); const [error, setError] = useState('');
+  const [form, setForm] = useState(null); const [moving, setMoving] = useState(null); const [error, setError] = useState(''); const [view, setView] = useState('list');
   const staff = refs.data ? refs.data.staff : []; const services = refs.data ? refs.data.services : [];
   const nameOf = useMemo(() => Object.fromEntries(staff.map((s) => [s.id, s.name])), [staff]);
   const svcOf = useMemo(() => Object.fromEntries(services.map((s) => [s.key, s])), [services]);
@@ -42,12 +42,14 @@ function Day({ api, role, t, w, clinic }) {
           <button type="button" style={S.chip(!staffId)} onClick={() => setStaffId('')}>{t.day.all}</button>
           {staff.map((s) => <button key={s.id} type="button" style={S.chip(staffId === s.id)} onClick={() => setStaffId(s.id)}>{s.name}</button>)}
         </div>
+        <div style={S.row}><button type="button" style={S.chip(view === 'list')} onClick={() => setView('list')}>{t.day.list}</button><button type="button" style={S.chip(view === 'grid')} onClick={() => setView('grid')}>{t.day.grid}</button></div>
         <p><button type="button" style={S.main} onClick={() => setForm({ date, serviceKey: '', staffId: staffId || '', start: null, name: '', phone: '', consent: false, bodyArea: 'other' })}>{t.day.book}</button></p>
       </div>
       <Err text={error || list.error || refs.error} t={t} retry={reload} />
       {list.loading && <p style={S.err}>{t.common.loading}</p>}
       {!list.loading && !shown.length && <p style={{ margin: '10px 16px' }}>{t.common.none}</p>}
-      {shown.map((a) => (
+      {view === 'grid' && <Grid t={t} staff={staffId ? staff.filter((s) => s.id === staffId) : staff} appts={shown} svcOf={svcOf} onEmpty={(sid) => setForm({ date, serviceKey: '', staffId: sid, start: null, name: '', phone: '', consent: false, bodyArea: 'other' })} />}
+      {view === 'list' && shown.map((a) => (
         <div key={a.id} style={S.card}>
           <strong>{hhmm(a.start)}–{hhmm(a.start + a.mins)}</strong> · {(svcOf[a.serviceKey] || {}).name || a.serviceKey} · {nameOf[a.staffId] || w.staff}
           <div>{a.customer ? a.customer.name + ' · ' + a.customer.phone : ''}{clinic && a.bodyArea ? ' · ' + (t.day.areas[a.bodyArea] || a.bodyArea) : ''}</div>
@@ -63,6 +65,32 @@ function Day({ api, role, t, w, clinic }) {
         </div>
       ))}
       {form && <BookForm api={api} t={t} w={w} clinic={clinic} form={form} setForm={setForm} staff={staff} services={services} onDone={() => { setForm(null); reload(); }} />}
+    </div>
+  );
+}
+// A simple time grid: one column per person, one row per half hour. Booked boxes show the customer; empty boxes open the booking form.
+function Grid({ t, staff, appts, svcOf, onEmpty }) {
+  const live = appts.filter((a) => a.status !== 'cancelled');
+  const from = Math.min(540, ...live.map((a) => Math.floor(a.start / 30) * 30)); const to = Math.max(1260, ...live.map((a) => Math.ceil((a.start + a.mins) / 30) * 30));
+  const rows = []; for (let m = from; m < to; m += 30) rows.push(m);
+  if (!staff.length) return <p style={{ margin: '10px 16px' }}>{t.common.none}</p>;
+  const cell = { border: '1px solid #e5e5e5', padding: 4, fontSize: 13, verticalAlign: 'top', minWidth: 90, height: 34 };
+  return (
+    <div style={{ margin: '10px 12px', overflowX: 'auto' }}>
+      <small>{t.day.gridHint}</small>
+      <table style={{ borderCollapse: 'collapse', width: '100%', background: '#fff' }}>
+        <thead><tr><th style={cell} />{staff.map((s) => <th key={s.id} style={cell}>{s.name}</th>)}</tr></thead>
+        <tbody>{rows.map((m) => (
+          <tr key={m}><td style={{ ...cell, minWidth: 48, color: '#666' }}>{hhmm(m)}</td>
+            {staff.map((s) => {
+              const a = live.find((x) => String(x.staffId) === s.id && x.start >= m && x.start < m + 30);
+              const busy = !a && live.some((x) => String(x.staffId) === s.id && x.start < m && x.start + x.mins > m);
+              if (a) return <td key={s.id} style={{ ...cell, background: a.status === 'pending' ? '#fef3c7' : a.status === 'done' ? '#dcfce7' : '#fce7f3' }}><strong>{a.customer ? a.customer.name : ''}</strong><br />{(svcOf[a.serviceKey] || {}).name || a.serviceKey}</td>;
+              if (busy) return <td key={s.id} style={{ ...cell, background: '#f5f5f5' }} />;
+              return <td key={s.id} style={cell}><button type="button" aria-label={hhmm(m) + ' ' + s.name} style={{ width: '100%', height: 28, border: 0, background: 'transparent', cursor: 'pointer' }} onClick={() => onEmpty(s.id)} /></td>;
+            })}
+          </tr>))}</tbody>
+      </table>
     </div>
   );
 }
@@ -147,28 +175,72 @@ function Queue({ api, t, w }) {
 }
 
 // ---------- Bill ----------
+function CustomerPicker({ api, t, cust, setCust }) {
+  const [q, setQ] = useState(''); const [mode, setMode] = useState('find'); const [f, setF] = useState({ name: '', phone: '', consent: false }); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
+  const [list] = useLoad(async () => (q.trim().length >= 2 ? (await api.get('/customers', { q: q.trim() })).data.slice(0, 6) : []), [q]);
+  const create = async () => {
+    setBusy(true); setError('');
+    try { const d = (await api.post('/customers', { name: f.name.trim(), phone: f.phone, consentGiven: true })).data; setCust({ id: d.id, name: d.name, phone: d.phone }); setF({ name: '', phone: '', consent: false }); setMode('find'); }
+    catch (e) { setError(msg(e)); } finally { setBusy(false); }
+  };
+  if (cust) return <div style={S.card}>{t.bill.chosen}: <strong>{cust.name}</strong> <button type="button" style={S.big} onClick={() => setCust(null)}>{t.bill.change}</button></div>;
+  return (
+    <div style={S.card}>
+      <strong>{t.bill.customer}</strong> <small>({t.bill.noCustomer})</small>
+      <div style={S.row}><button type="button" style={S.chip(mode === 'find')} onClick={() => setMode('find')}>{t.bill.findCustomer}</button><button type="button" style={S.chip(mode === 'new')} onClick={() => setMode('new')}>{t.bill.newCustomer}</button></div>
+      {mode === 'find' && <>
+        <input style={S.input} placeholder={t.bill.findCustomer} value={q} onChange={(e) => setQ(e.target.value)} />
+        <Err text={list.error} t={t} />
+        {(list.data || []).map((c) => <button key={c.id} type="button" style={{ ...S.big, width: '100%', textAlign: 'left', marginBottom: 6 }} onClick={() => setCust({ id: c.id, name: c.name, phone: c.phone })}><strong>{c.name}</strong> · {c.phone}</button>)}
+      </>}
+      {mode === 'new' && <>
+        <input style={S.input} placeholder={t.bill.customerName} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} autoComplete="off" />
+        <input style={S.input} placeholder={t.bill.customerPhone} inputMode="numeric" maxLength={10} value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value.replace(/\D/g, '') })} />
+        <label style={{ display: 'block', marginBottom: 10 }}><input type="checkbox" checked={f.consent} onChange={(e) => setF({ ...f, consent: e.target.checked })} /> {t.bill.customerConsent}</label>
+        <Err text={error} t={t} />
+        <button type="button" style={S.main} disabled={busy || f.name.trim().length < 2 || !/^\d{10}$/.test(f.phone) || !f.consent} onClick={create}>{t.bill.saveCustomer}</button>
+      </>}
+    </div>
+  );
+}
 const newLine = () => ({ serviceKey: '', staffId: '', qty: 1 });
 function Bill({ api, t }) {
   const [refs] = useLoad(async () => ({ staff: (await api.get('/staff')).data.filter((s) => s.isActive !== false), services: (await api.get('/services')).data.filter((s) => s.isActive !== false) }), []);
   const [lines, setLines] = useState([newLine()]); const [disc, setDisc] = useState({ on: false, type: 'percent', value: '', reason: '' });
   const [pays, setPays] = useState([{ method: 'cash', amount: '' }]); const [result, setResult] = useState(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
   const [clientId, setClientId] = useState(() => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
+  const [cust, setCust] = useState(null); const [prods, setProds] = useState([]); const [products] = useLoad(async () => (await api.get('/products')).data.filter((p) => p.isActive !== false), []);
   const services = refs.data ? refs.data.services : []; const staff = refs.data ? refs.data.staff : [];
   const price = useMemo(() => Object.fromEntries(services.map((s) => [s.key, s.price])), [services]);
   // A rough total for the cashier. The server works out the real one (GST, rounding, limits) and shows it after saving.
-  const rough = lines.reduce((a, l) => a + (price[l.serviceKey] || 0) * (Number(l.qty) || 1), 0);
+  const pprice = useMemo(() => Object.fromEntries((products.data || []).map((p) => [p.id, p.price])), [products.data]);
+  const rough = lines.reduce((a, l) => a + (price[l.serviceKey] || 0) * (Number(l.qty) || 1), 0) + prods.reduce((a, l) => a + (pprice[l.productId] || 0) * (Number(l.qty) || 1), 0);
+  const setProd = (i, k, v) => setProds(prods.map((l, j) => (j === i ? { ...l, [k]: v } : l)));
   const setLine = (i, k, v) => setLines(lines.map((l, j) => (j === i ? { ...l, [k]: v } : l)));
   const setPay = (i, k, v) => setPays(pays.map((p, j) => (j === i ? { ...p, [k]: v } : p)));
   const submit = async () => {
     setError('');
-    if (!lines.some((l) => l.serviceKey)) return setError(t.bill.needLine);
+    if (!lines.some((l) => l.serviceKey) && !prods.some((l) => l.productId)) return setError(t.bill.needLine);
     if (lines.some((l) => l.serviceKey && !l.staffId)) return setError(t.bill.needStaff);
     const body = { clientId, lines: lines.filter((l) => l.serviceKey).map((l) => ({ serviceKey: l.serviceKey, staffId: l.staffId, qty: Number(l.qty) || 1 })), payments: pays.filter((p) => Number(p.amount) > 0).map((p) => ({ method: p.method, amount: Math.round(Number(p.amount)) })) };
+    body.lines = body.lines.concat(prods.filter((l) => l.productId).map((l) => ({ productId: l.productId, qty: Number(l.qty) || 1, ...(l.staffId ? { staffId: l.staffId } : {}) })));
+    if (cust) body.customerId = cust.id;
     if (disc.on && Number(disc.value) > 0) { body.billDiscount = { type: disc.type, value: Number(disc.value) }; body.discountReason = disc.reason.trim(); }
     setBusy(true);
     try { setResult((await api.post('/bills', body)).data); } catch (e) { setError(msg(e)); } finally { setBusy(false); }
   };
-  const reset = () => { setLines([newLine()]); setDisc({ on: false, type: 'percent', value: '', reason: '' }); setPays([{ method: 'cash', amount: '' }]); setResult(null); setError(''); setClientId('c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)); };
+  const reset = () => { setCust(null); setProds([]); setLines([newLine()]); setDisc({ on: false, type: 'percent', value: '', reason: '' }); setPays([{ method: 'cash', amount: '' }]); setResult(null); setError(''); setClientId('c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)); };
+  const [note, setNote] = useState('');
+  // The bill page is fetched with the sign-in and opened in a new tab, ready to print. Nothing is sent to anyone.
+  const printBill = async (size) => {
+    setError(''); setNote('');
+    try { const r = await api.download(`/bills/${result.id}/print?size=${size}`); const url = URL.createObjectURL(new Blob([r.blob], { type: 'text/html' })); const win = window.open(url, '_blank'); if (!win) setError(t.bill.printFail); setTimeout(() => URL.revokeObjectURL(url), 60000); }
+    catch (e) { setError(msg(e) || t.bill.printFail); }
+  };
+  const copyText = async () => {
+    const text = `${t.bill.number} ${result.number}\n` + (result.lines || []).map((l) => `${l.name} x ${l.qty}: Rs ${l.total}`).join('\n') + `\n${t.bill.total}: Rs ${result.total}` + (result.due > 0 ? `\n${t.bill.due}: Rs ${result.due}` : '');
+    try { await navigator.clipboard.writeText(text); setNote(t.bill.copied); } catch (e) { setError(t.bill.printFail); }
+  };
   if (result) return (
     <div style={S.card}>
       <h3>{t.bill.saved}</h3>
@@ -177,12 +249,20 @@ function Bill({ api, t }) {
       <p>{t.bill.received}: Rs {result.received}</p>
       {result.change > 0 && <p>{t.bill.change}: <strong>Rs {result.change}</strong></p>}
       {result.due > 0 && <p>{t.bill.due}: <strong>Rs {result.due}</strong></p>}
-      <button type="button" style={S.main} onClick={reset}>{t.bill.newBill}</button>
+      <div style={S.row}>
+        <button type="button" style={S.main} onClick={() => printBill('A5')}>{t.bill.print}</button>
+        <button type="button" style={S.big} onClick={() => printBill('A4')}>{t.bill.printA4}</button>
+        <button type="button" style={S.big} onClick={copyText}>{t.bill.copyText}</button>
+      </div>
+      <Err text={error} t={t} />
+      {note && <p role="status">{note}</p>}
+      <p><button type="button" style={S.main} onClick={reset}>{t.bill.newBill}</button></p>
     </div>
   );
   return (
     <div>
-      <Err text={refs.error} t={t} />
+      <Err text={refs.error || products.error} t={t} />
+      <CustomerPicker api={api} t={t} cust={cust} setCust={setCust} />
       {lines.map((l, i) => (
         <div key={i} style={S.card}>
           <label>{t.bill.service}<select style={S.input} value={l.serviceKey} onChange={(e) => setLine(i, 'serviceKey', e.target.value)}><option value="">—</option>{services.map((s) => <option key={s.key} value={s.key}>{s.name} · Rs {s.price}</option>)}</select></label>
@@ -192,6 +272,14 @@ function Bill({ api, t }) {
         </div>
       ))}
       <p style={{ margin: '0 12px' }}><button type="button" style={S.big} onClick={() => setLines([...lines, newLine()])}>{t.bill.addLine}</button></p>
+      {(products.data || []).length > 0 && prods.map((l, i) => (
+        <div key={'p' + i} style={S.card}>
+          <label>{t.bill.product}<select style={S.input} value={l.productId} onChange={(e) => setProd(i, 'productId', e.target.value)}><option value="">—</option>{products.data.map((p) => <option key={p.id} value={p.id}>{p.name} · Rs {p.price}{typeof p.stock === 'number' ? ` · ${p.stock} ${t.bill.inStock}` : ''}</option>)}</select></label>
+          <label>{t.bill.qty}<input style={S.input} type="number" min="1" value={l.qty} onChange={(e) => setProd(i, 'qty', e.target.value)} /></label>
+          <button type="button" style={S.big} onClick={() => setProds(prods.filter((_, j) => j !== i))}>{t.bill.remove}</button>
+        </div>
+      ))}
+      {(products.data || []).length > 0 && <p style={{ margin: '0 12px' }}><button type="button" style={S.big} onClick={() => setProds([...prods, { productId: '', qty: 1 }])}>{t.bill.addProduct}</button></p>}
       <div style={S.card}>
         <label><input type="checkbox" checked={disc.on} onChange={(e) => setDisc({ ...disc, on: e.target.checked })} /> {t.bill.discount}</label>
         {disc.on && <>

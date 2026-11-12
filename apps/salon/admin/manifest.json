@@ -27,6 +27,12 @@
       "resource": "appointments"
     },
     {
+      "key": "reminders",
+      "label": "Reminders",
+      "screen": "stats",
+      "stats": "reminders"
+    },
+    {
       "key": "customers",
       "label": "Customers",
       "screen": "resource",
@@ -646,6 +652,48 @@
         }
       ],
       "tables": []
+    },
+    "reminders": {
+      "label": "Reminders for tomorrow",
+      "endpoint": "/reminders/suggestions",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Visits tomorrow you can remind",
+          "path": "list.length",
+          "type": "number"
+        },
+        {
+          "label": "Left out (no consent or do-not-contact)",
+          "path": "leftOut",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Copy each message and send it yourself (nothing is sent from here)",
+          "rows": "list",
+          "empty": "No visits tomorrow to remind.",
+          "columns": [
+            {
+              "key": "time",
+              "label": "Time"
+            },
+            {
+              "key": "name",
+              "label": "Customer"
+            },
+            {
+              "key": "serviceName",
+              "label": "Service"
+            },
+            {
+              "key": "message",
+              "label": "Message"
+            }
+          ]
+        }
+      ]
     }
   },
   "resources": {

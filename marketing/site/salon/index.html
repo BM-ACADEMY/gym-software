@@ -1,0 +1,98 @@
+<!doctype html>
+<!--
+  Groom (Salon, Spa, Barber, Clinic): pilot page. Built by marketing/build_site.py from the pilot lines in the product's LANDING.md and MARKETING_CLAIMS.md.
+  Rules: no prices, no feature claims, no numbers, no testimonials. Written 13 Nov 2026, not yet seen in a browser by a person.
+  TAMIL LINES ARE FIRST DRAFTS and need a native speaker's review (M-06) before this page goes public.
+  To go live: set WAITLIST_API below to the Super Admin address, e.g. https://admin.afraventures.in/api/waitlist, and add this
+  page's address to WAITLIST_ORIGINS in the Super Admin server settings (never in git).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Groom (Salon, Spa, Barber, Clinic) - invite-only pilot</title>
+<meta name="description" content="A simple booking and billing app for salons, spas, barbers and clinics. We are inviting a few businesses to try it first.">
+<style>
+:root{--c:#9d174d;--ink:#1f2937;--muted:#4b5563;--line:#d1d5db;--bg:#f8fafc}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 system-ui,-apple-system,'Segoe UI','Noto Sans Tamil','Nirmala UI',sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{font-weight:700;color:var(--c)}
+.lang{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font:inherit;cursor:pointer}
+h1{font-size:26px;line-height:1.25;margin:22px 0 8px}
+.lead{color:var(--muted);margin:0 0 18px}
+form{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}
+label{display:grid;gap:4px;font-weight:600;font-size:14px}
+input[type=text],input[type=tel],input[type=email]{font:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;width:100%}
+input:focus-visible,button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
+.consent{display:flex;gap:10px;align-items:flex-start;font-weight:400}
+.consent input{width:20px;height:20px;margin-top:3px;accent-color:var(--c)}
+.go{background:var(--c);color:#fff;border:0;border-radius:12px;padding:14px;font:inherit;font-weight:700;cursor:pointer}
+.go[disabled]{opacity:.6}
+.msg{min-height:1.4em;margin:0;font-weight:600}
+.msg.err{color:#b91c1c}.msg.ok{color:#166534}
+.small{font-size:13px;color:var(--muted)}
+.hp{position:absolute;left:-9999px;height:0;overflow:hidden}
+footer{max-width:560px;margin:0 auto;padding:16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+footer a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><span class="brand">Groom (Salon, Spa, Barber, Clinic)</span><button class="lang" id="lang" type="button" aria-label="Language">தமிழ்</button></div>
+  <h1 id="h"></h1>
+  <p class="lead" id="l"></p>
+  <form id="f" novalidate>
+    <label><span data-k="name"></span><input type="text" id="name" autocomplete="name" maxlength="80" required></label>
+    <label><span data-k="phone"></span><input type="tel" id="phone" inputmode="numeric" autocomplete="tel" maxlength="16"></label>
+    <label><span data-k="email"></span><input type="email" id="email" autocomplete="email" maxlength="120"></label>
+    <label><span id="biz"></span><input type="text" id="biz-in" maxlength="60"></label>
+    <label><span data-k="city"></span><input type="text" id="city" autocomplete="address-level2" maxlength="60"></label>
+    <div class="hp" aria-hidden="true"><label>Website<input type="text" id="website" tabindex="-1" autocomplete="off"></label></div>
+    <label class="consent"><input type="checkbox" id="consent"><span data-k="consent"></span></label>
+    <p class="small" data-k="note"></p>
+    <button class="go" id="go" type="submit"></button>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    <p class="small" data-k="small"></p>
+  </form>
+</main>
+<footer>
+  <p><strong>Afra Ventures Private Limited</strong><br>78, Lenin Street, Kosapalayam, Puducherry - 605013, India<br>GSTIN 34ABGCA7083D1ZS &middot; CIN U62011PY2026PTC009819</p>
+  <p><a href="/terms">Terms</a> &middot; <a href="/privacy">Privacy</a> &middot; <a href="/refund">Refund policy</a> &middot; <a href="/grievance">Grievance officer</a>: Mohamed Kamarudeen B, <a href="mailto:privacy@afraventures.in">privacy@afraventures.in</a></p>
+</footer>
+<script>
+// Set this to the Super Admin address before the page goes public (see the note at the top of the file).
+var WAITLIST_API = '/api/waitlist';
+var PRODUCT = 'groom';
+var T = {
+  en: {h:"Salon, Spa, Barber and Clinic (Groom) is coming. Join the invite-only pilot.", l:"A simple booking and billing app for salons, spas, barbers and clinics. We are inviting a few businesses to try it first.", biz:"Business name and type (Salon, Spa, Barber or Clinic)", ui:{"join": "Ask to join", "small": "Pilot is for a small number of invited businesses. Prices are shown here only after we confirm them.", "name": "Your name", "phone": "Mobile number", "email": "Email (optional)", "city": "City or town", "consent": "I agree that Afra Ventures may contact me about this pilot. I can ask to be removed any time.", "send": "Ask to join the pilot", "sending": "Sending...", "fail": "Could not send. Please try again in a few minutes.", "tick": "Please tick the box so we may contact you.", "need": "Please give a name and a mobile number or an email.", "note": "Mobile number or email is needed.", "lang": "தமிழ்"}},
+  ta: {h:"சலூன், ஸ்பா, பார்பர், கிளினிக் (Groom) விரைவில் வருகிறது. அழைப்பு-மட்டும் பைலட்டில் சேருங்கள்.", l:"சலூன், ஸ்பா, பார்பர், கிளினிக்குகளுக்கான எளிய முன்பதிவு மற்றும் பில்லிங் செயலி. முதலில் சில நிறுவனங்களை அழைக்கிறோம்.", biz:"நிறுவனப் பெயர் மற்றும் வகை (சலூன், ஸ்பா, பார்பர் அல்லது கிளினிக்)", ui:{"join": "சேரக் கேளுங்கள்", "small": "பைலட் அழைக்கப்பட்ட சில நிறுவனங்களுக்கு மட்டுமே. விலைகளை உறுதி செய்த பிறகே இங்கே காட்டுவோம்.", "name": "உங்கள் பெயர்", "phone": "மொபைல் எண்", "email": "மின்னஞ்சல் (விருப்பம்)", "city": "நகரம் அல்லது ஊர்", "consent": "இந்த பைலட் குறித்து அஃப்ரா வென்ச்சர்ஸ் என்னைத் தொடர்பு கொள்ள ஒப்புக்கொள்கிறேன். எப்போது வேண்டுமானாலும் நீக்கச் சொல்லலாம்.", "send": "பைலட்டில் சேரக் கேளுங்கள்", "sending": "அனுப்புகிறது...", "fail": "அனுப்ப முடியவில்லை. சில நிமிடங்களில் மீண்டும் முயற்சிக்கவும்.", "tick": "நாங்கள் தொடர்பு கொள்ள பெட்டியில் டிக் செய்யவும்.", "need": "பெயர் மற்றும் மொபைல் எண் அல்லது மின்னஞ்சல் தேவை.", "note": "மொபைல் எண் அல்லது மின்னஞ்சல் தேவை.", "lang": "English"}}
+};
+var lang = 'en';
+var $ = function (id) { return document.getElementById(id); };
+function paint() {
+  var t = T[lang]; document.documentElement.lang = lang;
+  $('h').textContent = t.h; $('l').textContent = t.l; $('biz').textContent = t.biz; $('go').textContent = t.ui.send; $('lang').textContent = t.ui.lang;
+  document.title = t.h;
+  Array.prototype.forEach.call(document.querySelectorAll('[data-k]'), function (el) { el.textContent = t.ui[el.getAttribute('data-k')]; });
+}
+$('lang').addEventListener('click', function () { lang = lang === 'en' ? 'ta' : 'en'; paint(); });
+var src = (new URLSearchParams(location.search).get('src') || 'site').toLowerCase();
+$('f').addEventListener('submit', function (ev) {
+  ev.preventDefault(); var t = T[lang].ui, m = $('msg'); m.className = 'msg'; m.textContent = '';
+  var name = $('name').value.trim(), phone = $('phone').value.trim(), email = $('email').value.trim();
+  if (name.length < 2 || (!phone && !email)) { m.className = 'msg err'; m.textContent = t.need; return; }
+  if (!$('consent').checked) { m.className = 'msg err'; m.textContent = t.tick; return; }
+  $('go').disabled = true; m.textContent = t.sending;
+  fetch(WAITLIST_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+    name: name, phone: phone, email: email, product: PRODUCT, businessType: $('biz-in').value, city: $('city').value, source: src, website: $('website').value, consent: true }) })
+  .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+  .then(function (x) { m.className = 'msg ' + (x.ok && x.j.success ? 'ok' : 'err'); m.textContent = (x.ok && x.j.success) ? x.j.message : (x.j.message || t.fail); if (x.ok && x.j.success) $('f').reset(); })
+  .catch(function () { m.className = 'msg err'; m.textContent = t.fail; })
+  .then(function () { $('go').disabled = false; });
+});
+paint();
+</script>
+</body>
+</html>

@@ -9,7 +9,7 @@ const GRANTS = {
   cashier: ['bill', 'udhaar', 'dayclose', 'itemsRead'],
   stockkeeper: ['stock', 'purchases', 'items', 'itemsRead'],
 };
-const can = (role, perm) => (role === 'admin' ? true : Array.isArray(GRANTS[role]) && GRANTS[role].includes(perm));
+const can = (role, perm) => (perm === 'self' ? ROLES.includes(role) : role === 'admin' ? true : Array.isArray(GRANTS[role]) && GRANTS[role].includes(perm));
 
 // Mart's own routes: [method or '*', path pattern, permission]. First match wins.
 const RULES = [
@@ -21,7 +21,8 @@ const RULES = [
   ['*', /^\/(suppliers|purchases)(\/|$)/, 'purchases'],
   ['*', /^\/(reports|summary|marketing)(\/|$)/, 'reports'],
   ['*', /^\/audit$/, 'audit'], ['*', /^\/privacy(\/|$)/, 'privacy'], ['*', /^\/team(\/|$)/, 'team'],
-  ['*', /^\/(attendance)(\/|$)/, 'attendance'], ['*', /^\/(staff|advances|payroll)(\/|$)/, 'payroll'],
+  ['POST', /^\/my-password$/, 'self'], // every signed-in person may change their own password
+  ['*', /^\/(attendance|shifts)(\/|$)/, 'attendance'], ['*', /^\/(staff|advances|payroll|leave-balance|payslip)(\/|$)/, 'payroll'],
   ['*', /^\/upi-links(\/|$)/, 'bill'],
 ];
 const permFor = (method, path) => { for (const [m, re, perm] of RULES) if ((m === '*' || m === method) && re.test(path)) return perm; return null; };

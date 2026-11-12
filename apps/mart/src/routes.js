@@ -48,7 +48,7 @@ function discountHooks({ mongoose, now = () => new Date() }) {
   });
 }
 
-function createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles = ['admin', 'subadmin'], now = () => new Date(), models, pos, hashFn }) {
+function createMartRouter({ express, mongoose, protect, authorize, tenantOf, guardWrite, roles = ['admin', 'subadmin'], now = () => new Date(), models, pos, hashFn, verifyFn }) {
   // models/pos: injected stand-ins for plain-node tests; the real app passes only mongoose.
   const router = express.Router(); const M = models || makeModels(mongoose); const P = pos || makePos(mongoose);
   router.use(protect, authorize(...roles));
@@ -81,6 +81,7 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     if (b.clearCreditLimit === true) { if (b.defaultCreditLimit !== undefined && b.defaultCreditLimit !== null && b.defaultCreditLimit !== '') return fail(res, 400, 'Either type a limit or tick "remove the limit", not both.'); set.defaultCreditLimit = null; }
     else if ('defaultCreditLimit' in b) { if (b.defaultCreditLimit === null || b.defaultCreditLimit === '') set.defaultCreditLimit = null; else { const v = clampInt(b.defaultCreditLimit, 0, 10000000, null); if (v === null) return fail(res, 400, 'Credit limit must be whole rupees.'); set.defaultCreditLimit = v; } }
     if ('upiId' in b) { const v = typeof b.upiId === 'string' ? b.upiId.trim() : ''; if (v && !UPI.validVpa(v)) return fail(res, 400, 'That UPI id does not look right (for example shopname@bank).'); set.upiId = v; }
+    if ('paidLeaveAllowance' in b) { if (b.paidLeaveAllowance === null || b.paidLeaveAllowance === '') set.paidLeaveAllowance = null; else { const v = clampInt(b.paidLeaveAllowance, 0, 60, null); if (v === null) return fail(res, 400, 'Paid leave per year must be 0 to 60 days.'); set.paidLeaveAllowance = v; } }
     if ('upiName' in b) set.upiName = typeof b.upiName === 'string' ? b.upiName.trim().slice(0, 40) : '';
     if ('discountRule' in b) {
       if (!req.user || req.user.role !== 'admin') return fail(res, 403, 'Only the owner can change the discount rule.');
@@ -363,10 +364,10 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     const day = b.day === undefined || b.day === '' ? today() : b.day; if (!valid(day)) return fail(res, 400, 'Choose a real date.');
     const d = await M.Advance.create({ tenantId: tid, staffId: st._id, day, amount, note: typeof b.note === 'string' ? b.note.trim().slice(0, 200) : undefined }); await audit(tid, req, 'advance_add', d._id); res.status(201).json({ success: true });
   }));
+  const more = require('./routesMore').mountMore({ router, M, wrap, fail, audit, ownerOnly, toOid, today, now, monthOf, settingsOf, staffByName, hashFn: hashFn || require('./authRoutes').hashPassword, verifyFn: verifyFn || require('./authRoutes').verifyPassword, valid, addDays });
   router.get('/payroll', wrap(async (req, res, tid) => {
     if (!ownerOnly(req, res)) return; const month = monthOf(req.query.month);
-    const [staff, marks, adv] = await Promise.all([M.Staff.find({ tenantId: tid, isActive: true }).sort({ name: 1 }).limit(200).lean(), M.Attendance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).limit(6200).lean(), M.Advance.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).limit(2000).lean()]);
-    const rows = staff.map((x) => { const p = PR.payslip({ name: x.name, monthlySalary: x.monthlySalary, month, marks: marks.filter((m) => String(m.staffId) === String(x._id)), advances: adv.filter((a) => String(a.staffId) === String(x._id)), joinedOn: x.joinedOn }); return { id: String(x._id), ...p, text: PR.slipText(p) }; });
+    const rows = (await more.slipsFor(tid, month)).map((r) => ({ id: r.id, ...r.slip, text: PR.slipText(r.slip) }));
     res.set('Cache-Control', 'no-store'); res.json({ success: true, data: rows, month, total: rows.reduce((a, r) => a + r.net, 0), currency: 'INR', note: 'Pay the staff yourself. These are draft figures until every day is marked.' });
   }));
 

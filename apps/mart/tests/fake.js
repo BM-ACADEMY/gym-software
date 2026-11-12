@@ -26,6 +26,7 @@ function model() {
     findOne: (f = {}) => one(rows.find((d) => match(d, f))),
     create: async (v) => { const d = { _id: oid(), createdAt: new Date(), ...v }; rows.push(d); return wrapDoc({ ...d }); },
     updateOne: async (f, u, o = {}) => { let d = rows.find((x) => match(x, f)); if (!d && o.upsert) { d = { _id: oid(), ...Object.fromEntries(Object.entries(f).filter(([k, v]) => typeof v !== 'object' || v === null)) }; rows.push(d); } if (d) apply(d, u); },
+    deleteOne: async (f) => { const i = rows.findIndex((x) => match(x, f)); if (i >= 0) rows.splice(i, 1); return { deletedCount: i >= 0 ? 1 : 0 }; },
     findOneAndUpdate: async (f, u, o = {}) => { let d = rows.find((x) => match(x, f)); if (!d && o.upsert) { d = { _id: oid(), ...f }; rows.push(d); } if (d) apply(d, u); return d || null; },
   };
 }

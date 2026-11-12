@@ -58,6 +58,8 @@ function sessionMiddleware(secret, M) {
     return runWithTenant(String(p.tid), async () => {
       const u = await M.User.findOne({ _id: p.uid, tenantId: p.tid, isActive: { $ne: false } });
       if (!u) return res.status(401).json({ success: false, message: 'Please sign in.' });
+      // A password change ends every older sign-in (cookies made before the change carry an earlier iat; very old ones carry none).
+      if (u.passwordChangedAt && !(Number(p.iat) >= new Date(u.passwordChangedAt).getTime())) return res.status(401).json({ success: false, message: 'Your password was changed. Please sign in again.' });
       req.user = { id: String(u._id), tenantId: String(u.tenantId), role: u.role }; req.subscription = await M.Tenant.findById(u.tenantId); next();
     });
   };

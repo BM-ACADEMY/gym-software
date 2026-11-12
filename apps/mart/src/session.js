@@ -5,7 +5,7 @@ const NAME = 'afra_mart'; const TTL_MS = 12 * 3600 * 1000;
 const b64 = (b) => Buffer.from(b).toString('base64url');
 function sign(payload, secret, now = Date.now()) {
   if (!secret || secret.length < 32) throw new Error('MART_SESSION_SECRET must be at least 32 characters');
-  const body = b64(JSON.stringify({ ...payload, exp: now + TTL_MS }));
+  const body = b64(JSON.stringify({ ...payload, iat: now, exp: now + TTL_MS }));
   return `${body}.${crypto.createHmac('sha256', secret).update(body).digest('base64url')}`;
 }
 function verify(token, secret, now = Date.now()) {

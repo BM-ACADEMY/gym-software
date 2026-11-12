@@ -2,9 +2,10 @@
 // Super Admin server (SA-11). FAILS CLOSED: until a real sign-in with two-step verification is plugged into
 // `auth` (task SA-11b), every route answers 503. This file never invents a weak login.
 const express = require('express');
-const { createAdminRouter, collectAll, readConfig, readAllConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createHealthRouter, createAuditRouter, makeAuditStore, createAnnouncementsRouter, createPublicAnnouncementsRouter, makeAnnouncementStore, createIdeasRouter, makeIdeaStore, createPushRouter, makePushStore, makeAiBudget, makeSender, collectAccounts } = require('./src');
+const { createAdminRouter, collectAll, readConfig, readAllConfig, createMarketingRouter, makeMongoStore, combine, createSalesRouter, createAccountsRouter, createHealthRouter, createAuditRouter, makeAuditStore, createAnnouncementsRouter, createPublicAnnouncementsRouter, makeAnnouncementStore, createIdeasRouter, makeIdeaStore, createWaitlistRouter, createPublicWaitlistRouter, makeWaitlistStore, createPushRouter, makePushStore, makeAiBudget, makeSender, collectAccounts } = require('./src');
 
 const app = express();
+app.set('trust proxy', 1); // behind nginx: the real visitor address is needed for the public form's rate limit
 app.disable('x-powered-by');
 app.use(express.json({ limit: '100kb' }));
 
@@ -26,6 +27,10 @@ if (auth && typeof auth.protect === 'function' && typeof auth.authorize === 'fun
     const annStore = makeAnnouncementStore(mongoose);
     app.use('/api/admin/announcements', createAnnouncementsRouter({ express, protect: auth.protect, authorize: auth.authorize, store: annStore, audit }));
     app.use('/api/announcements', createPublicAnnouncementsRouter({ express, store: annStore }));
+    const waitStore = makeWaitlistStore(mongoose);
+    app.use('/api/admin/waitlist', createWaitlistRouter({ express, protect: auth.protect, authorize: auth.authorize, store: waitStore, audit }));
+    // Public pilot-page form: POST only. Browsers on other sites are allowed only if listed in WAITLIST_ORIGINS (server settings).
+    app.use('/api/waitlist', createPublicWaitlistRouter({ express, store: waitStore, origins: String(process.env.WAITLIST_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean) }));
     app.use('/api/admin/ideas', createIdeasRouter({ express, protect: auth.protect, authorize: auth.authorize, store: makeIdeaStore(mongoose), audit }));
     const marketingStore = makeMongoStore(mongoose);
     // AI wording stays off unless the shared AI settings exist (AI_PROVIDER and key); it has its own small daily rupee stop.

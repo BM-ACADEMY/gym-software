@@ -63,6 +63,16 @@
       "resource": "ideas"
     },
     {
+      "key": "waitlist",
+      "label": "Waiting list",
+      "screen": "resource",
+      "resource": "waitlist",
+      "roles": [
+        "root_admin",
+        "marketing"
+      ]
+    },
+    {
       "key": "announcements",
       "label": "Announcements",
       "screen": "resource",
@@ -939,6 +949,81 @@
             "medium",
             "high"
           ]
+        }
+      ]
+    },
+    "waitlist": {
+      "label": "Waiting list",
+      "endpoint": "/waitlist",
+      "readOnly": true,
+      "searchable": true,
+      "empty": "Nobody on the list yet. People join from the pilot pages.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "phone",
+          "label": "Phone"
+        },
+        {
+          "key": "email",
+          "label": "Email"
+        },
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "pill"
+        },
+        {
+          "key": "businessType",
+          "label": "Business"
+        },
+        {
+          "key": "city",
+          "label": "City"
+        },
+        {
+          "key": "source",
+          "label": "Came from",
+          "type": "pill"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        },
+        {
+          "key": "createdAt",
+          "label": "Joined",
+          "type": "date"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Contacted",
+          "method": "POST",
+          "path": "/waitlist/:id/contacted",
+          "when": {
+            "key": "status",
+            "equals": "new"
+          },
+          "done": "Marked as contacted."
+        },
+        {
+          "label": "Delete (they asked)",
+          "method": "DELETE",
+          "path": "/waitlist/:id",
+          "confirm": true,
+          "done": "Deleted."
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download the list (owner only)",
+          "path": "/waitlist/export.csv",
+          "filename": "waitlist.csv"
         }
       ]
     }

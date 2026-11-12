@@ -1,11 +1,11 @@
 // All wording for the Cloth screens, in one place (English). Tamil and Hindi are not added yet.
 export default {
-  tabs: { panel: 'Panel', bill: 'Bill', alterations: 'Alterations', stock: 'Stock', people: 'Customers', items: 'Other items' },
+  tabs: { panel: 'Panel', bill: 'Bill', alterations: 'Alterations', stock: 'Stock', people: 'Customers', tools: 'Shop tools', items: 'Other items' },
   common: { loading: 'Loading...', retry: 'Try again', save: 'Save', cancel: 'Cancel', back: 'Back', search: 'Search', none: 'Nothing here yet.', rs: 'Rs', failed: 'Could not do that.' },
   bill: {
     title: 'New bill', scan: 'Barcode', scanGo: 'Add', scanHint: 'Scan or type the code on the label', find: 'Find an item', pickSize: 'Size', pickColour: 'Colour',
     qty: 'Pieces', metres: 'Metres (up to 2 decimals)', staff: 'Sold by', pickStaff: 'Choose staff', discount: 'Discount', discPercent: '% off', discAmount: 'Rs off', discReason: 'Reason for the discount (needed)',
-    billDiscount: 'Discount on the whole bill', customer: 'Customer phone (optional)', customerFound: 'Customer', tax: 'GST on the bill', taxNone: 'No GST', taxExcl: 'GST added on top', taxIncl: 'Price already has GST',
+    billDiscount: 'Discount on the whole bill', customer: 'Customer phone (optional)', customerFound: 'Customer', redeem: 'Use loyalty points (you have)', tax: 'GST on the bill', taxNone: 'No GST', taxExcl: 'GST added on top', taxIncl: 'Price already has GST',
     pay: 'Payment', cash: 'Cash', upi: 'UPI', card: 'Card', credit: 'Pay later', total: 'Total', remaining: 'Still to pay', change: 'Change', save: 'Save bill', saved: 'Bill saved', noLines: 'Add at least one item.', needStaff: 'Choose who sold each item.',
     needReason: 'Write the reason for the discount.', stockLeft: 'In stock', outOfStock: 'Out of stock', newBill: 'Start a new bill', remove: 'Remove',
   },

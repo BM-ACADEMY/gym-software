@@ -27,14 +27,16 @@ export default function Bill() {
   const [pay, setPay] = useState({ cash: '', upi: '', card: '', credit: '' });
   const [phone, setPhone] = useState('');
   const [customer, setCustomer] = useState(null);
+  const [points, setPoints] = useState(0); const [redeem, setRedeem] = useState('');
   const [busy, setBusy] = useState(false);
-  const draftId = useRef(newId());
+  const draftId = useRef(newId()); const gstSet = useRef(false);
 
   const load = async () => {
     setError('');
     try {
-      const [v, s] = await Promise.all([call('GET', '/variants'), call('GET', '/staff')]);
+      const [v, s, st] = await Promise.all([call('GET', '/variants'), call('GET', '/staff'), call('GET', '/settings').catch(() => null)]);
       setVariants(v.data || []); setStaff(s.data || []);
+      const gm = st && st.data && st.data.gstMode; if (!gstSet.current) { gstSet.current = true; setTax(gm === 'inclusive' ? 'gst_inclusive' : gm === 'exclusive' ? 'gst_exclusive' : 'none'); } // the owner's shop setting is the starting choice; the bill can still change it
     } catch (e) { setError(msg(e, T.common.failed)); }
   };
   useEffect(() => { load(); }, []);
@@ -66,7 +68,7 @@ export default function Bill() {
   const looked = async () => {
     setError(''); setCustomer(null);
     const p = phone.replace(/\D/g, ''); if (p.length < 6) return;
-    try { const r = await pos('GET', '/customers', null, { q: p }); setCustomer((r.data || [])[0] || false); } catch (e) { setError(msg(e, T.common.failed)); }
+    try { const r = await pos('GET', '/customers', null, { q: p }); const c = (r.data || [])[0] || false; setCustomer(c); setRedeem(''); setPoints(0); if (c && c._id) { try { const lp = await pos('GET', '/customers/' + c._id); setPoints((lp.data && lp.data.points) || 0); } catch (e) { /* points are optional */ } } } catch (e) { setError(msg(e, T.common.failed)); }
   };
 
   const anyDiscount = !!disc(billDisc.type, billDisc.value) || lines.some((l) => disc(l.dType, l.dValue));
@@ -87,6 +89,7 @@ export default function Bill() {
       billDiscount: disc(billDisc.type, billDisc.value), discountReason: anyDiscount ? reason.trim() : undefined,
       payments: Object.entries(pay).filter(([, a]) => Number(a) > 0).map(([method, amount]) => ({ method, amount: Math.round(Number(amount)) })),
       customerId: customer && customer._id ? customer._id : undefined,
+      redeemPoints: customer && customer._id && Number(redeem) > 0 ? Math.min(Number(redeem), points) : undefined,
     };
     setBusy(true);
     try { const r = await pos('POST', '/bills', body); setDone(r.data); load(); }
@@ -154,6 +157,7 @@ export default function Bill() {
           <label style={S.label}>{t.customer}</label>
           <div style={S.row}><input style={{ ...S.input, flex: 1 }} inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} onBlur={looked} />
             {customer === false && <span style={S.muted}>{T.common.none}</span>}{customer && customer.name && <span>{t.customerFound}: {customer.name}</span>}</div>
+          {customer && customer._id && points > 0 && <><label style={S.label}>{t.redeem}: {points}</label><input style={S.input} inputMode="numeric" value={redeem} onChange={(e) => setRedeem(e.target.value.replace(/\D/g, ''))} /></>}
           <label style={S.label}>{t.tax}</label>
           <select style={S.input} value={tax} onChange={(e) => setTax(e.target.value)}><option value="none">{t.taxNone}</option><option value="gst_exclusive">{t.taxExcl}</option><option value="gst_inclusive">{t.taxIncl}</option></select>
         </div>

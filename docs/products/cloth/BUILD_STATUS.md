@@ -72,3 +72,21 @@ Plain-node checks: 17 test files, 96 checks, all pass (accounts 14, barcode 5, d
 - Barcode label output is text (a label printer or font draws the bars); no barcode image is generated.
 - Branches, online ordering, accounting-software integrations, e-invoice (Phase 3 by rule).
 - Plans, GST bands and HSN wording stay Assumptions pending the owner and the CA.
+
+## Phase 3 close-out (CLO-13, CLIENT-04) — written, not yet tested by a person
+
+Done in code (plain-node checks pass; nothing run against a real database, front-end not built in Vite):
+- GST mode per shop (none, inclusive, exclusive). Default none, flagged for the CA. The bill screen starts from it and can still change it. Owner only.
+- Loyalty points redeem on a bill (uses the shared bill route's `redeemPoints`; points shown after the customer phone lookup).
+- Labels carry a real Code 128 barcode (pure JS SVG, no new dependency) plus the code as text. The table and check symbol were self-checked; **scan a printed label with a real scanner before relying on it**.
+- Public catalogue page `/api/cloth-catalogue/:token`: only items the owner marks public and in stock, no stock counts, prices only if turned on, owner can turn off or renew the link, rate-limited, noindex.
+- UPI payment link record (`/upi-links`): link built from the owner's UPI id; we cannot see the money, owner marks it paid.
+- Godown transfer (`/godown`, `/godown/transfer`): stock moves between shop and a named godown, conditional updates, never below zero, recorded as a `transfer` stock move.
+- Shifts calendar data (`/shifts/calendar?month=`) and the existing payslip print page.
+- Item and variant CSV import with preview then confirm (`/items/import/preview`, `/confirm`); the server re-checks on confirm.
+- Quoted line breaks in CSV cells: server reader (`csvParse.js`) and the customer import screen's chunking.
+- New "Shop tools" tab (owner only): import, godown, catalogue, UPI link, shifts, GST.
+
+Tests: `tests/rules3.test.js` (Code 128, CSV, import, transfer, calendar, catalogue, UPI) and `tests/phase3.test.js` (routes: owner-only, other-shop 404s, public token page).
+
+Still open: purchase-bill photo reading (needs the small AI model decision), payslip as a real PDF (print page only), Tamil/Hindi strings for the new screens, GST rule (CA), real scanner test of Code 128, godown stock is not yet shown in the stock count or low-stock lists.

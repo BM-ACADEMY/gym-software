@@ -6,9 +6,18 @@ import { S, Msg, rupees, msg } from '../ui.jsx';
 const t = T.people;
 const CHUNK = 1000; // the server takes at most 1000 rows per request
 
-// Split a CSV into pieces of CHUNK rows, repeating the header row. Simple split on line breaks: quoted line breaks inside a cell are not supported here.
+// Split a CSV into pieces of CHUNK rows, repeating the header row. A line break inside a quoted cell stays inside its row.
+const records = (text) => {
+  const out = []; let cur = ''; let q = false;
+  for (const ch of text.replace(/\r\n?/g, '\n')) {
+    if (ch === '"') q = !q;
+    if (ch === '\n' && !q) { if (cur.trim() !== '') out.push(cur); cur = ''; } else cur += ch;
+  }
+  if (cur.trim() !== '') out.push(cur);
+  return out;
+};
 const pieces = (text) => {
-  const lines = text.replace(/\r\n?/g, '\n').split('\n').filter((l) => l.trim() !== '');
+  const lines = records(text);
   if (lines.length < 2) return [text];
   const head = lines[0]; const out = [];
   for (let i = 1; i < lines.length; i += CHUNK) out.push([head, ...lines.slice(i, i + CHUNK)].join('\n'));

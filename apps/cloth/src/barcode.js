@@ -2,7 +2,7 @@
 // CLO-06: barcode labels, scan lookup and fabric by the metre. Pure: no database. Written, not yet tested by a person.
 // Fabric: a variant with unit 'metre' keeps its stock in CENTIMETRES (a whole number), so no decimal stock drifts. The price (mrp) is per metre.
 // A bill line for fabric carries metres (up to 2 decimals); the stock taken is round(metres * 100) centimetres.
-const { toCsv } = require('./accounts');
+const { toCsv } = require('./accounts'); const C128 = require('./code128');
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const UNITS = ['piece', 'metre'];
 
@@ -32,9 +32,9 @@ function labelRows(variants, { copies } = {}) {
   return rows;
 }
 const labelsCsv = (rows) => toCsv(['barcode', 'style', 'size', 'colour', 'mrp', 'unit', 'currency'], rows);
-// Printable page: 3 columns of labels. The barcode text is shown in a monospace font; the shop's label printer or a font handles the bars.
+// Printable page: 3 columns of labels. Each label has a real Code 128 barcode (SVG) and the code printed under it.
 function labelsHtml(rows, shop = '') {
-  const cells = rows.map((r) => `<div class="l"><b>${esc(r.style)}</b><br>${esc(r.size)} · ${esc(r.colour)}<br>Rs ${esc(r.mrp)} ${r.unit === 'per metre' ? '/ m' : ''}<br><span class="c">${esc(r.barcode)}</span></div>`).join('');
+  const cells = rows.map((r) => `<div class="l"><b>${esc(r.style)}</b><br>${esc(r.size)} · ${esc(r.colour)}<br>Rs ${esc(r.mrp)} ${r.unit === 'per metre' ? '/ m' : ''}<br>${C128.svg(r.barcode, { moduleWidth: 1, height: 36, showText: false })}<br><span class="c">${esc(r.barcode)}</span></div>`).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>Labels ${esc(shop)}</title><style>body{font:12px sans-serif;margin:8px}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.l{border:1px dashed #999;padding:6px;text-align:center;break-inside:avoid}.c{font:13px monospace;letter-spacing:2px}</style></head><body><div class="g">${cells}</div></body></html>`;
 }
 // Scan: look a code up in a list of variants (the route uses the database; this is for plain checks and for the client).

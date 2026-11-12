@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import S from './strings.js';
+import { fitPhoto } from './photoFit.js';
+import product from './product.js';
 import { Card, Err, Field, Note, Tabs, btn, input, minsSince, today, useAction } from './ui.jsx';
 
 const T = S.board;
@@ -12,17 +14,16 @@ function JobCard({ job, api, role, attendants, onChanged }) {
   const [att, setAtt] = useState(job.attendantId || (attendants.length === 1 ? attendants[0].id : ''));
   const [mode, setMode] = useState(''); // '', cancel, deliver, photos, refund
   const [method, setMethod] = useState('cash'); const [later, setLater] = useState(false); const [dueNote, setDueNote] = useState('');
-  const [photo, setPhoto] = useState({ kind: 'before', ref: '', kb: '' }); const [photos, setPhotos] = useState(null);
+  const [kind, setKind] = useState('before'); const [photos, setPhotos] = useState(null); const [bay, setBay] = useState(job.bay || ''); const [note, setNote] = useState('');
   const [refund, setRefund] = useState({ amount: '', method: 'cash', reason: '' });
   const attName = (attendants.find((a) => a.id === job.attendantId) || {}).name;
   const post = (body) => run(async () => { await api.post('/jobs/' + job.id + '/move', body); setMode(''); await onChanged(); });
   const owe = (job.total || 0) - (job.passId ? job.passCovered || 0 : 0);
   const loadPhotos = () => run(async () => { setPhotos((await api.get('/jobs/' + job.id + '/photos')).data || []); });
   const openPhotos = () => { setMode(mode === 'photos' ? '' : 'photos'); if (!photos) loadPhotos(); };
-  const savePhoto = () => run(async () => {
-    await api.post('/jobs/' + job.id + '/photos', { kind: photo.kind, ref: photo.ref.trim(), bytes: Math.round(Number(photo.kb) * 1024), mime: /\.webp$/i.test(photo.ref) ? 'image/webp' : /\.png$/i.test(photo.ref) ? 'image/png' : 'image/jpeg' });
-    setPhoto({ kind: photo.kind, ref: '', kb: '' }); await loadPhotos();
-  });
+  // Pick or take a photo, shrink it on the phone, send it. The server refuses anything over 300 KB or not a real picture.
+  const pickPhoto = (file) => run(async () => { if (!file) return; setNote(T.photoUploading); const blob = await fitPhoto(file); await api.upload('/jobs/' + job.id + '/photos/upload?kind=' + kind, blob); setNote(T.photoSaved); await loadPhotos(); });
+  const saveBay = () => run(async () => { await api.post('/jobs/' + job.id + '/bay', { bay: bay.trim() }); setNote(T.bayDone); await onChanged(); });
   const doRefund = () => run(async () => { await api.post('/jobs/' + job.id + '/refund', { amount: Math.round(Number(refund.amount)), method: refund.method, reason: refund.reason }); setRefund({ amount: '', method: 'cash', reason: '' }); setMode(''); await onChanged(); });
   const queueNote = job.state === 'waiting' ? minsSince(job.createdAt) + ' ' + T.mins + ' ' + T.queue
     : job.state === 'washing' ? minsSince(job.startedAt) + ' ' + T.mins + ' ' + T.wash
@@ -33,8 +34,17 @@ function JobCard({ job, api, role, attendants, onChanged }) {
         <strong style={{ fontSize: 18 }}>{job.plate}</strong><span>#{job.number}</span>
       </div>
       <Note>{(job.lines || []).map((l) => l.key).join(', ')} · {money(job.total)}{job.discount ? ' · ' + T.discount + ' ' + money(job.discount) : ''}{job.passId ? ' · ' + T.passCovered : ''}</Note>
-      {queueNote && <Note>{queueNote}{attName ? ' · ' + attName : ''}</Note>}
+      {queueNote && <Note>{queueNote}{attName ? ' · ' + attName : ''}{job.bay ? ' · ' + T.bay + ' ' + job.bay : ''}</Note>}
       <Err text={err} />
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', margin: '4px 0' }}>
+        <button type="button" style={btn(false, true)} onClick={() => window.open(product.api + '/jobs/' + job.id + '/card', '_blank', 'noopener')}>{T.printCard}</button>
+        {['waiting', 'washing', 'ready'].includes(job.state) && (
+          <>
+            <input aria-label={T.bay} placeholder={T.bay} value={bay} maxLength={12} onChange={(e) => setBay(e.target.value)} style={{ ...input, width: 110 }} />
+            <button type="button" disabled={busy} style={btn(false, true)} onClick={saveBay}>{T.bayPlace}</button>
+          </>
+        )}
+      </div>
       {job.state === 'waiting' && (
         <>
           <Field label={T.attendant}>
@@ -92,13 +102,14 @@ function JobCard({ job, api, role, attendants, onChanged }) {
         <div style={{ marginTop: 8 }}>
           <Note>{T.photoHelp}</Note>
           {photos && !photos.length && <Note>{T.noPhotos}</Note>}
-          {photos && photos.map((p) => <Note key={p.id}>{p.kind === 'before' ? T.before : T.after}: {p.ref} ({Math.round(p.bytes / 1024)} KB)</Note>)}
+          {photos && photos.map((p) => (p.store === 'local'
+            ? <div key={p.id} style={{ display: 'inline-block', margin: 4 }}><img src={product.api + '/photos/' + p.id + '/file'} alt={p.kind === 'before' ? T.before : T.after} width={96} height={96} style={{ objectFit: 'cover', borderRadius: 6 }} /><Note>{p.kind === 'before' ? T.before : T.after}</Note></div>
+            : <Note key={p.id}>{p.kind === 'before' ? T.before : T.after}: {p.ref} ({Math.round(p.bytes / 1024)} KB)</Note>))}
           <Field label=" ">
-            <select value={photo.kind} onChange={(e) => setPhoto({ ...photo, kind: e.target.value })} style={input}><option value="before">{T.before}</option><option value="after">{T.after}</option></select>
+            <select value={kind} onChange={(e) => setKind(e.target.value)} style={input}><option value="before">{T.before}</option><option value="after">{T.after}</option></select>
           </Field>
-          <Field label={T.ref}><input value={photo.ref} onChange={(e) => setPhoto({ ...photo, ref: e.target.value })} style={input} /></Field>
-          <Field label={T.bytes}><input inputMode="numeric" value={photo.kb} onChange={(e) => setPhoto({ ...photo, kb: e.target.value.replace(/[^0-9.]/g, '') })} style={input} /></Field>
-          <button type="button" disabled={busy || !photo.ref || !photo.kb} style={btn(true)} onClick={savePhoto}>{T.addPhoto}</button>
+          <Field label={T.photoPick}><input type="file" accept="image/*" capture="environment" disabled={busy} onChange={(e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; pickPhoto(f); }} style={input} /></Field>
+          {note && <Note>{note}</Note>}
         </div>
       )}
       {mode === 'refund' && (

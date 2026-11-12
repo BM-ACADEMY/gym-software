@@ -46,8 +46,8 @@ describe('payroll routes', () => {
     expect((await H.call('POST /shifts', T1, { body: { attendantId: id, day: '2026-11-12', from: '10:00', to: '18:00' } })).c).toBe(201);
     expect(H.M.Shift.rows.length).toBe(1); expect(H.M.Shift.rows[0].from).toBe('10:00');
     expect((await H.call('POST /shifts', T2, { body: { attendantId: id, day: '2026-11-12', from: '09:00', to: '17:00' } })).c).toBe(400);
-    expect((await H.call('GET /shifts', T1, { query: { month: '2026-11' } })).b.data.rows.length).toBe(1);
-    expect((await H.call('GET /shifts', T2, { query: { month: '2026-11' } })).b.data.rows.length).toBe(0);
+    expect((await H.call('GET /shifts', T1, { query: { month: '2026-11' } })).b.data.length).toBe(1);
+    expect((await H.call('GET /shifts', T2, { query: { month: '2026-11' } })).b.data.length).toBe(0);
   });
   test('pay settings are owner only and audited; payslips use attendance and incentive and stay inside the business', async () => {
     const H = harness(); const a = await H.M.Attendant.create({ tenantId: T1, name: 'Ravi', isActive: true }); const id = String(a._id);

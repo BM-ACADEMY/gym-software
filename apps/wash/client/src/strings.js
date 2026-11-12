@@ -7,7 +7,7 @@ export default {
     cancel: 'Cancel job', cancelWhy: 'Why is it being cancelled?', cancelDo: 'Cancel this job', keep: 'Keep the job', queue: 'in queue', wash: 'in wash', since: 'ready for',
     mins: 'min', payNow: 'Paid in full', payHow: 'How did they pay?', cash: 'Cash', upi: 'UPI', card: 'Card', payLater: 'Pay later', payLaterHelp: 'Needs the customer phone number saved on the vehicle. It goes on the Dues list.',
     ownerTold: 'The owner is told about every job cancelled after washing began.', passCovered: 'Covered by monthly pass', toPay: 'To pay', discount: 'Discount',
-    photos: 'Photos', photoHelp: 'Photos are kept as a reference only. Compress each to about 300 KB first. Uploading the picture itself is not available yet.',
+    photos: 'Photos', photoHelp: 'Take or choose a photo. It is made small on this phone and saved on the server. Up to six before and six after for each job.', photoPick: 'Take or choose a photo', photoUploading: 'Saving the photo...', photoSaved: 'Photo saved.', printCard: 'Print job card', bay: 'Bay', bayPlace: 'Move to a bay', bayDone: 'Bay saved.',
     before: 'Before', after: 'After', ref: 'Photo reference', bytes: 'Size in KB', addPhoto: 'Save photo reference', noPhotos: 'No photos yet.',
     refund: 'Refund', refundHelp: 'Only the owner can refund. A reason is needed. You cannot refund more than was paid.', amount: 'Amount in rupees', reason: 'Reason', doRefund: 'Refund', ownerOnly: 'Only the owner can give a refund.',
   },

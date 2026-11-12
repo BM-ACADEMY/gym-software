@@ -22,7 +22,14 @@ const download = async (path) => {
   if (!res.ok) { const json = await res.json().catch(() => ({})); const e = new Error(json.message || 'Could not download.'); e.response = { data: json }; throw e; }
   return { blob: await res.blob(), contentDisposition: res.headers.get('Content-Disposition') || '' };
 };
-const api = { get: (p, params) => call('GET', p, null, params), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p), download };
+// Sends one photo as the request body (JPEG, WebP or PNG). The server checks size and real type again.
+const upload = async (path, blob) => {
+  const res = await fetch(product.api + path, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': blob.type, 'x-requested-with': product.header }, body: blob });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) { const e = new Error(json.message || 'Could not save the photo.'); e.response = { data: json }; throw e; }
+  return json;
+};
+const api = { upload, get: (p, params) => call('GET', p, null, params), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p), download };
 
 // The shared billing screen expects an axios-like client: get(path, { params }) and results as { data: body }.
 const posCall = async (method, path, body, params) => {

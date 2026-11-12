@@ -93,7 +93,7 @@ describe('pay advances and deductions', () => {
     expect((await H.call('POST /shifts', T1, { body: { attendant: 'Ravi', day: '2026-11-12', from: '09:00', to: '17:00' } })).c).toBe(201);
     expect((await H.call('POST /shifts', T1, { body: { attendant: 'Nobody', day: '2026-11-12', from: '09:00', to: '17:00' } })).c).toBe(400);
     expect((await H.call('POST /shifts', T2, { body: { attendant: 'Ravi', day: '2026-11-12', from: '09:00', to: '17:00' } })).c).toBe(400);
-    expect((await H.call('GET /shifts', T1, { query: { month: '2026-11' } })).b.data.rows[0].attendant).toBe('Ravi'); expect((await H.call('GET /shifts', T2, { query: { month: '2026-11' } })).b.data.rows.length).toBe(0);
+    expect((await H.call('GET /shifts', T1, { query: { month: '2026-11' } })).b.data[0].attendant).toBe('Ravi'); expect((await H.call('GET /shifts', T2, { query: { month: '2026-11' } })).b.data.length).toBe(0);
   });
 });
 describe('refunds, dues and sales report', () => {

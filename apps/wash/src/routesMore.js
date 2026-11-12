@@ -80,7 +80,8 @@ function mountMore(ctx) {
     const month = /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : dayOf(now()).slice(0, 7);
     const [rows, people] = await Promise.all([M.Shift.find({ tenantId: tid, day: { $gte: month + '-01', $lte: month + '-31' } }).sort({ day: 1 }).limit(1000), M.Attendant.find({ tenantId: tid }).limit(200)]);
     const nm = {}; for (const x of people.map(plain)) nm[String(x._id)] = x.name;
-    res.json({ success: true, data: { month, rows: rows.map(plain).map((s) => ({ ...s, attendant: nm[String(s.attendantId)] || '' })) } });
+    // data is a plain list (the panel list screen needs that); month rides beside it.
+    res.json({ success: true, month, data: rows.map(plain).map((s) => ({ ...s, attendant: nm[String(s.attendantId)] || '' })) });
   }));
   router.put('/attendants/:id/pay', ownerOnly, wrap(async (req, res, tid) => {
     const c = PAY.checkPay(req.body); if (c.error) return fail(res, 400, c.error);

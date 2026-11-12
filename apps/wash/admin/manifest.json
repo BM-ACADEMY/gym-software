@@ -42,10 +42,40 @@
       ]
     },
     {
+      "key": "dues",
+      "label": "Customers who owe you",
+      "screen": "resource",
+      "resource": "dues"
+    },
+    {
+      "key": "refunds",
+      "label": "Refunds",
+      "screen": "resource",
+      "resource": "refunds",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
       "key": "vehicles",
       "label": "Vehicles",
       "screen": "resource",
       "resource": "vehicles"
+    },
+    {
+      "key": "vehicleimport",
+      "label": "Bring in your old register",
+      "screen": "resource",
+      "resource": "vehicleimport",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "photos",
+      "label": "Job photos",
+      "screen": "resource",
+      "resource": "photos"
     },
     {
       "key": "passes",
@@ -73,6 +103,15 @@
       "label": "Shifts",
       "screen": "resource",
       "resource": "shifts"
+    },
+    {
+      "key": "advances",
+      "label": "Advances and deductions",
+      "screen": "resource",
+      "resource": "advances",
+      "roles": [
+        "admin"
+      ]
     },
     {
       "key": "closing",
@@ -430,6 +469,13 @@
           "path": "path",
           "type": "text"
         }
+      ],
+      "downloads": [
+        {
+          "label": "Download the QR picture (print it for your counter)",
+          "path": "/booking-link/qr.svg",
+          "filename": "booking-qr.svg"
+        }
       ]
     },
     "start": {
@@ -489,6 +535,10 @@
           "label": "Vehicle"
         },
         {
+          "key": "bay",
+          "label": "Bay"
+        },
+        {
           "key": "klass",
           "label": "Class"
         },
@@ -521,6 +571,12 @@
             "suv",
             "other"
           ]
+        },
+        {
+          "key": "bay",
+          "label": "Bay (optional, for example Bay 1)",
+          "type": "text",
+          "max": 12
         }
       ],
       "actions": [
@@ -932,7 +988,7 @@
       "label": "Shifts",
       "endpoint": "/shifts",
       "empty": "No shifts noted this month.",
-      "readOnly": true,
+      "intro": "Type the attendant's name exactly as in your list and the times as 24 hour HH:MM (09:00 to 17:00). One shift per person per day; adding again replaces it.",
       "columns": [
         {
           "key": "day",
@@ -940,8 +996,8 @@
           "type": "date"
         },
         {
-          "key": "attendantId",
-          "label": "Attendant id"
+          "key": "attendant",
+          "label": "Attendant"
         },
         {
           "key": "from",
@@ -952,7 +1008,35 @@
           "label": "To"
         }
       ],
-      "fields": []
+      "fields": [
+        {
+          "key": "attendant",
+          "label": "Attendant name",
+          "type": "text",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "from",
+          "label": "From (HH:MM)",
+          "type": "text",
+          "required": true,
+          "max": 5
+        },
+        {
+          "key": "to",
+          "label": "To (HH:MM)",
+          "type": "text",
+          "required": true,
+          "max": 5
+        }
+      ]
     },
     "bookings": {
       "label": "Booking requests",
@@ -1002,6 +1086,14 @@
           }
         },
         {
+          "label": "Make a job",
+          "method": "POST",
+          "path": "/bookings/:id/convert",
+          "body": {},
+          "done": "Job made. Find it on the job board.",
+          "confirm": "Tap again to make a job from this request"
+        },
+        {
           "label": "Decline",
           "method": "POST",
           "path": "/bookings/:id/status",
@@ -1010,7 +1102,8 @@
           },
           "confirm": "Tap again to decline"
         }
-      ]
+      ],
+      "intro": "Customers ask for a slot through your booking link. Nothing is booked until you call them. Tap Make a job when the vehicle arrives. If the customer left no number plate, add the job from the job board instead."
     },
     "setup": {
       "label": "Set-up checklist",
@@ -1051,6 +1144,310 @@
           "method": "POST",
           "path": "/setup/sample/remove",
           "done": "Sample data removed."
+        }
+      ]
+    },
+    "advances": {
+      "label": "Advances and deductions",
+      "endpoint": "/pay-adjustments",
+      "empty": "None this month.",
+      "intro": "Money an attendant took in advance, or a fine you take off with a reason. Both come off the payslip total; if they are more than the pay, the rest carries to next month. Type the name exactly as in your list. Owner only.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "attendant",
+          "label": "Attendant"
+        },
+        {
+          "key": "kind",
+          "label": "Type",
+          "type": "pill"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "note",
+          "label": "Reason"
+        }
+      ],
+      "fields": [
+        {
+          "key": "attendant",
+          "label": "Attendant name",
+          "type": "text",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "kind",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "advance",
+              "label": "Advance (money given)"
+            },
+            {
+              "value": "deduction",
+              "label": "Deduction (needs a reason)"
+            }
+          ]
+        },
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "day",
+          "label": "Day (empty means today)",
+          "type": "date"
+        },
+        {
+          "key": "note",
+          "label": "Reason or note",
+          "type": "text",
+          "max": 120
+        }
+      ]
+    },
+    "refunds": {
+      "label": "Refunds",
+      "endpoint": "/refunds",
+      "empty": "No refunds yet.",
+      "intro": "Give money back on a delivered job. Type the number plate: the latest delivered job of that vehicle is refunded (or the one on the day you choose). You cannot refund more than was paid. A reason is always needed. Owner only.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "method",
+          "label": "Paid back by",
+          "type": "pill"
+        },
+        {
+          "key": "reason",
+          "label": "Reason"
+        }
+      ],
+      "fields": [
+        {
+          "key": "plate",
+          "label": "Number plate",
+          "type": "text",
+          "required": true,
+          "max": 15
+        },
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "method",
+          "label": "Paid back by",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "cash",
+              "label": "Cash"
+            },
+            {
+              "value": "upi",
+              "label": "UPI"
+            },
+            {
+              "value": "card",
+              "label": "Card"
+            }
+          ]
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "text",
+          "required": true,
+          "min": 3,
+          "max": 120
+        },
+        {
+          "key": "day",
+          "label": "Day of the job (empty means the latest)",
+          "type": "date"
+        }
+      ]
+    },
+    "dues": {
+      "label": "Customers who owe you",
+      "endpoint": "/dues",
+      "readOnly": true,
+      "empty": "Nobody owes you right now.",
+      "intro": "Jobs delivered with pay-later. When the customer pays the whole amount, tap how they paid. For a part payment use the app.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Job day",
+          "type": "date"
+        },
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "ownerName",
+          "label": "Owner"
+        },
+        {
+          "key": "due",
+          "label": "Owes",
+          "type": "money"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        }
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "Paid in full: cash",
+          "method": "POST",
+          "path": "/jobs/:id/collect",
+          "body": {
+            "payAllWith": "cash"
+          },
+          "confirm": "Tap again: whole amount received in cash"
+        },
+        {
+          "label": "Paid in full: UPI",
+          "method": "POST",
+          "path": "/jobs/:id/collect",
+          "body": {
+            "payAllWith": "upi"
+          },
+          "confirm": "Tap again: whole amount received by UPI"
+        },
+        {
+          "label": "Paid in full: card",
+          "method": "POST",
+          "path": "/jobs/:id/collect",
+          "body": {
+            "payAllWith": "card"
+          },
+          "confirm": "Tap again: whole amount received by card"
+        }
+      ]
+    },
+    "photos": {
+      "label": "Job photos",
+      "endpoint": "/photos",
+      "readOnly": true,
+      "empty": "No photos yet. Take before and after photos from the job card in the app.",
+      "intro": "The latest 50 photos. Photos are taken and uploaded from the app (up to 300 KB each, six before and six after per job). Only you can remove one. Needs the photo folder to be set up on the server.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "kind",
+          "label": "Before or after",
+          "type": "pill"
+        },
+        {
+          "key": "bytes",
+          "label": "Size (bytes)",
+          "type": "number"
+        },
+        {
+          "key": "stored",
+          "label": "Kept on server",
+          "type": "bool"
+        }
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "Remove photo",
+          "method": "POST",
+          "path": "/photos/:id/remove",
+          "confirm": "Tap again to remove this photo for good"
+        }
+      ]
+    },
+    "vehicleimport": {
+      "label": "Bring in your old register",
+      "endpoint": "/vehicles/import",
+      "empty": "No import yet.",
+      "intro": "Paste your register as CSV (columns: vehicle number, class, owner, phone). Choose Check first: nothing is saved, you only see what would happen. Then paste again and choose Save. Up to 2,000 rows. Owner only.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "text",
+          "label": "Result"
+        }
+      ],
+      "fields": [
+        {
+          "key": "csv",
+          "label": "Register (CSV text)",
+          "type": "textarea",
+          "required": true,
+          "max": 200000
+        },
+        {
+          "key": "mode",
+          "label": "What to do",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "check",
+              "label": "Check first (saves nothing)"
+            },
+            {
+              "value": "save",
+              "label": "Save"
+            }
+          ]
+        },
+        {
+          "key": "skipErrors",
+          "label": "Skip the rows with problems when saving",
+          "type": "bool"
         }
       ]
     }

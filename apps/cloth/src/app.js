@@ -5,6 +5,7 @@
 const { makeBilling } = require('../../../packages/core-billing/src');
 const { mountBilling, rawBodyCapture } = require('../../../packages/core-billing/src/checkout');
 const corePos = require('../../../packages/core-pos/src');
+const { makeConfig: firstWinConfig } = require('./firstWin');
 const { billingPlans, BILLING } = require('./plans');
 const makeModels = require('./models');
 const { createClothRouter } = require('./routes');
@@ -47,6 +48,8 @@ function createApp({ express, mongoose, env = process.env }) {
     const rows = await pos.PosBill.find({ tenantId: new mongoose.Types.ObjectId(String(tid)), createdAt: { $gte: from, $lt: to } }).limit(20000).lean();
     return rows.map((b) => ({ id: String(b._id), number: b.number, date: new Date(b.createdAt.getTime() + 5.5 * 3600000).toISOString().slice(0, 10), at: b.createdAt.toISOString(), total: b.total, discount: b.discount || 0, status: b.status, by: b.by && String(b.by), customerId: b.customerId && String(b.customerId), taxable: b.taxable, gst: b.gst, lines: b.lines || [] }));
   };
+  // First win in five minutes + set-up checklist (owner only, tenant scoped).
+  app.use('/api/cloth', corePos.firstWin.createFirstWinRouter({ express, mongoose, protect, tenantOf: (req) => req.user.tenantId, guardWrite: (req) => billing.guardWrite(req.subscription, req.method), config: firstWinConfig(M, pos) }));
   app.use('/api/cloth', createClothRouter({ ...common, M, billsBetween, planOf: (req) => billing.computeStatus(req.subscription).planKey, guardWrite: (req) => { const g = billing.guardWrite(req.subscription, req.method); return g.ok ? null : { status: g.httpStatus, message: g.message }; }, salesOfDay }));
   app.use('/api/pos', protect, authorize('admin', 'subadmin'), createBillGuard({ M }), corePos.createPosRouter({ ...common, mongoose, prefix: 'CL', ...discountHooks({ M }) }));
   return app;

@@ -35,3 +35,20 @@ Lawyer: candidate notice, export and removal wording, retention period (M-15, LA
 3. As a subadmin: export, anonymise, agency export and audit must each answer 403.
 4. Agency A's export must contain nothing of agency B.
 5. After anonymise, the candidate's fee and placement rows still show, the phone and email are gone, and a new candidate with the same phone can be added.
+
+## Phase 2 close-out (13 Nov 2026, HIR-P2): written, not yet tested by a person
+Plain-node checks pass (`apps/hire/tests/phase2.test.js`, 16 checks, plus all older Hire checks). Nothing run against a real database; the panel was not built in a browser.
+
+| Area | What now exists |
+| --- | --- |
+| 1 Accounts | Owner-only: expenses (`/expenses`), profit and loss (`/accounts/pnl`, fee without GST counted when paid, GST collected on its own line), cash book (`/accounts/cashbook`), CA file (`/accounts/ca.csv`). Panel: "Money", "Expenses". We do not file GST |
+| 3 Staff | Recruiter login (role `recruiter`): owner adds and switches off (`/team`). A recruiter works candidates, jobs, pipeline and interviews only; blocked from fees, accounts, exports, audit, team, settings, forecasts, reports, share links, and every delete (`rolesPolicy.js`, checked in tests). No attendance or payslip here: use core payroll later |
+| 4 Revenue | Fees by month through the profit and loss range; per-recruiter revenue still not split |
+| 6 Appointments | Interview scheduling: book from a submitted or interview-stage candidate (by name from the panel form, or by pipeline entry), no overlap for one candidate, list, done, cancel (`/interviews`) |
+| 7 Marketing, messages | Suggest-only drafts: interview reminder to a candidate (`/interviews/:id/draft`), fee reminder to a client (`/fees/:id/draft`). Nothing is sent. No draft for a person who withdrew consent, was removed, is do-not-contact, or has no consent on record |
+| 8 Prediction | Time to fill (needs 3 placements) and expected fees from open submissions, both labelled estimates. The stage chances (10 / 25 / 70 percent) are our starting guesses, not measured |
+| 10 Control | Account-level close request (`/account/close-request`, audited, cancel any time before the date). Downloads from the panel: all data (JSON), fees, clients, jobs, expenses, candidates (CSV), each audited and safe against spreadsheet formulas |
+
+Decisions the owner (and lawyer) still need to make: how many days the close request waits (30 is a draft default); what deletes the account after the wait (no job does this yet; the server owner runs it); whether a recruiter should see only their own candidates (today they see the agency's).
+Still not built: a job runner that actually deletes closed accounts, per-recruiter revenue, interview booking screen with a calendar picker (the panel form takes a typed date and time), overdue-fee alert, job-board sync, Tamil and Hindi screens, sending any candidate message (stays off until the lawyer approves).
+Dev A: `npm test` in `apps/hire`; sign up two agencies and repeat the owner-only and other-agency checks in `phase2.test.js` by hand through the panel.

@@ -36,7 +36,7 @@ const spy = () => { const calls = []; const q = (name, result) => ({ find: (f) =
 const chain = (r) => { const p = Promise.resolve(r); const o = { sort: () => o, limit: () => o, select: () => o, lean: () => p, then: (a, b) => p.then(a, b) }; return o; };
 function setup() {
   const s = spy(); const cand = { _id: 'c1', name: 'Ravi', phone: '+91x', consent: { source: 'form' } };
-  const models = { HireTenant: s.q('Tenant', []), HireUser: s.q('User', []), HireCandidate: s.q('Candidate', [cand]), HireClient: s.q('Client', []), HireJob: s.q('Job', []), HireEntry: s.q('Entry', []), HireFee: s.q('Fee', []), HireUsage: s.q('Usage', []), HireAutopilot: s.q('Auto', []), HireActivity: s.q('Act', []), HireAudit: s.q('Audit', []) };
+  const models = { HireTenant: s.q('Tenant', []), HireUser: s.q('User', []), HireCandidate: s.q('Candidate', [cand]), HireClient: s.q('Client', []), HireJob: s.q('Job', []), HireEntry: s.q('Entry', []), HireFee: s.q('Fee', []), HireUsage: s.q('Usage', []), HireAutopilot: s.q('Auto', []), HireActivity: s.q('Act', []), HireAudit: s.q('Audit', []), HireExpense: s.q('Expense', []), HireInterview: s.q('Interview', []), HireCloseRequest: s.q('Close', []) };
   const routes = {}; const router = { use() {}, get: (p, ...h) => (routes['GET ' + p] = h), post: (p, ...h) => (routes['POST ' + p] = h), patch() {}, put() {}, delete() {} };
   createHireRouter({ express: { Router: () => router }, mongoose: { models, Schema: Object.assign(function () {}, { Types: { ObjectId: 'oid', Mixed: 'mixed' } }), Types: { ObjectId: function () {} } }, protect: 1, authorize: () => 1, tenantOf: () => 'T1', planOf: () => ({}), ai: {}, budget: {} });
   return { s, routes };

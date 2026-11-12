@@ -18,7 +18,7 @@ const autopilot = require('./autopilot');
 const consent = require('./consent');
 const extract = require('./extract');
 const consentForm = require('./consentForm');
-const DR = require('./dataRights');
+const DR = require('./dataRights'); const RP = require('./rolesPolicy');
 
 const str = (v, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const monthStart = () => { const n = new Date(); return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), 1)); };
@@ -26,10 +26,12 @@ const KNOWN = ['PARSE_NO_JSON', 'PARSE_BAD_JSON', 'RESUME_EMPTY', 'CAP_REACHED',
 
 function toPlain(d) { const o = d && d.toObject ? d.toObject() : d; return o ? { ...o, id: String(o._id) } : o; }
 
-function createHireRouter({ express, mongoose, protect, authorize, tenantOf, planOf, ai, budget, guardWrite, roles = ['admin', 'subadmin'] }) {
+function createHireRouter({ express, mongoose, protect, authorize, tenantOf, planOf, ai, budget, guardWrite, roles = ['admin', 'subadmin', 'recruiter'] }) {
   const router = express.Router();
   const M = makeModels(mongoose);
   router.use(protect, authorize(...roles));
+  // A recruiter works candidates, jobs and the pipeline only: no money, exports, settings, team, and no deletes (rolesPolicy.js).
+  router.use((req, res, next) => (req.user && req.user.role === 'recruiter' && (req.method === 'DELETE' || RP.recruiterBlocked(req.path)) ? res.status(403).json({ success: false, message: 'Only the agency owner can do this.' }) : next()));
   // Expired or suspended accounts can read but not change anything (guardWrite comes from @afra/core-billing).
   if (guardWrite) router.use((req, res, next) => {
     const g = guardWrite(req);
@@ -317,6 +319,7 @@ function createHireRouter({ express, mongoose, protect, authorize, tenantOf, pla
     const [entries, jobs, fees] = await Promise.all([M.Entry.find({ tenantId: tid }).lean(), M.Job.find({ tenantId: tid }).lean(), M.Fee.find({ tenantId: tid }).lean()]);
     res.json({ success: true, data: autopilot.weeklyReport({ entries: entries.map((e) => ({ ...e, jobId: String(e.jobId) })), jobs: jobs.map((j) => ({ ...j, id: String(j._id) })), fees }, from, to) });
   }));
+  require('./routesPhase2')({ router, M, wrap, fail, str, adminOnly, audit, toPlain });
   return router;
 }
 function num(v) { return v === '' || v === null || v === undefined ? undefined : Number(v); }

@@ -38,7 +38,31 @@ Remaining (not silently dropped):
 - Download button for the CA CSV (needs a link type in core-ui; the API `GET /reports/ca-export` works).
 - Panel reading `admin/strings.json` (core-ui change) and Tamil/Hindi for messages and errors; native review M-06.
 - Sales-list route for Super Admin (`admin-accounts`: owner contact, needs consent handling like Hire).
-- UPI QR image; change-password for team logins; yearly paid-leave allowance and shifts; payslip print page.
+- (done in MRT-12 below) UPI QR image; change-password for team logins; yearly paid-leave allowance and shifts; payslip print page.
 - Bill-photo AI, WhatsApp sending, offline billing, scale and printer: still planned.
 
 Dev A: run `tests/routes.db.test.js` (two new phase 2 cases: cashier role and payroll/audit/privacy); set `INTERNAL_API_KEY` on a test server and call `/api/internal/admin-summary` with the `x-internal-key` header; sign in as a cashier and check the 403s; mark a payslip month fully and check the draft flag goes away.
+
+
+## MRT-12 (13 Nov): written, not yet tested by a person
+Plain-node tests pass here (`tests/qr.test.js`, `tests/mrt12.test.js`, in-memory stand-ins, not a database). Dev A or CI: run `tests/routes.db.test.js` and `mrt12.test.js` against a real Mongo; nothing below has been run in a browser.
+1. **Change password.** Owner: `POST /team/password` {email, password} resets a manager, cashier or stock keeper login (not the owner's own); `GET /team/password` lists who changed which login and when (no passwords, no hashes). Everyone: `POST /my-password` {current, password}; wrong current password counts toward the same 5-tries / 15-minute lock as sign-in. New passwords are 10 to 100 characters (same as sign-up; adding a login via `POST /team` still accepts 8, an inconsistency to settle: proposed backlog row). A change sets `passwordChangedAt`; session cookies now carry `iat` and `sessionMiddleware` refuses a cookie made before the change, so old sign-ins end at once. A cookie issued before this release has no `iat`, so for a user who has changed a password it is refused (right); users who never changed it are unaffected. Panel: "Reset a team password" (owner) and "My password" (everyone).
+2. **UPI QR image.** `GET /upi-links/:id/qr.svg` draws the shop's own stored link as a QR code (`src/qr.js`, pure JS, no new dependency; a copy is in `apps/wash/src/qr.js`, to move into `packages/core-ui` or `core-server` later). Byte mode, error correction M, versions 1 to 20. Checked here: 82 test codes (every version, both ECC levels L and M, at maximum length) all decoded by OpenCV's `QRCodeDetectorAruco`; the older `QRCodeDetector` failed 3 of them, and a second run showed the same codes decode with the Aruco detector, so the code is believed correct. **Not scanned by a real UPI app yet: Dev A or a staff phone must scan one and see the right payee and amount.** The panel list shows the picture address in a column; a proper "show QR" button needs a link action type in core-ui (proposed backlog row CORE-UI-02).
+3. **Paid leave allowance.** Setting `paidLeaveAllowance` (0 to 60 days a year, empty = no limit, as before) in My settings. Paid-leave marks beyond the year's allowance are paid as unpaid leave and shown on the slip (`leaveOverAllowance`). `GET /leave-balance` shows used and left per person for the calendar year. The allowance resets on 1 January; no carry-over rule is built (assumption to confirm with the owner or a labour adviser; Tamil Nadu shop rules are not checked here).
+4. **Shifts.** `GET/POST /shifts`, `DELETE /shifts/:id`. 24-hour HH:MM, same day, at most 16 hours, at most 4 per person per day, overlap refused, hours per person for the month. Managers may enter them, cashiers and stock keepers may not. A night shift across midnight is entered as two shifts (a limit, by design for now). Shifts are a plan: they do not change pay.
+5. **Payslip print.** `GET /payslip/print?month=YYYY-MM` (all staff, one slip per page) or `&staffId=` (one). Owner only, HTML with every value escaped, no scripts, `Cache-Control: no-store`, a CSP of `default-src 'none'`. Panel: "Print all payslips" saves the page; open it and print from the browser. The per-person button needs a link action type in core-ui (CORE-UI-02).
+6. **Offline billing: already in the shared billing screen.** `PosScreen` in core-ui keeps items on the device, queues bills when the network drops, retries with a `clientId` (core-pos returns the saved bill for a repeat, so no double bill), and moves refused bills to a "rejected" list. `public/sw.js` opens the app shell offline and never stores `/api`. Nothing new was needed in Mart; it still needs the human offline test (QA row): bill in aeroplane mode, reconnect, check one bill each.
+7. **Bill-photo AI** stays planned (needs the AI cap, the model choice and an owner decision on the monthly allowance).
+
+### Scale and printer notes (assumptions, no hardware tested)
+- **Fact:** the billing screen already accepts decimal quantity (`allowDecimalQty`) and a barcode typed or pasted into the search box. A USB or Bluetooth barcode scanner that types like a keyboard therefore works with no code.
+- **Assumption:** many Indian retail scales and label printers can send the weight as keyboard-style text or over USB serial. Keyboard-style needs no code; serial would need the browser's Web Serial, which works in desktop Chrome and Edge, and which we have not checked on Android. Decide after seeing the model the first pilot shop owns.
+- **Receipt printer:** the bill page (`openBillPage`) prints through the browser, so any printer with an installed driver works, including 58 mm and 80 mm thermal ones; paper width and font size need a test print on the real printer. Printing straight to a Bluetooth ESC/POS printer from the page is not built.
+- **Needed from a human:** one barcode scanner, one scale, one thermal printer, and a pilot shop to try them. Until then marketing must not say "connects to your scale or printer" (it is already in `MARKETING_CLAIMS.md` as not allowed).
+
+### Proposed backlog rows (for the parent to add)
+- MRT-13 Owner decision: one password length rule for every login (10), then raise `POST /team` to 10.
+- MRT-14 Human test: scan a Mart UPI QR with a real UPI app; offline bill test; change-password and sign-out test.
+- CORE-UI-02 Link and open action type in the panel (open a QR picture, a print page, a PDF in a new tab, with the signed-in cookie).
+- CORE-QR-01 Move `qr.js` out of Mart and Wash into one shared package, with its test.
+

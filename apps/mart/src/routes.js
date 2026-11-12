@@ -317,7 +317,7 @@ function createMartRouter({ express, mongoose, protect, authorize, tenantOf, gua
     if (!ownerOnly(req, res)) return; const b = req.body || {}; const name = typeof b.name === 'string' ? b.name.trim().slice(0, 120) : ''; const email = typeof b.email === 'string' ? b.email.trim().toLowerCase().slice(0, 120) : '';
     if (name.length < 2) return fail(res, 400, 'Enter the name.'); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail(res, 400, 'Enter a valid email.');
     if (!PM.TEAM_ROLES.includes(b.role)) return fail(res, 400, 'Choose a role: manager, cashier or stock keeper.');
-    if (typeof b.password !== 'string' || b.password.length < 8 || b.password.length > 100) return fail(res, 400, 'The password must be 8 to 100 characters.');
+    if (typeof b.password !== 'string' || b.password.length < 10 || b.password.length > 100) return fail(res, 400, 'The password must be 10 to 100 characters.');
     const exists = await runUnscoped('team: is this email already used by any shop', () => M.User.findOne({ email })); if (exists) return fail(res, 409, 'That email is already in use.');
     const u = await M.User.create({ tenantId: tid, name, email, role: b.role, passwordHash: await (hashFn || require('./authRoutes').hashPassword)(b.password) });
     await audit(tid, req, 'team_add', `${b.role} ${u._id}`); res.status(201).json({ success: true, data: { id: String(u._id), name, email, role: b.role } });

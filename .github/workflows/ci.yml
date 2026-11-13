@@ -80,6 +80,9 @@ jobs:
         working-directory: server
       - run: npm test
         working-directory: server
+        env:
+          JWT_SECRET: ci-only-not-a-real-secret-0123456789abcdef
+          NODE_ENV: test
       - run: npm ci
         working-directory: client
       - run: npm test

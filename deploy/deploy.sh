@@ -129,6 +129,7 @@ for p in $PRODUCTS; do
   if [ "$okp" = yes ]; then echo "   PASS  $p (port $port)"; else echo "   FAIL  $p (port $port) answered: ${body:-nothing}"; FAILED="$FAILED $p"; fi
 done
 for p in $PRODUCTS; do
+  [ "$DRY" = yes ] && continue
   if ss -ltn "( sport = :${PORT[$p]} )" 2>/dev/null | grep -q "0.0.0.0:${PORT[$p]}\|\*:${PORT[$p]}\|\[::\]:${PORT[$p]}"; then FAILED="$FAILED $p(open-to-outside)"; fi
 done
 if [ -n "$FAILED" ]; then rollback; die "health check failed for:$FAILED. A health answer of ok:false means a required setting is missing (see preflight)"; fi

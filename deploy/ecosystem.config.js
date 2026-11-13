@@ -1,16 +1,16 @@
 'use strict';
 // pm2 process list for every Afra product on the Hostinger VPS. Written 13 Nov 2026, not yet run by a person.
 // Rules (docs/HOSTING_PLAN.md, D-17): exactly ONE copy of each product backend (their timers send messages, so two copies
-// would double-send), every app listens on 127.0.0.1 only, and every secret lives in /etc/afra/<product>.env (mode 600,
+// would double-send), every app listens on 127.0.0.1 only, and every secret lives in /etc/afraprod/<product>.env (mode 600,
 // never in git). Node 22 reads that file itself (--env-file), so nothing secret is written in this file.
-// Code is run from /srv/afra/current, a symlink that deploy.sh flips to the newest release after its checks pass.
-const BASE = process.env.AFRA_BASE || '/srv/afra';
+// Code is run from /srv/afraprod/current, a symlink that deploy.sh flips to the newest release after its checks pass.
+const BASE = process.env.AFRA_BASE || '/srv/afraprod';
 const app = (name, dir, port, envName) => ({
   name,
   cwd: `${BASE}/current/${dir}`,
   script: 'server.js',
   interpreter: 'node',
-  node_args: [`--env-file=/etc/afra/${envName}.env`],
+  node_args: [`--env-file=/etc/afraprod/${envName}.env`],
   exec_mode: 'fork', // never 'cluster': one copy only
   instances: 1,
   autorestart: true,
@@ -20,8 +20,8 @@ const app = (name, dir, port, envName) => ({
   max_memory_restart: '400M',
   time: true,
   merge_logs: true,
-  out_file: `/var/log/afra/${name}.out.log`,
-  error_file: `/var/log/afra/${name}.err.log`,
+  out_file: `/var/log/afraprod/${name}.out.log`,
+  error_file: `/var/log/afraprod/${name}.err.log`,
   // PORT is fixed here, not left to the code default: the admin app's code default (5010) clashes with Cloth's (5010).
   env: { NODE_ENV: 'production', PORT: String(port) },
 });

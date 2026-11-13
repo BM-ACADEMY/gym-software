@@ -4,8 +4,9 @@
 # --allow-running: ports already used by our own pm2 apps are fine (a re-deploy). On a first deploy ports must be free.
 # Written 13 Nov 2026, not yet run by a person.
 set -u
-ENV_DIR="${AFRA_ENV_DIR:-/etc/afra}"
-BASE="${AFRA_BASE:-/srv/afra}"
+export PATH="/opt/node-22/bin:${AFRA_BASE:-/srv/afraprod}/tools/node_modules/.bin:$PATH"
+ENV_DIR="${AFRA_ENV_DIR:-/etc/afraprod}"
+BASE="${AFRA_BASE:-/srv/afraprod}"
 ALLOW_RUNNING=no
 [ "${1:-}" = "--allow-running" ] && { ALLOW_RUNNING=yes; shift; }
 
@@ -50,7 +51,7 @@ free_gb=$(df -P "$BASE" 2>/dev/null | awk 'NR==2{printf "%d", $4/1048576}')
 mem_mb=$(awk '/MemAvailable/{printf "%d", $2/1024}' /proc/meminfo 2>/dev/null)
 [ "${mem_mb:-0}" -ge 1500 ] && ok "memory available ${mem_mb} MB" || warn "memory available only ${mem_mb:-?} MB (builds need about 1.5 GB; HOSTING_PLAN says measure after deploy)"
 [ -d "$BASE" ] && ok "$BASE exists" || warn "$BASE does not exist yet (deploy.sh creates it)"
-[ -d /var/log/afra ] && ok "/var/log/afra exists" || warn "/var/log/afra missing: sudo mkdir -p /var/log/afra && sudo chown afra:afra /var/log/afra"
+[ -d /var/log/afraprod ] && ok "/var/log/afraprod exists" || warn "/var/log/afraprod missing: sudo mkdir -p /var/log/afraprod && sudo chown afraprod:afraprod /var/log/afraprod"
 
 echo "== Settings files in $ENV_DIR"
 for p in $PRODUCTS; do
@@ -90,8 +91,8 @@ done
 echo "== nginx"
 if command -v nginx >/dev/null 2>&1; then
   if nginx -t >/dev/null 2>&1; then ok "nginx -t passes"; else bad "nginx -t fails (run it to read the message)"; fi
-  [ -f /etc/nginx/conf.d/00-afra-common.conf ] && ok "00-afra-common.conf installed" || warn "00-afra-common.conf not in /etc/nginx/conf.d yet"
-  for s in afra-proxy.conf afra-security-headers.conf; do [ -f "/etc/nginx/snippets/$s" ] && ok "$s installed" || warn "$s not in /etc/nginx/snippets yet"; done
+  [ -f /etc/nginx/conf.d/10-prod-common.conf ] && ok "10-prod-common.conf installed" || warn "10-prod-common.conf not in /etc/nginx/conf.d yet"
+  for s in prod-proxy.conf prod-security-headers.conf; do [ -f "/etc/nginx/snippets/$s" ] && ok "$s installed" || warn "$s not in /etc/nginx/snippets yet"; done
 fi
 
 echo "== Firewall"

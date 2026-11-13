@@ -6,10 +6,10 @@
 
 1. Create one Atlas project, for example `afra-products`. Cluster region: **Mumbai (ap-south-1)**, the same city as the VPS. Free tier (M0) is fine for the first trial; move to a paid tier before real customers (see Backups).
 2. Create eight database users, one per product, named `gym`, `hire`, `salon`, `mart`, `dine`, `cloth`, `wash`, `admin`.
-   - Password: let Atlas generate it ("Autogenerate secure password"), copy it straight into that product's settings file on the server (`/etc/afra/<product>.env`), and do not keep it anywhere else.
+   - Password: let Atlas generate it ("Autogenerate secure password"), copy it straight into that product's settings file on the server (`/etc/afraprod/<product>.env`), and do not keep it anywhere else.
    - Role: "Read and write to a specific database" and pick that product's database only (for example `afra_salon`). Nothing broader. Never use "Atlas admin" or "Read and write to any database".
 3. Network Access (the IP allow-list): add **200.141.15.246 only** (the VPS). Delete the "0.0.0.0/0" entry if Atlas created one. If the VPS address ever changes, change it here too.
-4. For each product, copy the connection string ("Drivers", Node.js) and set `MONGODB_URI` in `/etc/afra/<product>.env` with that product's user and database name, e.g. `mongodb+srv://<user>:<password>@<cluster-host>/afra_salon?retryWrites=true&w=majority`. The database name is the part after the host.
+4. For each product, copy the connection string ("Drivers", Node.js) and set `MONGODB_URI` in `/etc/afraprod/<product>.env` with that product's user and database name, e.g. `mongodb+srv://<user>:<password>@<cluster-host>/afra_salon?retryWrites=true&w=majority`. The database name is the part after the host.
 5. The Super Admin (`admin`) reads each product only through the product's own `/api/internal/admin-summary` route. It has its own small database (`afra_admin`) and no access to the product databases.
 
 | Product | Database name (suggested) | Atlas user |

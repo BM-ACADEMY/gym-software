@@ -3,21 +3,24 @@
 # "current" link, restart under pm2, health-check every product, and roll back to the previous release if a check fails.
 # Written 13 Nov 2026, not yet run by a person.
 #
-# Usage (as the app user, normally `afra`):
+# Usage (as the app user, `afraprod` on the shared server):
 #   RELEASE_BRANCH=release-20261113 bash deploy/deploy.sh [--dry-run] [--products "salon mart"] [--skip-clients]
 # Rules:
 #  - RELEASE_BRANCH is required. Production never follows phase1-autopilot by itself, and `main` is refused (nobody pushes to main by hand).
-#  - No secrets here. Settings live in /etc/afra/<product>.env (mode 600), read by the apps via node --env-file.
+#  - No secrets here. Settings live in /etc/afraprod/<product>.env (mode 600), read by the apps via node --env-file.
 #  - Safe to run again: each run makes a new release folder; the link flips only after install and build succeed.
 set -euo pipefail
 
-BASE="${AFRA_BASE:-/srv/afra}"
+# Shared server (13 Nov): Node 22 is already installed by the Lead Hub at /opt/node-22 (we do NOT install or change it), and pm2 lives in our own folder, not globally.
+export PATH="/opt/node-22/bin:${AFRA_BASE:-/srv/afraprod}/tools/node_modules/.bin:$PATH"
+
+BASE="${AFRA_BASE:-/srv/afraprod}"
 REPO_URL="${REPO_URL:-git@github.com:BM-ACADEMY/gym-software.git}"   # read-only deploy key, see docs/DEPLOY_PRODUCTS.md
 BRANCH="${RELEASE_BRANCH:-}"
 ALL_PRODUCTS="gym hire salon mart dine cloth wash admin"
 PRODUCTS="$ALL_PRODUCTS"
 DRY=no; SKIP_CLIENTS=no; KEEP=5
-LOG_DIR="/var/log/afra"
+LOG_DIR="/var/log/afraprod"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -41,10 +44,10 @@ die()  { printf '\nDEPLOY STOPPED: %s\n' "$*" >&2; exit 1; }
 [ -n "$BRANCH" ] || die "RELEASE_BRANCH is not set. Name the release branch, e.g. RELEASE_BRANCH=release-20261113"
 case "$BRANCH" in main|master) die "refusing to deploy '$BRANCH' (nobody pushes to main by hand; use a release branch)";; esac
 for p in $PRODUCTS; do [ -n "${PORT[$p]:-}" ] || die "unknown product '$p' (known: $ALL_PRODUCTS)"; done
-if [ "$(id -un)" = "root" ] && [ "${AFRA_ALLOW_ROOT:-no}" != "yes" ]; then die "run as the app user: sudo -u afra RELEASE_BRANCH=$BRANCH bash deploy/deploy.sh"; fi
+if [ "$(id -un)" = "root" ] && [ "${AFRA_ALLOW_ROOT:-no}" != "yes" ]; then die "run as the app user: sudo -u afraprod RELEASE_BRANCH=$BRANCH bash deploy/deploy.sh"; fi
 
 if [ "$DRY" = no ]; then
-  mkdir -p "$BASE/releases" 2>/dev/null || die "cannot create $BASE/releases (sudo mkdir -p $BASE/releases && sudo chown -R afra:afra $BASE)"
+  mkdir -p "$BASE/releases" 2>/dev/null || die "cannot create $BASE/releases (sudo mkdir -p $BASE/releases && sudo chown -R afraprod:afraprod $BASE)"
   [ -w "$LOG_DIR" ] && exec > >(tee -a "$LOG_DIR/deploy.log") 2>&1
   exec 9>"$BASE/.deploy.lock"; flock -n 9 || die "another deploy is running"
 fi

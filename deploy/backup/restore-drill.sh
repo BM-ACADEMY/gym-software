@@ -5,7 +5,7 @@
 # Needs a connection string for a user who may create a scratch database (file path in RESTORE_MONGODB_URI_FILE) and the passphrase file.
 set -euo pipefail
 FILE="${1:-}"; [ -r "$FILE" ] || { echo "Usage: $0 <backup file>"; exit 2; }
-ENV_FILE="${AFRA_BACKUP_ENV:-/etc/afra/backup.env}"; [ -r "$ENV_FILE" ] && . "$ENV_FILE"
+ENV_FILE="${AFRA_BACKUP_ENV:-/etc/afraprod/backup.env}"; [ -r "$ENV_FILE" ] && . "$ENV_FILE"
 for v in RESTORE_MONGODB_URI_FILE BACKUP_PASSPHRASE_FILE; do [ -r "${!v:-/nonexistent}" ] || { echo "Missing or unreadable $v"; exit 2; }; done
 WORK="$(mktemp -d)"; chmod 700 "$WORK"; trap 'rm -rf "$WORK"' EXIT
 SCRATCH="restore_drill_$(date -u +%H%M%S)"

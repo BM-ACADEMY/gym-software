@@ -2,13 +2,13 @@
 # Nightly database backup. Written 13 Nov 2026, NOT YET RUN by a person.
 # What it does: mongodump of every product database, compressed, encrypted with a passphrase file, copied OFF the server with rclone.
 # What it never does: print a password, a connection string or the passphrase. It reads them from files only the server user can read.
-# Settings file (default /etc/afra/backup.env, mode 600), names only here:
+# Settings file (default /etc/afraprod/backup.env, mode 600), names only here:
 #   BACKUP_MONGODB_URI_FILE   a file holding the Atlas connection string for a READ-ONLY backup user (one line)
 #   BACKUP_PASSPHRASE_FILE    a file holding the encryption passphrase (keep a second copy in the owner's password manager)
 #   BACKUP_RCLONE_REMOTE      e.g. gdrive-backup:afra-backups   (an rclone remote set up once by the owner)
 #   BACKUP_KEEP_DAYS          how many days to keep on the remote (default 30)
 set -euo pipefail
-ENV_FILE="${AFRA_BACKUP_ENV:-/etc/afra/backup.env}"
+ENV_FILE="${AFRA_BACKUP_ENV:-/etc/afraprod/backup.env}"
 [ -r "$ENV_FILE" ] || { echo "No settings file at $ENV_FILE"; exit 2; }
 # shellcheck disable=SC1090
 . "$ENV_FILE"

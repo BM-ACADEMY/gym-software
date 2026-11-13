@@ -1,7 +1,7 @@
 # Deploying the products to the Hostinger VPS
 
 Written 13 Nov 2026. **Written, not yet tested by a person.** Nothing here has been run on the real server.
-Server: Hostinger KVM VPS, 200.141.15.246, Ubuntu 24.04, Mumbai. Eight apps: Gym, Hire, Salon, Mart, Dine, Cloth, Wash and the Super Admin.
+Server: Hostinger KVM 2 VPS, 200.141.15.246, Ubuntu 24.04, Mumbai. **Shared with live AFRA systems: read the SHARED SERVER section first.** Paid until 28 Nov 2026 (owner renews). Eight apps: Gym, Hire, Salon, Mart, Dine, Cloth, Wash and the Super Admin.
 
 **Who does what**
 - **Claude** (in the Hostinger browser terminal, owner watching) or **one developer** runs the commands marked `[CLAUDE/DEV]`.
@@ -14,39 +14,49 @@ All files mentioned are in the repo under `deploy/`.
 - [ ] A **release branch** exists, cut from `phase1-autopilot` after CI is green, e.g. `release-20261113`. Production never follows `phase1-autopilot` directly, and nobody pushes to `main`. `[OWNER]` says the name; `[CLAUDE/DEV]` creates it.
 - [ ] Hostinger **snapshot** taken from the Hostinger panel (so the whole server can be put back). `[OWNER]`
 - [ ] MongoDB Atlas is ready as in `deploy/MONGO.md` (eight databases, eight users, allow-list = this VPS only). `[OWNER]`
-- [ ] Decide the Gym: is an old Gym already live on this server (systemd service `gymdesk`)? See step 9.
+- [ ] Gym: no `gymdesk` service exists on this server (checked 13 Nov). Step 9 does not apply here.
 
-## 1. Server basics `[CLAUDE/DEV]`
+## SHARED SERVER (read this first; found 13 Nov 2026 by looking at the real server, read-only)
+The server already runs live systems, so this kit must not touch them:
+- **Lead Hub (AFRA AI OS):** systemd `afra-app@live` and `afra-app@staging` (ports 3000 and 3001), user `afra`, folders `/srv/afra/live|staging`, settings `/etc/afra/live.env|staging.env`, two PostgreSQL clusters, backup timers `afra-backup@*`, nginx file `/etc/nginx/conf.d/afra.conf` for app.afraventures.in and staging.afraventures.in.
+- **Postiz** (Docker, post.afraventures.in), **Temporal** (Docker), **ReelHub** (reels.afraventures.in), fail2ban, the firewall (ufw already active and correct).
+- **Node 22 already installed** at `/opt/node-22/bin/node` (the Lead Hub's). We use it; we never install, upgrade or change it.
+
+So for the products:
+- **Own user and folders:** user `afraprod`, `/srv/afraprod`, `/etc/afraprod`, `/var/log/afraprod`. Never the `afra` user (a break-in to a product app must not be able to read the Lead Hub's live settings).
+- **Nothing is removed or upgraded:** no `apt upgrade`, no `ufw` change, no deleting nginx's default site, no global npm install. pm2 is installed in our own folder (`/srv/afraprod/tools`).
+- **Own nginx names:** `10-prod-common.conf`, `prod-proxy.conf`, `prod-security-headers.conf`, `prod-<product>.conf`; rate-limit zones start with `prod_`. Always `sudo nginx -t` before a reload; if it fails, remove our new file and stop.
+- **Memory:** the server also runs Postiz, Temporal and a search database. Check `free -h` before building; build one front-end at a time with `nice -n 19`. Watch memory after the apps start; if it is tight, move the products to the other server (82.25.85.114) or upgrade the plan.
+- **Backups:** the Lead Hub has its own. Ours are separate (`deploy/backup/`).
+- **Ports used by us:** 5000, 5006 to 5012 (all free on 13 Nov).
+- **Old `gymdesk`:** not on this server (no such service). It is probably on the other server; leave it alone for now.
+
+## 1. Server basics `[CLAUDE/DEV]` (shared-server version: installs almost nothing)
 ```
-sudo apt update && sudo apt -y upgrade
-sudo apt -y install nginx git curl ufw certbot python3-certbot-nginx
-# Node 22 (the apps need Node 22): install from NodeSource or nvm, then check
-node -v        # must start with v22
-sudo npm install -g pm2
+/opt/node-22/bin/node -v          # must start with v22 (already there)
+sudo apt -y install git certbot python3-certbot-nginx 2>&1 | tail -3    # only if missing; this does NOT upgrade other packages
+free -h; nproc                    # memory check (see above)
 ```
-Firewall: only SSH, HTTP and HTTPS are open to the world. The apps listen on 127.0.0.1 only.
-```
-sudo ufw allow OpenSSH && sudo ufw allow 'Nginx Full' && sudo ufw enable
-```
-Build tools: the front-ends are built on the server, so `npm` must work (registry reachable from the VPS; it is only blocked in Claude's cloud workspace).
+Do not run `apt upgrade`, `ufw enable` or `npm install -g`.
 
 ## 2. The app user and folders `[CLAUDE/DEV]`
-**Simplification:** the older plan (`HOSTING_PLAN.md`) wanted one system user per app. This kit uses **one user, `afra`, for all eight apps** to keep the first deploy to one day. It is a weaker wall between products (a break-in to one app can read the others' settings files). Move to one user per app before real customers; each app's settings file is already separate, so the change is small.
 ```
-sudo adduser --system --group --home /srv/afra afra
-sudo mkdir -p /srv/afra/releases /etc/afra /var/log/afra
-sudo chown -R afra:afra /srv/afra /var/log/afra
-sudo chown root:afra /etc/afra && sudo chmod 750 /etc/afra
-sudo -u afra ssh-keygen -t ed25519 -f /srv/afra/.ssh_deploy -N "" 2>/dev/null || true
+sudo adduser --system --group --home /srv/afraprod afraprod
+sudo mkdir -p /srv/afraprod/releases /srv/afraprod/tools /etc/afraprod /var/log/afraprod
+sudo chown -R afraprod:afraprod /srv/afraprod /var/log/afraprod
+sudo chown root:afraprod /etc/afraprod && sudo chmod 750 /etc/afraprod
+sudo -u afraprod env PATH=/opt/node-22/bin:$PATH npm install --prefix /srv/afraprod/tools pm2     # pm2 in our own folder
+sudo -u afraprod ssh-keygen -t ed25519 -f /srv/afraprod/.ssh_deploy -N "" 2>/dev/null || true
 ```
-Deploy key: add the **public** half (`/srv/afra/.ssh_deploy.pub`) to GitHub as a **read-only deploy key** on the repository. `[OWNER]` adds it in GitHub (Settings > Deploy keys). The private half never leaves the server. (Or the repo address in `deploy.sh` can be changed to an https address with a read-only token; the owner types the token, never chat.)
+Deploy key: add the **public** half (`/srv/afraprod/.ssh_deploy.pub`) to GitHub as a **read-only deploy key** on the repository (it is public now, so a plain `https://github.com/BM-ACADEMY/gym-software.git` clone also works without any key: set `REPO_URL` to that and skip the key). `[OWNER]` adds it in GitHub (Settings > Deploy keys) if the key route is used.
+Start on reboot: `sudo env PATH=/opt/node-22/bin:/srv/afraprod/tools/node_modules/.bin:$PATH pm2 startup systemd -u afraprod --hp /srv/afraprod`, then run the one command it prints, then `sudo -u afraprod pm2 save` after the first deploy.
 
 ## 3. The settings files (all secrets) `[OWNER]`
-One file per product, `/etc/afra/<product>.env`, owner `afra`, mode 600. The names and which are required are in `deploy/env/<product>.env.example` (names only, no values).
+One file per product, `/etc/afraprod/<product>.env`, owner `afraprod`, mode 600. The names and which are required are in `deploy/env/<product>.env.example` (names only, no values).
 `[CLAUDE/DEV]` creates the empty files and the layout:
 ```
 for p in gym hire salon mart dine cloth wash admin; do
-  sudo install -m 600 -o afra -g afra /dev/null /etc/afra/$p.env
+  sudo install -m 600 -o afraprod -g afraprod /dev/null /etc/afraprod/$p.env
 done
 ```
 Then `[CLAUDE/DEV]` copies the names from `deploy/env/<p>.env.example` into each file with **empty values**, and the **owner types every value himself** at the terminal (nano). How to make a good secret: `openssl rand -base64 48` on the server, copied by the owner into the file only.
@@ -55,13 +65,12 @@ Every file needs: `MONGODB_URI` (from Atlas), `<PRODUCT>_SESSION_SECRET` (32+ ch
 Razorpay keys for the Gym are saved in the Root Admin screen later, not in these files.
 
 ## 4. Install the web-server files `[CLAUDE/DEV]`
-Use the repo copy from the first release (clone once to read the files, or after step 6 use `/srv/afra/current/deploy/nginx`).
+Use the repo copy from the first release (clone once to read the files, or after step 6 use `/srv/afraprod/current/deploy/nginx`).
 ```
-sudo cp deploy/nginx/00-afra-common.conf /etc/nginx/conf.d/
+sudo cp deploy/nginx/10-prod-common.conf /etc/nginx/conf.d/
 sudo mkdir -p /etc/nginx/snippets
-sudo cp deploy/nginx/afra-proxy.conf deploy/nginx/afra-security-headers.conf /etc/nginx/snippets/
-for s in gym hire salon mart dine cloth wash admin; do sudo cp deploy/nginx/$s.conf /etc/nginx/sites-available/afra-$s.conf; sudo ln -sf /etc/nginx/sites-available/afra-$s.conf /etc/nginx/sites-enabled/; done
-sudo rm -f /etc/nginx/sites-enabled/default
+sudo cp deploy/nginx/prod-proxy.conf deploy/nginx/prod-security-headers.conf /etc/nginx/snippets/
+for s in gym hire salon mart dine cloth wash admin; do sudo cp deploy/nginx/$s.conf /etc/nginx/sites-available/prod-$s.conf; sudo ln -sf /etc/nginx/sites-available/prod-$s.conf /etc/nginx/sites-enabled/; done  # NOTE: no "rm default": the default site is not ours to remove
 sudo nginx -t        # must say "syntax is ok". If it fails, stop and read the message.
 ```
 (If the certificate lines in the site files do not exist yet, `nginx -t` complains about missing certificates: install the site files, run step 5 first with the plain-HTTP versions, or use `certbot --nginx` which adds them. Do not skip the test.)
@@ -74,10 +83,10 @@ Super Admin: put it behind an IP allow-list in `admin.conf` (the commented lines
 ## 6. Check, deploy, smoke-test `[CLAUDE/DEV]`
 ```
 sudo bash deploy/preflight.sh                 # read-only; every line must be PASS. It never prints a secret.
-sudo -u afra RELEASE_BRANCH=release-20261113 bash deploy/deploy.sh --dry-run    # shows the plan, changes nothing
-sudo -u afra RELEASE_BRANCH=release-20261113 bash deploy/deploy.sh              # the real one
+sudo -u afraprod RELEASE_BRANCH=release-20261113 bash deploy/deploy.sh --dry-run    # shows the plan, changes nothing
+sudo -u afraprod RELEASE_BRANCH=release-20261113 bash deploy/deploy.sh              # the real one
 ```
-`deploy.sh` makes a new folder under `/srv/afra/releases`, installs, builds the front-ends, switches the `current` link, restarts under pm2, waits for every `/api/health`, and **goes back to the previous release by itself if any check fails**. It keeps the last 5 releases. You can deploy only some products: `--products "salon mart"`. It refuses `main` and refuses to run without `RELEASE_BRANCH`.
+`deploy.sh` makes a new folder under `/srv/afraprod/releases`, installs, builds the front-ends, switches the `current` link, restarts under pm2, waits for every `/api/health`, and **goes back to the previous release by itself if any check fails**. It keeps the last 5 releases. You can deploy only some products: `--products "salon mart"`. It refuses `main` and refuses to run without `RELEASE_BRANCH`.
 First time: also run `pm2 startup` (it prints one command to run with sudo) so the apps start after a reboot, then `pm2 save`.
 
 **Smoke tests** (a person looks at each; write the result in `docs/products/HANDOVER_TESTS.md`). For each product, open its address in a browser and:
@@ -97,18 +106,18 @@ First time: also run `pm2 startup` (it prints one command to run with sudo) so t
 Automatic: a failed health check puts the previous release back and the script exits with an error.
 By hand (a bad release found later):
 ```
-ls -1t /srv/afra/releases                                   # newest first; pick the one before
-sudo -u afra ln -sfn /srv/afra/releases/<older-stamp> /srv/afra/current.next && sudo -u afra mv -Tf /srv/afra/current.next /srv/afra/current
-sudo -u afra pm2 startOrRestart /srv/afra/current/deploy/ecosystem.config.js --update-env
+ls -1t /srv/afraprod/releases                                   # newest first; pick the one before
+sudo -u afraprod ln -sfn /srv/afraprod/releases/<older-stamp> /srv/afraprod/current.next && sudo -u afraprod mv -Tf /srv/afraprod/current.next /srv/afraprod/current
+sudo -u afraprod pm2 startOrRestart /srv/afraprod/current/deploy/ecosystem.config.js --update-env
 ```
 Then run the health checks again. Data in Atlas is not rolled back by this; take an export before any release that changes how data is stored. Worst case: restore the Hostinger snapshot from step 0.
 Panic stop of one product: `pm2 stop <product>` (nginx then answers 502 for that name only).
 
 ## 8. Everyday commands
-`pm2 status` · `pm2 logs <product> --lines 100` · `pm2 reload <product>` · `tail -f /var/log/afra/deploy.log`. Logs are in `/var/log/afra/`. Never paste a log into chat without reading it for personal data first.
+`pm2 status` · `pm2 logs <product> --lines 100` · `pm2 reload <product>` · `tail -f /var/log/afraprod/deploy.log`. Logs are in `/var/log/afraprod/`. Never paste a log into chat without reading it for personal data first.
 
 ## 9. The old Gym on systemd (if one exists)
-If `systemctl status gymdesk` shows a running service on port 5000: tell the owner, take the snapshot, then `sudo systemctl stop gymdesk && sudo systemctl disable gymdesk` just before the first deploy so port 5000 is free (the pm2 Gym takes it). Keep its settings file; copy only the **names** to `/etc/afra/gym.env` and let the owner re-type the values. Rollback for this step: `sudo systemctl start gymdesk` after `pm2 stop gym`.
+If `systemctl status gymdesk` shows a running service on port 5000: tell the owner, take the snapshot, then `sudo systemctl stop gymdesk && sudo systemctl disable gymdesk` just before the first deploy so port 5000 is free (the pm2 Gym takes it). Keep its settings file; copy only the **names** to `/etc/afraprod/gym.env` and let the owner re-type the values. Rollback for this step: `sudo systemctl start gymdesk` after `pm2 stop gym`.
 
 ## 10. Notes and changes to know
 - **Ports changed** against `HOSTING_PLAN.md` (its 5001 to 5006 table is out of date). Now fixed in the pm2 file: gym 5000, hire 5006, salon 5007, mart 5008, dine 5009, cloth 5010, wash 5011, admin 5012. The admin's own code default (5010) clashes with Cloth, so the pm2 file pins admin to 5012.

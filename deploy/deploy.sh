@@ -87,6 +87,8 @@ if [ "$SKIP_CLIENTS" = no ]; then
 else say "4. Front-ends skipped (--skip-clients)"; fi
 
 say "5. Switch the current link"
+# nginx runs as www-data and must be able to walk through the base folder to the built pages (traverse only, no listing). Found 13 Nov: without this every site gave 403.
+run chmod o+x "$BASE"
 if [ "$DRY" = no ]; then ln -sfn "$NEW" "$CUR.next" && mv -Tf "$CUR.next" "$CUR"; else echo "   [dry-run] ln -sfn $NEW $CUR"; fi
 
 rollback() {

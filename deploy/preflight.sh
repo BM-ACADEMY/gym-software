@@ -82,7 +82,9 @@ echo "== Ports (apps listen on 127.0.0.1 only)"
 for p in $PRODUCTS; do
   port="${PORT[$p]}"
   if ss -ltn "( sport = :$port )" 2>/dev/null | grep -q LISTEN; then
-    if ss -ltn "( sport = :$port )" | grep -q "0.0.0.0:$port\|\*:$port\|\[::\]:$port"; then bad "port $port is open to the outside (must be 127.0.0.1 only)"
+    if ss -ltn "( sport = :$port )" | grep -q "0.0.0.0:$port\|\*:$port\|\[::\]:$port"; then
+      if [ "$ALLOW_RUNNING" = yes ]; then warn "port $port is open to the outside right now (an older copy); the restart in this deploy must fix it, and the deploy checks again afterwards"
+      else bad "port $port is open to the outside (must be 127.0.0.1 only)"; fi
     elif [ "$ALLOW_RUNNING" = yes ]; then ok "port $port in use on 127.0.0.1 (re-deploy)"
     else bad "port $port ($p) is already in use; use --allow-running for a re-deploy, or stop what is using it (an old systemd gymdesk service?)"; fi
   else ok "port $port ($p) is free"; fi

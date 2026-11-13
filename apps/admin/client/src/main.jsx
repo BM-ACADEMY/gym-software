@@ -1,18 +1,28 @@
+import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AdminShell } from '../../../../packages/core-ui/src/index.js';
 import manifest from '../../manifest.json';
+import AuthGate from './AuthGate.jsx';
 
 // Talks to the server on the same address. Cookies carry the sign-in; nothing secret is kept in the page.
 const call = async (method, path, body, params) => {
   const qs = params && Object.keys(params).length ? '?' + new URLSearchParams(params) : '';
-  const res = await fetch('/api/admin' + path + qs, { method, credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+  const res = await fetch('/api/admin' + path + qs, { method, credentials: 'same-origin', headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), 'X-Requested-With': 'afra-admin' }, body: body ? JSON.stringify(body) : undefined });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) { const e = new Error(json.message || 'Request failed'); e.response = { data: json }; throw e; }
   return json;
 };
 const api = { get: (p, params) => call('GET', p, null, params), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p) };
 
-createRoot(document.getElementById('root')).render(<AdminShell manifest={manifest} api={api} />);
+// Ask the server who is signed in; show the sign-in form until the answer is yes. A 401 here is normal for a visitor, not an error.
+function App() {
+  const [state, setState] = useState('checking');
+  useEffect(() => { fetch('/api/auth/me', { credentials: 'same-origin' }).then((r) => setState(r.ok ? 'in' : 'out')).catch(() => setState('out')); }, []);
+  if (state === 'checking') return null;
+  if (state === 'out') return <AuthGate onDone={() => setState('in')} />;
+  return <AdminShell manifest={manifest} api={api} />;
+}
+createRoot(document.getElementById('root')).render(<App />);
 
 // Phone alerts: a small button turns them on for this phone or browser. Does nothing if the server has no alert keys.
 (async () => {

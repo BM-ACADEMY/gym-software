@@ -132,4 +132,4 @@ if [ "$DRY" = no ]; then
   done
 else echo "   [dry-run] keep $KEEP releases"; fi
 
-say "DONE. $BRANCH is live (release $STAMP). Next: the smoke tests in docs/DEPLOY_PRODUCTS.md section 6."
+if [ "$DRY" = yes ]; then say "DRY RUN ONLY. Nothing was changed and nothing is live. Run again without --dry-run to deploy."; else say "DONE. $BRANCH is live (release $STAMP). Next: the smoke tests in docs/DEPLOY_PRODUCTS.md section 6."; fi

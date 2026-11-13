@@ -25,7 +25,7 @@
 
 If the Gym already has a live database, keep its existing name and user; only add the allow-list entry.
 
-## Backups (open decision M-09 / H17)
+## Backups (decided 13 Nov: nightly dump, see deploy/backup/README.md; paid Atlas later)
 
 - The **free tier (M0) has no backups.** Do not put real customer data on it. If it is used for the trial, say so to everyone who tests, and export by hand (`mongodump`) before any risky change.
 - Before launch the owner decides: a paid Atlas tier with **continuous cloud backup** (simplest; the owner turns it on in Atlas under Backup), or a nightly `mongodump` from the VPS to storage outside the VPS. A backup on the same VPS is not a backup.

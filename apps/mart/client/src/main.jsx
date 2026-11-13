@@ -56,7 +56,7 @@ function App({ me, signedOut }) {
       </header>
       <div style={{ flex: 1, overflow: 'auto' }}>
         {plan ? <PlanPayment api={api} role={me.role} productName={product.title} accent={product.accent} /> : <>
-        {view === 'billing' ? <PosScreen api={posApi} rules={posRules} basePath="/mart/pos" askDiscountReason allowDecimalQty creditNeedsCustomer loadOwing={loadOwing} /> : <AdminShell manifest={manifest} api={api} role={me.role} lang={lang} strings={strings} />}
+        {view === 'billing' ? <PosScreen api={posApi} rules={posRules} basePath="/mart/pos" askDiscountReason allowDecimalQty creditNeedsCustomer loadOwing={loadOwing} /> : <AdminShell accent={product.accent} manifest={manifest} api={api} role={me.role} lang={lang} strings={strings} />}
         </>}
       </div>
     </div>

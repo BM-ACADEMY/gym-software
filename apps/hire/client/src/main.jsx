@@ -15,7 +15,7 @@ const call = async (method, path, body, params) => {
 const api = { get: (p, params) => call('GET', p, null, params), post: (p, b) => call('POST', p, b || {}), patch: (p, b) => call('PATCH', p, b || {}), put: (p, b) => call('PUT', p, b || {}), del: (p) => call('DELETE', p) };
 
 const consent = window.location.pathname.match(/^\/consent\/([0-9a-f]{48})$/); // candidates open this without signing in
-createRoot(document.getElementById('root')).render(consent ? <ConsentPage token={consent[1]} /> : <AuthGate><AdminShell manifest={manifest} api={api} /></AuthGate>);
+createRoot(document.getElementById('root')).render(consent ? <ConsentPage token={consent[1]} /> : <AuthGate><AdminShell accent={'#0f766e'} manifest={manifest} api={api} /></AuthGate>);
 
 // Installable web app (same method as the gym, PWA-01). Production only. The service worker never stores /api calls.
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

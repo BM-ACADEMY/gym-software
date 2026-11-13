@@ -20,7 +20,7 @@ function App() {
   useEffect(() => { fetch('/api/auth/me', { credentials: 'same-origin' }).then((r) => setState(r.ok ? 'in' : 'out')).catch(() => setState('out')); }, []);
   if (state === 'checking') return null;
   if (state === 'out') return <AuthGate onDone={() => setState('in')} />;
-  return <AdminShell manifest={manifest} api={api} />;
+  return <AdminShell accent={'#334155'} manifest={manifest} api={api} />;
 }
 createRoot(document.getElementById('root')).render(<App />);
 

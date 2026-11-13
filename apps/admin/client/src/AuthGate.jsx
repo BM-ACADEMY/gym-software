@@ -13,8 +13,6 @@ const post = async (path, body) => {
   return json;
 };
 
-const box = { maxWidth: 360, margin: '12vh auto', padding: 20, font: '16px system-ui' };
-const field = { display: 'block', width: '100%', padding: 10, margin: '4px 0 14px', fontSize: 16, boxSizing: 'border-box' };
 
 export default function AuthGate({ onDone }) {
   const [ticket, setTicket] = useState('');
@@ -37,20 +35,20 @@ export default function AuthGate({ onDone }) {
   };
 
   return (
-    <form onSubmit={submit} style={box} aria-label="Super Admin sign in">
-      <h1 style={{ fontSize: 24 }}>Afra Super Admin</h1>
+    <div className="adm-auth" style={{ '--adm-brand': '#334155' }}><form onSubmit={submit} aria-label="Super Admin sign in">
+      <h1>Afra Super Admin</h1>
       {!ticket ? (
         <>
-          <label>Email<input style={field} type="email" value={f.email} onChange={set('email')} autoComplete="username" required autoFocus /></label>
-          <label>Password<input style={field} type="password" value={f.password} onChange={set('password')} autoComplete="current-password" required /></label>
+          <label>Email<input type="email" value={f.email} onChange={set('email')} autoComplete="username" required autoFocus /></label>
+          <label>Password<input type="password" value={f.password} onChange={set('password')} autoComplete="current-password" required /></label>
         </>
       ) : (
         <label>6-digit code from your phone app (or one recovery code)
-          <input style={field} value={f.code} onChange={set('code')} autoComplete="one-time-code" inputMode="text" required autoFocus />
+          <input value={f.code} onChange={set('code')} autoComplete="one-time-code" inputMode="text" required autoFocus />
         </label>
       )}
       {error && <p role="alert" style={{ color: '#b00020' }}>{error}</p>}
-      <button type="submit" disabled={busy} style={{ padding: '10px 18px', fontSize: 16 }}>{busy ? 'Please wait…' : ticket ? 'Verify' : 'Continue'}</button>
-    </form>
+      <button type="submit" className="adm-go" disabled={busy}>{busy ? 'Please wait…' : ticket ? 'Verify' : 'Continue'}</button>
+    </form></div>
   );
 }

@@ -60,7 +60,7 @@ function App({ me, signedOut }) {
         {view === 'people' && <People />}
         {view === 'tools' && <Tools role={me.role} />}
         {view === 'items' && <PosScreen api={posApi} rules={posRules} basePath="/pos" />}
-        {view === 'panel' && <AdminShell manifest={shown} api={api} role={me.role} />}
+        {view === 'panel' && <AdminShell accent={product.accent} manifest={shown} api={api} role={me.role} />}
         </>}
       </div>
     </div>

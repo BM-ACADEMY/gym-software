@@ -45,7 +45,7 @@ function App({ me, signedOut }) {
       </header>
       <div style={{ flex: 1, overflow: 'auto' }}>
         {plan ? <PlanPayment api={api} role={me.role} productName={product.title} accent={product.accent} /> : <>
-        <DineApp allowed={me.allowed} api={api} lang={lang === 'ta' ? 'ta' : 'en'} panel={<AdminShell manifest={shown} api={api} role={me.role} />} />
+        <DineApp allowed={me.allowed} api={api} lang={lang === 'ta' ? 'ta' : 'en'} panel={<AdminShell accent={product.accent} manifest={shown} api={api} role={me.role} />} />
         </>}
       </div>
     </div>

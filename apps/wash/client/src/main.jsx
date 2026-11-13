@@ -66,7 +66,7 @@ function App({ me, signedOut }) {
       {lang !== 'en' && <p style={{ margin: 0, padding: '4px 12px', background: '#fff4e5', fontSize: 12 }}>Tamil and Hindi menu names are drafts and still need a native speaker's check.</p>}
       <div style={{ flex: 1, overflow: 'auto' }}>
         {plan ? <PlanPayment api={api} role={me.role} productName={product.title} accent={product.accent} /> : <>
-        {view === 'billing' ? <PosScreen api={posApi} rules={posRules} basePath="/pos" /> : <WashApp api={api} role={me.role} panel={<AdminShell manifest={shown} api={api} role={me.role} />} />}
+        {view === 'billing' ? <PosScreen api={posApi} rules={posRules} basePath="/pos" /> : <WashApp api={api} role={me.role} panel={<AdminShell accent={product.accent} manifest={shown} api={api} role={me.role} />} />}
         </>}
       </div>
     </div>

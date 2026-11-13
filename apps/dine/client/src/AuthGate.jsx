@@ -8,8 +8,6 @@ const post = async (path, body) => {
   if (!res.ok) throw new Error(json.message || 'Something went wrong. Please try again.');
   return json;
 };
-const box = { maxWidth: 420, margin: '8vh auto', padding: 24, fontFamily: 'system-ui, sans-serif' };
-const field = { display: 'block', width: '100%', padding: 10, margin: '4px 0 14px', fontSize: 16, boxSizing: 'border-box' };
 
 // Shows sign-in or sign-up until the server says we are signed in, then calls children(me) with who is signed in.
 export default function AuthGate({ children }) {
@@ -19,7 +17,7 @@ export default function AuthGate({ children }) {
     .then(async (r) => { if (!r.ok) return setState('out'); setMe(await r.json()); setState('in'); }).catch(() => setState('out'));
   useEffect(() => { check(); }, []);
 
-  if (state === 'loading') return <div style={box}>Loading…</div>;
+  if (state === 'loading') return <div className="adm-auth" style={{ '--adm-brand': product.accent }}><p>Loading…</p></div>;
   if (state === 'in') return (
     <>
       {me && me.subscription && me.subscription.readOnly && <div role="alert" style={{ background: '#fff4e5', padding: 10, textAlign: 'center' }}>Your plan has ended, so this account is read-only. Renew to make changes.</div>}
@@ -40,21 +38,21 @@ function Form({ onDone }) {
   };
   const signup = mode === 'signup';
   return (
-    <form onSubmit={submit} style={box} aria-label={signup ? 'Create your account' : 'Sign in'}>
-      <h1 style={{ fontSize: 24, color: product.accent }}>{signup ? 'Join the invite-only pilot' : 'Sign in to ' + product.title}</h1>
+    <div className="adm-auth" style={{ '--adm-brand': product.accent }}><form onSubmit={submit} aria-label={signup ? 'Create your account' : 'Sign in'}>
+      <h1>{signup ? 'Join the invite-only pilot' : 'Sign in to ' + product.title}</h1>
       {signup && <p style={{ fontSize: 14, color: '#555' }}>{product.title} is in an invite-only pilot with a few businesses. Things may change while we test.</p>}
-      {signup && <><label>Restaurant or cafe name<input style={field} value={f.venueName} onChange={set('venueName')} autoComplete="organization" required /></label>
-        <label>Your name<input style={field} value={f.ownerName} onChange={set('ownerName')} autoComplete="name" required /></label></>}
-      <label>Email<input style={field} type="email" value={f.email} onChange={set('email')} autoComplete="email" required /></label>
-      {signup && <label>Mobile number (optional)<input style={field} type="tel" value={f.phone} onChange={set('phone')} autoComplete="tel" inputMode="tel" /></label>}
+      {signup && <><label>Restaurant or cafe name<input value={f.venueName} onChange={set('venueName')} autoComplete="organization" required /></label>
+        <label>Your name<input value={f.ownerName} onChange={set('ownerName')} autoComplete="name" required /></label></>}
+      <label>Email<input type="email" value={f.email} onChange={set('email')} autoComplete="email" required /></label>
+      {signup && <label>Mobile number (optional)<input type="tel" value={f.phone} onChange={set('phone')} autoComplete="tel" inputMode="tel" /></label>}
       {signup && <label>State (decides how GST shows on your bills)
-        <select style={field} value={f.state} onChange={set('state')} required><option value="">Select…</option>{STATES.map((s) => <option key={s}>{s}</option>)}</select></label>}
-      <label>Password{signup ? ' (10 or more characters)' : ''}<input style={field} type="password" value={f.password} onChange={set('password')} autoComplete={signup ? 'new-password' : 'current-password'} required /></label>
+        <select value={f.state} onChange={set('state')} required><option value="">Select…</option>{STATES.map((s) => <option key={s}>{s}</option>)}</select></label>}
+      <label>Password{signup ? ' (10 or more characters)' : ''}<input type="password" value={f.password} onChange={set('password')} autoComplete={signup ? 'new-password' : 'current-password'} required /></label>
       {signup && <label style={{ display: 'block', marginBottom: 14 }}><input type="checkbox" checked={f.salesContactOk} onChange={set('salesContactOk')} /> It is OK for the Afra team to call or message me about the pilot (you can say stop any time)</label>}
       {signup && <label style={{ display: 'block', marginBottom: 14 }}><input type="checkbox" checked={f.acceptTerms} onChange={set('acceptTerms')} /> I accept the <a href="https://afraventures.in/terms" target="_blank" rel="noreferrer">terms</a> and <a href="https://afraventures.in/privacy" target="_blank" rel="noreferrer">privacy policy</a></label>}
       {error && <p role="alert" style={{ color: '#b00020' }}>{error}</p>}
-      <button type="submit" disabled={busy} style={{ padding: '10px 18px', fontSize: 16, background: product.accent, color: '#fff', border: 0, borderRadius: 6 }}>{busy ? 'Please wait…' : signup ? 'Create account' : 'Sign in'}</button>
-      <p><button type="button" onClick={() => { setMode(signup ? 'login' : 'signup'); setError(''); }} style={{ background: 'none', border: 0, color: '#0b57d0', cursor: 'pointer', padding: 0 }}>{signup ? 'I already have an account' : 'New here? Ask to join the pilot'}</button></p>
-    </form>
+      <button type="submit" className="adm-go" disabled={busy}>{busy ? 'Please wait…' : signup ? 'Create account' : 'Sign in'}</button>
+      <p><button type="button" onClick={() => { setMode(signup ? 'login' : 'signup'); setError(''); }} className="adm-link">{signup ? 'I already have an account' : 'New here? Ask to join the pilot'}</button></p>
+    </form></div>
   );
 }

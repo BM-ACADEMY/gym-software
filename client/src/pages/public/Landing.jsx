@@ -56,7 +56,7 @@ const FeatureBlock = ({ title, description, items, imageIcon, reverse }) => {
 };
 
 // ─── Main Landing Page ───────────────────────────────────────────────────────
-const LANDING_TEXT = { badge: 'Gym Management Software Made in India', line1: 'Gym management', line2: 'software for', line3: 'fitness industry', subline: 'Run members, payments and attendance, send WhatsApp reminders automatically, and get AI plans and weekly insights. Made for gyms in India.' };
+const LANDING_TEXT = { badge: 'Gym Management Software Made in India', line1: 'Gym management', line2: 'software for', line3: 'fitness industry', subline: 'Run members, payments and attendance, send WhatsApp reminders you can switch on or off, and get AI plans and weekly insights. Made for gyms in India.' };
 
 const Landing = () => {
   const text = useSiteContent('landing', LANDING_TEXT);
@@ -170,7 +170,7 @@ const Landing = () => {
           reverse={true}
           items={[
             { title: 'Absence Alerts', content: 'See members who have not come for 10 days, and send a friendly check-in message on WhatsApp.' },
-            { title: 'WhatsApp Reminders', content: 'Renewal reminders, dues reminders, absence check-ins and a daily summary for you are sent on WhatsApp automatically. Each plan includes a monthly message allowance.' },
+            { title: 'WhatsApp Reminders', content: 'Renewal reminders, dues reminders, absence check-ins and a daily summary for you can be sent on WhatsApp, and you can switch each one off. Each plan includes a monthly message allowance.' },
             { title: 'Dues Reminders', content: 'Pending balances are chased weekly on WhatsApp, with your UPI ID in the message.' },
           ]}
         />
@@ -267,7 +267,7 @@ const Landing = () => {
                 Our cutting-edge fitness software serves as a digital hub, enabling a range of options and fitness encounters through seamless data utilization and integrations.
               </p>
               <ul className="space-y-3">
-                {['Smart Dashboard with real-time KPIs', 'Automated SMS & WhatsApp alerts', 'Biometric & BMI device integration', 'AI-powered workout & diet plans', 'Multi-branch management support'].map((item, i) => (
+                {['Smart Dashboard with real-time KPIs', 'WhatsApp reminders you can switch off', 'Biometric log import', 'AI-powered workout & diet plans', 'Multi-branch management support'].map((item, i) => (
                   <li key={i} className="flex items-center gap-3 text-gray-700">
                     <svg className="w-5 h-5 text-teal-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
                     {item}

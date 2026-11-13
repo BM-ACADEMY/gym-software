@@ -92,7 +92,7 @@ export default function ResourceScreen({ def, api, title }) {
                 <tr key={idOf(r)}>
                   {def.columns.map((c) => <td key={c.key} className={c.type === 'money' || c.type === 'number' ? 'n' : ''}>{c.type === 'pill' ? <span className="adm-pill">{String(getPath(r, c.key) ?? '-')}</span> : formatCell(c.type, getPath(r, c.key), r)}</td>)}
                   <td className="adm-actions">
-                    {def.fields && !def.readOnly && <button type="button" className="adm-btn" onClick={() => open(r)}>{t('edit')}</button>}
+                    {def.fields && !def.readOnly && !def.noEdit && <button type="button" className="adm-btn" onClick={() => open(r)}>{t('edit')}</button>}
                     {(def.actions || []).filter((a) => !a.when || getPath(r, a.when.key) === a.when.equals).map((a) => (
                       <button key={a.label} type="button" className="adm-btn" onClick={() => runAction(a, r)}>{confirm === a.label + idOf(r) ? (a.confirm || 'Tap again to confirm') : a.label}</button>
                     ))}

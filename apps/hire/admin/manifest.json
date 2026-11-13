@@ -884,7 +884,8 @@
           "label": "Place (in person)",
           "max": 120
         }
-      ]
+      ],
+      "noEdit": true
     },
     "expenses": {
       "label": "Expenses",
@@ -993,7 +994,8 @@
           "label": "Note",
           "max": 120
         }
-      ]
+      ],
+      "noEdit": true
     },
     "team": {
       "label": "Recruiters",
@@ -1053,7 +1055,8 @@
           "confirm": "Tap again: this recruiter can no longer sign in",
           "done": "Switched off."
         }
-      ]
+      ],
+      "noEdit": true
     }
   },
   "settings": {

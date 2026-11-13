@@ -5,7 +5,7 @@ import { validateManifest } from '../src/admin/schema.js';
 const read = (p) => fs.readFileSync(new URL(p, import.meta.url), 'utf8');
 const hire = JSON.parse(read('../../../apps/hire/admin/manifest.json'));
 const adminApp = JSON.parse(read('../../../apps/admin/manifest.json'));
-const hireRoutes = read('../../../apps/hire/src/routes.js');
+const hireRoutes = read('../../../apps/hire/src/routes.js') + read('../../../apps/hire/src/routesPhase2.js');
 const adminRoutes = read('../../../apps/admin/src/routes.js');
 
 // Every endpoint the panel calls must exist as a real route, so a renamed route cannot silently break a screen.
@@ -14,7 +14,7 @@ const pathsOf = (m) => {
   const out = [];
   for (const r of Object.values(m.resources || {})) {
     out.push(['get', r.endpoint]);
-    if (r.fields && !r.readOnly) { out.push(['post', r.endpoint]); out.push(['patch', r.endpoint + '/:id']); }
+    if (r.fields && !r.readOnly) { out.push(['post', r.endpoint]); if (!r.noEdit) out.push(['patch', r.endpoint + '/:id']); }
     for (const a of r.actions || []) out.push([(a.method || 'POST').toLowerCase().replace('delete', 'delete'), a.path]);
   }
   for (const s of Object.values(m.stats || {})) out.push(['get', s.endpoint]);

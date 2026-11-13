@@ -3,6 +3,7 @@
 // The database name must end in "test"; it is emptied before the run. Skipped (with a note) when MONGODB_TEST_URI is not set.
 const URI = process.env.MONGODB_TEST_URI;
 const run = URI && /test$/.test(URI) ? describe : describe.skip;
+jest.setTimeout(60000); // first connect and password hashing can take longer than the 5-second default on a CI runner
 run('Salon routes (needs a test database)', () => {
   const express = require('express'); const mongoose = require('mongoose'); const request = require('supertest');
   const { createApp } = require('../src/app'); const B = require('../src/booking');

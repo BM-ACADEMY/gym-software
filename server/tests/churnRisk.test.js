@@ -14,7 +14,7 @@ describe('churn risk and win-back (AI-04)', () => {
   test('lists a member who stopped coming, and the next win-back step; marking it done moves to no repeat', async () => {
     const t = await createTenant(); const sid = t.subscriber._id; const now = Date.now();
     const risky = await Member.create({ subscriberId: sid, name: 'Risky Ravi', phone: '9000000011', status: 'active', createdAt: new Date(now - 200 * DAY), expiresAt: new Date(now + 10 * DAY) });
-    await Attendance.insertMany([20, 21, 22, 24, 26, 27].map((n) => ({ subscriberId: sid, memberId: risky._id, checkedInAt: new Date(now - n * DAY) })));
+    await Attendance.insertMany([20, 21, 22, 24, 26, 27].map((n) => ({ subscriberId: sid, memberId: risky._id, checkedInAt: new Date(now - n * DAY), method: 'manual' })));
     const lapsed = await Member.create({ subscriberId: sid, name: 'Lapsed Lata', phone: '9000000012', status: 'active', createdAt: new Date(now - 200 * DAY), expiresAt: new Date(now - 6 * DAY) });
     const r1 = await request(app).get('/api/admin/copilot/risk?lang=en').set(auth(t));
     expect(r1.status).toBe(200);

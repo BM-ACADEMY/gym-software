@@ -11,12 +11,12 @@ Decision (Kamar, 13 Nov): nightly dump, not paid Atlas for now. The free Atlas t
 5. Create `/etc/afraprod/backup.env` (mode 600):
    `BACKUP_MONGODB_URI_FILE=/etc/afraprod/backup.uri` / `BACKUP_PASSPHRASE_FILE=/etc/afraprod/backup.pass` / `BACKUP_RCLONE_REMOTE=<remote>:afra-backups` / `RESTORE_MONGODB_URI_FILE=/etc/afraprod/restore.uri` / `BACKUP_KEEP_DAYS=30`
 6. Run once by hand: `sudo bash deploy/backup/backup.sh`. Expect `Backup OK`. Check the file appears in the remote.
-7. Schedule: `sudo crontab -e` then `30 2 * * * /srv/afraprod/current/deploy/backup/backup.sh >> /var/log/afra-backup.log 2>&1` (02:30 server time).
+7. Schedule: `sudo crontab -e` then `30 2 * * * /srv/afraprod/current/deploy/backup/backup.sh >> /var/log/afraprod-backup.log 2>&1` (02:30 server time).
 8. **Restore drill (a person, once):** download one file from the remote, run `bash deploy/backup/restore-drill.sh <file>`, look at the scratch database, drop it, write the date in `docs/LAUNCH_GATE.md`.
 
 ## Rules
 - A backup on the same server is not a backup: the remote must be somewhere else.
 - A backup counts only after the restore drill worked once.
-- Check `/var/log/afra-backup.log` weekly (the Monday checklist). If a night fails, nobody is told by itself: that is a gap until an alert is added.
+- Check `/var/log/afraprod-backup.log` weekly (the Monday checklist). If a night fails, nobody is told by itself: that is a gap until an alert is added.
 - Backups hold customer personal data (names, phones). Keep the remote folder private and the passphrase safe. Deleting a customer on request does not remove them from old backups until those expire (30 days): say so in the privacy notice (lawyer item).
 - Move to paid Atlas continuous backup before real customers' data goes in, when the owner decides.

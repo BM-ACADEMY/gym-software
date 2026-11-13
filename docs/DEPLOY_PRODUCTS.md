@@ -46,6 +46,7 @@ sudo mkdir -p /srv/afraprod/releases /srv/afraprod/tools /etc/afraprod /var/log/
 sudo chown -R afraprod:afraprod /srv/afraprod /var/log/afraprod
 sudo chown root:afraprod /etc/afraprod && sudo chmod 750 /etc/afraprod
 sudo -u afraprod env PATH=/opt/node-22/bin:$PATH npm install --prefix /srv/afraprod/tools pm2     # pm2 in our own folder
+sudo install -d -o afraprod -g afraprod -m 700 /srv/afraprod/data /srv/afraprod/wash-photos   # Super Admin users file and audit data, Wash job photos (outside the release folders)
 sudo -u afraprod ssh-keygen -t ed25519 -f /srv/afraprod/.ssh_deploy -N "" 2>/dev/null || true
 ```
 Deploy key: add the **public** half (`/srv/afraprod/.ssh_deploy.pub`) to GitHub as a **read-only deploy key** on the repository (it is public now, so a plain `https://github.com/BM-ACADEMY/gym-software.git` clone also works without any key: set `REPO_URL` to that and skip the key). `[OWNER]` adds it in GitHub (Settings > Deploy keys) if the key route is used.

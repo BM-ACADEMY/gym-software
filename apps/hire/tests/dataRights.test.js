@@ -4,7 +4,7 @@ describe('data rights (pure)', () => {
   test('export has the person details and consent, never ids, hashes or internal scores', () => {
     const e = DR.candidateExport(c, [{ stage: 'interview', stageAt: 'd', history: [{ stage: 'sourced', at: 'a', evil: 1 }] }]);
     expect(e.candidate.name).toBe('Ravi'); expect(e.candidate.phone).toBe('+919876543210'); expect(e.consent.source).toBe('form');
-    const text = JSON.stringify(e); expect(/secret|T1|c1|score|evil/.test(text)).toBe(false);
+    const text = JSON.stringify({ ...e, exportedAt: undefined }); expect(/secret|T1|c1|score|evil/.test(text)).toBe(false); // the clock time is left out: 'T10:' in a timestamp looks like 'T1'
     expect(e.applications[0].history[0]).toEqual({ stage: 'sourced', at: 'a' });
   });
   test('anonymise wipes personal fields, keeps the row, blocks contact; consent field only when there is consent', () => {

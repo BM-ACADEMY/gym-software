@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import Landing from '../../../../packages/core-ui/src/landing/Landing.jsx';
+import landing from './landing.js';
 import product from './product.js';
 
 const STATES = ['Andhra Pradesh','Assam','Bihar','Chhattisgarh','Delhi','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Odisha','Puducherry','Punjab','Rajasthan','Tamil Nadu','Telangana','Uttar Pradesh','Uttarakhand','West Bengal','Other'];
@@ -24,11 +26,19 @@ export default function AuthGate({ children }) {
       {children(me, () => { setState('out'); setMe(null); })}
     </>
   );
-  return <Form onDone={check} />;
+  return <Front onDone={check} />;
 }
 
-function Form({ onDone }) {
-  const [mode, setMode] = useState('login');
+// Logged-out visitors see the front page first; "Sign in" and "Ask to join" open the form (the address #signin or #join goes straight to it).
+function Front({ onDone }) {
+  const start = typeof location !== 'undefined' ? location.hash.slice(1) : '';
+  const [view, setView] = useState(start === 'signin' || start === 'join' ? start : 'home');
+  if (view === 'home') return <Landing name={product.title} brand={product.accent} {...landing} onSignIn={() => setView('signin')} onJoin={() => setView('join')} />;
+  return <Form onDone={onDone} startMode={view === 'join' ? 'signup' : 'login'} onBack={() => setView('home')} />;
+}
+
+function Form({ onDone, startMode = 'login', onBack }) {
+  const [mode, setMode] = useState(startMode);
   const [f, setF] = useState({ businessName: '', ownerName: '', email: '', state: '', password: '', phone: '', salesContactOk: false, acceptTerms: false });
   const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
@@ -53,6 +63,7 @@ function Form({ onDone }) {
       {error && <p role="alert" style={{ color: '#b00020' }}>{error}</p>}
       <button type="submit" className="adm-go" disabled={busy}>{busy ? 'Please wait…' : signup ? 'Create account' : 'Sign in'}</button>
       <p><button type="button" onClick={() => { setMode(signup ? 'login' : 'signup'); setError(''); }} className="adm-link">{signup ? 'I already have an account' : 'New here? Ask to join the pilot'}</button></p>
+      {onBack && <p><button type="button" onClick={onBack} className="adm-link">Back to the front page</button></p>}
     </form></div>
   );
 }

@@ -69,3 +69,54 @@
 .adm-land-grid h3{margin:0 0 6px;font-size:17px}.adm-land-grid p{margin:0;color:var(--adm-mute);font-size:15px}
 .adm-land-steps{margin:0;padding-left:22px;display:grid;gap:8px}
 .adm-land-foot{max-width:1000px;margin:0 auto;padding:24px 20px 40px;color:var(--adm-mute);font-size:13px;text-align:center}.adm-land-foot a{color:var(--adm-accent)}
+
+/* ===== Daily screens frame (top bar, tabs, motion). Shared by Groom, Mart, Dine, Cloth, Wash. ===== */
+body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans','Noto Sans Tamil','Noto Sans Devanagari','Helvetica Neue',Arial,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;background:var(--adm-bg,#f2f5f7);color:var(--adm-ink,#14232b)}
+.app-frame{display:flex;flex-direction:column;height:100%;--app-accent:#0b6e75}
+.app-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 14px;color:#fff;background:linear-gradient(115deg,var(--app-accent),color-mix(in srgb,var(--app-accent) 70%,#000));box-shadow:0 2px 14px rgba(0,0,0,.2);position:relative;z-index:6}
+.app-top>strong{flex:1;min-width:140px;font-size:17px;font-weight:800;letter-spacing:.2px}
+.app-hbtn{padding:8px 14px;min-height:40px;border:1px solid rgba(255,255,255,.4);border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.app-hbtn:hover{background:rgba(255,255,255,.3)}
+select.app-hbtn option{color:#14232b;background:#fff}
+.app-tabs{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;background:var(--adm-panel,#fff);border-bottom:1px solid var(--adm-line,#d9e1e6);scrollbar-width:none}
+.app-tabs::-webkit-scrollbar{display:none}
+.app-tab{flex:0 0 auto;white-space:nowrap;min-height:42px;padding:8px 16px;border:0;border-radius:999px;background:transparent;color:var(--adm-mute,#5d6e78);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.app-tab:hover{background:color-mix(in srgb,var(--app-accent) 9%,transparent)}
+.app-tab[aria-current="true"]{background:color-mix(in srgb,var(--app-accent) 15%,transparent);color:var(--app-accent);box-shadow:inset 0 -3px 0 var(--app-accent)}
+.app-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.app-body>*:not(.adm-shell){background:#f2f5f7;color:#14232b;min-height:100%;box-sizing:border-box;color-scheme:light}
+.app-body>*:not(.adm-shell) h2{font-size:21px;font-weight:800;letter-spacing:-.01em;margin:6px 12px 10px}
+.app-body>*:not(.adm-shell) h3{font-size:17px;font-weight:700}
+.app-frame :where(input,select,textarea){font-family:inherit;border:1px solid #c5d0d6;border-radius:10px;background:#fff;color:#14232b}
+.app-frame :where(input[type=checkbox],input[type=radio]){accent-color:var(--app-accent)}
+.app-frame :where(label){font-weight:500}
+.app-body :where(table){border-collapse:collapse}
+.app-body :where(th){text-align:left;font-weight:700;color:#4a5b64}
+@keyframes app-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes app-pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+@keyframes app-pulse{0%,100%{opacity:.55}50%{opacity:1}}
+@media (max-width:720px){.app-top{padding:8px 10px}.app-top>strong{font-size:16px}.app-hbtn{padding:7px 12px}}
+@media (prefers-reduced-motion:no-preference){
+  .app-body>*{animation:app-rise .4s cubic-bezier(.2,.7,.2,1) both}
+  .app-body>*:not(.adm-shell)>*{animation:app-rise .45s cubic-bezier(.2,.7,.2,1) both}
+  .app-body>*:not(.adm-shell)>*:nth-child(2){animation-delay:.05s}.app-body>*:not(.adm-shell)>*:nth-child(3){animation-delay:.1s}.app-body>*:not(.adm-shell)>*:nth-child(4){animation-delay:.15s}.app-body>*:not(.adm-shell)>*:nth-child(5){animation-delay:.2s}.app-body>*:not(.adm-shell)>*:nth-child(n+6){animation-delay:.25s}
+  .app-body :where(div,section,article)[style*="border-radius"]{animation:app-pop .35s cubic-bezier(.2,.7,.2,1) both}
+  .app-frame button,.app-frame select,.app-frame input,.app-frame textarea,.app-tab,.app-hbtn{transition:transform .12s ease,box-shadow .2s ease,filter .2s ease,background-color .2s ease,border-color .2s ease,color .2s ease}
+  .app-frame button:not(:disabled):hover{filter:brightness(.96);box-shadow:0 4px 12px rgba(20,35,43,.16)}
+  .app-frame button:not(:disabled):active{transform:scale(.96);box-shadow:none}
+  .app-top .app-hbtn:hover,.app-tab:hover{box-shadow:none}
+  .app-frame [role="status"]:empty,.app-frame [aria-busy="true"]{animation:app-pulse 1.2s ease-in-out infinite}
+  .adm-cards>*{animation:app-pop .4s cubic-bezier(.2,.7,.2,1) both}
+  .adm-cards>*:nth-child(2){animation-delay:.05s}.adm-cards>*:nth-child(3){animation-delay:.1s}.adm-cards>*:nth-child(4){animation-delay:.15s}.adm-cards>*:nth-child(n+5){animation-delay:.2s}
+  .adm-screen{animation:app-rise .35s cubic-bezier(.2,.7,.2,1) both}
+}
+.app-frame :where(button):disabled{opacity:.5;cursor:not-allowed}
+.app-frame :where(input,select,textarea):focus{outline:2px solid var(--app-accent);outline-offset:1px;box-shadow:0 0 0 4px color-mix(in srgb,var(--app-accent) 18%,transparent)}
+.app-frame :where(button,a):focus-visible{outline:3px solid var(--app-accent);outline-offset:2px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .app-tab[aria-current="true"]{color:color-mix(in srgb,var(--app-accent) 55%,#fff);box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--app-accent) 55%,#fff)}}
+
+/* Panel menu groups */
+.adm-navgroup{margin:12px 8px 2px;padding:0;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--adm-mute)}
+.adm-navgroup:first-child{margin-top:0}
+.adm-shell nav ul{max-height:calc(100vh - 150px);overflow-y:auto}
+@media (max-width:720px){.adm-navgroup{display:none}.adm-shell nav ul{max-height:none;overflow-y:visible}}

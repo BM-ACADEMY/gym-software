@@ -48,7 +48,7 @@ export default function PlanPayment({ api, role, productName = 'this app', accen
     } catch (e) { setMsg(errText(e)); setBusy(''); }
   };
   const invoice = async (p) => { try { await saveDownload(api, `/billing/invoice/${p._id}`, `${p.invoiceNo || 'invoice'}.pdf`); } catch (e) { setMsg(errText(e)); } };
-  const s = info.status || {}; const box = { border: '1px solid #ddd', borderRadius: 8, padding: 12, margin: '8px 0' }; const btn = { padding: '10px 14px', minHeight: 44, border: 0, borderRadius: 6, background: accent, color: '#fff', cursor: 'pointer', fontSize: 15 };
+  const s = info.status || {}; const box = { border: '1px solid #e1e8ec', borderRadius: 16, padding: 16, margin: '10px 0', background: '#fff', boxShadow: '0 1px 2px rgba(20,35,43,.06), 0 4px 14px rgba(20,35,43,.06)' }; const btn = { padding: '11px 18px', minHeight: 46, fontWeight: 700, border: 0, borderRadius: 12, background: accent, color: '#fff', cursor: 'pointer', fontSize: 15 };
 
   return (
     <div style={{ padding: 16, maxWidth: 760, margin: '0 auto' }}>

@@ -7,13 +7,13 @@ const hhmm = (m) => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m
 const istToday = () => new Date(Date.now() + 5.5 * 3600000).toISOString().slice(0, 10);
 const msg = (e) => (e && e.response && e.response.data && e.response.data.message) || (e && e.message) || 'Something went wrong. Please try again.';
 const S = {
-  card: { border: '1px solid #e5e5e5', borderRadius: 10, padding: 12, margin: '10px 12px', background: '#fff' },
-  big: { padding: '12px 16px', fontSize: 16, borderRadius: 8, border: '1px solid #bbb', background: '#fff', minHeight: 44, cursor: 'pointer' },
-  main: { padding: '12px 16px', fontSize: 16, borderRadius: 8, border: 0, background: '#be185d', color: '#fff', minHeight: 44, cursor: 'pointer' },
-  input: { display: 'block', width: '100%', padding: 10, margin: '4px 0 10px', fontSize: 16, boxSizing: 'border-box' },
+  card: { border: '1px solid #e1e8ec', borderRadius: 16, padding: 14, margin: '10px 12px', background: '#fff', boxShadow: '0 1px 2px rgba(20,35,43,.06), 0 4px 14px rgba(20,35,43,.06)' },
+  big: { padding: '12px 18px', fontSize: 16, fontWeight: 600, borderRadius: 12, border: '1px solid #c5d0d6', background: '#fff', minHeight: 46, cursor: 'pointer' },
+  main: { padding: '12px 20px', fontSize: 16, fontWeight: 700, borderRadius: 12, border: 0, background: 'linear-gradient(135deg,#d6246f,#9d174d)', color: '#fff', minHeight: 46, cursor: 'pointer', boxShadow: '0 3px 10px rgba(190,24,93,.28)' },
+  input: { display: 'block', width: '100%', padding: '11px 12px', margin: '4px 0 10px', fontSize: 16, boxSizing: 'border-box', minHeight: 46 },
   row: { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' },
-  err: { color: '#b00020', margin: '8px 12px' },
-  chip: (on) => ({ padding: '10px 12px', fontSize: 15, borderRadius: 20, border: '1px solid ' + (on ? '#be185d' : '#bbb'), background: on ? '#fce7f3' : '#fff', minHeight: 44, cursor: 'pointer' }),
+  err: { color: '#a52a2a', background: '#f9dcdc', borderRadius: 10, padding: '8px 12px', margin: '8px 12px' },
+  chip: (on) => ({ padding: '10px 12px', fontSize: 15, borderRadius: 20, border: '1px solid ' + (on ? '#be185d' : '#c5d0d6'), background: on ? '#fce7f3' : '#fff', color: on ? '#9d174d' : '#14232b', fontWeight: on ? 700 : 500, minHeight: 44, cursor: 'pointer' }),
 };
 function useLoad(fn, deps) {
   const [state, set] = useState({ loading: true, data: null, error: '' });

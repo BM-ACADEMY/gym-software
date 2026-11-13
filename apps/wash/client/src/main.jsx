@@ -45,7 +45,6 @@ const posRules = pure ? { compute: pure.bill.compute, settle: pure.bill.settle }
 const store = () => { try { return window.localStorage; } catch (e) { return { getItem: () => null, setItem: () => {} }; } };
 // Menu names in another language come from admin/strings.json (draft, needs native review). Anything missing stays in English.
 const translate = (m, lang) => (!strings || lang === 'en' || !strings[lang] ? m : { ...m, nav: m.nav.map((n) => ({ ...n, label: strings[lang][n.key] || n.label })) });
-const btn = { padding: '6px 12px', border: '1px solid #ccc', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 14 };
 
 function App({ me, signedOut }) {
   const [lang, setLang] = useState(() => store().getItem('wash:lang') || 'en');
@@ -55,16 +54,16 @@ function App({ me, signedOut }) {
   const pick = (l) => { setLang(l); try { store().setItem('wash:lang', l); } catch (e) { /* optional */ } };
   const logout = async () => { try { await call('POST', '/auth/logout', {}); } catch (e) { /* signing out anyway */ } signedOut(); };
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <header style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 12px', background: product.accent, color: '#fff' }}>
+    <div className="app-frame" style={{ '--app-accent': product.accent }}>
+      <header className="app-top">
         <strong style={{ flex: 1 }}>{me[product.meName] || product.title}</strong>
-        {product.posBase && <button type="button" onClick={() => setView(view === 'billing' ? 'panel' : 'billing')} style={btn}>{view === 'billing' ? 'Back to the jobs' : 'Billing'}</button>}
-        {product.hasStrings && <select aria-label="Language" value={lang} onChange={(e) => pick(e.target.value)} style={btn}><option value="en">English</option><option value="ta">தமிழ்</option><option value="hi">हिन्दी</option></select>}
-        <button type="button" onClick={() => setPlan(!plan)} style={btn}>{plan ? 'Back' : 'Plan and payment'}</button>
-        <button type="button" onClick={logout} style={btn}>Sign out</button>
+        {product.posBase && <button type="button" onClick={() => setView(view === 'billing' ? 'panel' : 'billing')} className="app-hbtn">{view === 'billing' ? 'Back to the jobs' : 'Billing'}</button>}
+        {product.hasStrings && <select aria-label="Language" value={lang} onChange={(e) => pick(e.target.value)} className="app-hbtn"><option value="en">English</option><option value="ta">தமிழ்</option><option value="hi">हिन्दी</option></select>}
+        <button type="button" onClick={() => setPlan(!plan)} className="app-hbtn">{plan ? 'Back' : 'Plan and payment'}</button>
+        <button type="button" onClick={logout} className="app-hbtn">Sign out</button>
       </header>
       {lang !== 'en' && <p style={{ margin: 0, padding: '4px 12px', background: '#fff4e5', fontSize: 12 }}>Tamil and Hindi menu names are drafts and still need a native speaker's check.</p>}
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div className="app-body">
         {plan ? <PlanPayment api={api} role={me.role} productName={product.title} accent={product.accent} /> : <>
         {view === 'billing' ? <PosScreen api={posApi} rules={posRules} basePath="/pos" /> : <WashApp api={api} role={me.role} panel={<AdminShell accent={product.accent} manifest={shown} api={api} role={me.role} />} />}
         </>}

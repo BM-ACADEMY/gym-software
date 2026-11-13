@@ -3,13 +3,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export const COLOR = { free: '#e5e7eb', open: '#fde68a', sent: '#fdba74', served: '#bbf7d0', billed: '#bfdbfe', paid: '#d1d5db' };
 export const S = {
   page: { padding: 12, maxWidth: 900, margin: '0 auto', fontFamily: 'system-ui, sans-serif' },
-  big: { padding: '14px 18px', fontSize: 17, border: '1px solid #9ca3af', borderRadius: 10, background: '#fff', cursor: 'pointer', minHeight: 48 },
-  primary: { padding: '14px 18px', fontSize: 17, border: '1px solid #c2410c', borderRadius: 10, background: '#c2410c', color: '#fff', cursor: 'pointer', minHeight: 48 },
+  big: { padding: '14px 18px', fontSize: 17, fontWeight: 600, border: '1px solid #c5d0d6', borderRadius: 12, background: '#fff', cursor: 'pointer', minHeight: 48 },
+  primary: { padding: '14px 20px', fontSize: 17, fontWeight: 700, border: 0, borderRadius: 12, background: 'linear-gradient(135deg,#ea580c,#c2410c)', color: '#fff', cursor: 'pointer', minHeight: 48, boxShadow: '0 3px 10px rgba(194,65,12,.3)' },
   danger: { padding: '10px 14px', fontSize: 15, border: '1px solid #b91c1c', borderRadius: 10, background: '#fff', color: '#b91c1c', cursor: 'pointer', minHeight: 44 },
-  input: { padding: 12, fontSize: 17, border: '1px solid #9ca3af', borderRadius: 8, width: '100%', boxSizing: 'border-box', margin: '4px 0 12px' },
-  card: { border: '1px solid #d1d5db', borderRadius: 12, padding: 12, margin: '8px 0', background: '#fff' },
+  input: { padding: 12, fontSize: 17, border: '1px solid #c5d0d6', borderRadius: 10, width: '100%', boxSizing: 'border-box', margin: '4px 0 12px' },
+  card: { border: '1px solid #e1e8ec', borderRadius: 16, padding: 14, margin: '8px 0', background: '#fff', boxShadow: '0 1px 2px rgba(20,35,43,.06), 0 4px 14px rgba(20,35,43,.06)' },
   row: { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' },
-  err: { color: '#b91c1c', margin: '8px 0' }, ok: { color: '#166534', margin: '8px 0' },
+  err: { color: '#a52a2a', background: '#f9dcdc', borderRadius: 10, padding: '8px 12px', margin: '8px 0' }, ok: { color: '#166534', background: '#dcfce7', borderRadius: 10, padding: '8px 12px', margin: '8px 0' },
 };
 export const rs = (n) => 'Rs ' + Math.round(Number(n) || 0).toLocaleString('en-IN');
 export const msgOf = (e, t) => { const m = (e && e.response && e.response.data && e.response.data.message) || (e && e.message) || 'Something went wrong.'; return m === 'Not allowed for your role.' ? t('not_allowed') : m; };

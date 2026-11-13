@@ -4,6 +4,7 @@ import { LangProvider } from './i18n.js';
 import ResourceScreen from './ResourceScreen.jsx';
 import StatsScreen from './StatsScreen.jsx';
 import SettingsScreen from './SettingsScreen.jsx';
+import { groupNav } from './navGroups.js';
 import './admin.css';
 
 // The whole panel comes from a manifest (data). `custom` screens are passed in by the product: screens={ key: Component }.
@@ -24,7 +25,9 @@ export default function AdminShell({ manifest: baseManifest, api, role = 'admin'
 
   if (m.error) return <p role="alert" className="adm-error">This panel is set up wrongly: {m.error}</p>;
   const nav = visibleNav({ nav: expandNav(manifest, navData) }, role);
-  const current = nav.find((n) => n.key === key) || nav[0];
+  const groups = groupNav(nav);
+  const current = nav.find((n) => n.key === key) || (groups ? groups[0].items[0] : nav[0]);
+  const link = (n) => <li key={n.key}><a href={`#${n.key}`} aria-current={current && current.key === n.key ? 'page' : undefined}>{n.label}</a></li>;
   const render = () => {
     if (!current) return <p className="adm-note">Nothing available for your role.</p>;
     if (current.screen === 'resource') return <ResourceScreen key={current.key} def={manifest.resources[current.resource]} api={api} title={current.label} />;
@@ -37,7 +40,7 @@ export default function AdminShell({ manifest: baseManifest, api, role = 'admin'
     <div className="adm-shell" style={accent ? { '--adm-brand': accent } : undefined}>
       <nav aria-label={manifest.title}>
         <div className="adm-brand">{manifest.title}</div>
-        <ul>{nav.map((n) => <li key={n.key}><a href={`#${n.key}`} aria-current={current && current.key === n.key ? 'page' : undefined}>{n.label}</a></li>)}</ul>
+        <ul>{groups ? groups.flatMap((g) => [<li key={'g:' + g.group} className="adm-navgroup" aria-hidden="true">{g.group}</li>, ...g.items.map(link)]) : nav.map(link)}</ul>
       </nav>
       <main>
         {needsReview(strings, lang) && <p className="adm-note" role="note">{(strings._meta && strings._meta.status) ? `Draft wording: ${strings._meta.status}.` : 'Draft wording: needs native review.'}</p>}

@@ -1,15 +1,15 @@
 import { useState } from 'react';
 // Small shared bits for the Wash screens: big phone-friendly buttons, a card, an error line. Inline styles only (no extra packages).
 export const colors = { main: '#0369a1', soft: '#e0f2fe', line: '#d4d4d8', bad: '#b91c1c', ok: '#15803d', warn: '#b45309' };
-export const btn = (primary, small) => ({ minHeight: small ? 40 : 48, padding: small ? '6px 12px' : '10px 16px', fontSize: 16, borderRadius: 8, border: '1px solid ' + (primary ? colors.main : colors.line), background: primary ? colors.main : '#fff', color: primary ? '#fff' : '#111', cursor: 'pointer' });
-export const input = { width: '100%', minHeight: 44, padding: '8px 10px', fontSize: 16, border: '1px solid ' + colors.line, borderRadius: 8, boxSizing: 'border-box' };
-export const Card = ({ children, style }) => <div style={{ border: '1px solid ' + colors.line, borderRadius: 10, padding: 12, margin: '8px 0', background: '#fff', ...style }}>{children}</div>;
-export const Err = ({ text }) => (text ? <p role="alert" style={{ color: colors.bad, margin: '6px 0' }}>{text}</p> : null);
+export const btn = (primary, small) => ({ minHeight: small ? 40 : 48, padding: small ? '6px 12px' : '10px 16px', fontSize: 16, borderRadius: 12, fontWeight: primary ? 700 : 600, border: primary ? 0 : '1px solid ' + colors.line, background: primary ? 'linear-gradient(135deg,#0284c7,#075985)' : '#fff', color: primary ? '#fff' : '#14232b', cursor: 'pointer', boxShadow: primary ? '0 3px 10px rgba(3,105,161,.28)' : 'none' });
+export const input = { width: '100%', minHeight: 44, padding: '8px 10px', fontSize: 16, border: '1px solid ' + colors.line, borderRadius: 10, boxSizing: 'border-box' };
+export const Card = ({ children, style }) => <div style={{ border: '1px solid #e1e8ec', borderRadius: 16, padding: 14, margin: '8px 0', background: '#fff', boxShadow: '0 1px 2px rgba(20,35,43,.06), 0 4px 14px rgba(20,35,43,.06)', ...style }}>{children}</div>;
+export const Err = ({ text }) => (text ? <p role="alert" style={{ color: colors.bad, background: '#f9dcdc', borderRadius: 10, padding: '8px 12px', margin: '6px 0' }}>{text}</p> : null);
 export const Note = ({ children }) => <p style={{ color: '#52525b', fontSize: 13, margin: '4px 0' }}>{children}</p>;
 export const Field = ({ label, children }) => <label style={{ display: 'block', margin: '8px 0' }}><span style={{ display: 'block', fontSize: 14, marginBottom: 2 }}>{label}</span>{children}</label>;
 export const Tabs = ({ items, value, onChange }) => (
   <div role="tablist" style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '8px 8px 0' }}>
-    {items.map(([k, label]) => <button key={k} role="tab" aria-selected={value === k} type="button" onClick={() => onChange(k)} style={{ ...btn(value === k, true), whiteSpace: 'nowrap' }}>{label}</button>)}
+    {items.map(([k, label]) => <button key={k} role="tab" aria-selected={value === k} aria-current={value === k} type="button" className="app-tab" onClick={() => onChange(k)}>{label}</button>)}
   </div>
 );
 // Runs an async action, keeps a busy flag and the error text. Usage: const [run, busy, err] = useAction();

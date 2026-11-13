@@ -65,6 +65,15 @@ describe('Dine routes', () => {
     expect((await run('post', '/orders', { user: u, body: { table: 'T1' } })).status).toBe(403);
     expect((await run('get', '/reports/sales', { user: u })).status).toBe(403);
   });
+  test('kitchen board tells the screen when the newest ticket was sent, and keeps to the chosen station', async () => {
+    const sentAt = '2026-11-13T10:00:00.000Z';
+    const row = { _id: OID, number: 'D-1', type: 'takeaway', table: '', status: 'sent', events: [{ at: '2026-11-13T09:00:00.000Z', what: 'kot' }, { at: sentAt, what: 'kot' }, { at: '2026-11-13T10:05:00.000Z', what: 'served' }], lines: [{ id: 'l1', name: 'Tea', qty: 1, status: 'sent', station: 'kitchen' }, { id: 'l2', name: 'Beer', qty: 1, status: 'sent', station: 'bar' }] };
+    const { run } = build({ over: { 'Order.find': [row] } });
+    const k = await run('get', '/kitchen', { query: {} });
+    expect(k.b.data).toHaveLength(1); expect(k.b.data[0].sentAt).toBe(sentAt); expect(k.b.data[0].type).toBe('takeaway'); expect(k.b.data[0].lines.map((l) => l.name)).toEqual(['Tea']);
+    const b = await run('get', '/kitchen', { query: { station: 'bar' } });
+    expect(b.b.data[0].lines.map((l) => l.name)).toEqual(['Beer']);
+  });
   test('cashier can bill but not void; a void needs a reason and is logged', async () => {
     const { run, calls } = build({ over: { 'Order.findOne': { _id: OID, number: 'D-1', status: 'sent', lines: [{ id: 'l1', name: 'Tea', qty: 1, unitPrice: 100, status: 'sent' }], events: [{ what: 'open' }] }, 'Order.findOneAndUpdate': { _id: OID, status: 'sent', lines: [], events: [] } } });
     const cashier = { id: 'u', tenantId: TID, role: 'subadmin', staffRole: 'cashier' };

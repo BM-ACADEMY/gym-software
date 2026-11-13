@@ -48,7 +48,7 @@ The Dine client now has tabs next to the owner panel: **Tables, Kitchen, Bill, P
 | --- | --- | --- |
 | Tables | Coloured table buttons (free, open, in kitchen, served, billed); tap to open or start an order; takeaway; bar tab only if pub mode is on | `GET /orders`, `POST /orders`, `GET /settings` |
 | Order (inside Tables) | Menu search and categories, size or type and extras, send to kitchen or bar, remove an item (reason needed once sent), mark served, print kitchen or bar ticket | `GET /menu`, `GET /orders/:id`, `POST /orders/:id/lines`, `POST /orders/:id/kot`, `POST /orders/:id/lines/:lineId/void`, `POST /orders/:id/served`, `GET /orders/:id/print/kot?station=` |
-| Kitchen | Big tickets for the kitchen or the bar, refreshes every 10 seconds, tap Served | `GET /kitchen?station=`, `POST /orders/:id/served` |
+| Kitchen | Dark board of big tickets for the kitchen or the bar, oldest first, refreshes every 5 seconds. Each ticket has a waiting clock (green, amber from 8 min, red from 15). New tickets flash; Sound button turns on a beep (off until tapped); Full screen button; tap Served | `GET /kitchen?station=`, `POST /orders/:id/served` |
 | Bill | Make the bill with an optional discount (type, value, reason; the server's refusal message is shown as it is), service charge and GST lines, split equally or by items, payments (cash, UPI, card, pay later, loyalty points), reopen with a reason, print A5 or A4 | `POST /orders/:id/bill`, `/split`, `/pay`, `/reopen`, `GET /orders/:id/print/bill?size=` |
 | Pay later | Who owes (phone masked), collect a payment | `GET /credit/dues`, `POST /credit/payments` |
 | Returns | Pick a paid order, quantity per line, reason; refund shown from the server | `GET /orders?status=paid`, `POST /orders/:id/returns` |

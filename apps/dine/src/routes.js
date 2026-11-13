@@ -128,7 +128,8 @@ function createDineRouter({ express, mongoose, models, protect, tenantOf, planOf
   def('get', '/kitchen', 'kot_view', async (req, res, tid) => {
     const station = req.query.station === 'bar' ? 'bar' : 'kitchen';
     const rows = await M.Order.find({ tenantId: tid, status: { $in: ['sent'] } }).sort({ createdAt: 1 }).limit(100);
-    res.json({ success: true, data: rows.map(plain).map((o) => ({ id: o.id, number: o.number, table: o.table, lines: o.lines.filter((l) => l.status === 'sent' && (l.station || 'kitchen') === station).map((l) => ({ id: l.id, name: l.name, qty: l.qty, note: l.note })) })).filter((o) => o.lines.length) });
+    const lastKot = (o) => { const k = (o.events || []).filter((e) => e && e.what === 'kot' && e.at); return k.length ? new Date(k[k.length - 1].at).toISOString() : null; }; // when the newest ticket was sent; the board shows a waiting clock from it
+    res.json({ success: true, data: rows.map(plain).map((o) => ({ id: o.id, number: o.number, table: o.table, type: o.type, sentAt: lastKot(o), lines: o.lines.filter((l) => l.status === 'sent' && (l.station || 'kitchen') === station).map((l) => ({ id: l.id, name: l.name, qty: l.qty, note: l.note })) })).filter((o) => o.lines.length) });
   });
   def('post', '/orders/:id/lines/:lineId/void', 'void', async (req, res, tid) => {
     const o = await loadOrder(tid, req.params.id); if (!o) return fail(res, 404, 'Order not found');

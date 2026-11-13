@@ -90,7 +90,8 @@ done
 
 echo "== nginx"
 if command -v nginx >/dev/null 2>&1; then
-  if nginx -t >/dev/null 2>&1; then ok "nginx -t passes"; else bad "nginx -t fails (run it to read the message)"; fi
+  if [ "$(id -u)" -ne 0 ]; then warn "nginx -t needs root; skipped (run preflight as root to check it)"
+  elif nginx -t >/dev/null 2>&1; then ok "nginx -t passes"; else bad "nginx -t fails (run it to read the message)"; fi
   [ -f /etc/nginx/conf.d/10-prod-common.conf ] && ok "10-prod-common.conf installed" || warn "10-prod-common.conf not in /etc/nginx/conf.d yet"
   for s in prod-proxy.conf prod-security-headers.conf; do [ -f "/etc/nginx/snippets/$s" ] && ok "$s installed" || warn "$s not in /etc/nginx/snippets yet"; done
 fi

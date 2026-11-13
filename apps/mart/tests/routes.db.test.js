@@ -83,8 +83,13 @@ run('Mart routes (needs a test database)', () => {
   });
   test('D-30 discount rule: owner sets it, staff limited, bill records who and percent, owner sees it', async () => {
     // sign-up makes an owner (admin). A staff user (role subadmin) must be created directly for this test.
-    const U = mongoose.model('MartUser'); const A = await U.findOne({ email: 'a@example.com' }); const hash = (await U.findOne({ email: 'a@example.com' }).select('+passwordHash')).passwordHash;
-    await U.create({ tenantId: A.tenantId, name: 'Staff', email: 'staff@example.com', role: 'subadmin', passwordHash: hash });
+    // Tenant models refuse any query outside a business context, so this test set-up names its reason too.
+    const { runUnscoped } = require('../../../packages/core-server/src');
+    const U = mongoose.model('MartUser');
+    await runUnscoped('test set-up: add a staff user next to the first owner', async () => {
+      const A = await U.findOne({ email: 'a@example.com' }).select('+passwordHash');
+      await U.create({ tenantId: A.tenantId, name: 'Staff', email: 'staff@example.com', role: 'subadmin', passwordHash: A.passwordHash });
+    });
     const lg = await request(app).post('/api/mart/auth/login').set(H).send({ email: 'staff@example.com', password: 'a-long-password-1' }); expect(lg.status).toBe(200); cookies.S = lg.headers['set-cookie'][0].split(';')[0];
     expect((await as('S', 'put', '/api/mart/settings').send({ discountRule: { staff: 'any' } })).status).toBe(403); // staff cannot change the rule
     expect((await as('A', 'put', '/api/mart/settings').send({ discountRule: { staff: 'limit', maxPercent: 101 } })).status).toBe(400);

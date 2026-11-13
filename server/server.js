@@ -32,8 +32,10 @@ dbReady.then(() => { siteContent.load(); setInterval(() => siteContent.load(), 6
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+// Listen on the machine itself only; nginx is the only door from outside (set HOST=0.0.0.0 only for a container that needs it).
+const HOST = process.env.HOST || '127.0.0.1';
+app.listen(PORT, HOST, () => {
+  console.log(`Server running in ${process.env.NODE_ENV} mode on ${HOST}:${PORT}`);
 });
 
 // Auto-notification rules (plan expiring, payment overdue, PT session reminder)

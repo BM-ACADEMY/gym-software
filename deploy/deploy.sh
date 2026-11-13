@@ -33,6 +33,10 @@ while [ $# -gt 0 ]; do
   esac; shift
 done
 
+if [ "$PRODUCTS" != "$ALL_PRODUCTS" ] && [ "$DRY" = no ]; then
+  echo "REFUSED: a partial deploy builds only some front-ends into the new release and the other sites lose their pages (found 13 Nov). Deploy all products, or use --dry-run." >&2; exit 2
+fi
+
 declare -A PORT=( [gym]=5000 [hire]=5006 [salon]=5007 [mart]=5008 [dine]=5009 [cloth]=5010 [wash]=5011 [admin]=5012 )
 declare -A SERVERDIR=( [gym]=server [hire]=apps/hire [salon]=apps/salon [mart]=apps/mart [dine]=apps/dine [cloth]=apps/cloth [wash]=apps/wash [admin]=apps/admin )
 declare -A CLIENTDIR=( [gym]=client [hire]=apps/hire/client [salon]=apps/salon/client [mart]=apps/mart/client [dine]=apps/dine/client [cloth]=apps/cloth/client [wash]=apps/wash/client [admin]=apps/admin/client )

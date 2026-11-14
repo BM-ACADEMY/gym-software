@@ -4,6 +4,21 @@ const { makeGateway, rawBodyCapture, recordRefund, renewalSuggestion, createChec
 const hmac = (secret, data) => crypto.createHmac('sha256', secret).update(data).digest('hex');
 const gw = makeGateway({ mongoose: { models: {}, model: () => ({}), Schema: function () {} }, env: {} });
 
+describe('where the gateway keys come from', () => {
+  const withDoc = (doc, env) => makeGateway({ mongoose: { models: { SystemSettings: { findOne: () => ({ lean: async () => doc }) } } }, env });
+  test('nothing saved and no env keys: not configured', async () => { expect(await withDoc(null, {}).isConfigured()).toBe(false); });
+  test('env keys are used when the product database has none', async () => {
+    const g = withDoc(null, { RAZORPAY_KEY_ID: 'rzp_test_abc', RAZORPAY_KEY_SECRET: 'sec' });
+    expect(await g.isConfigured()).toBe(true); expect(await g.getConfig()).toEqual({ provider: 'razorpay', keyId: 'rzp_test_abc', keySecret: 'sec' });
+  });
+  test('keys saved in the product database win over env keys', async () => {
+    const g = withDoc({ value: { provider: 'razorpay', keyId: 'rzp_test_saved', keySecret: 's2' } }, { RAZORPAY_KEY_ID: 'rzp_test_abc', RAZORPAY_KEY_SECRET: 'sec' });
+    expect((await g.getConfig()).keyId).toBe('rzp_test_saved');
+  });
+  test('half a key (id without secret) is not configured', async () => { expect(await withDoc(null, { RAZORPAY_KEY_ID: 'rzp_test_abc' }).isConfigured()).toBe(false); });
+  test('the webhook secret still comes from env first', async () => { expect(await withDoc(null, { RAZORPAY_WEBHOOK_SECRET: 'wh' }).webhookSecret()).toBe('wh'); });
+});
+
 describe('signatures', () => {
   test('checkout signature: right secret passes, wrong secret and missing parts fail', () => {
     const sig = hmac('test_secret_x', 'order_1|pay_1');

@@ -13,10 +13,13 @@ const DAY = 24 * 3600 * 1000;
 // express.json({ verify }) hook: keeps the raw bytes of a webhook call, because the signature is over the raw body.
 const rawBodyCapture = (req, res, buf) => { if (buf && buf.length && String(req.originalUrl || req.url || '').includes('/billing/webhook')) req.rawBody = Buffer.from(buf); };
 
-// ---- gateway: keys come from the settings the Super Admin saved in the shared database (collection systemsettings, key payment_gateway)
+// ---- gateway: keys come from this product's own settings (collection systemsettings, key payment_gateway) or, if none, from the server env file
 function makeGateway({ mongoose, http, env = process.env }) {
   const Settings = () => mongoose.models.SystemSettings || mongoose.model('SystemSettings', new mongoose.Schema({ key: String, value: mongoose.Schema.Types.Mixed }, { strict: false, collection: 'systemsettings' }));
-  const getConfig = async () => { const d = await Settings().findOne({ key: 'payment_gateway' }).lean(); return (d && d.value) || {}; };
+  // Keys saved by the Super Admin in this product's own database win. Each product has its own database (deploy/MONGO.md), so the gym's Root Admin
+  // cannot reach it: the other products take RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET from their server env file instead (set with deploy/tools/set-razorpay-keys.sh).
+  const fromEnv = () => (env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET ? { provider: 'razorpay', keyId: env.RAZORPAY_KEY_ID, keySecret: env.RAZORPAY_KEY_SECRET } : null);
+  const getConfig = async () => { const d = await Settings().findOne({ key: 'payment_gateway' }).lean(); const saved = (d && d.value) || {}; return (saved.provider === 'razorpay' && saved.keyId && saved.keySecret) ? saved : (fromEnv() || saved); };
   const isConfigured = async () => { const c = await getConfig(); return c.provider === 'razorpay' && Boolean(c.keyId && c.keySecret); };
   const webhookSecret = async () => env.RAZORPAY_WEBHOOK_SECRET || (await getConfig()).webhookSecret || '';
   const createOrder = async ({ amount, receipt, notes }) => {

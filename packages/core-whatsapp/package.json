@@ -1,1 +1,8 @@
-{ "name": "@afra/core-whatsapp", "version": "0.1.0", "private": true, "main": "src/afraTemplates.js", "description": "Afra's own WhatsApp templates to business owners (B2B): welcome, trial, payment, renewal, support. Definitions only; no sending, no network.", "license": "UNLICENSED" }
+{
+  "name": "@afra/core-whatsapp",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.js",
+  "description": "WhatsApp for every product: Afra's owner templates (B2B), draft customer templates per product (B2C), and one shared sender over Meta's Cloud API. Off until credentials, WHATSAPP_SENDING=on and the person's consent are all present. Not yet tested against Meta.",
+  "license": "UNLICENSED"
+}

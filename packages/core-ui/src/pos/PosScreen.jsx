@@ -105,95 +105,99 @@ const PosScreen = ({ api, rules, basePath = '/pos', defaultTaxMode = 'none', gst
   };
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Billing</h1>
-          <span className={`text-xs px-2 py-1 rounded-full ${online ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{online ? 'Online' : 'Offline: bills are saved on this device'}</span>
+    <div className="pos">
+      <section className="pos-left">
+        <div className="pos-h">
+          <h1>Billing</h1>
+          <span className={online ? 'pos-pill pos-ok' : 'pos-pill pos-off'}>{online ? 'Online' : 'Offline: bills are saved on this device'}</span>
         </div>
-        {queued > 0 && <p className="text-sm text-amber-700">{queued} bill(s) waiting to be sent. <button type="button" onClick={sync} className="underline">Send now</button></p>}
+        {queued > 0 && <p className="pos-warn">{queued} bill(s) waiting to be sent. <button type="button" onClick={sync} className="pos-link">Send now</button></p>}
         {rejected.length > 0 && (
-          <div className="text-sm bg-red-50 border border-red-200 rounded-lg p-3 space-y-1">
-            <p className="font-semibold text-red-700">{rejected.length} saved bill(s) were refused and need your attention:</p>
-            {rejected.map((b) => <p key={b.clientId}>{b.reason} <button type="button" onClick={() => { queue.dismiss(b.clientId); refreshQueue(); }} className="underline">Dismiss</button></p>)}
+          <div className="pos-bad">
+            <strong>{rejected.length} saved bill(s) were refused and need your attention:</strong>
+            {rejected.map((b) => <p key={b.clientId}>{b.reason} <button type="button" onClick={() => { queue.dismiss(b.clientId); refreshQueue(); }} className="pos-link">Dismiss</button></p>)}
           </div>
         )}
-        <div className="flex gap-2">
-          <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={onSearchKey} placeholder="Search item, or scan or type a barcode" className="flex-1 border border-gray-300 rounded-lg px-3 py-2" aria-label="Search item or scan barcode" />
-          <button type="button" onClick={addByCode} className="px-3 border rounded-lg text-sm">Add by code</button>
+        <div className="pos-row">
+          <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={onSearchKey} placeholder="Search item, or scan or type a barcode" className="pos-in pos-grow" aria-label="Search item or scan barcode" />
+          <button type="button" onClick={addByCode} className="pos-btn">Add by code</button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="pos-items">
           {shown.map((i) => (
-            <button type="button" key={i._id} onClick={() => add(i)} className="text-left border border-gray-200 rounded-lg p-2 bg-white hover:border-teal-500">
-              <p className="text-sm font-medium truncate">{i.name}</p><p className="text-xs text-gray-500">{rs(i.price)}{i.trackStock ? ` · ${i.qty} left` : ''}</p>
+            <button type="button" key={i._id} onClick={() => add(i)} className="pos-item">
+              <span className="pos-item-name">{i.name}</span><span className="pos-item-sub">{rs(i.price)}{i.trackStock ? ` · ${i.qty} left` : ''}</span>
             </button>
           ))}
-          {shown.length === 0 && <p className="text-sm text-gray-500 col-span-full">No items found.</p>}
+          {shown.length === 0 && <p className="pos-empty">No items found.</p>}
         </div>
-      </div>
+      </section>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-        {cart.length === 0 && <p className="text-sm text-gray-500">Tap an item to start a bill.</p>}
+      <section className="pos-bill">
+        <h2>Bill{cart.length > 0 ? ` (${cart.length})` : ''}</h2>
+        {cart.length === 0 && <p className="pos-empty">Tap an item to start a bill.</p>}
         {cart.map((l, idx) => (
-          <div key={l.itemId || idx} className="flex items-center justify-between text-sm">
-            <span className="flex-1 truncate">{l.name}</span>
-            <span className="flex items-center gap-2">
-              <button type="button" aria-label={`less ${l.name}`} onClick={() => setQty(idx, l.qty - 1)} className="w-7 h-7 border rounded">-</button>
+          <div key={l.itemId || idx} className="pos-line">
+            <span className="pos-line-name">{l.name}</span>
+            <span className="pos-line-ctl">
+              <button type="button" aria-label={`less ${l.name}`} onClick={() => setQty(idx, l.qty - 1)} className="pos-step">-</button>
               {allowDecimalQty
-                ? <input type="number" inputMode="decimal" step="any" min="0" aria-label={`quantity of ${l.name}`} value={l.qtyText ?? String(l.qty)} onChange={(e) => typeQty(idx, e.target.value)} className="w-20 border rounded px-1 py-1 text-right" />
-                : <span>{l.qty}</span>}
-              <button type="button" aria-label={`more ${l.name}`} onClick={() => setQty(idx, l.qty + 1)} className="w-7 h-7 border rounded">+</button>
-              <span className="w-20 text-right">{rs(l.unitPrice * l.qty)}</span>
+                ? <input type="number" inputMode="decimal" step="any" min="0" aria-label={`quantity of ${l.name}`} value={l.qtyText ?? String(l.qty)} onChange={(e) => typeQty(idx, e.target.value)} className="pos-in pos-qty" />
+                : <span className="pos-qtyn">{l.qty}</span>}
+              <button type="button" aria-label={`more ${l.name}`} onClick={() => setQty(idx, l.qty + 1)} className="pos-step">+</button>
+              <span className="pos-amt">{rs(l.unitPrice * l.qty)}</span>
             </span>
           </div>
         ))}
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <label className="space-y-1"><span className="text-gray-600">Tax</span>
-            <select value={taxMode} onChange={(e) => setTaxMode(e.target.value)} className="w-full border border-gray-300 rounded-lg px-2 py-2">
+        <div className="pos-grid2">
+          <label><span>Tax</span>
+            <select value={taxMode} onChange={(e) => setTaxMode(e.target.value)} className="pos-in">
               <option value="none">Plain bill (no GST)</option><option value="gst_inclusive">GST included in price</option><option value="gst_exclusive">GST added on top</option></select></label>
-          <label className="space-y-1"><span className="text-gray-600">Discount %</span>
-            <input type="number" min="0" max="100" value={discountPct} onChange={(e) => setDiscountPct(e.target.value)} className="w-full border border-gray-300 rounded-lg px-2 py-2" /></label>
+          <label><span>Discount %</span>
+            <input type="number" min="0" max="100" value={discountPct} onChange={(e) => setDiscountPct(e.target.value)} className="pos-in" /></label>
         </div>
         {askDiscountReason && billDiscount && (
-          <label className="block text-sm space-y-1"><span className="text-gray-600">Reason for the discount (needed)</span>
-            <input value={discountReason} maxLength={120} onChange={(e) => setDiscountReason(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2" /></label>
+          <label className="pos-block"><span>Reason for the discount (needed)</span>
+            <input value={discountReason} maxLength={120} onChange={(e) => setDiscountReason(e.target.value)} className="pos-in" /></label>
         )}
-        <div className="flex gap-2 text-sm">
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Customer phone (optional)" className="flex-1 border border-gray-300 rounded-lg px-3 py-2" inputMode="tel" />
-          <button type="button" onClick={findCustomer} className="px-3 border rounded-lg">Find</button>
-          <button type="button" onClick={addCustomer} className="px-3 border rounded-lg">Add</button>
+        <div className="pos-row">
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Customer phone (optional)" className="pos-in pos-grow" inputMode="tel" />
+          <button type="button" onClick={findCustomer} className="pos-btn">Find</button>
+          <button type="button" onClick={addCustomer} className="pos-btn">Add</button>
         </div>
         {loadOwing && owing.length > 0 && (
-          <label className="block text-sm space-y-1"><span className="text-gray-600">Who owes (pick a customer)</span>
-            <select value={customer?._id || ''} onChange={(e) => { const c = owing.find((o) => String(o._id) === e.target.value); setCustomer(c ? { _id: c._id, name: c.name } : null); }} className="w-full border border-gray-300 rounded-lg px-2 py-2">
+          <label className="pos-block"><span>Who owes (pick a customer)</span>
+            <select value={customer?._id || ''} onChange={(e) => { const c = owing.find((o) => String(o._id) === e.target.value); setCustomer(c ? { _id: c._id, name: c.name } : null); }} className="pos-in">
               <option value="">Choose</option>
               {owing.map((o) => <option key={o._id} value={o._id}>{o.name} - owes {rs(o.due)}</option>)}
             </select></label>
         )}
-        {customer && <p className="text-sm text-teal-700">Customer: {customer.name}</p>}
+        {customer && <p className="pos-cust">Customer: {customer.name}</p>}
         {calc && (
-          <div className="text-sm space-y-1 border-t pt-3">
-            <p className="flex justify-between"><span>Discount</span><span>- {rs(calc.discount)}</span></p>
-            {calc.gst > 0 && <p className="flex justify-between"><span>GST {calc.igst ? '(IGST)' : '(CGST + SGST)'}</span><span>{rs(calc.gst)}</span></p>}
-            <p className="flex justify-between text-lg font-bold"><span>Total</span><span>{rs(calc.total)}</span></p>
-            <div className="grid grid-cols-2 gap-2 pt-2">
+          <div className="pos-sum">
+            <p><span>Discount</span><span>- {rs(calc.discount)}</span></p>
+            {calc.gst > 0 && <p><span>GST {calc.igst ? '(IGST)' : '(CGST + SGST)'}</span><span>{rs(calc.gst)}</span></p>}
+            <p className="pos-total"><span>Total</span><span>{rs(calc.total)}</span></p>
+            <div className="pos-grid2">
               {METHODS.map(([m, label]) => (
-                <label key={m} className="space-y-1"><span className="text-gray-600 flex justify-between">{label}<button type="button" onClick={() => fillFull(m)} className="text-teal-700 text-xs">Full</button></span>
-                  <input type="number" min="0" value={pay[m]} onChange={(e) => setPay((p) => ({ ...p, [m]: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-2 py-2" /></label>
+                <label key={m}><span className="pos-methodhead">{label}<button type="button" onClick={() => fillFull(m)} className="pos-link">Full</button></span>
+                  <input type="number" min="0" value={pay[m]} onChange={(e) => setPay((p) => ({ ...p, [m]: e.target.value }))} className="pos-in" /></label>
               ))}
             </div>
-            {settled?.error && <p className="text-red-600">{settled.error}</p>}
-            {settled && !settled.error && <p className="text-gray-600">{settled.status === 'paid' ? (settled.change ? `Give back ${rs(settled.change)}` : 'Paid in full') : settled.status === 'credit' ? 'Pay later' : `Still to pay ${rs(settled.due)}`}</p>}
+            {settled?.error && <p className="pos-err">{settled.error}</p>}
+            {settled && !settled.error && <p className="pos-settle">{settled.status === 'paid' ? (settled.change ? `Give back ${rs(settled.change)}` : 'Paid in full') : settled.status === 'credit' ? 'Pay later' : `Still to pay ${rs(settled.due)}`}</p>}
           </div>
         )}
-        {msg && <p className="text-sm text-gray-700">{msg}</p>}
+        {msg && <p className="pos-msg">{msg}</p>}
         {lastBillId && (
-          <button type="button" className="text-sm underline text-blue-700" onClick={async () => { try { if (!(await openBillPage(api, lastBillId))) setMsg('Your browser blocked the bill page. Allow pop-ups and try again.'); } catch (e) { setMsg(e.response?.data?.message || 'Could not open the bill page.'); } }}>
+          <button type="button" className="pos-link" onClick={async () => { try { if (!(await openBillPage(api, lastBillId))) setMsg('Your browser blocked the bill page. Allow pop-ups and try again.'); } catch (e) { setMsg(e.response?.data?.message || 'Could not open the bill page.'); } }}>
             Print last bill (A5 page, save as PDF)
           </button>
         )}
-        <button type="button" onClick={submit} disabled={busy || !calc || !settled || !!settled.error || reasonMissing || qtyBad} className="w-full py-3 rounded-lg bg-teal-600 text-white font-semibold disabled:opacity-40">{busy ? 'Saving...' : 'Save bill'}</button>
-      </div>
+        <div className="pos-savebar">
+          {calc && <span className="pos-savetotal">{rs(calc.total)}</span>}
+          <button type="button" onClick={submit} disabled={busy || !calc || !settled || !!settled.error || reasonMissing || qtyBad} className="pos-save">{busy ? 'Saving...' : 'Save bill'}</button>
+        </div>
+      </section>
     </div>
   );
 };

@@ -26,6 +26,7 @@ Rule: say only what the code does today. Update this list when a feature ships o
 
 - "Renewal Copilot" (daily list of who to contact, with a ready message in English, Tamil and Hindi): written 28 Oct, not yet tested by a person. After Dev A and the staff pass it, we may say: "Every morning, see who is about to leave and send a ready message from your own WhatsApp in one tap." Do not say it sends messages by itself (automatic sends need Meta approval) and do not say the AI picks who to contact (the ranking is rules; AI only rewrites the wording).
 - "Ask GymDesk about your own numbers" (dues, who is expiring, who is absent, collections): written 28 Oct, not yet tested. After tests pass we may say: "Ask a question about your gym in plain words and get the answer from your own records." Do not say the AI reads your member data (our code runs fixed reports; the AI only picks which report) and do not say it can answer anything beyond the listed reports.
+- "Owner reports on WhatsApp" (weekly and monthly summary with one next step) and "capture enquiries with a join form and follow them up": written 18 Nov, not tested by a person; the template is not yet approved by Meta. Do not say reports send by themselves (auto-send is off unless the owner switches it on).
 - Live sync with biometric machines, door control, mobile apps on the app stores, class booking, payroll, multi-branch, member AutoPay, "No 1 in India", customer counts, testimonials.
 
 ## Suggested headline options (Mohamed to choose)

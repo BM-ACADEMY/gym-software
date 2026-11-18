@@ -319,3 +319,8 @@ Scope files: `docs/products/README.md` (index and rules), `CORE.md`, and one `SC
 | P-LAND | Landing page and claims file per product, matching `MARKETING_CLAIMS.md` rules | L | TODO |
 
 | DEP-01 | Gym on the Hostinger VPS: runbook `docs/DEPLOY_VPS.md` (nginx, systemd, certbot, Atlas allowlist, single instance) | WRITTEN (not run); waits for server hardening step 12 |
+
+| AUTO-REPORT | Owner autopilot reports: weekly and monthly summary (collected, expenses, new members, check-ins, dues, one next step); Suggest by default, tap to send on WhatsApp, optional auto-send 9:00 to 21:00 IST; two WhatsApp templates (docs/WHATSAPP_TEMPLATES.md) | WRITTEN 18 Nov, not tested by a person | Dev A runs `npm test` (ownerReports, ownerReportRules); templates approved by Meta; owner sees the report on a phone |
+| LEAD-CRM | Lead capture form (/join/:key, honeypot, rate limits, daily cap) and simple CRM (statuses, follow-up date, masked phone in lists, convert to member) | WRITTEN 18 Nov, not tested by a person | Dev A runs `npm test` (leads, leadRules); Dev B tries cross-gym reads and form abuse; staff test form on a phone |
+| BIO-LIVE | Live biometric device sync | PARKED | Needs the device model and vendor spec from Kamarudeen; not built blind (SCOPE) |
+| MULTI-BRANCH | Several branches under one owner | PARKED (Tier 3) | Touches tenancy and pricing; Kamarudeen decides |

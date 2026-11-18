@@ -107,3 +107,9 @@ Kamarudeen shared a clinic booking demo (a BM TechX design: body map, Tamil/Engl
 
 ## D-30 (12 Nov): staff may give discounts; the owner always knows and can set the limit
 Kamarudeen (Salon question): staff can give a discount, but the owner must know about it, or the owner can set the rule in settings. Applies to every product with bills. Rule: a discount always needs a reason (already in Salon); every discount is audited and shown in the owner's daily summary; the owner sets in Settings who may discount (owner only, or staff up to a maximum percent, default staff 10 percent) and whether a bigger one needs the owner's tap; discounts above the limit are refused for staff on the server. Written first in Salon; Mart, Dine, Cloth and Wash follow.
+
+## D-31 (18 Nov): owner reports, lead CRM, and the name clash
+1. **Owner autopilot reports** built in Suggest mode (AUTO-DEFAULT). Auto-send to the owner is off until the owner switches it on, and still needs an approved Meta template. Alternative: send automatically by default (rejected: Meta approval and consent first).
+2. **Lead capture + CRM is not limited by plan** (AUTO-DEFAULT, Tier 3 to confirm): pricing is Kamarudeen's call, easy to gate later in Plan settings.
+3. **Not built:** live biometric sync (needs device model and vendor spec; SCOPE says not blind) and multi-branch (Tier 3).
+4. **Open for Kamarudeen: name clash.** "GymDesk" is close to MyGymDesk (India) and Gymdesk (US). RepSetu is one candidate. Needs a trademark check by the lawyer before the name is fixed.

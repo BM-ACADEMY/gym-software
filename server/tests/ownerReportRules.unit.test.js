@@ -55,7 +55,7 @@ describe('owner report numbers and words', () => {
   test('next step goes dues, then renewals, then absent, then a calm default; no names', () => {
     const mk = (s) => R.nextStep(R.buildData({}, {}, { duesTotal: 0, duesCount: 0, expiringNext7: 0, absent10: 0, activeMembers: 0, ...s }));
     expect(mk({ duesTotal: 8500, duesCount: 4 }).kind).toBe('dues'); expect(mk({ duesTotal: 8500, duesCount: 4 }).text).toMatch(/Rs 8,500 pending across 4 payments/);
-    expect(mk({ expiringNext7: 1 }).text).toMatch(/1 membership ends/); expect(mk({ absent10: 2 }).kind).toBe('absent'); expect(mk({}).kind).toBe('none');
+    expect(mk({ expiringNext7: 1 }).text).toMatch(/1 membership ends/); expect(mk({ leadsWaiting: 3, absent10: 2 }).kind).toBe('leads'); expect(mk({ leadsWaiting: 1 }).text).toMatch(/1 enquiry is waiting/); expect(mk({ expiringNext7: 2, leadsWaiting: 3 }).kind).toBe('renew'); expect(mk({ absent10: 2 }).kind).toBe('absent'); expect(mk({}).kind).toBe('none');
   });
   test('template parameters match the approved template and carry no personal data', () => {
     const { TEMPLATES, render } = require('../config/whatsappTemplates');

@@ -127,6 +127,8 @@ const subscriberSchema = new mongoose.Schema({
     monthlyReport: { type: Boolean, default: true },
     reportsAutoSend: { type: Boolean, default: false },
   },
+  // Secret part of the gym's public enquiry link (/join/<key>). Not the gym id. Owner can replace it.
+  leadFormKey: { type: String, index: { unique: true, sparse: true } },
   // UPI ID printed in payment reminders, e.g. irongym@upi
   upiId: { type: String, trim: true },
   whatsappNumber: {

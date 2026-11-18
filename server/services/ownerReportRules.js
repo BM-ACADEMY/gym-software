@@ -55,12 +55,12 @@ const pctChange = (cur, prev) => {
 const inr = (n) => 'Rs ' + Math.round(Number(n) || 0).toLocaleString('en-IN');
 const plural = (n, one, many) => (n === 1 ? one : many);
 
-// cur and prev: { collected, expenses, checkins, newMembers }. snap: { duesTotal, duesCount, expiringNext7, absent10, activeMembers }.
+// cur and prev: { collected, expenses, checkins, newMembers }. snap: { duesTotal, duesCount, expiringNext7, absent10, activeMembers, leadsWaiting }.
 function buildData(cur, prev, snap, currency = 'INR') {
   const whole = (x) => Math.max(0, Math.round(Number(x) || 0));
   const c = { collected: whole(cur.collected), expenses: whole(cur.expenses), checkins: whole(cur.checkins), newMembers: whole(cur.newMembers) };
   const p = { collected: whole(prev.collected), expenses: whole(prev.expenses), checkins: whole(prev.checkins), newMembers: whole(prev.newMembers) };
-  const s = { duesTotal: whole(snap.duesTotal), duesCount: whole(snap.duesCount), expiringNext7: whole(snap.expiringNext7), absent10: whole(snap.absent10), activeMembers: whole(snap.activeMembers) };
+  const s = { duesTotal: whole(snap.duesTotal), duesCount: whole(snap.duesCount), expiringNext7: whole(snap.expiringNext7), absent10: whole(snap.absent10), activeMembers: whole(snap.activeMembers), leadsWaiting: whole(snap.leadsWaiting) };
   const net = c.collected - c.expenses;
   const prevNet = p.collected - p.expenses;
   return {
@@ -76,11 +76,12 @@ function buildData(cur, prev, snap, currency = 'INR') {
   };
 }
 
-// The one thing to do next, biggest rupees first. Never names a member.
+// The one thing to do next: money first (dues), then people (renewals, enquiries, absent). Never names a member.
 function nextStep(data) {
   const s = data.snapshot;
   if (s.duesTotal > 0 && s.duesCount > 0) return { kind: 'dues', text: `Collect the ${inr(s.duesTotal)} pending across ${s.duesCount} ${plural(s.duesCount, 'payment', 'payments')}, oldest first.` };
   if (s.expiringNext7 > 0) return { kind: 'renew', text: `${s.expiringNext7} ${plural(s.expiringNext7, 'membership ends', 'memberships end')} in the next 7 days. Open Renewal Copilot and message them today.` };
+  if (s.leadsWaiting > 0) return { kind: 'leads', text: `${s.leadsWaiting} ${plural(s.leadsWaiting, 'enquiry is', 'enquiries are')} waiting for a call. Open Leads and call them today.` };
   if (s.absent10 > 0) return { kind: 'absent', text: `${s.absent10} active ${plural(s.absent10, 'member has', 'members have')} not come in for 10 days. Send a check-in from Win Back Members.` };
   return { kind: 'none', text: 'Nothing urgent. A good week to ask happy members for a referral.' };
 }

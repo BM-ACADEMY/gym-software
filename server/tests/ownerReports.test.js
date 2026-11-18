@@ -14,6 +14,7 @@ const Payment = require('../models/Payment');
 const Expense = require('../models/Expense');
 const OwnerReport = require('../models/OwnerReport');
 const Notification = require('../models/Notification');
+const Lead = require('../models/Lead');
 
 const DAY = 86400000;
 const auth = (t) => ({ Authorization: `Bearer ${t.adminToken}` });
@@ -80,6 +81,18 @@ describe('owner autopilot reports', () => {
     await runOwnerReports({ subscriberId: on.subscriber._id, now });
     expect(sendTemplate.mock.calls.filter((c) => c[0].template === 'gymdesk_owner_weekly_report')).toHaveLength(1);
     expect(await Notification.countDocuments({ subscriberId: on.subscriber._id, type: 'owner_report_weekly' })).toBe(1);
+  });
+
+  test('next step points at enquiries waiting for a call, from this gym only', async () => {
+    const a = await gym(); const b = await gym();
+    await Lead.create({ subscriberId: a.subscriber._id, name: 'Old Enquiry', phone: '9123456780', status: 'new', createdAt: new Date(now.getTime() - 3 * DAY) });
+    await Lead.create({ subscriberId: b.subscriber._id, name: 'Other', phone: '9988776655', status: 'new', createdAt: new Date(now.getTime() - 3 * DAY) });
+    await runOwnerReports({ subscriberId: a.subscriber._id, now });
+    const wa = await OwnerReport.findOne({ subscriberId: a.subscriber._id, period: 'weekly' });
+    expect(wa.data.snapshot.leadsWaiting).toBe(1);
+    await runOwnerReports({ subscriberId: b.subscriber._id, now });
+    expect((await OwnerReport.findOne({ subscriberId: b.subscriber._id, period: 'weekly' })).data.snapshot.leadsWaiting).toBe(1); // its own, not 2
+    expect(JSON.stringify(wa.toObject())).not.toMatch(/Old Enquiry|9123456780/);
   });
 
   test('a gym with the weekly report switched off, or a locked gym, gets nothing', async () => {

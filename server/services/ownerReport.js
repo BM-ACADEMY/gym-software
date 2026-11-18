@@ -8,6 +8,7 @@ const Member = require('../models/Member');
 const Payment = require('../models/Payment');
 const Attendance = require('../models/Attendance');
 const Expense = require('../models/Expense');
+const Lead = require('../models/Lead');
 const OwnerReport = require('../models/OwnerReport');
 const { computeStatus } = require('./subscription');
 const { sendOnce, withinQuota } = require('./automations');
@@ -32,7 +33,7 @@ const gatherFlow = async (subscriberId, from, to) => {
 
 // Where things stand now (not a period total).
 const gatherSnapshot = async (subscriberId, now) => {
-  const [duesAgg, expiringNext7, activeMembers, lastSeen, active] = await Promise.all([
+  const [duesAgg, expiringNext7, activeMembers, lastSeen, active, leadsWaiting] = await Promise.all([
     Payment.aggregate([
       { $match: { subscriberId, status: { $in: ['pending', 'partial'] } } },
       { $group: { _id: null, total: { $sum: { $subtract: ['$amount', { $ifNull: ['$amountPaid', 0] }] } }, count: { $sum: 1 } } },
@@ -41,11 +42,12 @@ const gatherSnapshot = async (subscriberId, now) => {
     Member.countDocuments({ subscriberId, status: { $in: ACTIVE }, expiresAt: { $gt: now } }),
     Attendance.aggregate([{ $match: { subscriberId } }, { $group: { _id: '$memberId', last: { $max: '$checkedInAt' } } }]),
     Member.find({ subscriberId, status: { $in: ACTIVE }, expiresAt: { $gt: now } }).select('createdAt').lean().limit(20000),
+    Lead.countDocuments({ subscriberId, status: { $in: ['new', 'contacted', 'trial'] }, $or: [{ nextFollowUpAt: { $lte: now } }, { status: 'new', createdAt: { $lt: new Date(now.getTime() - R.DAY) } }] }),
   ]);
   const lastBy = new Map(lastSeen.map((x) => [String(x._id), x.last]));
   const cutoff = now.getTime() - 10 * R.DAY;
   const absent10 = active.filter((m) => new Date(lastBy.get(String(m._id)) || m.createdAt).getTime() <= cutoff).length;
-  return { duesTotal: duesAgg[0]?.total || 0, duesCount: duesAgg[0]?.count || 0, expiringNext7, absent10, activeMembers };
+  return { duesTotal: duesAgg[0]?.total || 0, duesCount: duesAgg[0]?.count || 0, expiringNext7, absent10, activeMembers, leadsWaiting };
 };
 
 // Numbers for one period (finished, or partial = so far).

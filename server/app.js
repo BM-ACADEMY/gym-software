@@ -35,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/public/plans', require('./routes/publicPlans'));
 app.use('/api/public/site-content', require('./routes/publicSiteContent'));
+app.use('/api/public/leads', require('./routes/publicLeads'));
 app.use('/api/root-admin', rootAdminRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/subadmin', subAdminRoutes);

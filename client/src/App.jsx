@@ -9,6 +9,7 @@ import Privacy from './pages/public/Privacy';
 import Terms from './pages/public/Terms';
 import Refund from './pages/public/Refund';
 import Help from './pages/public/Help';
+import JoinForm from './pages/public/JoinForm';
 
 // Auth pages
 import SignIn from './pages/auth/SignIn';
@@ -66,6 +67,7 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/refund" element={<Refund />} />
         <Route path="/help" element={<Help />} />
+        <Route path="/join/:key" element={<JoinForm />} />
 
         {/* ── Auth Routes ── */}
         <Route path="/login" element={<SignIn />} />

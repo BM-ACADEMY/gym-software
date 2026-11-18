@@ -63,6 +63,7 @@ export const ADMIN_NAV = [
   { key: 'attendance', label: 'Attendance', path: 'attendance', page: 'Attendance', icon: CalendarCheck },
   { key: 'poster', label: 'Entrance Poster', path: 'poster', page: 'Poster', icon: QrCode },
   { key: 'copilot', label: 'Renewal Copilot', path: 'copilot', page: 'Copilot', icon: Sparkles },
+  { key: 'leads', label: 'Leads', path: 'leads', page: 'Leads', icon: UserPlus },
   { key: 'owner-reports', label: 'Owner reports', path: 'owner-reports', page: 'OwnerReports', icon: FileText },
   { key: 'at-risk', label: 'Win Back Members', path: 'at-risk', page: 'AtRisk', icon: Megaphone },
   { key: 'payment', label: 'Payment', path: 'payment', page: 'Payment', icon: CreditCard },

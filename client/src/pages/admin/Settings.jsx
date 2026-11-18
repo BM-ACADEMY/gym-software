@@ -323,7 +323,7 @@ const Settings = () => {
         <SectionCard
           title="WhatsApp reminders"
           description="GymDesk messages your members for you: renewals, pending payments and members who stopped coming. You get a daily summary too."
-          onSave={() => saveGym({ whatsappEnabled: gym.whatsappEnabled, upiId: gym.upiId || '', automations: { renewal: gym.automations?.renewal !== false, dues: gym.automations?.dues !== false, absence: gym.automations?.absence !== false, dailySummary: gym.automations?.dailySummary !== false } }, 'whatsapp', 'WhatsApp settings')}
+          onSave={() => saveGym({ whatsappEnabled: gym.whatsappEnabled, upiId: gym.upiId || '', automations: { renewal: gym.automations?.renewal !== false, dues: gym.automations?.dues !== false, absence: gym.automations?.absence !== false, dailySummary: gym.automations?.dailySummary !== false, weeklyReport: gym.automations?.weeklyReport !== false, monthlyReport: gym.automations?.monthlyReport !== false, reportsAutoSend: gym.automations?.reportsAutoSend === true } }, 'whatsapp', 'WhatsApp settings')}
           saving={savingSection === 'whatsapp'}
           disabled={suspended}
         >
@@ -339,11 +339,17 @@ const Settings = () => {
                 ['dues', 'Pending payment reminders (weekly, up to 4 times)'],
                 ['absence', 'Message members who have not visited for 10 days'],
                 ['dailySummary', 'Send me a daily summary at 8 pm'],
+                ['weeklyReport', 'Make my weekly report (every Monday)'],
+                ['monthlyReport', 'Make my monthly report (on the 1st)'],
               ].map(([key, label]) => (
                 <label key={key} className="flex items-center gap-2 text-sm text-gray-700">
                   <input type="checkbox" checked={gym.automations?.[key] !== false} onChange={(e) => setGym({ ...gym, automations: { ...(gym.automations || {}), [key]: e.target.checked } })} /> {label}
                 </label>
               ))}
+              <label className="flex items-start gap-2 text-sm text-gray-700">
+                <input className="mt-1" type="checkbox" checked={gym.automations?.reportsAutoSend === true} onChange={(e) => setGym({ ...gym, automations: { ...(gym.automations || {}), reportsAutoSend: e.target.checked } })} />
+                <span>Send my reports to my WhatsApp by themselves. Leave this off to read them in the app and tap Send yourself.</span>
+              </label>
             </>
           )}
           <p className="flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-500">

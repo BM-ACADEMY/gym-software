@@ -61,6 +61,14 @@ setTimeout(() => {
   setInterval(tick, 15 * 60 * 1000);
 }, 20000);
 
+// Owner autopilot reports (weekly and monthly): same 15-minute tick; one report per gym per period, auto-sent only if the owner switched it on.
+setTimeout(() => {
+  const { runOwnerReports } = require('./services/ownerReport');
+  const tick = () => runOwnerReports().catch((err) => console.error('Owner reports run failed:', err));
+  tick();
+  setInterval(tick, 15 * 60 * 1000);
+}, 40000);
+
 // Billing emails to gym owners (trial ending, renewal due, grace, expired): same
 // 15-minute tick, unique key per email, only 10:00 to 20:00 IST.
 setTimeout(() => {

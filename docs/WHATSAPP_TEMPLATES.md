@@ -71,3 +71,22 @@ Source of truth: `server/config/whatsappTemplates.js`.
 
 - Sample values for Meta: Iron House Gym | 42 | 6500 | 12000 | 9
 
+## gymdesk_owner_weekly_report
+
+- Category: UTILITY
+- Parameters in order: {{1}} = gym, {{2}} = period label, {{3}} = collected, {{4}} = new members, {{5}} = check-ins, {{6}} = dues pending, {{7}} = next step
+- Body:
+
+> Weekly report for {{1}} ({{2}}): Rs {{3}} collected, {{4}} new members, {{5}} check-ins, Rs {{6}} dues pending. Next step: {{7}} Open GymDesk to see the full report.
+
+- Sample values for Meta: Iron House Gym | 9 Nov to 15 Nov | 42000 | 6 | 310 | 8500 | Collect the pending dues, oldest first.
+
+## gymdesk_owner_monthly_report
+
+- Category: UTILITY
+- Parameters in order: same as the weekly report
+- Body:
+
+> Monthly report for {{1}} ({{2}}): Rs {{3}} collected, {{4}} new members, {{5}} check-ins, Rs {{6}} dues pending. Next step: {{7}} Open GymDesk to see the full report.
+
+- Sample values for Meta: Iron House Gym | Oct 2026 | 180000 | 22 | 1300 | 8500 | Message the memberships that end this week.

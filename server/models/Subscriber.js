@@ -122,6 +122,10 @@ const subscriberSchema = new mongoose.Schema({
     dues: { type: Boolean, default: true },
     absence: { type: Boolean, default: true },
     dailySummary: { type: Boolean, default: true },
+    // Owner autopilot reports: made for every gym; sent to the owner's WhatsApp only on a tap unless reportsAutoSend is on.
+    weeklyReport: { type: Boolean, default: true },
+    monthlyReport: { type: Boolean, default: true },
+    reportsAutoSend: { type: Boolean, default: false },
   },
   // UPI ID printed in payment reminders, e.g. irongym@upi
   upiId: { type: String, trim: true },

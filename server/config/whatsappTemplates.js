@@ -29,6 +29,14 @@ const TEMPLATES = {
     params: ['gym', 'checkins', 'collected', 'dues', 'renewals'],
     body: 'Daily summary for {{1}}: {{2}} check-ins today, Rs {{3}} collected, Rs {{4}} dues pending, {{5}} memberships ending in the next 7 days.',
   },
+  gymdesk_owner_weekly_report: {
+    params: ['gym', 'label', 'collected', 'newMembers', 'checkins', 'dues', 'step'],
+    body: 'Weekly report for {{1}} ({{2}}): Rs {{3}} collected, {{4}} new members, {{5}} check-ins, Rs {{6}} dues pending. Next step: {{7}} Open GymDesk to see the full report.',
+  },
+  gymdesk_owner_monthly_report: {
+    params: ['gym', 'label', 'collected', 'newMembers', 'checkins', 'dues', 'step'],
+    body: 'Monthly report for {{1}} ({{2}}): Rs {{3}} collected, {{4}} new members, {{5}} check-ins, Rs {{6}} dues pending. Next step: {{7}} Open GymDesk to see the full report.',
+  },
 };
 
 const render = (name, params) => {

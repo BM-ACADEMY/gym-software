@@ -99,6 +99,8 @@ const updateGymSettings = async (req, res) => {
       }
       subscriber.automations = {
         renewal: a.renewal !== false, dues: a.dues !== false, absence: a.absence !== false, dailySummary: a.dailySummary !== false,
+        weeklyReport: a.weeklyReport !== false, monthlyReport: a.monthlyReport !== false,
+        reportsAutoSend: a.reportsAutoSend === undefined ? subscriber.automations?.reportsAutoSend === true : a.reportsAutoSend === true,
       };
     }
     for (const field of GYM_FIELDS) {

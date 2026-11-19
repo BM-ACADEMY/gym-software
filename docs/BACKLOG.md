@@ -4,6 +4,48 @@ Status values: TODO, IN PROGRESS, WRITTEN (code pushed, not yet tested by a huma
 Claude: update this file in the same commit as the work. Work in ID order within a phase unless blocked.
 Days are estimates for Claude-written code, excluding human test time.
 
+## ROADMAP: Gym (Fit) first launch (added 19 Nov; planned dates are targets, owners in brackets)
+
+Status values as below. This section is the short list; the detailed rows are in the phases that follow.
+
+### Now to 25 Nov: make it safe and tested
+| ID | Task | Owner | Due | Status |
+| --- | --- | --- | --- | --- |
+| RM-01 | Run `npm test` (server and client); send failures to Claude, who fixes first (ownerReports, leads suites matter most) | Aakash | 21 Nov | TODO (human) |
+| RM-02 | Repo private; change every password that was in HANDOVER.md (P0-02) | Aakash | 21 Nov | TODO (human) |
+| RM-03 | Cross-gym and join-form attack tests on Leads and Owner reports; log the 25 old failed tests as bugs (P0-04) | Dev B | 23 Nov | TODO (human) |
+| RM-04 | Phone tests of Leads, Owner reports, sign-up, payment, check-in; results in the features sheet | Staff 1, Staff 2 | 23 Nov | TODO (human) |
+| RM-05 | Razorpay test key in Fit Root Admin; one Rs 1 test payment (P0-05) | Aakash | 22 Nov | TODO (human) |
+| RM-06 | Production env checked; backup to R2 uploaded and one restore tested (P0-03) | Aakash | 24 Nov | TODO (human) |
+| RM-07 | Renew Hostinger server srv2104872 (expires 28 Nov) | Kamarudeen approves, Aakash pays | 25 Nov | TODO (human) |
+| RM-08 | Submit WhatsApp templates to Meta (incl. the two owner report ones); open the WhatsApp Business account on a separate GymDesk number | Aakash, Kamarudeen | 22 Nov | TODO (human) |
+| RM-09 | Fix everything the tests find | Claude | rolling | TODO |
+
+### 26 to 30 Nov: soft launch (gate: all must-pass tests pass, 10 gyms active, no payment or data incident)
+| ID | Task | Owner | Due | Status |
+| --- | --- | --- | --- | --- |
+| RM-10 | Full QA workbook run; Business Rules R01 to R30 decided (1D-01) | Staff, Kamarudeen, Claude | 27 Nov | TODO |
+| RM-11 | Switch Razorpay to live keys; CA check of GST invoices | Aakash, CA | 27 Nov | TODO (human) |
+| RM-12 | Invite 10 gyms on paid plans (1D-02) | Kamarudeen | 26 to 30 Nov | TODO (human) |
+| RM-13 | Decide the product name (GymDesk clash) and trademark check; lawyer reviews privacy and refund pages | Kamarudeen, lawyer | 27 Nov | OPEN |
+
+### 1 Dec: public launch (gate: no incident in soft launch)
+| ID | Task | Owner | Due | Status |
+| --- | --- | --- | --- | --- |
+| RM-14 | Turn on `PUBLIC_SIGNUP=true`; landing page opens; ads at Rs 1,000 a day (1D-03); watch cost per paying gym weekly (target under Rs 3,000) | Kamarudeen, Aakash | 1 Dec | TODO (human) |
+| RM-15 | After one week: AI cost check (1E-05); Daily Brief shows paying gyms n of 10 | Claude, Aakash | 8 Dec | TODO |
+
+### After launch (about 4 weeks; order is a suggestion, owner decides)
+| ID | Task | Owner | Status |
+| --- | --- | --- | --- |
+| RM-20 | Live biometric sync: needs device model and vendor spec first | Kamarudeen gives spec, then Claude | PARKED |
+| RM-21 | Multiple branches under one owner (Tier 3: tenancy and pricing) | Kamarudeen decides, then Claude | PARKED |
+| RM-22 | Lead CRM plan limits (is it on every plan?) | Kamarudeen | OPEN |
+| RM-23 | Meta WhatsApp direct vs a provider; turn on auto-send for owner reports and reminders once templates are approved | Kamarudeen, Aakash | OPEN |
+| RM-24 | Support inbox with AI triage (SA-02), refund tool (SA-11), editable landing sections (SITE-02) | Claude | TODO |
+| RM-25 | Other products (Salon, Mart, Dine, Cloth, Wash, Hire): continue their own lists below, each with its own QA and launch gate | Claude, Dev A, Dev B | TODO |
+| RM-26 | Store app (Android first) once 10 paying gyms are live, per D-27 | Kamarudeen | PLANNED |
+
 ## Phase 0: Safe base
 
 | ID | Task | Status | Acceptance |

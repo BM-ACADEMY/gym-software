@@ -10,47 +10,47 @@ Tick a box when done. Dates are targets.
 ## Go live
 
 ### Put GymDesk on real hosting
-- Owner: Kamar, with the web team
-- Due: 2026-12-18
-- Priority: High
+Owner: Kamar, with the web team
+Due: 2026-12-18
+Priority: High
 Today it runs only on a dev setup. Needs a MongoDB Atlas database, a host for the client (Vercel config exists in client/vercel.json) and a host for the server, with production settings set on each. Hosting choice and cost need Kamar's decision.
 
 ### Take the demo passwords out of the repo
-- Owner: Aakash
-- Due: 2026-11-27
-- Priority: High
+Owner: Aakash
+Due: 2026-11-27
+Priority: High
 HANDOVER.md lists demo accounts with their passwords. Move them out of the file (or make sure they never exist on a real server), and make sure OTP_MODE is live on any real server.
 
 ### Switch the payment gateway to live Razorpay
-- Owner: Kamar
-- Due: 2026-12-18
-- Priority: Normal
+Owner: Kamar
+Due: 2026-12-18
+Priority: Normal
 Razorpay works in test mode. Going live needs Kamar's real Razorpay account and keys, entered through Root Admin settings, never in the repo. Test one real small payment before opening to a gym.
 
 ### Run the server tests and a full walkthrough on the live setup
-- Owner: Aakash
-- Due: 2026-12-11
-- Priority: Normal
+Owner: Aakash
+Due: 2026-12-11
+Priority: Normal
 npm test in server/ against a separate test database, then the owner, trainer, member and root admin walkthrough on the hosted version.
 
 ## After launch
 
 ### Live AI for workout and diet plans
-- Owner: Aakash
-- Due: 2027-01-15
-- Priority: Low
+Owner: Aakash
+Due: 2027-01-15
+Priority: Low
 The AI service is rule-based today and shaped so a real model can be dropped in. Needs an API key and a monthly spending limit from Kamar.
 
 ### WhatsApp notifications
-- Owner: Aakash
-- Due: 2027-01-31
-- Priority: Low
+Owner: Aakash
+Due: 2027-01-31
+Priority: Low
 SMS and email work. WhatsApp needs a WhatsApp Business account and credentials. Could reuse the Nera (Getnera) WhatsApp work.
 
 ### Find the first pilot gym
-- Owner: Kamar
-- Due: 2026-12-18
-- Priority: Normal
+Owner: Kamar
+Due: 2026-12-18
+Priority: Normal
 Pick one gym to run on GymDesk first and collect their feedback.
 
 ## Done (from HANDOVER.md, confirm with the team)

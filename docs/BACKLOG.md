@@ -4,11 +4,29 @@ Status values: TODO, IN PROGRESS, WRITTEN (code pushed, not yet tested by a huma
 Claude: update this file in the same commit as the work. Work in ID order within a phase unless blocked.
 Days are estimates for Claude-written code, excluding human test time.
 
-## ROADMAP: Gym (Fit) first launch (added 19 Nov; planned dates are targets, owners in brackets)
+## ROADMAP: Gym (Fit) first launch (added 19 Nov; first launch moved to 24 Nov on 21 Nov by Kamarudeen; planned dates are targets, owners in brackets)
 
 Status values as below. This section is the short list; the detailed rows are in the phases that follow.
 
-### Now to 25 Nov: make it safe and tested
+
+### Launch week plan (21 to 24 Nov): first launch is 24 Nov
+"First launch" means the soft launch: the app goes live for the first invited gyms on 24 Nov. Public sign-up and ads stay on 1 Dec (RM-14). Gate for 24 Nov: all must-pass tests pass, Razorpay live payment works once, backup restored once, no open data or payment problem.
+
+| Day | Who | What (row) |
+| --- | --- | --- |
+| Sat 21 Nov | Aakash | RM-01 run the tests and send failures; RM-02 repo private and passwords changed |
+| Sat 21 Nov | Kamarudeen | Decide the product name for launch (RM-13) or confirm GymDesk stays for now; confirm the Hostinger renewal (RM-07) |
+| Sun 22 Nov | Aakash | RM-05 Razorpay test key and the Rs 1 test payment; RM-08 submit the WhatsApp templates to Meta |
+| Sun 22 Nov | Claude | RM-09 fix everything RM-01 found; list what is left |
+| Mon 23 Nov | Dev B, Staff 1, Staff 2 | RM-03 attack tests; RM-04 phone tests; results in the features sheet |
+| Mon 23 Nov | Aakash | RM-06 production environment checked; backup to R2 uploaded and one restore tested |
+| Mon 23 Nov | Staff, Kamarudeen, Claude | RM-10 QA workbook run for the must-pass tests; Business Rules R01 to R30 decided |
+| Tue 24 Nov, morning | Aakash, CA | RM-11 switch Razorpay to live keys; one live Rs 1 payment and refund. CA check of GST invoices: **OPEN**, Kamarudeen to say whether launch waits for it |
+| Tue 24 Nov | Kamarudeen | Go / no-go at 12:00 against the gate, then RM-12 invite the first gyms |
+
+If a gate item is not done by the go / no-go time, the launch moves one day; it does not go live with an open payment or data problem.
+
+### Now to 23 Nov: make it safe and tested
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
 | RM-01 | Run `npm test` (server and client); send failures to Claude, who fixes first (ownerReports, leads suites matter most) | Aakash | 21 Nov | TODO (human) |
@@ -16,18 +34,18 @@ Status values as below. This section is the short list; the detailed rows are in
 | RM-03 | Cross-gym and join-form attack tests on Leads and Owner reports; log the 25 old failed tests as bugs (P0-04) | Dev B | 23 Nov | TODO (human) |
 | RM-04 | Phone tests of Leads, Owner reports, sign-up, payment, check-in; results in the features sheet | Staff 1, Staff 2 | 23 Nov | TODO (human) |
 | RM-05 | Razorpay test key in Fit Root Admin; one Rs 1 test payment (P0-05) | Aakash | 22 Nov | TODO (human) |
-| RM-06 | Production env checked; backup to R2 uploaded and one restore tested (P0-03) | Aakash | 24 Nov | TODO (human) |
+| RM-06 | Production env checked; backup to R2 uploaded and one restore tested (P0-03) | Aakash | 23 Nov | TODO (human) |
 | RM-07 | Renew Hostinger server srv2104872 (expires 28 Nov) | Kamarudeen approves, Aakash pays | 25 Nov | TODO (human) |
 | RM-08 | Submit WhatsApp templates to Meta (incl. the two owner report ones); open the WhatsApp Business account on a separate GymDesk number | Aakash, Kamarudeen | 22 Nov | TODO (human) |
 | RM-09 | Fix everything the tests find | Claude | rolling | TODO |
 
-### 26 to 30 Nov: soft launch (gate: all must-pass tests pass, 10 gyms active, no payment or data incident)
+### 24 to 30 Nov: soft launch, starting 24 Nov (gate: all must-pass tests pass, 10 gyms active, no payment or data incident)
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| RM-10 | Full QA workbook run; Business Rules R01 to R30 decided (1D-01) | Staff, Kamarudeen, Claude | 27 Nov | TODO |
-| RM-11 | Switch Razorpay to live keys; CA check of GST invoices | Aakash, CA | 27 Nov | TODO (human) |
-| RM-12 | Invite 10 gyms on paid plans (1D-02) | Kamarudeen | 26 to 30 Nov | TODO (human) |
-| RM-13 | Decide the product name (GymDesk clash) and trademark check; lawyer reviews privacy and refund pages | Kamarudeen, lawyer | 27 Nov | OPEN |
+| RM-10 | Full QA workbook run; Business Rules R01 to R30 decided (1D-01) | Staff, Kamarudeen, Claude | 23 Nov | TODO |
+| RM-11 | Switch Razorpay to live keys; CA check of GST invoices | Aakash, CA | 24 Nov (keys); GST check OPEN | TODO (human) |
+| RM-12 | Invite 10 gyms on paid plans (1D-02) | Kamarudeen | 24 to 30 Nov | TODO (human) |
+| RM-13 | Decide the product name (GymDesk clash) and trademark check; lawyer reviews privacy and refund pages | Kamarudeen, lawyer | 23 Nov (name), 27 Nov (lawyer) | OPEN |
 
 ### 1 Dec: public launch (gate: no incident in soft launch)
 | ID | Task | Owner | Due | Status |

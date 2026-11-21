@@ -55,6 +55,11 @@ const runBillingCycle = async () => {
 // integration would replace this with an actual saved-mandate charge and
 // only extend the membership once that charge succeeds.
 const runMemberAutoRenewals = async (subscriberId) => {
+  // This job records a PAID invoice without charging anyone, so it must never
+  // run against real data. Re-enable only after it charges a saved mandate
+  // (Razorpay Subscriptions / UPI AutoPay) and extends the plan on success.
+  if (process.env.NODE_ENV === 'production') return 0;
+
   const query = {
     status: { $in: ['active', 'expired'] },
     expiresAt: { $lte: new Date() },

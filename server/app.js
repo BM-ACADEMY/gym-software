@@ -11,26 +11,42 @@ const adminRoutes = require('./routes/admin');
 const subAdminRoutes = require('./routes/subadmin');
 const memberRoutes = require('./routes/member');
 const webhookRoutes = require('./routes/webhooks');
+const { securityHeaders, corsOptions, rejectOperatorKeys, rateLimit } = require('./middleware/security');
 
 const app = express();
 
-// exposedHeaders is required for the browser's JS to read X-Gym-Suspended —
-// CORS hides any non-safelisted response header from client-side code
-// unless the server explicitly allows it through.
-app.use(cors({ exposedHeaders: ['X-Gym-Suspended'] }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Behind Render/Railway/Nginx the real client IP is in X-Forwarded-For —
+// needed for the rate limiter to count per client, not per proxy.
+app.set('trust proxy', 1);
+
+app.use(securityHeaders);
+// Origins are restricted by CORS_ORIGINS in production; exposedHeaders is
+// required for the browser's JS to read X-Gym-Suspended.
+app.use(cors(corsOptions()));
+// rawBody is kept for the Razorpay webhook, whose signature covers the exact bytes.
+app.use(express.json({ limit: '1mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(rejectOperatorKeys);
+
+// A broad per-IP ceiling on the whole API; auth routes add tighter limits.
+app.use('/api', rateLimit({ name: 'api', windowMs: 60 * 1000, max: 300 }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/public/plans', require('./routes/publicPlans'));
+app.use('/api/public/site-content', require('./routes/publicSiteContent'));
+app.use('/api/public/leads', require('./routes/publicLeads'));
 app.use('/api/root-admin', rootAdminRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/subadmin', subAdminRoutes);
 app.use('/api/member', memberRoutes);
 app.use('/api/payments', webhookRoutes);
+app.use('/api/internal', require('./routes/internal'));
 
+// Uptime monitors call this. 503 when the database connection is down, so an alert fires.
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ success: true, message: 'Server is running' });
+  const dbUp = require('mongoose').connection.readyState === 1;
+  res.status(dbUp ? 200 : 503).json({ success: dbUp, message: dbUp ? 'Server is running' : 'Database is not connected' });
 });
 
 app.use((err, req, res, next) => {

@@ -1,0 +1,851 @@
+{
+  "product": "cloth",
+  "title": "Cloth",
+  "nav": [
+    {
+      "key": "start",
+      "label": "Start here",
+      "screen": "stats",
+      "stats": "start"
+    },
+    {
+      "key": "setup",
+      "label": "Set-up checklist",
+      "screen": "resource",
+      "resource": "setup"
+    },
+    {
+      "key": "today",
+      "label": "Today",
+      "screen": "stats",
+      "stats": "today"
+    },
+    {
+      "key": "stock",
+      "label": "Stock",
+      "screen": "resource",
+      "resource": "variants"
+    },
+    {
+      "key": "alterations",
+      "label": "Alterations",
+      "screen": "resource",
+      "resource": "alterations"
+    },
+    {
+      "key": "staff",
+      "label": "Staff",
+      "screen": "resource",
+      "resource": "staff"
+    },
+    {
+      "key": "money",
+      "label": "Money",
+      "screen": "stats",
+      "stats": "money"
+    },
+    {
+      "key": "ideas",
+      "label": "Marketing ideas",
+      "screen": "stats",
+      "stats": "ideas"
+    },
+    {
+      "key": "sales_item",
+      "label": "Sales by item",
+      "screen": "stats",
+      "stats": "sales_item"
+    },
+    {
+      "key": "sales_staff",
+      "label": "Sales by staff",
+      "screen": "stats",
+      "stats": "sales_staff"
+    },
+    {
+      "key": "sales_hour",
+      "label": "Sales by hour",
+      "screen": "stats",
+      "stats": "sales_hour"
+    },
+    {
+      "key": "pnl",
+      "label": "Profit and loss",
+      "screen": "stats",
+      "stats": "pnl",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "gst",
+      "label": "GST summary",
+      "screen": "stats",
+      "stats": "gst",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "expenses",
+      "label": "Expenses",
+      "screen": "stats",
+      "stats": "expenses"
+    },
+    {
+      "key": "leaks",
+      "label": "Things to check",
+      "screen": "stats",
+      "stats": "leaks",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "audit",
+      "label": "Audit trail",
+      "screen": "stats",
+      "stats": "audit",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "payroll",
+      "label": "Staff pay rules",
+      "screen": "settings",
+      "settings": "payroll",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "discount",
+      "label": "Discounts",
+      "screen": "settings",
+      "settings": "discount",
+      "roles": [
+        "admin"
+      ]
+    }
+  ],
+  "stats": {
+    "today": {
+      "label": "Needs you today",
+      "endpoint": "/summary",
+      "refreshMs": 120000,
+      "tables": [
+        {
+          "label": "Three things to do",
+          "rows": "actions",
+          "empty": "All clear. Nothing needs you right now.",
+          "columns": [
+            {
+              "key": "text",
+              "label": "What"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    },
+    "money": {
+      "label": "Money you owe",
+      "endpoint": "/supplier-dues",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Supplier bills still unpaid",
+          "rows": "rows",
+          "empty": "No unpaid supplier bills.",
+          "columns": [
+            {
+              "key": "supplier",
+              "label": "Supplier"
+            },
+            {
+              "key": "owe",
+              "label": "Owe",
+              "type": "money"
+            },
+            {
+              "key": "lateDays",
+              "label": "Days late"
+            }
+          ]
+        }
+      ]
+    },
+    "ideas": {
+      "label": "Marketing ideas (suggestions only)",
+      "endpoint": "/marketing-ideas",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Ideas",
+          "rows": "ideas",
+          "empty": "No ideas right now.",
+          "columns": [
+            {
+              "key": "text",
+              "label": "Idea"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    },
+    "sales_item": {
+      "label": "Sales by item (last 30 days)",
+      "endpoint": "/reports/sales-breakdown?by=item",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Items, biggest first",
+          "rows": "rows",
+          "empty": "No sales in this period.",
+          "columns": [
+            {
+              "key": "key",
+              "label": "Item"
+            },
+            {
+              "key": "pieces",
+              "label": "Pieces",
+              "type": "number"
+            },
+            {
+              "key": "amount",
+              "label": "Amount before GST",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "sales_staff": {
+      "label": "Sales by staff (last 30 days)",
+      "endpoint": "/reports/sales-breakdown?by=staff",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Staff on the bill lines",
+          "rows": "rows",
+          "empty": "No sales in this period.",
+          "columns": [
+            {
+              "key": "key",
+              "label": "Staff"
+            },
+            {
+              "key": "pieces",
+              "label": "Pieces",
+              "type": "number"
+            },
+            {
+              "key": "amount",
+              "label": "Amount before GST",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "sales_hour": {
+      "label": "Sales by hour (last 30 days)",
+      "endpoint": "/reports/sales-breakdown?by=hour",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Busy and slow hours (India time)",
+          "rows": "rows",
+          "empty": "No sales in this period.",
+          "columns": [
+            {
+              "key": "key",
+              "label": "Hour"
+            },
+            {
+              "key": "bills",
+              "label": "Bills",
+              "type": "number"
+            },
+            {
+              "key": "total",
+              "label": "Sales",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "pnl": {
+      "label": "Profit and loss (last 30 days)",
+      "endpoint": "/reports/profit-loss",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales before GST",
+          "path": "sales",
+          "type": "money"
+        },
+        {
+          "label": "Cost of goods",
+          "path": "cogs",
+          "type": "money"
+        },
+        {
+          "label": "Gross profit",
+          "path": "grossProfit",
+          "type": "money"
+        },
+        {
+          "label": "Expenses",
+          "path": "expenses",
+          "type": "money"
+        },
+        {
+          "label": "Net profit",
+          "path": "netProfit",
+          "type": "money"
+        }
+      ]
+    },
+    "gst": {
+      "label": "GST summary for your CA (last 30 days)",
+      "endpoint": "/reports/gst-summary",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "By GST rate",
+          "rows": "rows",
+          "empty": "No taxable sales.",
+          "columns": [
+            {
+              "key": "rate",
+              "label": "Rate %",
+              "type": "number"
+            },
+            {
+              "key": "taxable",
+              "label": "Taxable",
+              "type": "money"
+            },
+            {
+              "key": "tax",
+              "label": "GST",
+              "type": "money"
+            }
+          ]
+        }
+      ],
+      "cards": [
+        {
+          "label": "Taxable",
+          "path": "taxable",
+          "type": "money"
+        },
+        {
+          "label": "GST",
+          "path": "tax",
+          "type": "money"
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download the file for your CA",
+          "path": "/export/ca.csv",
+          "rangeDays": 30,
+          "filename": "cloth-ca.csv"
+        },
+        {
+          "label": "Download the Tally-style voucher list",
+          "path": "/export/tally.csv",
+          "rangeDays": 30,
+          "filename": "cloth-tally.csv"
+        }
+      ]
+    },
+    "expenses": {
+      "label": "Expenses (last 30 days)",
+      "endpoint": "/expenses",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Expenses",
+          "rows": "rows",
+          "empty": "No expenses in this period.",
+          "columns": [
+            {
+              "key": "date",
+              "label": "Date"
+            },
+            {
+              "key": "category",
+              "label": "Category"
+            },
+            {
+              "key": "amount",
+              "label": "Amount",
+              "type": "money"
+            },
+            {
+              "key": "note",
+              "label": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    "leaks": {
+      "label": "Things to check",
+      "endpoint": "/reports/leaks",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Staff discounts",
+          "rows": "staffDiscounts",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "reason",
+              "label": "What"
+            }
+          ]
+        },
+        {
+          "label": "Heavy discounts",
+          "rows": "heavyDiscounts",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "reason",
+              "label": "What"
+            }
+          ]
+        },
+        {
+          "label": "Returns or cancels by staff",
+          "rows": "voidsByStaff",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "reason",
+              "label": "What"
+            }
+          ]
+        },
+        {
+          "label": "Cash differences",
+          "rows": "cashDifferences",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "reason",
+              "label": "What"
+            }
+          ]
+        },
+        {
+          "label": "Stock counts that did not match",
+          "rows": "stockMismatch",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "reason",
+              "label": "What"
+            }
+          ]
+        }
+      ]
+    },
+    "audit": {
+      "label": "Audit trail (who did what)",
+      "endpoint": "/audit",
+      "refreshMs": 0,
+      "tables": [
+        {
+          "label": "Latest actions",
+          "rows": "rows",
+          "empty": "Nothing recorded yet.",
+          "columns": [
+            {
+              "key": "at",
+              "label": "When"
+            },
+            {
+              "key": "action",
+              "label": "Action"
+            },
+            {
+              "key": "text",
+              "label": "Detail"
+            }
+          ]
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download all my shop data",
+          "path": "/export/all.json",
+          "filename": "cloth-my-data.json"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start here",
+      "endpoint": "/first-win",
+      "refreshMs": 0,
+      "attention": "attention",
+      "cards": [
+        {
+          "label": "Items not sold in 90 days",
+          "path": "count",
+          "type": "number"
+        },
+        {
+          "label": "Stock value tied up (sample until you have your own)",
+          "path": "rupees",
+          "type": "money"
+        },
+        {
+          "label": "Set-up done (%)",
+          "path": "percent",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Set-up steps",
+          "rows": "steps",
+          "empty": "Nothing to show.",
+          "columns": [
+            {
+              "key": "label",
+              "label": "Step"
+            },
+            {
+              "key": "status",
+              "label": "Status",
+              "type": "pill"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resources": {
+    "variants": {
+      "label": "Stock by size and colour",
+      "endpoint": "/variants",
+      "readOnly": true,
+      "searchable": true,
+      "empty": "No items yet. Add a style with sizes and colours.",
+      "columns": [
+        {
+          "key": "style",
+          "label": "Style"
+        },
+        {
+          "key": "size",
+          "label": "Size"
+        },
+        {
+          "key": "colour",
+          "label": "Colour"
+        },
+        {
+          "key": "barcode",
+          "label": "Barcode"
+        },
+        {
+          "key": "qty",
+          "label": "In stock"
+        },
+        {
+          "key": "mrp",
+          "label": "MRP",
+          "type": "money"
+        },
+        {
+          "key": "gstRate",
+          "label": "GST %"
+        }
+      ]
+    },
+    "alterations": {
+      "label": "Alteration and tailoring jobs",
+      "endpoint": "/alterations",
+      "empty": "No jobs yet.",
+      "columns": [
+        {
+          "key": "customerName",
+          "label": "Customer"
+        },
+        {
+          "key": "what",
+          "label": "Work"
+        },
+        {
+          "key": "readyOn",
+          "label": "Ready on",
+          "type": "date"
+        },
+        {
+          "key": "charge",
+          "label": "Charge",
+          "type": "money"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "customerName",
+          "label": "Customer name",
+          "max": 120
+        },
+        {
+          "key": "customerPhone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "what",
+          "label": "What is the work",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "readyOn",
+          "label": "Ready on",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "charge",
+          "label": "Charge (Rs)",
+          "type": "money",
+          "required": true,
+          "min": 0
+        },
+        {
+          "key": "advance",
+          "label": "Advance paid (Rs)",
+          "type": "money",
+          "min": 0
+        }
+      ],
+      "actions": [
+        {
+          "label": "Started",
+          "method": "POST",
+          "path": "/alterations/:id/status",
+          "body": {
+            "status": "in_progress"
+          },
+          "when": {
+            "key": "status",
+            "equals": "received"
+          }
+        },
+        {
+          "label": "Ready",
+          "method": "POST",
+          "path": "/alterations/:id/status",
+          "body": {
+            "status": "ready"
+          },
+          "done": "Marked ready. Suggest: tell the customer.",
+          "when": {
+            "key": "status",
+            "equals": "in_progress"
+          }
+        },
+        {
+          "label": "Delivered",
+          "method": "POST",
+          "path": "/alterations/:id/status",
+          "body": {
+            "status": "delivered"
+          },
+          "when": {
+            "key": "status",
+            "equals": "ready"
+          }
+        }
+      ]
+    },
+    "staff": {
+      "label": "Staff",
+      "endpoint": "/staff",
+      "empty": "No staff added.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "salary",
+          "label": "Monthly salary",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "salary",
+          "label": "Monthly salary (Rs)",
+          "type": "money",
+          "min": 0
+        }
+      ]
+    },
+    "setup": {
+      "label": "Set-up checklist",
+      "endpoint": "/setup/steps",
+      "empty": "Nothing to show.",
+      "columns": [
+        {
+          "key": "label",
+          "label": "Step"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "I did this",
+          "method": "POST",
+          "path": "/setup/steps/:id/done",
+          "done": "Ticked.",
+          "when": {
+            "key": "mark",
+            "equals": "yes"
+          }
+        }
+      ],
+      "toolbar": [
+        {
+          "label": "Load sample data",
+          "method": "POST",
+          "path": "/setup/sample",
+          "done": "Sample data added. It is marked Sample."
+        },
+        {
+          "label": "Remove sample data",
+          "method": "POST",
+          "path": "/setup/sample/remove",
+          "done": "Sample data removed."
+        }
+      ]
+    }
+  },
+  "settings": {
+    "discount": {
+      "label": "Discounts",
+      "endpoint": "/settings",
+      "intro": "You decide who may give a discount. Every discount needs a reason, and you always see the ones your staff give in your daily list. You are never limited yourself.",
+      "fields": [
+        {
+          "key": "discountRule.staff",
+          "label": "Who may give a discount at billing?",
+          "type": "select",
+          "default": "limit",
+          "options": [
+            {
+              "value": "limit",
+              "label": "Staff, up to a limit"
+            },
+            {
+              "value": "owner_only",
+              "label": "Only me (the owner)"
+            },
+            {
+              "value": "any",
+              "label": "Any staff, any amount"
+            }
+          ]
+        },
+        {
+          "key": "discountRule.maxPercent",
+          "label": "Staff limit (percent of the bill)",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 10,
+          "showWhen": {
+            "key": "discountRule.staff",
+            "equals": "limit"
+          }
+        }
+      ]
+    },
+    "payroll": {
+      "label": "Staff pay rules",
+      "endpoint": "/settings",
+      "intro": "Commission is worked out from the staff name on each bill line. It is what the rules say is payable: check it before paying. Paid leave is the days a person can take in a year without losing pay.",
+      "fields": [
+        {
+          "key": "leaveAllowance",
+          "label": "Paid leave days a year",
+          "type": "number",
+          "min": 0,
+          "max": 60,
+          "default": 12
+        },
+        {
+          "key": "commissionRules.default.type",
+          "label": "Commission on sales (everyone, unless set per person)",
+          "type": "select",
+          "default": "percent",
+          "options": [
+            {
+              "value": "percent",
+              "label": "Percent of the line amount"
+            },
+            {
+              "value": "flat",
+              "label": "Fixed rupees per line"
+            }
+          ]
+        },
+        {
+          "key": "commissionRules.default.value",
+          "label": "Commission value (percent or rupees)",
+          "type": "number",
+          "min": 0,
+          "max": 100000,
+          "default": 0
+        }
+      ]
+    }
+  }
+}

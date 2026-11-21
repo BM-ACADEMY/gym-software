@@ -71,6 +71,7 @@ const createSubAdmin = async (req, res) => {
       name,
       phone,
       email,
+      deviceUserId: typeof req.body.deviceUserId === 'string' ? req.body.deviceUserId.trim().slice(0, 40) : undefined,
       passwordHash,
       template: template || 'custom',
       permissions: sanitizePermissions(permissions),
@@ -110,6 +111,7 @@ const updateSubAdmin = async (req, res) => {
     if (name !== undefined) subAdmin.name = name;
     if (phone !== undefined) subAdmin.phone = phone;
     if (email !== undefined) subAdmin.email = email;
+    if (typeof req.body.deviceUserId === 'string') subAdmin.deviceUserId = req.body.deviceUserId.trim().slice(0, 40);
     if (template !== undefined) {
       if (!TEMPLATES.includes(template)) {
         return res.status(400).json({ success: false, message: 'Invalid template' });

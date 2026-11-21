@@ -1,0 +1,1496 @@
+{
+  "product": "wash",
+  "title": "Wash",
+  "nav": [
+    {
+      "key": "start",
+      "label": "Start here",
+      "screen": "stats",
+      "stats": "start"
+    },
+    {
+      "key": "setup",
+      "label": "Set-up checklist",
+      "screen": "resource",
+      "resource": "setup"
+    },
+    {
+      "key": "today",
+      "label": "Today",
+      "screen": "stats",
+      "stats": "today"
+    },
+    {
+      "key": "jobs",
+      "label": "Job board",
+      "screen": "resource",
+      "resource": "jobs"
+    },
+    {
+      "key": "bookings",
+      "label": "Booking requests",
+      "screen": "resource",
+      "resource": "bookings"
+    },
+    {
+      "key": "bookinglink",
+      "label": "Booking link",
+      "screen": "stats",
+      "stats": "bookinglink",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "dues",
+      "label": "Customers who owe you",
+      "screen": "resource",
+      "resource": "dues"
+    },
+    {
+      "key": "refunds",
+      "label": "Refunds",
+      "screen": "resource",
+      "resource": "refunds",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "vehicles",
+      "label": "Vehicles",
+      "screen": "resource",
+      "resource": "vehicles"
+    },
+    {
+      "key": "vehicleimport",
+      "label": "Bring in your old register",
+      "screen": "resource",
+      "resource": "vehicleimport",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "photos",
+      "label": "Job photos",
+      "screen": "resource",
+      "resource": "photos"
+    },
+    {
+      "key": "passes",
+      "label": "Monthly passes",
+      "screen": "resource",
+      "resource": "passes"
+    },
+    {
+      "key": "attendants",
+      "label": "Attendants",
+      "screen": "resource",
+      "resource": "attendants"
+    },
+    {
+      "key": "payslips",
+      "label": "Payslips",
+      "screen": "stats",
+      "stats": "payslips",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "shifts",
+      "label": "Shifts",
+      "screen": "resource",
+      "resource": "shifts"
+    },
+    {
+      "key": "advances",
+      "label": "Advances and deductions",
+      "screen": "resource",
+      "resource": "advances",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "closing",
+      "label": "Cash closing",
+      "screen": "resource",
+      "resource": "closing"
+    },
+    {
+      "key": "expenses",
+      "label": "Expenses",
+      "screen": "resource",
+      "resource": "expenses"
+    },
+    {
+      "key": "predictions",
+      "label": "Estimates",
+      "screen": "stats",
+      "stats": "predictions"
+    },
+    {
+      "key": "accounts",
+      "label": "Accounts",
+      "screen": "stats",
+      "stats": "accounts",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "leaks",
+      "label": "Discounts and voids",
+      "screen": "stats",
+      "stats": "leaks",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "audit",
+      "label": "Audit trail",
+      "screen": "resource",
+      "resource": "audit",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "discount",
+      "label": "Discounts",
+      "screen": "settings",
+      "settings": "discount",
+      "roles": [
+        "admin"
+      ]
+    }
+  ],
+  "stats": {
+    "today": {
+      "label": "Today",
+      "endpoint": "/summary",
+      "refreshMs": 120000,
+      "cards": [
+        {
+          "label": "Washes delivered",
+          "path": "facts.jobsDelivered",
+          "type": "number"
+        },
+        {
+          "label": "Still open",
+          "path": "facts.jobsOpen",
+          "type": "number"
+        },
+        {
+          "label": "Revenue",
+          "path": "facts.revenue",
+          "type": "money"
+        },
+        {
+          "label": "Cash",
+          "path": "facts.pay.cash",
+          "type": "money"
+        },
+        {
+          "label": "UPI",
+          "path": "facts.pay.upi",
+          "type": "money"
+        },
+        {
+          "label": "Idle bay minutes",
+          "path": "facts.idleMinutes",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Three things to do today (suggestions, nothing is sent)",
+          "rows": "actions",
+          "empty": "All clear. Nothing needs you right now.",
+          "columns": [
+            {
+              "key": "text",
+              "label": "What"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    },
+    "predictions": {
+      "label": "Estimates (not promises)",
+      "endpoint": "/predictions",
+      "cards": [
+        {
+          "label": "Next month, low",
+          "path": "nextMonth.low",
+          "type": "money"
+        },
+        {
+          "label": "Next month, likely",
+          "path": "nextMonth.expected",
+          "type": "money"
+        },
+        {
+          "label": "Next month, high",
+          "path": "nextMonth.high",
+          "type": "money"
+        },
+        {
+          "label": "Passes ending in 14 days",
+          "path": "renewals.count",
+          "type": "number"
+        },
+        {
+          "label": "Value if half renew",
+          "path": "renewals.ifHalfRenew",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Customers who may stop coming",
+          "rows": "lapseRisk",
+          "empty": "Nobody looks at risk right now.",
+          "columns": [
+            {
+              "key": "plate",
+              "label": "Vehicle"
+            },
+            {
+              "key": "name",
+              "label": "Name"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    },
+    "accounts": {
+      "label": "Accounts (this month)",
+      "endpoint": "/accounts/overview",
+      "refreshMs": 120000,
+      "cards": [
+        {
+          "label": "Revenue (after refunds)",
+          "path": "pnl.revenue",
+          "type": "money"
+        },
+        {
+          "label": "Expenses",
+          "path": "pnl.expenses",
+          "type": "money"
+        },
+        {
+          "label": "Attendant incentive",
+          "path": "pnl.incentive",
+          "type": "money"
+        },
+        {
+          "label": "Profit",
+          "path": "pnl.profit",
+          "type": "money"
+        },
+        {
+          "label": "Customers still owe",
+          "path": "customerDueTotal",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Customers who owe you",
+          "rows": "customerDues",
+          "empty": "Nobody owes you right now.",
+          "columns": [
+            {
+              "key": "plate",
+              "label": "Vehicle"
+            },
+            {
+              "key": "job",
+              "label": "Job"
+            },
+            {
+              "key": "day",
+              "label": "Day",
+              "type": "date"
+            },
+            {
+              "key": "due",
+              "label": "Owes",
+              "type": "money"
+            },
+            {
+              "key": "note",
+              "label": "Note"
+            }
+          ]
+        },
+        {
+          "label": "You owe suppliers",
+          "rows": "supplierDues",
+          "empty": "No unpaid supplier bills.",
+          "columns": [
+            {
+              "key": "supplier",
+              "label": "Supplier"
+            },
+            {
+              "key": "due",
+              "label": "Due",
+              "type": "money"
+            },
+            {
+              "key": "oldest",
+              "label": "Since",
+              "type": "date"
+            }
+          ]
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download the file for your CA",
+          "path": "/accounts/export.csv",
+          "rangeDays": 30,
+          "filename": "wash-ca.csv"
+        }
+      ]
+    },
+    "leaks": {
+      "label": "Discounts and voids (last 30 days)",
+      "endpoint": "/leaks",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "Discounts given by staff",
+          "rows": "staffDiscounts",
+          "empty": "No staff discounts in the last 30 days.",
+          "columns": [
+            {
+              "key": "date",
+              "label": "Day",
+              "type": "date"
+            },
+            {
+              "key": "count",
+              "label": "How many",
+              "type": "number"
+            },
+            {
+              "key": "total",
+              "label": "Worth",
+              "type": "money"
+            }
+          ]
+        },
+        {
+          "label": "Jobs cancelled after washing began",
+          "rows": "voids",
+          "empty": "None.",
+          "columns": [
+            {
+              "key": "date",
+              "label": "Day",
+              "type": "date"
+            },
+            {
+              "key": "count",
+              "label": "How many",
+              "type": "number"
+            },
+            {
+              "key": "total",
+              "label": "Worth",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "payslips": {
+      "label": "Payslips (this month)",
+      "endpoint": "/payslips",
+      "refreshMs": 300000,
+      "tables": [
+        {
+          "label": "What each attendant earned (days with no mark count as worked)",
+          "rows": "slips",
+          "empty": "No attendants yet.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Attendant"
+            },
+            {
+              "key": "unpaidDays",
+              "label": "Unpaid days",
+              "type": "number"
+            },
+            {
+              "key": "base",
+              "label": "Base",
+              "type": "money"
+            },
+            {
+              "key": "incentive",
+              "label": "Incentive",
+              "type": "money"
+            },
+            {
+              "key": "gross",
+              "label": "Total",
+              "type": "money"
+            },
+            {
+              "key": "words",
+              "label": "How it was worked out"
+            }
+          ]
+        }
+      ]
+    },
+    "bookinglink": {
+      "label": "Your booking link",
+      "endpoint": "/booking-link",
+      "cards": [
+        {
+          "label": "Path (put your website address in front, then make a QR from it)",
+          "path": "path",
+          "type": "text"
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download the QR picture (print it for your counter)",
+          "path": "/booking-link/qr.svg",
+          "filename": "booking-qr.svg"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start here",
+      "endpoint": "/first-win",
+      "refreshMs": 0,
+      "attention": "attention",
+      "cards": [
+        {
+          "label": "Vehicles not back in 30 days",
+          "path": "count",
+          "type": "number"
+        },
+        {
+          "label": "Rupees (sample until you have your own)",
+          "path": "rupees",
+          "type": "money"
+        },
+        {
+          "label": "Set-up done (%)",
+          "path": "percent",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Set-up steps",
+          "rows": "steps",
+          "empty": "Nothing to show.",
+          "columns": [
+            {
+              "key": "label",
+              "label": "Step"
+            },
+            {
+              "key": "status",
+              "label": "Status",
+              "type": "pill"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resources": {
+    "jobs": {
+      "label": "Job board",
+      "endpoint": "/jobs",
+      "empty": "No open jobs. Add a vehicle that has arrived.",
+      "columns": [
+        {
+          "key": "number",
+          "label": "No."
+        },
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "bay",
+          "label": "Bay"
+        },
+        {
+          "key": "klass",
+          "label": "Class"
+        },
+        {
+          "key": "total",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "plate",
+          "label": "Number plate",
+          "required": true,
+          "max": 15
+        },
+        {
+          "key": "klass",
+          "label": "Class",
+          "type": "select",
+          "options": [
+            "bike",
+            "hatchback",
+            "sedan",
+            "suv",
+            "other"
+          ]
+        },
+        {
+          "key": "bay",
+          "label": "Bay (optional, for example Bay 1)",
+          "type": "text",
+          "max": 12
+        }
+      ],
+      "actions": [
+        {
+          "label": "Start washing",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "washing"
+          },
+          "when": {
+            "key": "state",
+            "equals": "waiting"
+          }
+        },
+        {
+          "label": "Ready",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "ready"
+          },
+          "when": {
+            "key": "state",
+            "equals": "washing"
+          }
+        },
+        {
+          "label": "Cancel",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "cancelled"
+          },
+          "when": {
+            "key": "state",
+            "equals": "waiting"
+          }
+        },
+        {
+          "label": "Cancel: customer left",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "cancelled",
+            "reason": "Customer left before the wash finished"
+          },
+          "when": {
+            "key": "state",
+            "equals": "washing"
+          },
+          "confirm": "Tap again to cancel this started job (the owner is told)"
+        },
+        {
+          "label": "Cancel: problem with the vehicle",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "cancelled",
+            "reason": "Problem found with the vehicle"
+          },
+          "when": {
+            "key": "state",
+            "equals": "washing"
+          },
+          "confirm": "Tap again to cancel this started job (the owner is told)"
+        },
+        {
+          "label": "Cancel: other (owner told)",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "cancelled",
+            "reason": "Cancelled after washing began, other reason"
+          },
+          "when": {
+            "key": "state",
+            "equals": "washing"
+          },
+          "confirm": "Tap again to cancel this started job (the owner is told)"
+        },
+        {
+          "label": "Delivered, paid cash",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "delivered",
+            "payAllWith": "cash"
+          },
+          "when": {
+            "key": "state",
+            "equals": "ready"
+          }
+        },
+        {
+          "label": "Delivered, paid UPI",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "delivered",
+            "payAllWith": "upi"
+          },
+          "when": {
+            "key": "state",
+            "equals": "ready"
+          }
+        },
+        {
+          "label": "Delivered, paid card",
+          "method": "POST",
+          "path": "/jobs/:id/move",
+          "body": {
+            "to": "delivered",
+            "payAllWith": "card"
+          },
+          "when": {
+            "key": "state",
+            "equals": "ready"
+          }
+        }
+      ]
+    },
+    "vehicles": {
+      "label": "Vehicles",
+      "endpoint": "/vehicles",
+      "empty": "No vehicles yet.",
+      "columns": [
+        {
+          "key": "plate",
+          "label": "Plate"
+        },
+        {
+          "key": "klass",
+          "label": "Class"
+        },
+        {
+          "key": "ownerName",
+          "label": "Owner"
+        },
+        {
+          "key": "lastWash",
+          "label": "Last wash",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "plate",
+          "label": "Number plate",
+          "required": true,
+          "max": 15
+        },
+        {
+          "key": "klass",
+          "label": "Class",
+          "required": true,
+          "type": "select",
+          "options": [
+            "bike",
+            "hatchback",
+            "sedan",
+            "suv",
+            "other"
+          ]
+        },
+        {
+          "key": "ownerName",
+          "label": "Owner name",
+          "max": 120
+        },
+        {
+          "key": "ownerPhone",
+          "label": "Mobile",
+          "max": 10
+        },
+        {
+          "key": "intervalDays",
+          "label": "Usual gap in days",
+          "type": "number",
+          "min": 3,
+          "max": 180
+        }
+      ]
+    },
+    "passes": {
+      "label": "Monthly passes",
+      "endpoint": "/passes",
+      "empty": "No passes sold yet.",
+      "columns": [
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "used",
+          "label": "Used",
+          "type": "number"
+        },
+        {
+          "key": "washes",
+          "label": "Washes",
+          "type": "number"
+        },
+        {
+          "key": "endsOn",
+          "label": "Ends",
+          "type": "date"
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "plate",
+          "label": "Number plate",
+          "required": true,
+          "max": 15
+        },
+        {
+          "key": "washes",
+          "label": "Washes",
+          "type": "number",
+          "required": true,
+          "min": 1,
+          "max": 100
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "money",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    "attendants": {
+      "label": "Attendants",
+      "endpoint": "/attendants",
+      "empty": "Add the people who wash.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "monthlySalary",
+          "label": "Monthly salary (owner only)",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "paidLeavePerMonth",
+          "label": "Paid leave days per month (owner only)",
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      ]
+    },
+    "closing": {
+      "label": "Cash closing",
+      "endpoint": "/cash-closing",
+      "empty": "No day closed yet.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "expected",
+          "label": "Bills say",
+          "type": "money"
+        },
+        {
+          "key": "declared",
+          "label": "Counted",
+          "type": "money"
+        },
+        {
+          "key": "diff",
+          "label": "Difference",
+          "type": "money"
+        },
+        {
+          "key": "flag",
+          "label": "Check",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "declared",
+          "label": "Cash counted",
+          "type": "money",
+          "required": true,
+          "min": 0
+        },
+        {
+          "key": "openingFloat",
+          "label": "Cash at start of day",
+          "type": "money",
+          "min": 0
+        }
+      ]
+    },
+    "expenses": {
+      "label": "Expenses",
+      "endpoint": "/expenses",
+      "empty": "No expenses noted this month.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "category",
+          "label": "Type",
+          "type": "pill"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "supplier",
+          "label": "Supplier"
+        }
+      ],
+      "fields": [
+        {
+          "key": "category",
+          "label": "Type",
+          "required": true,
+          "type": "select",
+          "options": [
+            "salary",
+            "water",
+            "electricity",
+            "chemicals",
+            "rent",
+            "repairs",
+            "other"
+          ]
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "supplier",
+          "label": "Supplier",
+          "max": 80
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "max": 120
+        }
+      ]
+    },
+    "audit": {
+      "label": "Audit trail",
+      "endpoint": "/audit",
+      "empty": "Nothing recorded yet.",
+      "readOnly": true,
+      "columns": [
+        {
+          "key": "createdAt",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "action",
+          "label": "What",
+          "type": "pill"
+        },
+        {
+          "key": "text",
+          "label": "Details"
+        }
+      ],
+      "fields": [],
+      "downloads": [
+        {
+          "label": "Download all my business data",
+          "path": "/export",
+          "filename": "wash-my-data.json"
+        }
+      ]
+    },
+    "shifts": {
+      "label": "Shifts",
+      "endpoint": "/shifts",
+      "empty": "No shifts noted this month.",
+      "intro": "Type the attendant's name exactly as in your list and the times as 24 hour HH:MM (09:00 to 17:00). One shift per person per day; adding again replaces it.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "attendant",
+          "label": "Attendant"
+        },
+        {
+          "key": "from",
+          "label": "From"
+        },
+        {
+          "key": "to",
+          "label": "To"
+        }
+      ],
+      "fields": [
+        {
+          "key": "attendant",
+          "label": "Attendant name",
+          "type": "text",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "from",
+          "label": "From (HH:MM)",
+          "type": "text",
+          "required": true,
+          "max": 5
+        },
+        {
+          "key": "to",
+          "label": "To (HH:MM)",
+          "type": "text",
+          "required": true,
+          "max": 5
+        }
+      ]
+    },
+    "bookings": {
+      "label": "Booking requests",
+      "endpoint": "/bookings",
+      "empty": "No new requests. Share your booking link to get some.",
+      "readOnly": true,
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "slot",
+          "label": "Time"
+        },
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "phone",
+          "label": "Phone"
+        },
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "pickup",
+          "label": "Pickup?",
+          "type": "bool"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        }
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "Accept (I will call)",
+          "method": "POST",
+          "path": "/bookings/:id/status",
+          "body": {
+            "status": "accepted"
+          }
+        },
+        {
+          "label": "Make a job",
+          "method": "POST",
+          "path": "/bookings/:id/convert",
+          "body": {},
+          "done": "Job made. Find it on the job board.",
+          "confirm": "Tap again to make a job from this request"
+        },
+        {
+          "label": "Decline",
+          "method": "POST",
+          "path": "/bookings/:id/status",
+          "body": {
+            "status": "declined"
+          },
+          "confirm": "Tap again to decline"
+        }
+      ],
+      "intro": "Customers ask for a slot through your booking link. Nothing is booked until you call them. Tap Make a job when the vehicle arrives. If the customer left no number plate, add the job from the job board instead."
+    },
+    "setup": {
+      "label": "Set-up checklist",
+      "endpoint": "/setup/steps",
+      "empty": "Nothing to show.",
+      "columns": [
+        {
+          "key": "label",
+          "label": "Step"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "I did this",
+          "method": "POST",
+          "path": "/setup/steps/:id/done",
+          "done": "Ticked.",
+          "when": {
+            "key": "mark",
+            "equals": "yes"
+          }
+        }
+      ],
+      "toolbar": [
+        {
+          "label": "Load sample data",
+          "method": "POST",
+          "path": "/setup/sample",
+          "done": "Sample data added. It is marked Sample."
+        },
+        {
+          "label": "Remove sample data",
+          "method": "POST",
+          "path": "/setup/sample/remove",
+          "done": "Sample data removed."
+        }
+      ]
+    },
+    "advances": {
+      "label": "Advances and deductions",
+      "endpoint": "/pay-adjustments",
+      "empty": "None this month.",
+      "intro": "Money an attendant took in advance, or a fine you take off with a reason. Both come off the payslip total; if they are more than the pay, the rest carries to next month. Type the name exactly as in your list. Owner only.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "attendant",
+          "label": "Attendant"
+        },
+        {
+          "key": "kind",
+          "label": "Type",
+          "type": "pill"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "note",
+          "label": "Reason"
+        }
+      ],
+      "fields": [
+        {
+          "key": "attendant",
+          "label": "Attendant name",
+          "type": "text",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "kind",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "advance",
+              "label": "Advance (money given)"
+            },
+            {
+              "value": "deduction",
+              "label": "Deduction (needs a reason)"
+            }
+          ]
+        },
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "day",
+          "label": "Day (empty means today)",
+          "type": "date"
+        },
+        {
+          "key": "note",
+          "label": "Reason or note",
+          "type": "text",
+          "max": 120
+        }
+      ]
+    },
+    "refunds": {
+      "label": "Refunds",
+      "endpoint": "/refunds",
+      "empty": "No refunds yet.",
+      "intro": "Give money back on a delivered job. Type the number plate: the latest delivered job of that vehicle is refunded (or the one on the day you choose). You cannot refund more than was paid. A reason is always needed. Owner only.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "method",
+          "label": "Paid back by",
+          "type": "pill"
+        },
+        {
+          "key": "reason",
+          "label": "Reason"
+        }
+      ],
+      "fields": [
+        {
+          "key": "plate",
+          "label": "Number plate",
+          "type": "text",
+          "required": true,
+          "max": 15
+        },
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "method",
+          "label": "Paid back by",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "cash",
+              "label": "Cash"
+            },
+            {
+              "value": "upi",
+              "label": "UPI"
+            },
+            {
+              "value": "card",
+              "label": "Card"
+            }
+          ]
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "text",
+          "required": true,
+          "min": 3,
+          "max": 120
+        },
+        {
+          "key": "day",
+          "label": "Day of the job (empty means the latest)",
+          "type": "date"
+        }
+      ]
+    },
+    "dues": {
+      "label": "Customers who owe you",
+      "endpoint": "/dues",
+      "readOnly": true,
+      "empty": "Nobody owes you right now.",
+      "intro": "Jobs delivered with pay-later. When the customer pays the whole amount, tap how they paid. For a part payment use the app.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Job day",
+          "type": "date"
+        },
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "ownerName",
+          "label": "Owner"
+        },
+        {
+          "key": "due",
+          "label": "Owes",
+          "type": "money"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        }
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "Paid in full: cash",
+          "method": "POST",
+          "path": "/jobs/:id/collect",
+          "body": {
+            "payAllWith": "cash"
+          },
+          "confirm": "Tap again: whole amount received in cash"
+        },
+        {
+          "label": "Paid in full: UPI",
+          "method": "POST",
+          "path": "/jobs/:id/collect",
+          "body": {
+            "payAllWith": "upi"
+          },
+          "confirm": "Tap again: whole amount received by UPI"
+        },
+        {
+          "label": "Paid in full: card",
+          "method": "POST",
+          "path": "/jobs/:id/collect",
+          "body": {
+            "payAllWith": "card"
+          },
+          "confirm": "Tap again: whole amount received by card"
+        }
+      ]
+    },
+    "photos": {
+      "label": "Job photos",
+      "endpoint": "/photos",
+      "readOnly": true,
+      "empty": "No photos yet. Take before and after photos from the job card in the app.",
+      "intro": "The latest 50 photos. Photos are taken and uploaded from the app (up to 300 KB each, six before and six after per job). Only you can remove one. Needs the photo folder to be set up on the server.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "plate",
+          "label": "Vehicle"
+        },
+        {
+          "key": "kind",
+          "label": "Before or after",
+          "type": "pill"
+        },
+        {
+          "key": "bytes",
+          "label": "Size (bytes)",
+          "type": "number"
+        },
+        {
+          "key": "stored",
+          "label": "Kept on server",
+          "type": "bool"
+        }
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "Remove photo",
+          "method": "POST",
+          "path": "/photos/:id/remove",
+          "confirm": "Tap again to remove this photo for good"
+        }
+      ]
+    },
+    "vehicleimport": {
+      "label": "Bring in your old register",
+      "endpoint": "/vehicles/import",
+      "empty": "No import yet.",
+      "intro": "Paste your register as CSV (columns: vehicle number, class, owner, phone). Choose Check first: nothing is saved, you only see what would happen. Then paste again and choose Save. Up to 2,000 rows. Owner only.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "text",
+          "label": "Result"
+        }
+      ],
+      "fields": [
+        {
+          "key": "csv",
+          "label": "Register (CSV text)",
+          "type": "textarea",
+          "required": true,
+          "max": 200000
+        },
+        {
+          "key": "mode",
+          "label": "What to do",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "check",
+              "label": "Check first (saves nothing)"
+            },
+            {
+              "value": "save",
+              "label": "Save"
+            }
+          ]
+        },
+        {
+          "key": "skipErrors",
+          "label": "Skip the rows with problems when saving",
+          "type": "bool"
+        }
+      ]
+    }
+  },
+  "settings": {
+    "discount": {
+      "label": "Discounts",
+      "endpoint": "/settings",
+      "intro": "You decide who may give a discount. Every discount needs a reason, and you always see the ones your staff give in your daily list. You are never limited yourself.",
+      "fields": [
+        {
+          "key": "discountRule.staff",
+          "label": "Who may give a discount at billing?",
+          "type": "select",
+          "default": "limit",
+          "options": [
+            {
+              "value": "limit",
+              "label": "Staff, up to a limit"
+            },
+            {
+              "value": "owner_only",
+              "label": "Only me (the owner)"
+            },
+            {
+              "value": "any",
+              "label": "Any staff, any amount"
+            }
+          ]
+        },
+        {
+          "key": "discountRule.maxPercent",
+          "label": "Staff limit (percent of the bill)",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 10,
+          "showWhen": {
+            "key": "discountRule.staff",
+            "equals": "limit"
+          }
+        }
+      ]
+    }
+  }
+}

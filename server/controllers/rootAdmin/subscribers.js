@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { escapeRegex } = require('../../utils/escapeRegex');
 const Subscriber = require('../../models/Subscriber');
 const Admin = require('../../models/Admin');
 const SubAdmin = require('../../models/SubAdmin');
@@ -22,7 +23,7 @@ const listSubscribers = async (req, res) => {
   try {
     const { search, status, dateFrom, dateTo } = req.query;
     const query = {};
-    if (search) query.gymName = { $regex: search, $options: 'i' };
+    if (search) query.gymName = { $regex: escapeRegex(search), $options: 'i' };
     if (status === 'active') query.isActive = true;
     if (status === 'inactive') query.isActive = false;
     if (dateFrom || dateTo) {

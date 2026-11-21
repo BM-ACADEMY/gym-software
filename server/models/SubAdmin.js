@@ -32,6 +32,11 @@ const subAdminSchema = new mongoose.Schema(
     phone: {
       type: String,
     },
+    // The staff member's ID on the gym's biometric/card device, used to match device logs.
+    deviceUserId: {
+      type: String,
+      trim: true,
+    },
     passwordHash: {
       type: String,
     },
@@ -78,6 +83,11 @@ const subAdminSchema = new mongoose.Schema(
     availability: {
       type: String,
       trim: true,
+    },
+    notificationPreferences: {
+      sms: { type: Boolean, default: true },
+      email: { type: Boolean, default: true },
+      whatsapp: { type: Boolean, default: false },
     },
   },
   { timestamps: true }

@@ -1,0 +1,1726 @@
+{
+  "product": "mart",
+  "title": "Mart",
+  "nav": [
+    {
+      "key": "start",
+      "label": "Start here",
+      "screen": "stats",
+      "stats": "start"
+    },
+    {
+      "key": "setup",
+      "label": "Set-up checklist",
+      "screen": "resource",
+      "resource": "setup"
+    },
+    {
+      "key": "today",
+      "label": "Today",
+      "screen": "stats",
+      "stats": "today",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "udhaar",
+      "label": "Udhaar",
+      "screen": "stats",
+      "stats": "udhaar",
+      "roles": [
+        "admin",
+        "subadmin",
+        "cashier"
+      ]
+    },
+    {
+      "key": "reorder",
+      "label": "Order list",
+      "screen": "stats",
+      "stats": "reorder",
+      "roles": [
+        "admin",
+        "subadmin",
+        "stockkeeper"
+      ]
+    },
+    {
+      "key": "expiry",
+      "label": "Expiry",
+      "screen": "stats",
+      "stats": "expiry",
+      "roles": [
+        "admin",
+        "subadmin",
+        "stockkeeper"
+      ]
+    },
+    {
+      "key": "expenses",
+      "label": "Expenses",
+      "screen": "resource",
+      "resource": "expenses",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "suppliers",
+      "label": "Suppliers",
+      "screen": "resource",
+      "resource": "suppliers",
+      "roles": [
+        "admin",
+        "subadmin",
+        "stockkeeper"
+      ]
+    },
+    {
+      "key": "purchases",
+      "label": "Supplier bills",
+      "screen": "resource",
+      "resource": "purchases",
+      "roles": [
+        "admin",
+        "subadmin",
+        "stockkeeper"
+      ]
+    },
+    {
+      "key": "supplierpay",
+      "label": "Pay a supplier",
+      "screen": "resource",
+      "resource": "supplierpay",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "dayclose",
+      "label": "Close the day",
+      "screen": "resource",
+      "resource": "dayclose",
+      "roles": [
+        "admin",
+        "subadmin",
+        "cashier"
+      ]
+    },
+    {
+      "key": "upi",
+      "label": "UPI payment links",
+      "screen": "resource",
+      "resource": "upi",
+      "roles": [
+        "admin",
+        "subadmin",
+        "cashier"
+      ]
+    },
+    {
+      "key": "profit",
+      "label": "Profit",
+      "screen": "stats",
+      "stats": "profit",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "gst",
+      "label": "GST summary",
+      "screen": "stats",
+      "stats": "gst",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "estimates",
+      "label": "Estimates",
+      "screen": "stats",
+      "stats": "estimates",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "marketing",
+      "label": "Marketing ideas",
+      "screen": "stats",
+      "stats": "marketing",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "festivals",
+      "label": "Festival dates",
+      "screen": "resource",
+      "resource": "festivals",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "audit",
+      "label": "Audit trail",
+      "screen": "resource",
+      "resource": "audit",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "staff",
+      "label": "Staff and salary",
+      "screen": "resource",
+      "resource": "staff",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "attendance",
+      "label": "Attendance and leave",
+      "screen": "resource",
+      "resource": "attendance",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "shifts",
+      "label": "Staff shifts",
+      "screen": "resource",
+      "resource": "shifts",
+      "roles": [
+        "admin",
+        "subadmin"
+      ]
+    },
+    {
+      "key": "advances",
+      "label": "Salary advances",
+      "screen": "resource",
+      "resource": "advances",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "payroll",
+      "label": "Payslips",
+      "screen": "resource",
+      "resource": "payroll",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "leave",
+      "label": "Paid leave balance",
+      "screen": "resource",
+      "resource": "leave",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "team",
+      "label": "Team logins",
+      "screen": "resource",
+      "resource": "team",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "teampass",
+      "label": "Reset a team password",
+      "screen": "resource",
+      "resource": "teampass",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "limits",
+      "label": "My settings",
+      "screen": "settings",
+      "settings": "limits",
+      "roles": [
+        "admin"
+      ]
+    },
+    {
+      "key": "mypassword",
+      "label": "My password",
+      "screen": "resource",
+      "resource": "mypassword",
+      "roles": [
+        "admin",
+        "subadmin",
+        "cashier",
+        "stockkeeper"
+      ]
+    }
+  ],
+  "stats": {
+    "today": {
+      "label": "Yesterday and today's three jobs",
+      "endpoint": "/summary",
+      "refreshMs": 300000,
+      "cards": [
+        {
+          "label": "Sales",
+          "path": "sales.total",
+          "type": "money"
+        },
+        {
+          "label": "Bills",
+          "path": "sales.count",
+          "type": "number"
+        },
+        {
+          "label": "Cash",
+          "path": "sales.cash",
+          "type": "money"
+        },
+        {
+          "label": "UPI",
+          "path": "sales.upi",
+          "type": "money"
+        },
+        {
+          "label": "Udhaar overdue",
+          "path": "udhaarOverdueTotal",
+          "type": "money"
+        },
+        {
+          "label": "Low stock items",
+          "path": "lowStockCount",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Three things to do today (suggestions)",
+          "rows": "actions",
+          "empty": "Nothing needs you today.",
+          "columns": [
+            {
+              "key": "text",
+              "label": "What"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            },
+            {
+              "key": "rupees",
+              "label": "At stake",
+              "type": "money"
+            }
+          ]
+        },
+        {
+          "label": "Discounts given by staff (last 7 days)",
+          "rows": "staffDiscounts",
+          "empty": "No staff discounts.",
+          "columns": [
+            {
+              "key": "day",
+              "label": "Day"
+            },
+            {
+              "key": "count",
+              "label": "Count",
+              "type": "number"
+            },
+            {
+              "key": "total",
+              "label": "Total",
+              "type": "money"
+            },
+            {
+              "key": "maxPercent",
+              "label": "Largest %",
+              "type": "number"
+            }
+          ]
+        }
+      ]
+    },
+    "udhaar": {
+      "label": "Udhaar (pay later)",
+      "endpoint": "/udhaar",
+      "cards": [
+        {
+          "label": "Total owed",
+          "path": "totalDue",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Overdue",
+          "rows": "overdue",
+          "empty": "Nobody is overdue.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Customer"
+            },
+            {
+              "key": "phone",
+              "label": "Phone",
+              "type": "phone"
+            },
+            {
+              "key": "due",
+              "label": "Owes",
+              "type": "money"
+            },
+            {
+              "key": "daysOld",
+              "label": "Days old",
+              "type": "number"
+            }
+          ]
+        },
+        {
+          "label": "Everyone who owes",
+          "rows": "owing",
+          "empty": "No udhaar.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Customer"
+            },
+            {
+              "key": "due",
+              "label": "Owes",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "reorder": {
+      "label": "Order list (suggestions)",
+      "endpoint": "/reports/reorder",
+      "tables": [
+        {
+          "label": "Running low, with the reason",
+          "rows": "",
+          "empty": "Nothing needs ordering.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Item"
+            },
+            {
+              "key": "qty",
+              "label": "Left",
+              "type": "number"
+            },
+            {
+              "key": "daysLeft",
+              "label": "Days left",
+              "type": "number"
+            },
+            {
+              "key": "orderQty",
+              "label": "Order",
+              "type": "number"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    },
+    "expiry": {
+      "label": "Expiry",
+      "endpoint": "/reports/expiry",
+      "tables": [
+        {
+          "label": "Expiring within 30 days",
+          "rows": "",
+          "empty": "Nothing expires soon.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Item"
+            },
+            {
+              "key": "daysLeft",
+              "label": "Days left",
+              "type": "number"
+            },
+            {
+              "key": "suggestedDiscountPct",
+              "label": "Offer %",
+              "type": "number"
+            },
+            {
+              "key": "rupees",
+              "label": "Stock worth",
+              "type": "money"
+            }
+          ]
+        }
+      ]
+    },
+    "profit": {
+      "label": "Profit and loss (last 30 days)",
+      "endpoint": "/reports/profit-loss",
+      "cards": [
+        {
+          "label": "Sales (no GST)",
+          "path": "sales",
+          "type": "money"
+        },
+        {
+          "label": "Cost of goods",
+          "path": "costOfGoods",
+          "type": "money"
+        },
+        {
+          "label": "Expenses",
+          "path": "expenses",
+          "type": "money"
+        },
+        {
+          "label": "What is left",
+          "path": "netProfit",
+          "type": "money"
+        }
+      ],
+      "tables": []
+    },
+    "estimates": {
+      "label": "Estimates (not promises)",
+      "endpoint": "/reports/forecast",
+      "cards": [
+        {
+          "label": "Next month, low",
+          "path": "nextMonth.low",
+          "type": "money"
+        },
+        {
+          "label": "Next month, likely",
+          "path": "nextMonth.likely",
+          "type": "money"
+        },
+        {
+          "label": "Next month, high",
+          "path": "nextMonth.high",
+          "type": "money"
+        },
+        {
+          "label": "Cash needed for dues",
+          "path": "cashNeeded.rupees",
+          "type": "money"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Likely to run out within 7 days",
+          "rows": "runOutSoon",
+          "empty": "Nothing runs out soon.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Item"
+            },
+            {
+              "key": "daysLeft",
+              "label": "Days left",
+              "type": "number"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        }
+      ]
+    },
+    "marketing": {
+      "label": "Marketing ideas (suggestions)",
+      "endpoint": "/marketing",
+      "tables": [
+        {
+          "label": "Regulars who may be drifting away",
+          "rows": "winBack",
+          "empty": "No one is drifting right now.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Customer"
+            },
+            {
+              "key": "reason",
+              "label": "Why"
+            }
+          ]
+        },
+        {
+          "label": "Festival offers",
+          "rows": "festivals",
+          "empty": "Add festival dates in My settings.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Festival"
+            },
+            {
+              "key": "inDays",
+              "label": "In days",
+              "type": "number"
+            },
+            {
+              "key": "text",
+              "label": "Idea"
+            }
+          ]
+        }
+      ]
+    },
+    "gst": {
+      "label": "GST summary (last 30 days)",
+      "endpoint": "/reports/gst-summary",
+      "cards": [
+        {
+          "label": "Taxable sales",
+          "path": "taxable",
+          "type": "money"
+        },
+        {
+          "label": "GST collected",
+          "path": "gst",
+          "type": "money"
+        },
+        {
+          "label": "Bills",
+          "path": "bills",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "By GST rate (for your CA; we do not file GST)",
+          "rows": "rows",
+          "empty": "No bills in this period.",
+          "columns": [
+            {
+              "key": "rate",
+              "label": "Rate %",
+              "type": "number"
+            },
+            {
+              "key": "taxable",
+              "label": "Taxable",
+              "type": "money"
+            },
+            {
+              "key": "cgst",
+              "label": "CGST",
+              "type": "money"
+            },
+            {
+              "key": "sgst",
+              "label": "SGST",
+              "type": "money"
+            },
+            {
+              "key": "igst",
+              "label": "IGST",
+              "type": "money"
+            }
+          ]
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download the file for your CA",
+          "path": "/reports/ca-export",
+          "rangeDays": 30,
+          "filename": "mart-ca.csv"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start here",
+      "endpoint": "/first-win",
+      "refreshMs": 0,
+      "attention": "attention",
+      "cards": [
+        {
+          "label": "Customers who owe udhaar",
+          "path": "count",
+          "type": "number"
+        },
+        {
+          "label": "Rupees pending (sample until you have your own)",
+          "path": "rupees",
+          "type": "money"
+        },
+        {
+          "label": "Set-up done (%)",
+          "path": "percent",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Set-up steps",
+          "rows": "steps",
+          "empty": "Nothing to show.",
+          "columns": [
+            {
+              "key": "label",
+              "label": "Step"
+            },
+            {
+              "key": "status",
+              "label": "Status",
+              "type": "pill"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resources": {
+    "expenses": {
+      "label": "Expenses",
+      "endpoint": "/expenses",
+      "empty": "No expenses yet.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day"
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "pill"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        }
+      ],
+      "fields": [
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "required": true,
+          "options": [
+            "rent",
+            "salary",
+            "electricity",
+            "transport",
+            "packaging",
+            "repair",
+            "tea_food",
+            "other"
+          ]
+        },
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "max": 200
+        }
+      ]
+    },
+    "suppliers": {
+      "label": "Suppliers",
+      "endpoint": "/suppliers",
+      "empty": "No suppliers yet.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Supplier"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "due",
+          "label": "You owe",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Supplier name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        }
+      ]
+    },
+    "purchases": {
+      "label": "Supplier bills",
+      "endpoint": "/purchases",
+      "empty": "No supplier bills yet.",
+      "intro": "Type the supplier name exactly as in your supplier list.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "supplier",
+          "label": "Supplier"
+        },
+        {
+          "key": "amount",
+          "label": "Bill",
+          "type": "money"
+        },
+        {
+          "key": "paid",
+          "label": "Paid",
+          "type": "money"
+        },
+        {
+          "key": "owed",
+          "label": "Still owed",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "supplier",
+          "label": "Supplier name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "amount",
+          "label": "Bill amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "paid",
+          "label": "Paid now (rupees)",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "max": 200
+        }
+      ]
+    },
+    "supplierpay": {
+      "label": "Pay a supplier",
+      "endpoint": "/supplier-payments",
+      "empty": "You owe no supplier anything.",
+      "columns": [
+        {
+          "key": "supplier",
+          "label": "Supplier"
+        },
+        {
+          "key": "day",
+          "label": "Bill day",
+          "type": "date"
+        },
+        {
+          "key": "owed",
+          "label": "Still owed",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "supplier",
+          "label": "Supplier name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "amount",
+          "label": "Amount paid now (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "method",
+          "label": "How",
+          "type": "select",
+          "options": [
+            "cash",
+            "upi",
+            "card"
+          ]
+        }
+      ]
+    },
+    "dayclose": {
+      "label": "Close the day",
+      "endpoint": "/day-closes",
+      "empty": "No day closed yet.",
+      "intro": "Count the cash in the drawer and type it. We show what the books say should be there.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "openingCash",
+          "label": "Opening cash",
+          "type": "money"
+        },
+        {
+          "key": "expected",
+          "label": "Books say",
+          "type": "money"
+        },
+        {
+          "key": "counted",
+          "label": "You counted",
+          "type": "money"
+        },
+        {
+          "key": "diff",
+          "label": "Difference",
+          "type": "money"
+        }
+      ],
+      "fields": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "openingCash",
+          "label": "Opening cash (rupees)",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "counted",
+          "label": "Cash counted (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    "festivals": {
+      "label": "Festival dates",
+      "endpoint": "/festivals",
+      "empty": "No festival added. Type your own dates; we never guess them.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Festival"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Festival name",
+          "type": "text",
+          "required": true,
+          "max": 60
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "DELETE",
+          "path": "/festivals/:id"
+        }
+      ]
+    },
+    "audit": {
+      "label": "Audit trail",
+      "endpoint": "/audit",
+      "readOnly": true,
+      "empty": "Nothing recorded yet.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "pill"
+        },
+        {
+          "key": "action",
+          "label": "What"
+        },
+        {
+          "key": "ref",
+          "label": "Reference"
+        }
+      ]
+    },
+    "staff": {
+      "label": "Staff and salary",
+      "endpoint": "/staff",
+      "empty": "No staff added yet.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "monthlySalary",
+          "label": "Monthly salary",
+          "type": "money"
+        },
+        {
+          "key": "joinedOn",
+          "label": "Joined",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "monthlySalary",
+          "label": "Monthly salary (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 0
+        },
+        {
+          "key": "joinedOn",
+          "label": "Joining date",
+          "type": "date"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "POST",
+          "path": "/staff/:id/deactivate",
+          "confirm": "Tap again to remove"
+        }
+      ]
+    },
+    "attendance": {
+      "label": "Attendance and leave",
+      "endpoint": "/attendance",
+      "empty": "Nothing marked this month.",
+      "intro": "Type the staff name exactly as in your staff list. A day nobody marks is not paid, so mark every day.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "staff",
+          "label": "Staff"
+        },
+        {
+          "key": "status",
+          "label": "Mark",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "staff",
+          "label": "Staff name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "status",
+          "label": "Mark",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "present",
+              "label": "Present"
+            },
+            {
+              "value": "half",
+              "label": "Half day"
+            },
+            {
+              "value": "absent",
+              "label": "Absent"
+            },
+            {
+              "value": "paid_leave",
+              "label": "Paid leave"
+            },
+            {
+              "value": "unpaid_leave",
+              "label": "Unpaid leave"
+            },
+            {
+              "value": "weekly_off",
+              "label": "Weekly off"
+            }
+          ]
+        },
+        {
+          "key": "day",
+          "label": "Day (empty means today)",
+          "type": "date"
+        }
+      ]
+    },
+    "advances": {
+      "label": "Salary advances",
+      "endpoint": "/advances",
+      "empty": "No advance given this month.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "staff",
+          "label": "Staff"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        }
+      ],
+      "fields": [
+        {
+          "key": "staff",
+          "label": "Staff name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "day",
+          "label": "Day (empty means today)",
+          "type": "date"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "max": 200
+        }
+      ]
+    },
+    "payroll": {
+      "label": "Payslips (this month)",
+      "endpoint": "/payroll",
+      "readOnly": true,
+      "empty": "Add staff first.",
+      "intro": "Draft figures. You pay the staff yourself. A draft means some days are not marked. \"Print all payslips\" saves one page with a slip per sheet: open it and print it from your browser.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Staff"
+        },
+        {
+          "key": "payableDays",
+          "label": "Payable days",
+          "type": "number"
+        },
+        {
+          "key": "gross",
+          "label": "Pay for the days",
+          "type": "money"
+        },
+        {
+          "key": "advances",
+          "label": "Advances",
+          "type": "money"
+        },
+        {
+          "key": "net",
+          "label": "To pay",
+          "type": "money"
+        },
+        {
+          "key": "draft",
+          "label": "Draft",
+          "type": "bool"
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Print all payslips (this month)",
+          "path": "/payslip/print",
+          "filename": "payslips.html",
+          "done": "Saved"
+        }
+      ]
+    },
+    "team": {
+      "label": "Team logins",
+      "endpoint": "/team",
+      "readOnly": true,
+      "empty": "Only you so far.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "email",
+          "label": "Email"
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "pill"
+        },
+        {
+          "key": "isActive",
+          "label": "Active",
+          "type": "bool"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Switch off",
+          "method": "POST",
+          "path": "/team/:id/deactivate",
+          "when": {
+            "key": "isActive",
+            "equals": true
+          },
+          "confirm": "Tap again to switch off"
+        }
+      ],
+      "canAdd": true,
+      "intro": "Cashier, stock keeper and manager logins. Add one with a name, email, role and a password of at least 8 characters (a new password later needs 10), and tell the person their password yourself. Switch a login off any time.",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "email",
+          "required": true
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "subadmin",
+              "label": "Manager"
+            },
+            {
+              "value": "cashier",
+              "label": "Cashier"
+            },
+            {
+              "value": "stockkeeper",
+              "label": "Stock keeper"
+            }
+          ]
+        },
+        {
+          "key": "password",
+          "label": "Password (8 or more characters)",
+          "type": "password",
+          "min": 8,
+          "max": 100,
+          "required": true
+        }
+      ]
+    },
+    "upi": {
+      "label": "UPI payment links",
+      "endpoint": "/upi-links",
+      "empty": "No link made yet.",
+      "intro": "Set your UPI id under My settings first. We only make the link; the customer pays in their own UPI app. Check your UPI app or bank before you mark a link paid: we cannot see the money.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "Made",
+          "type": "date"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        },
+        {
+          "key": "link",
+          "label": "Link"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        },
+        {
+          "key": "qr",
+          "label": "QR picture (open this address while signed in)"
+        }
+      ],
+      "fields": [
+        {
+          "key": "amount",
+          "label": "Amount (rupees)",
+          "type": "money",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "note",
+          "label": "Note (shown in the customer's UPI app)",
+          "type": "text",
+          "max": 40
+        }
+      ],
+      "actions": [
+        {
+          "label": "Mark paid",
+          "method": "POST",
+          "path": "/upi-links/:id/paid",
+          "when": {
+            "key": "status",
+            "equals": "created"
+          },
+          "confirm": "I checked: tap again"
+        },
+        {
+          "label": "Cancel",
+          "method": "POST",
+          "path": "/upi-links/:id/cancel",
+          "when": {
+            "key": "status",
+            "equals": "created"
+          }
+        }
+      ]
+    },
+    "setup": {
+      "label": "Set-up checklist",
+      "endpoint": "/setup/steps",
+      "empty": "Nothing to show.",
+      "columns": [
+        {
+          "key": "label",
+          "label": "Step"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "I did this",
+          "method": "POST",
+          "path": "/setup/steps/:id/done",
+          "done": "Ticked.",
+          "when": {
+            "key": "mark",
+            "equals": "yes"
+          }
+        }
+      ],
+      "toolbar": [
+        {
+          "label": "Load sample data",
+          "method": "POST",
+          "path": "/setup/sample",
+          "done": "Sample data added. It is marked Sample."
+        },
+        {
+          "label": "Remove sample data",
+          "method": "POST",
+          "path": "/setup/sample/remove",
+          "done": "Sample data removed."
+        }
+      ]
+    },
+    "leave": {
+      "label": "Paid leave balance",
+      "endpoint": "/leave-balance",
+      "readOnly": true,
+      "empty": "Add staff first.",
+      "intro": "Paid leave used this calendar year, per person. Set the yearly allowance under My settings. Leave marked beyond the allowance is paid as unpaid leave. Draft rule: check it with your CA or labour adviser.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Staff"
+        },
+        {
+          "key": "used",
+          "label": "Used this year",
+          "type": "number"
+        },
+        {
+          "key": "remaining",
+          "label": "Left",
+          "type": "number"
+        }
+      ]
+    },
+    "shifts": {
+      "label": "Staff shifts",
+      "endpoint": "/shifts",
+      "empty": "No shifts this month.",
+      "intro": "Plan who works when. Type the staff name exactly as in your staff list and the times as 24 hour HH:MM (09:00 to 18:00). A shift stays on one day: for a night shift add two shifts. Two shifts for one person cannot overlap.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "staff",
+          "label": "Staff"
+        },
+        {
+          "key": "start",
+          "label": "From"
+        },
+        {
+          "key": "end",
+          "label": "To"
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number"
+        },
+        {
+          "key": "note",
+          "label": "Note"
+        }
+      ],
+      "fields": [
+        {
+          "key": "staff",
+          "label": "Staff name",
+          "type": "text",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "day",
+          "label": "Day (empty means today)",
+          "type": "date"
+        },
+        {
+          "key": "start",
+          "label": "From (HH:MM)",
+          "type": "text",
+          "required": true,
+          "max": 5
+        },
+        {
+          "key": "end",
+          "label": "To (HH:MM)",
+          "type": "text",
+          "required": true,
+          "max": 5
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "max": 80
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "DELETE",
+          "path": "/shifts/:id",
+          "confirm": "Tap again to remove"
+        }
+      ]
+    },
+    "teampass": {
+      "label": "Reset a team password",
+      "endpoint": "/team/password",
+      "empty": "No password changed yet.",
+      "intro": "Forgot a password? Type the person's email and a new password of at least 10 characters, then tell them yourself. Their old sign-in stops working at once. This list shows who changed what and when, never a password.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "login",
+          "label": "Login"
+        },
+        {
+          "key": "action",
+          "label": "Changed by"
+        }
+      ],
+      "fields": [
+        {
+          "key": "email",
+          "label": "Email of the team login",
+          "type": "email",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "New password (10 or more characters)",
+          "type": "password",
+          "min": 10,
+          "max": 100,
+          "required": true
+        }
+      ]
+    },
+    "mypassword": {
+      "label": "My password",
+      "endpoint": "/my-password",
+      "empty": "You have not changed it yet.",
+      "intro": "Type your current password and a new one of at least 10 characters. You will be signed out and must sign in again with the new password.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "Changed",
+          "type": "date"
+        }
+      ],
+      "fields": [
+        {
+          "key": "current",
+          "label": "Current password",
+          "type": "password",
+          "min": 1,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "New password (10 or more characters)",
+          "type": "password",
+          "min": 10,
+          "max": 100,
+          "required": true
+        }
+      ]
+    }
+  },
+  "settings": {
+    "limits": {
+      "label": "My settings",
+      "endpoint": "/settings",
+      "intro": "These are your own rules. Change them any time; no one else needs to be involved.",
+      "numbers": [
+        {
+          "key": "defaultCreditLimit",
+          "label": "Udhaar limit per customer (rupees, empty for none)",
+          "min": 0
+        },
+        {
+          "key": "overdueGraceDays",
+          "label": "Udhaar overdue after (days)",
+          "min": 1,
+          "max": 365,
+          "default": 15
+        },
+        {
+          "key": "discountAlertPct",
+          "label": "Warn me when a bill discount is above (%)",
+          "min": 5,
+          "max": 100,
+          "default": 20
+        },
+        {
+          "key": "deadStockDays",
+          "label": "Slow stock after (days)",
+          "min": 7,
+          "max": 365,
+          "default": 45
+        },
+        {
+          "key": "festivalUplift",
+          "label": "Festival order uplift (1 to 5)",
+          "min": 1,
+          "max": 5,
+          "default": 1
+        },
+        {
+          "key": "paidLeaveAllowance",
+          "label": "Paid leave days per year (empty for no limit)",
+          "min": 0,
+          "max": 60
+        }
+      ],
+      "fields": [
+        {
+          "key": "discountRule.staff",
+          "label": "Who may give a discount at billing?",
+          "type": "select",
+          "default": "limit",
+          "options": [
+            {
+              "value": "limit",
+              "label": "Staff, up to a limit"
+            },
+            {
+              "value": "owner_only",
+              "label": "Only me (the owner)"
+            },
+            {
+              "value": "any",
+              "label": "Any staff, any amount"
+            }
+          ]
+        },
+        {
+          "key": "discountRule.maxPercent",
+          "label": "Staff limit (percent of the bill)",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 10,
+          "showWhen": {
+            "key": "discountRule.staff",
+            "equals": "limit"
+          }
+        },
+        {
+          "key": "clearCreditLimit",
+          "label": "Remove the udhaar limit (leave the number above empty)",
+          "type": "bool"
+        },
+        {
+          "key": "upiId",
+          "label": "Your UPI id (for payment links)",
+          "type": "text",
+          "max": 80
+        },
+        {
+          "key": "upiName",
+          "label": "Name shown in the customer's UPI app",
+          "type": "text",
+          "max": 40
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download all my shop data",
+          "path": "/privacy/export",
+          "filename": "mart-my-data.json"
+        }
+      ]
+    }
+  }
+}

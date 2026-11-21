@@ -5,10 +5,12 @@ import { setCredentials } from '../../store/slices/authSlice';
 import apiClient from '../../api/client';
 import { ROLE_BASE_PATH } from '../../config/navigation';
 import PasswordInput from '../../components/ui/PasswordInput';
+import { useT } from '../../i18n';
 
 const PASSWORD_INPUT_CLASS = 'appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all';
 
 const SignIn = () => {
+  const { t } = useT();
   const [activeTab, setActiveTab] = useState('email'); // 'email' or 'phone'
   const [phoneMode, setPhoneMode] = useState('password'); // 'password' or 'otp'
   const [step, setStep] = useState(1); // 1: Info form, 2: OTP verify (phone+OTP mode only)
@@ -127,11 +129,11 @@ const SignIn = () => {
           </div>
           <span className="text-3xl font-extrabold text-white tracking-tight">Gym<span className="text-teal-400">Desk</span></span>
         </Link>
-        <h2 className="text-3xl font-bold text-white mb-2">Welcome back</h2>
+        <h2 className="text-3xl font-bold text-white mb-2">{t('Welcome back')}</h2>
         <p className="text-sm text-gray-300">
-          Or{' '}
+          {t('Or')}{' '}
           <Link to="/register" className="font-medium text-teal-400 hover:text-teal-300 transition-colors">
-            start your 7-day free trial
+            {t('start your 14-day free trial')}
           </Link>
         </p>
       </div>
@@ -165,21 +167,21 @@ const SignIn = () => {
                     </div>
                   )}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
-                    <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" placeholder="Enter your email" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('Email address')}</label>
+                    <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" placeholder={t('Enter your email')} />
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-sm font-medium text-gray-700">Password</label>
+                      <label className="block text-sm font-medium text-gray-700">{t('Password')}</label>
                       <Link to={`/forgot-password${email ? `?id=${encodeURIComponent(email)}` : ''}`} className="text-xs font-medium text-teal-600 hover:text-teal-700">
-                        Forgot password?
+                        {t('Forgot password?')}
                       </Link>
                     </div>
-                    <PasswordInput required value={password} onChange={(e) => setPassword(e.target.value)} className={PASSWORD_INPUT_CLASS} placeholder="Enter your password" />
+                    <PasswordInput required value={password} onChange={(e) => setPassword(e.target.value)} className={PASSWORD_INPUT_CLASS} placeholder={t('Enter your password')} />
                   </div>
                   <div className="pt-2">
                     <button type="submit" disabled={loading} className={`w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-teal-500/30 text-sm font-bold text-white bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] hover:brightness-110 transition-all ${loading ? 'opacity-75 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}>
-                      {loading ? 'Signing in...' : 'Sign in'}
+                      {loading ? t('Signing in...') : t('Sign in')}
                     </button>
                   </div>
                 </form>
@@ -192,7 +194,7 @@ const SignIn = () => {
                       className={phoneMode === 'password' ? 'text-teal-600' : 'text-gray-400 hover:text-gray-600'}
                       onClick={() => { setPhoneMode('password'); setError(''); }}
                     >
-                      Sign in with Password
+                      {t('Sign in with Password')}
                     </button>
                     <span className="text-gray-300">|</span>
                     <button
@@ -200,7 +202,7 @@ const SignIn = () => {
                       className={phoneMode === 'otp' ? 'text-teal-600' : 'text-gray-400 hover:text-gray-600'}
                       onClick={() => { setPhoneMode('otp'); setError(''); }}
                     >
-                      Sign in with OTP
+                      {t('Sign in with OTP')}
                     </button>
                   </div>
 
@@ -212,21 +214,21 @@ const SignIn = () => {
                         </div>
                       )}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                        <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Enter phone number" className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('Phone Number')}</label>
+                        <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('Enter phone number')} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-all" />
                       </div>
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <label className="block text-sm font-medium text-gray-700">Password</label>
+                          <label className="block text-sm font-medium text-gray-700">{t('Password')}</label>
                           <Link to={`/forgot-password${phone ? `?id=${encodeURIComponent(phone)}` : ''}`} className="text-xs font-medium text-teal-600 hover:text-teal-700">
-                            Forgot password?
+                            {t('Forgot password?')}
                           </Link>
                         </div>
-                        <PasswordInput required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" className={PASSWORD_INPUT_CLASS} />
+                        <PasswordInput required value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t('Enter your password')} className={PASSWORD_INPUT_CLASS} />
                       </div>
                       <div className="pt-2">
                         <button type="submit" disabled={loading} className={`w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-teal-500/30 text-sm font-bold text-white bg-[linear-gradient(135deg,rgb(45,212,191),rgb(13,148,136))] hover:brightness-110 transition-all ${loading ? 'opacity-75 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}>
-                          {loading ? 'Signing in...' : 'Sign in'}
+                          {loading ? t('Signing in...') : t('Sign in')}
                         </button>
                       </div>
                     </form>

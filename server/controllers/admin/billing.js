@@ -1,5 +1,5 @@
 const PlatformPayment = require('../../models/PlatformPayment');
-const { createOrder, buildSimulatedWebhook } = require('../../services/paymentGateway');
+const { createOrder, buildSimulatedWebhook, simulationAllowed, isRealGatewayConfigured } = require('../../services/paymentGateway');
 const { processPaymentWebhook, processRazorpayPayment } = require('../../services/webhookProcessor');
 
 // @desc    View this gym's own platform-subscription invoices
@@ -18,6 +18,9 @@ const listMyInvoices = async (req, res) => {
 // @route   POST /api/admin/billing/invoices/:id/checkout
 const createCheckout = async (req, res) => {
   try {
+    if (!simulationAllowed() && !(await isRealGatewayConfigured())) {
+      return res.status(503).json({ success: false, message: 'Online payment is not enabled yet. Please pay your GymDesk invoice by bank/UPI transfer and share the reference with support.' });
+    }
     const invoice = await PlatformPayment.findOne({ _id: req.params.id, subscriberId: req.user.subscriberId });
     if (!invoice) return res.status(404).json({ success: false, message: 'Invoice not found' });
     if (invoice.status === 'paid') return res.status(400).json({ success: false, message: 'Already paid' });
@@ -37,6 +40,7 @@ const createCheckout = async (req, res) => {
 // @route   POST /api/admin/billing/invoices/:id/simulate-payment
 const simulatePayment = async (req, res) => {
   try {
+    if (!simulationAllowed()) return res.status(404).json({ success: false, message: 'Not found' });
     const invoice = await PlatformPayment.findOne({ _id: req.params.id, subscriberId: req.user.subscriberId });
     if (!invoice) return res.status(404).json({ success: false, message: 'Invoice not found' });
     if (invoice.status === 'paid') return res.status(400).json({ success: false, message: 'Already paid' });

@@ -10,6 +10,7 @@ const {
   bulkUpdateStatus,
 } = require('../../controllers/admin/members');
 const { protect, authorize } = require('../../middleware/auth');
+const { planLimitGuard } = require('../../middleware/planLimits');
 const permissionGuard = require('../../middleware/permissionGuard');
 
 router.use(protect, authorize('subadmin'));
@@ -19,7 +20,7 @@ router.get('/meta/staff', permissionGuard('members', 'view'), listStaffLookup);
 router.patch('/bulk-status', permissionGuard('members', 'edit'), bulkUpdateStatus);
 
 router.get('/', permissionGuard('members', 'view'), listMembers);
-router.post('/', permissionGuard('members', 'edit'), createMember);
+router.post('/', permissionGuard('members', 'edit'), planLimitGuard('member'), createMember);
 router.get('/:id', permissionGuard('members', 'view'), getMember);
 router.put('/:id', permissionGuard('members', 'edit'), updateMember);
 

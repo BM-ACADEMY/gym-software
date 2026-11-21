@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Subscriber = require('../models/Subscriber');
+const { computeStatus } = require('../services/subscription');
 
 const SUSPENDABLE_ROLES = ['admin', 'subadmin', 'member'];
 
@@ -8,6 +9,9 @@ const SUSPENDABLE_ROLES = ['admin', 'subadmin', 'member'];
 // specific role's router mount depth.
 const isSupportTicketWrite = (req) =>
   req.method === 'POST' && /\/support\/?$/.test(req.originalUrl.split('?')[0]);
+
+// An expired gym must still be able to pay: billing routes stay writable.
+const isBillingWrite = (req) => /\/(billing|subscription)(\/|$)/.test(req.originalUrl.split('?')[0]);
 
 const protect = async (req, res, next) => {
   let token;
@@ -34,15 +38,26 @@ const protect = async (req, res, next) => {
     // Root Admin's own impersonation session (support/troubleshooting), and
     // submitting a support ticket — the one way to ask for reactivation.
     if (SUSPENDABLE_ROLES.includes(decoded.role) && decoded.subscriberId) {
-      const subscriber = await Subscriber.findById(decoded.subscriberId).select('isActive');
-      const suspended = Boolean(subscriber && subscriber.isActive === false);
-      res.setHeader('X-Gym-Suspended', String(suspended));
+      const subscriber = await Subscriber.findById(decoded.subscriberId).select('isActive trialEndsAt planStartedAt paidUntil planKey');
+      const sub = computeStatus(subscriber);
+      const suspended = sub.status === 'suspended';
+      const trialExpired = Boolean(sub.trialExpired);
+      const readOnly = sub.readOnly;
+      res.setHeader('X-Gym-Suspended', String(readOnly));
+      res.setHeader('X-Gym-Status', sub.status);
+      req.subscription = sub;
 
-      if (suspended && req.method !== 'GET' && !decoded.impersonatedBy && !isSupportTicketWrite(req)) {
+      if (readOnly && req.method !== 'GET' && !decoded.impersonatedBy && !isSupportTicketWrite(req) && !isBillingWrite(req)) {
         return res.status(403).json({
           success: false,
           suspended: true,
-          message: 'This gym has been suspended. You can still view existing data, but changes are disabled until it is reactivated.',
+          trialExpired,
+          subscriptionStatus: sub.status,
+          message: sub.status === 'expired'
+            ? (trialExpired
+              ? 'Your free trial has ended. You can still view existing data; choose a plan to continue making changes.'
+              : 'Your plan has expired. You can still view existing data; renew to continue making changes.')
+            : 'This gym has been suspended. You can still view existing data, but changes are disabled until it is reactivated.',
         });
       }
     }

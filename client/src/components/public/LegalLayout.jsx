@@ -1,5 +1,6 @@
 import Navbar from '../../components/public/Navbar';
 import Footer from '../../components/public/Footer';
+import { company } from '../../config/company';
 
 const LegalLayout = ({ title, children }) => (
   <div className="min-h-screen">
@@ -8,7 +9,7 @@ const LegalLayout = ({ title, children }) => (
       <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(rgba(13,148,136,0.1) 1px, transparent 1px)', backgroundSize:'40px 40px'}}></div>
       <div className="relative max-w-2xl mx-auto px-4 text-center">
         <h1 className="text-4xl font-extrabold text-white mb-4">{title}</h1>
-        <p className="text-gray-400 text-sm">Last updated: January 2024</p>
+        <p className="text-gray-400 text-sm">Last updated: {company.legalUpdated}</p>
       </div>
     </section>
     <section className="py-20 bg-gray-50">

@@ -1,10 +1,13 @@
 // Single internal AI service every module routes generation through, so the
 // model/provider can be swapped later without touching any controller (doc's
-// explicit requirement). No LLM API key is configured in this environment,
-// so this is a deterministic, rule-based generator for now — the shape of
-// its output (workoutJson/dietJson) is exactly what a real OpenAI/Anthropic
-// call would need to produce; swapping one in means replacing the body of
-// generateWorkoutDietPlan, not any of its callers.
+// explicit requirement). generateWorkoutDietPlan calls the AI provider (aiProvider.js,
+// OpenAI, decision D-15) when OPENAI_API_KEY is configured; every other function here (churn risk,
+// no-show prediction, slot suggestion) is a legible rule-based scorer by
+// design, not a placeholder for an LLM call — the doc only calls out an LLM
+// for AI Plans.
+const aiProvider = require('./aiProvider');
+const aiBudget = require('./aiBudget');
+const AiUsage = require('../models/AiUsage');
 
 const GOAL_PROFILES = {
   'fat loss': { split: ['Full Body Circuit', 'Cardio + Core', 'Full Body Circuit', 'Active Recovery'], calorieAdjust: -400, proteinPerKg: 1.8 },
@@ -102,9 +105,67 @@ const buildDietJson = ({ goal, bodyStats = {} }) => {
   };
 };
 
+// The model must reply with exactly this shape so it drops straight into
+// AIPlan.workoutJson/dietJson — the same fields the rule-based fallback
+// below produces, and what client/src/pages/member/WorkoutDietPlan.jsx renders.
+const WORKOUT_DIET_SCHEMA_INSTRUCTIONS = `Respond with ONLY a single valid JSON object — no markdown code fences, no commentary before or after — matching exactly this shape:
+{
+  "workoutJson": {
+    "goal": string,
+    "equipmentTier": "gym" or "bodyweight",
+    "cautions": [{ "concern": string, "avoidKeywords": string[] }],
+    "days": [{ "day": string, "focus": string, "exercises": [{ "name": string, "sets": number, "reps": string }] }]
+  },
+  "dietJson": {
+    "goal": string,
+    "targetCalories": number,
+    "macros": { "proteinGrams": number, "carbsGrams": number, "fatGrams": number },
+    "meals": [{ "meal": string, "suggestion": string }]
+  }
+}
+Include 3-5 workout days and 4-5 meals. If medical notes mention an injury/condition, list it under cautions and avoid exercises that would aggravate it.`;
+
+// Pulls the first {...} object out of the model's reply — tolerates the odd
+// stray sentence or markdown fence around the JSON without over-parsing.
+const extractJson = (text) => {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) throw new Error('No JSON object found in AI response');
+  return JSON.parse(text.slice(start, end + 1));
+};
+
+const generateWithModel = async ({ goal, medicalNotes, equipmentAvailable, bodyStats, subscriberId }) => {
+  const prompt = `Create a personalized workout and diet plan for a gym member.
+Goal: ${goal || 'general fitness'}
+Medical notes / conditions to work around: ${medicalNotes || 'none reported'}
+Equipment available: ${equipmentAvailable || 'bodyweight only'}
+Body weight in kg, if known: ${bodyStats?.weightKg || 'unknown'}
+
+${WORKOUT_DIET_SCHEMA_INSTRUCTIONS}`;
+
+  const reply = await aiProvider.complete({ user: prompt, maxTokens: 4096, model: aiProvider.standardModel(), timeoutMs: 60000 });
+  // Record the real cost whether or not the answer is usable.
+  if (subscriberId) {
+    try { await AiUsage.create({ subscriberId, kind: 'plan', model: reply.model, ...reply.usage }); } catch (e) { console.warn('Could not record plan AI usage:', e.message); }
+  }
+  const parsed = extractJson(reply.text);
+  if (!Array.isArray(parsed.workoutJson?.days) || parsed.workoutJson.days.length === 0 || !parsed.dietJson?.macros) {
+    throw new Error('AI response is missing required workoutJson/dietJson fields');
+  }
+  return parsed;
+};
+
 // @param member  { goal, medicalNotes, equipmentAvailable }
 // @param bodyStats  { weightKg } — from the member's latest progress log entry, if any
-const generateWorkoutDietPlan = async ({ goal, medicalNotes, equipmentAvailable, bodyStats }) => {
+const generateWorkoutDietPlan = async ({ goal, medicalNotes, equipmentAvailable, bodyStats, subscriberId }) => {
+  if (aiProvider.isEnabled() && !(await aiBudget.isStopped())) {
+    try {
+      return await generateWithModel({ goal, medicalNotes, equipmentAvailable, bodyStats, subscriberId });
+    } catch (error) {
+      console.warn('AI plan generation failed, falling back to the built-in generator:', error.message);
+    }
+  }
+
   return {
     workoutJson: buildWorkoutJson({ goal, equipmentAvailable, medicalNotes }),
     dietJson: buildDietJson({ goal, bodyStats }),

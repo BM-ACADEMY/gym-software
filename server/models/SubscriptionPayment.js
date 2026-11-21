@@ -1,0 +1,49 @@
+const mongoose = require('mongoose');
+
+// A gym's payment for its GymDesk subscription (code-defined plans). Separate
+// from the legacy PlatformPayment, which is tied to the old PlatformPlan docs.
+const schema = new mongoose.Schema(
+  {
+    subscriberId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscriber', required: true, index: true },
+    planKey: { type: String, enum: ['solo', 'starter', 'growth', 'pro'], required: true },
+    cycle: { type: String, enum: ['monthly', 'yearly'], required: true },
+    startMode: { type: String, enum: ['now', 'extend'], default: 'now' },
+    status: { type: String, enum: ['created', 'paid', 'failed', 'refunded'], default: 'created' },
+    // PAY-2 refund: set only from Razorpay's signed refund.processed message. Whole rupees; each refund id is counted once.
+    refundedAmount: { type: Number, default: 0 },
+    refundIds: { type: [String], default: [] },
+    refundedAt: Date,
+    refundNeedsReview: { type: Boolean, default: false }, // a person decides whether the gym's plan should end
+    // Whole rupees.
+    base: Number,
+    credit: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 }, // promo code discount, whole rupees, before GST
+    promoCode: String,
+    promoRedeemedAt: Date,
+    taxable: Number,
+    gst: Number,
+    cgst: { type: Number, default: 0 },
+    sgst: { type: Number, default: 0 },
+    igst: { type: Number, default: 0 },
+    total: { type: Number, required: true },
+    gstMode: String,
+    gstRate: Number,
+    currency: { type: String, default: 'INR' },
+    provider: { type: String, default: 'razorpay' },
+    razorpayOrderId: { type: String, unique: true, sparse: true },
+    razorpayPaymentId: { type: String },
+    invoiceNo: { type: String, unique: true, sparse: true },
+    appliedAt: { type: Date }, // set once the gym's plan/dates were updated for this payment
+    paidAt: Date,
+    periodStart: Date,
+    periodEnd: Date,
+    note: String,
+    // Snapshot of the buyer at purchase time, printed on the invoice.
+    buyerName: String,
+    buyerGstin: String,
+    buyerState: String,
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model('SubscriptionPayment', schema);

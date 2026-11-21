@@ -1,0 +1,34 @@
+# Launch essentials beyond code (for Dev A and Mohamed)
+
+Written 29 Oct 2026. Domain and email are in `docs/DOMAIN_AND_EMAIL_SETUP.md`. Legal page drafts are in `docs/legal/COMPANY_SITE_PAGES.md`. Owner: D = Dev A, M = Mohamed. Nothing here is done until a person ticks it in the team sheet.
+
+## 1. Payments (Razorpay) 
+| Step | Who |
+| --- | --- |
+| Confirm the Razorpay account is in the company name with GSTIN and bank details verified | M |
+| Create test keys. Type the key id and key secret into **Root Admin > Settings > Payment gateway** (not the env file; corrected 12 Nov after Monisha's PAY-1 test). The webhook secret may go in Root Admin too, or as `RAZORPAY_WEBHOOK_SECRET` in `/etc/gymdesk/gymdesk.env` (mode 600). Never in git, chat or the sheet | D |
+| Set the webhook URL `https://fit.afraventures.in/api/payments/razorpay-webhook` and the same secret in the Razorpay dashboard. Tick these events: `payment.captured`, `order.paid`, `payment.failed`, `refund.processed` (refunds are recorded since 12 Nov; the gym's plan is not ended automatically) | D |
+| Test payment, failed payment, duplicate webhook and a refund in test mode; confirm invoice number and GST split | D |
+| Switch to live keys only after the CA check (M-04) and the test pass | M + D |
+| Each new product uses the same account; add its plan ids when its pricing is approved (Tier 3) | later |
+
+## 2. Support from day one (decided 29 Oct)
+- Human phone support 10 am to 6 pm IST, Monday to Saturday. Support phone number: +91 78269 97187 (digits for config: 917826997187) (given by Kamarudeen, 30 Oct; set as `VITE_SUPPORT_PHONE=917826997187`; whether it is also the WhatsApp number is still to confirm). AI help assistant 24 hours for how-to questions only: it answers from the help articles, says plainly it is an AI, never promises a refund, a fix or a date, and offers to create a ticket. Billing, refund, data deletion and complaints go to a person (next working day). The assistant is written but not yet tested by a person; do not advertise "24x7 support" until it is. Its AI use counts against the plan cap and the daily budget stop.
+- support@afraventures.in and one WhatsApp support number (can be the same business number, shown on every page). 
+- A shared inbox that two people can read; agree who answers within one working day.
+- The in-app Help & Support ticket list (already built) is checked daily; the Daily Brief lists open tickets.
+- A short "known issues" note for pilot customers: what is not built yet.
+
+## 3. Backups and recovery (H17 and VPS)
+- Hostinger weekly VPS snapshots are free: confirm it is on. Take a manual snapshot before every risky change (M-11 steps).
+- Atlas: free tier has no continuous backup. Before real customer data goes in, decide on Atlas M10 with backups, or a nightly export to storage (Mohamed decides the spend, Tier 3).
+- Restore drill: once before launch, restore a backup into a scratch database and open the app on it. Write the date in the sheet.
+
+## 4. Tamil and Hindi
+A native speaker reads every customer-facing message and screen once before launch. Send them the files `client/src/i18n/ta.js` and `hi.js` as a plain list (key, English, current text). Start with the gym; others later. Pay per page; Tier 3 if over a small amount.
+
+## 5. Pilot customers
+Per product, 3 to 10 real businesses before "started". Mohamed keeps a list: business, owner, phone, product, date asked, said yes, date started, feedback. Claude suggests who to ask first and writes the one-page invite and a 10-minute test script for each owner. Gym first: 3 to 5 you know personally.
+
+## 6. Values Dev A sets in the gym app environment (names only; values from Mohamed)
+Client build: `VITE_SUPPORT_EMAIL=support@afraventures.in`, `VITE_SUPPORT_PHONE`, `VITE_COMPANY_ADDRESS` (78, Lenin Street, Kosapalayam, Puducherry - 605013, India), `VITE_COMPANY_LEGAL_NAME`, `VITE_REFUND_DAYS`. Refund money reaches the customer in 7 to 14 working days after approval (Mohamed). Server: SMTP settings, `FOUNDER_EMAIL`, `AI_DAILY_BUDGET_INR`. Anything left empty is not shown on public pages.

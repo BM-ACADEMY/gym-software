@@ -5,3 +5,11 @@
     @apply bg-gray-50 text-gray-900 antialiased;
   }
 }
+
+/* Phone basics: Tamil and Hindi fonts, bigger tap targets on touch screens */
+@layer base {
+  body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Tamil', 'Noto Sans Devanagari', sans-serif; }
+  @media (pointer: coarse) {
+    button, [role="button"], select, input:not([type="checkbox"]):not([type="radio"]) { min-height: 44px; }
+  }
+}

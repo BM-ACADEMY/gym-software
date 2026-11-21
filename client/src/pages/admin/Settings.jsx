@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { CreditCard, LifeBuoy, Plus, Save, Send, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, CreditCard, LifeBuoy, MessageCircle, Plus, Save, Send, Trash2, UserCog } from 'lucide-react';
 import apiClient from '../../api/client';
 import { openRazorpayCheckout } from '../../utils/razorpay';
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import useSuspended from '../../hooks/useSuspended';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const TABS = [
+  { key: 'general', label: 'General' },
+  { key: 'whatsapp', label: 'WhatsApp' },
+  { key: 'billing', label: 'Billing' },
+  { key: 'staff', label: 'Staff' },
+  { key: 'support', label: 'Support' },
+];
 
 const SectionCard = ({ title, description, children, onSave, saving, disabled }) => (
   <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -33,7 +41,9 @@ const Input = ({ label, ...props }) => (
 
 const Settings = () => {
   const user = useSelector(selectCurrentUser);
+  const navigate = useNavigate();
   const suspended = useSuspended();
+  const [tab, setTab] = useState('general');
   const [gym, setGym] = useState(null);
   const [profile, setProfile] = useState(null);
   const [newHoliday, setNewHoliday] = useState({ date: '', label: '' });
@@ -45,18 +55,21 @@ const Settings = () => {
   const [submittingTicket, setSubmittingTicket] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [payingInvoiceId, setPayingInvoiceId] = useState('');
+  const [staff, setStaff] = useState([]);
 
   const fetchAll = async () => {
     try {
-      const [settingsRes, ticketsRes, invoicesRes] = await Promise.all([
+      const [settingsRes, ticketsRes, invoicesRes, staffRes] = await Promise.all([
         apiClient.get('/admin/settings'),
         apiClient.get('/admin/support'),
         apiClient.get('/admin/billing/invoices'),
+        apiClient.get('/admin/subadmins'),
       ]);
       setGym(settingsRes.data.data.gym);
       setProfile(settingsRes.data.data.profile);
       setTickets(ticketsRes.data.data);
       setInvoices(invoicesRes.data.data);
+      setStaff(staffRes.data.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load settings');
     }
@@ -183,6 +196,19 @@ const Settings = () => {
       {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       {success && <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div>}
 
+      <div className="mt-6 flex gap-1 overflow-x-auto border-b border-gray-200">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`shrink-0 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${tab === t.key ? 'border-teal-600 text-teal-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'general' && (
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <SectionCard title="Gym profile & branding" description="Shown on the member-facing app" onSave={() => saveGym({ gymName: gym.gymName, logoUrl: gym.logoUrl, brandColor: gym.brandColor }, 'branding', 'Branding')} saving={savingSection === 'branding'} disabled={suspended}>
           <Input label="Gym name" value={gym.gymName || ''} onChange={(e) => setGym({ ...gym, gymName: e.target.value })} />
@@ -195,10 +221,26 @@ const Settings = () => {
           </label>
         </SectionCard>
 
+        <SectionCard title="Region & language" description="Country, currency, time zone and language for your gym" onSave={() => saveGym({ country: gym.country, currency: gym.currency, timezone: gym.timezone, language: gym.language }, 'region', 'Region')} saving={savingSection === 'region'} disabled={suspended}>
+          <Input label="Country code" maxLength={2} value={gym.country || ''} onChange={(e) => setGym({ ...gym, country: e.target.value.toUpperCase() })} placeholder="IN" />
+          <Input label="Currency code" maxLength={3} value={gym.currency || ''} onChange={(e) => setGym({ ...gym, currency: e.target.value.toUpperCase() })} placeholder="INR" />
+          <Input label="Time zone" value={gym.timezone || ''} onChange={(e) => setGym({ ...gym, timezone: e.target.value })} placeholder="Asia/Kolkata" />
+          <label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Preferred language (WhatsApp messages are English only for now)</span>
+            <select value={gym.language || 'en'} onChange={(e) => setGym({ ...gym, language: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm">
+              <option value="en">English</option><option value="ta">Tamil</option><option value="hi">Hindi</option>
+            </select>
+          </label>
+          <p className="text-xs text-gray-400">Your GymDesk bill is always in INR with GST.</p>
+        </SectionCard>
+
         <SectionCard title="Your profile" onSave={saveProfile} saving={savingSection === 'profile'} disabled={suspended}>
           <Input label="Name" value={profile.name || ''} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
           <Input label="Email" type="email" value={profile.email || ''} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
           <Input label="Phone" value={profile.phone || ''} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={!!profile.salesContactOk} onChange={(e) => setProfile({ ...profile, salesContactOk: e.target.checked })} className="mt-0.5 h-4 w-4 rounded border-gray-300" />
+            <span>OK to call or WhatsApp me about my trial and plan. You can turn this off any time.</span>
+          </label>
         </SectionCard>
 
         <SectionCard title="Working hours" onSave={() => saveGym({ workingHours: gym.workingHours }, 'hours', 'Working hours')} saving={savingSection === 'hours'} disabled={suspended}>
@@ -273,7 +315,53 @@ const Settings = () => {
             </>
           )}
         </SectionCard>
+      </div>
+      )}
 
+      {tab === 'whatsapp' && (
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <SectionCard
+          title="WhatsApp reminders"
+          description="GymDesk messages your members for you: renewals, pending payments and members who stopped coming. You get a daily summary too."
+          onSave={() => saveGym({ whatsappEnabled: gym.whatsappEnabled, upiId: gym.upiId || '', automations: { renewal: gym.automations?.renewal !== false, dues: gym.automations?.dues !== false, absence: gym.automations?.absence !== false, dailySummary: gym.automations?.dailySummary !== false, weeklyReport: gym.automations?.weeklyReport !== false, monthlyReport: gym.automations?.monthlyReport !== false, reportsAutoSend: gym.automations?.reportsAutoSend === true } }, 'whatsapp', 'WhatsApp settings')}
+          saving={savingSection === 'whatsapp'}
+          disabled={suspended}
+        >
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input className="mt-1" type="checkbox" checked={!!gym.whatsappEnabled} onChange={(e) => setGym({ ...gym, whatsappEnabled: e.target.checked })} />
+            <span>Turn on WhatsApp reminders. I confirm my members have agreed to receive messages from my gym on WhatsApp.</span>
+          </label>
+          {gym.whatsappEnabled && (
+            <>
+              <Input label="Your UPI ID (shown in payment reminders)" value={gym.upiId || ''} onChange={(e) => setGym({ ...gym, upiId: e.target.value })} placeholder="irongym@okaxis" />
+              {[
+                ['renewal', 'Renewal reminders (30, 7 and 1 day before, and after it ends)'],
+                ['dues', 'Pending payment reminders (weekly, up to 4 times)'],
+                ['absence', 'Message members who have not visited for 10 days'],
+                ['dailySummary', 'Send me a daily summary at 8 pm'],
+                ['weeklyReport', 'Make my weekly report (every Monday)'],
+                ['monthlyReport', 'Make my monthly report (on the 1st)'],
+              ].map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={gym.automations?.[key] !== false} onChange={(e) => setGym({ ...gym, automations: { ...(gym.automations || {}), [key]: e.target.checked } })} /> {label}
+                </label>
+              ))}
+              <label className="flex items-start gap-2 text-sm text-gray-700">
+                <input className="mt-1" type="checkbox" checked={gym.automations?.reportsAutoSend === true} onChange={(e) => setGym({ ...gym, automations: { ...(gym.automations || {}), reportsAutoSend: e.target.checked } })} />
+                <span>Send my reports to my WhatsApp by themselves. Leave this off to read them in the app and tap Send yourself.</span>
+              </label>
+            </>
+          )}
+          <p className="flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-500">
+            <MessageCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            Messages go out between 9 am and 9 pm. Each reminder is sent once. Members can ask you to stop at any time; turn their WhatsApp off on their profile.
+          </p>
+        </SectionCard>
+      </div>
+      )}
+
+      {tab === 'billing' && (
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <SectionCard title="Platform billing" description="Your GymDesk subscription invoices">
           {invoices.length === 0 ? (
             <p className="flex items-center gap-2 text-sm text-gray-400"><CreditCard className="h-4 w-4" />No invoices yet.</p>
@@ -297,7 +385,37 @@ const Settings = () => {
             </div>
           )}
         </SectionCard>
+      </div>
+      )}
 
+      {tab === 'staff' && (
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <SectionCard title="Staff overview" description="Sub-admin and trainer logins for this gym">
+          <div className="flex items-center gap-4 rounded-lg bg-gray-50 px-4 py-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700"><UserCog className="h-5 w-5" /></span>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{staff.filter((s) => s.isActive).length} active · {staff.filter((s) => !s.isActive).length} deactivated</p>
+              <p className="text-xs text-gray-500">{staff.length} total staff login{staff.length === 1 ? '' : 's'}</p>
+            </div>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {staff.slice(0, 5).map((s) => (
+              <div key={s._id} className="flex items-center justify-between py-2.5 text-sm">
+                <span className="font-medium text-gray-900">{s.name}</span>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${s.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>{s.isActive ? 'Active' : 'Deactivated'}</span>
+              </div>
+            ))}
+            {staff.length === 0 && <p className="py-3 text-sm text-gray-400">No staff logins yet.</p>}
+          </div>
+          <button onClick={() => navigate('/admin/staff')} className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:text-teal-800">
+            Manage staff & permissions <ArrowRight className="h-4 w-4" />
+          </button>
+        </SectionCard>
+      </div>
+      )}
+
+      {tab === 'support' && (
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <SectionCard title="Contact support" description="Raise an issue with the GymDesk team">
           <form onSubmit={submitTicket} className="space-y-3">
             <Input label="Subject" value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="What's the issue?" />
@@ -323,6 +441,7 @@ const Settings = () => {
           )}
         </SectionCard>
       </div>
+      )}
     </div>
   );
 };

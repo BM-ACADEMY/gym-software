@@ -1,0 +1,623 @@
+{
+  "product": "dine",
+  "title": "Dine",
+  "nav": [
+    {
+      "key": "start",
+      "label": "Start here",
+      "screen": "stats",
+      "stats": "start"
+    },
+    {
+      "key": "setup",
+      "label": "Set-up checklist",
+      "screen": "resource",
+      "resource": "setup"
+    },
+    {
+      "key": "orders",
+      "label": "Open orders",
+      "screen": "resource",
+      "resource": "orders"
+    },
+    {
+      "key": "menu",
+      "label": "Menu",
+      "screen": "resource",
+      "resource": "menu"
+    },
+    {
+      "key": "cash",
+      "label": "Cash book",
+      "screen": "resource",
+      "resource": "cash"
+    },
+    {
+      "key": "dues",
+      "label": "Supplier dues",
+      "screen": "resource",
+      "resource": "dues"
+    },
+    {
+      "key": "credit",
+      "label": "Pay later",
+      "screen": "resource",
+      "resource": "credit"
+    },
+    {
+      "key": "returns",
+      "label": "Returns",
+      "screen": "resource",
+      "resource": "returns"
+    },
+    {
+      "key": "payslips",
+      "label": "Payslips",
+      "screen": "resource",
+      "resource": "payslips"
+    },
+    {
+      "key": "payslipsPrev",
+      "label": "Payslips last month",
+      "screen": "resource",
+      "resource": "payslipsPrev"
+    },
+    {
+      "key": "winback",
+      "label": "Bring back",
+      "screen": "resource",
+      "resource": "winback"
+    },
+    {
+      "key": "festivals",
+      "label": "Festival ideas",
+      "screen": "resource",
+      "resource": "festivals"
+    },
+    {
+      "key": "discount",
+      "label": "Discounts",
+      "screen": "settings",
+      "settings": "discount"
+    },
+    {
+      "key": "loyalty",
+      "label": "Loyalty points",
+      "screen": "settings",
+      "settings": "loyalty"
+    }
+  ],
+  "resources": {
+    "orders": {
+      "label": "Open orders",
+      "endpoint": "/orders",
+      "readOnly": true,
+      "empty": "No open orders.",
+      "columns": [
+        {
+          "key": "number",
+          "label": "Order"
+        },
+        {
+          "key": "table",
+          "label": "Table"
+        },
+        {
+          "key": "type",
+          "label": "Type"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ]
+    },
+    "menu": {
+      "label": "Menu",
+      "endpoint": "/menu",
+      "empty": "No dishes yet. Add your first one.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Dish"
+        },
+        {
+          "key": "category",
+          "label": "Category"
+        },
+        {
+          "key": "price",
+          "label": "Price (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "gstRate",
+          "label": "GST %",
+          "type": "number"
+        },
+        {
+          "key": "kind",
+          "label": "Kind",
+          "type": "pill"
+        }
+      ],
+      "fields": [
+        {
+          "key": "key",
+          "label": "Short code (letters, no spaces)",
+          "required": true,
+          "max": 40
+        },
+        {
+          "key": "name",
+          "label": "Dish name",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "max": 60
+        },
+        {
+          "key": "price",
+          "label": "Price in whole rupees before GST",
+          "type": "number",
+          "min": 0,
+          "required": true
+        },
+        {
+          "key": "gstRate",
+          "label": "GST percent (ask your CA)",
+          "type": "number",
+          "min": 0,
+          "max": 28
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "DELETE",
+          "path": "/menu/:key"
+        }
+      ]
+    },
+    "cash": {
+      "label": "Cash book",
+      "endpoint": "/cash/entries",
+      "readOnly": true,
+      "empty": "No cash entries.",
+      "columns": [
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "key": "type",
+          "label": "In or out",
+          "type": "pill"
+        },
+        {
+          "key": "amount",
+          "label": "Rs",
+          "type": "number"
+        },
+        {
+          "key": "category",
+          "label": "Category"
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download the file for your CA",
+          "path": "/export/ca.csv",
+          "rangeDays": 30,
+          "filename": "dine-ca.csv"
+        }
+      ]
+    },
+    "dues": {
+      "label": "Supplier dues",
+      "endpoint": "/supplier-dues",
+      "readOnly": true,
+      "empty": "You owe no supplier.",
+      "columns": [
+        {
+          "key": "supplier",
+          "label": "Supplier"
+        },
+        {
+          "key": "due",
+          "label": "Due (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "oldest",
+          "label": "Oldest bill",
+          "type": "date"
+        }
+      ]
+    },
+    "winback": {
+      "label": "Bring back",
+      "endpoint": "/customers/win-back",
+      "readOnly": true,
+      "empty": "Nobody is overdue.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Customer"
+        },
+        {
+          "key": "daysAway",
+          "label": "Days away",
+          "type": "number"
+        },
+        {
+          "key": "reason",
+          "label": "Why"
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download all my guest and venue data",
+          "path": "/privacy/export.json",
+          "filename": "dine-my-data.json"
+        }
+      ]
+    },
+    "festivals": {
+      "label": "Festival ideas",
+      "endpoint": "/marketing/festivals",
+      "readOnly": true,
+      "empty": "No festival in the next 14 days. Add festivals in Settings.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Festival"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "key": "daysAway",
+          "label": "Days",
+          "type": "number"
+        },
+        {
+          "key": "idea",
+          "label": "Idea"
+        }
+      ]
+    },
+    "setup": {
+      "label": "Set-up checklist",
+      "endpoint": "/setup/steps",
+      "empty": "Nothing to show.",
+      "columns": [
+        {
+          "key": "label",
+          "label": "Step"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "I did this",
+          "method": "POST",
+          "path": "/setup/steps/:id/done",
+          "done": "Ticked.",
+          "when": {
+            "key": "mark",
+            "equals": "yes"
+          }
+        }
+      ],
+      "toolbar": [
+        {
+          "label": "Load sample data",
+          "method": "POST",
+          "path": "/setup/sample",
+          "done": "Sample data added. It is marked Sample."
+        },
+        {
+          "label": "Remove sample data",
+          "method": "POST",
+          "path": "/setup/sample/remove",
+          "done": "Sample data removed."
+        }
+      ]
+    },
+    "credit": {
+      "label": "Pay later: who owes you",
+      "endpoint": "/credit/dues",
+      "readOnly": true,
+      "empty": "Nobody owes you anything.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Guest"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone"
+        },
+        {
+          "key": "owing",
+          "label": "Owes (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "oldest",
+          "label": "Since",
+          "type": "date"
+        },
+        {
+          "key": "days",
+          "label": "Days",
+          "type": "number"
+        }
+      ]
+    },
+    "returns": {
+      "label": "Returns and refunds",
+      "endpoint": "/returns",
+      "readOnly": true,
+      "empty": "No returns yet.",
+      "columns": [
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "key": "number",
+          "label": "Order"
+        },
+        {
+          "key": "refund",
+          "label": "Refund (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "serviceChargeRefund",
+          "label": "Service charge back (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "reason",
+          "label": "Reason"
+        },
+        {
+          "key": "restocked",
+          "label": "Put back in stock",
+          "type": "bool"
+        }
+      ]
+    },
+    "payslips": {
+      "label": "Payslips: this month",
+      "endpoint": "/payslips",
+      "readOnly": true,
+      "empty": "Set each person's pay first.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Staff"
+        },
+        {
+          "key": "month",
+          "label": "Month"
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number"
+        },
+        {
+          "key": "gross",
+          "label": "Gross (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "advances",
+          "label": "Advances (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "net",
+          "label": "To pay (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "problems",
+          "label": "Punch problems",
+          "type": "number"
+        }
+      ]
+    },
+    "payslipsPrev": {
+      "label": "Payslips: last month",
+      "endpoint": "/payslips?month=prev",
+      "readOnly": true,
+      "empty": "Set each person's pay first.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Staff"
+        },
+        {
+          "key": "month",
+          "label": "Month"
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number"
+        },
+        {
+          "key": "gross",
+          "label": "Gross (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "advances",
+          "label": "Advances (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "net",
+          "label": "To pay (Rs)",
+          "type": "number"
+        },
+        {
+          "key": "problems",
+          "label": "Punch problems",
+          "type": "number"
+        }
+      ]
+    }
+  },
+  "settings": {
+    "discount": {
+      "label": "Discounts",
+      "endpoint": "/settings",
+      "intro": "You decide who may give a discount. Every discount needs a reason, and you always see the ones your staff give in your daily list. You are never limited yourself.",
+      "fields": [
+        {
+          "key": "discountRule.staff",
+          "label": "Who may give a discount at billing?",
+          "type": "select",
+          "default": "limit",
+          "options": [
+            {
+              "value": "limit",
+              "label": "Staff, up to a limit"
+            },
+            {
+              "value": "owner_only",
+              "label": "Only me (the owner)"
+            },
+            {
+              "value": "any",
+              "label": "Any staff, any amount"
+            }
+          ]
+        },
+        {
+          "key": "discountRule.maxPercent",
+          "label": "Staff limit (percent of the bill)",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 10,
+          "showWhen": {
+            "key": "discountRule.staff",
+            "equals": "limit"
+          }
+        }
+      ]
+    },
+    "loyalty": {
+      "label": "Loyalty points",
+      "endpoint": "/settings/loyalty",
+      "intro": "Off until you switch it on. Guests earn points on what they actually pay; you decide the value.",
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "Give loyalty points",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "earnPer100",
+          "label": "Points earned for every Rs 100 paid",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 5,
+          "showWhen": {
+            "key": "enabled",
+            "equals": true
+          }
+        },
+        {
+          "key": "pointValueRupees",
+          "label": "One point is worth (Rs)",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "default": 1,
+          "showWhen": {
+            "key": "enabled",
+            "equals": true
+          }
+        },
+        {
+          "key": "minRedeem",
+          "label": "Smallest number of points a guest can use",
+          "type": "number",
+          "min": 1,
+          "max": 10000,
+          "default": 50,
+          "showWhen": {
+            "key": "enabled",
+            "equals": true
+          }
+        }
+      ]
+    }
+  },
+  "stats": {
+    "start": {
+      "label": "Start here",
+      "endpoint": "/first-win",
+      "refreshMs": 0,
+      "attention": "attention",
+      "cards": [
+        {
+          "label": "Guests not back in 60 days",
+          "path": "count",
+          "type": "number"
+        },
+        {
+          "label": "Rupees (sample until you have your own)",
+          "path": "rupees",
+          "type": "money"
+        },
+        {
+          "label": "Set-up done (%)",
+          "path": "percent",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "Set-up steps",
+          "rows": "steps",
+          "empty": "Nothing to show.",
+          "columns": [
+            {
+              "key": "label",
+              "label": "Step"
+            },
+            {
+              "key": "status",
+              "label": "Status",
+              "type": "pill"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

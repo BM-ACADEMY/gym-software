@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Dumbbell, IndianRupee, PiggyBank, Wallet2 } from 'lucide-react';
+import { Banknote, Dumbbell, IndianRupee, PiggyBank, Wallet2 } from 'lucide-react';
 import { Card, CardTitle, Page, PageHeader, Stat } from './ui';
 import apiClient from '../../api/client';
 
@@ -36,14 +36,34 @@ const Earnings = () => {
             <Stat label="PT Sessions" value={`₹${data.byCategory.pt_session.toLocaleString()}`} icon={Dumbbell} tone="blue" />
             <Stat label="Other" value={`₹${data.byCategory.other.toLocaleString()}`} icon={PiggyBank} tone="violet" />
           </div>
-          <Card>
-            <CardTitle title="My PT commission" description={mine ? `${mine.commissionPercent}% of ₹${mine.ptRevenue.toLocaleString()} PT revenue` : 'No PT commission % set yet — ask your gym owner.'} />
-            <div className="p-6 text-center">
-              <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-full bg-teal-50">
-                <div><p className="text-3xl font-bold text-teal-700">₹{(mine?.commissionPayout || 0).toLocaleString()}</p><p className="text-xs text-gray-500">this month</p></div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardTitle title="My PT commission" description={mine ? `${mine.commissionPercent}% of ₹${mine.ptRevenue.toLocaleString()} PT revenue` : 'No PT commission % set yet — ask your gym owner.'} />
+              <div className="p-6 text-center">
+                <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-full bg-teal-50">
+                  <div><p className="text-3xl font-bold text-teal-700">₹{(mine?.commissionPayout || 0).toLocaleString()}</p><p className="text-xs text-gray-500">this month</p></div>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+
+            <Card>
+              <CardTitle title="My salary breakdown" description="Base salary plus this month's PT commission." />
+              <div className="divide-y divide-gray-100 p-5">
+                <div className="flex items-center justify-between py-3">
+                  <span className="flex items-center gap-2 text-sm text-gray-600"><Banknote className="h-4 w-4 text-gray-400" />Base salary</span>
+                  <span className="font-semibold text-gray-900">{mine?.baseSalary != null ? `₹${mine.baseSalary.toLocaleString()}` : 'Not set'}</span>
+                </div>
+                <div className="flex items-center justify-between py-3">
+                  <span className="flex items-center gap-2 text-sm text-gray-600"><Dumbbell className="h-4 w-4 text-gray-400" />PT commission</span>
+                  <span className="font-semibold text-gray-900">₹{(mine?.commissionPayout || 0).toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between py-3">
+                  <span className="text-sm font-semibold text-gray-900">Total this month</span>
+                  <span className="text-lg font-bold text-teal-700">₹{((mine?.baseSalary || 0) + (mine?.commissionPayout || 0)).toLocaleString()}</span>
+                </div>
+              </div>
+            </Card>
+          </div>
         </>
       )}
     </Page>

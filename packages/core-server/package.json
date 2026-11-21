@@ -1,0 +1,9 @@
+{
+  "name": "@afra/core-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Base server package for every Afra product: fail-closed tenant scoping (C-03) and business-type presets (C-05). Uses no other package.",
+  "main": "src/index.js",
+  "scripts": { "test": "jest" },
+  "license": "UNLICENSED"
+}

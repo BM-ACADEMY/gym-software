@@ -1,3 +1,4 @@
+import { useT, LANGUAGES } from '../../i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Menu, LogOut, ChevronDown } from 'lucide-react';
@@ -5,6 +6,7 @@ import { useState } from 'react';
 import { logout, selectCurrentUser } from '../../store/slices/authSlice';
 
 const Header = ({ onMenuClick, title }) => {
+  const { t, lang, setLanguage } = useT();
   const user = useSelector(selectCurrentUser);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -31,7 +33,7 @@ const Header = ({ onMenuClick, title }) => {
         >
           <Menu className="h-6 w-6" />
         </button>
-        {title && <h1 className="text-lg font-semibold text-gray-800">{title}</h1>}
+        {title && <h1 className="text-lg font-semibold text-gray-800">{t(title)}</h1>}
       </div>
 
       <div className="relative">
@@ -50,12 +52,21 @@ const Header = ({ onMenuClick, title }) => {
 
         {menuOpen && (
           <div className="absolute right-0 mt-2 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+            <label className="block px-4 pt-2 text-xs font-medium text-gray-400">{t('Language')}</label>
+            <select
+              value={lang}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="mx-3 mb-2 mt-1 w-[calc(100%-1.5rem)] rounded border border-gray-200 px-2 py-1 text-sm text-gray-700"
+            >
+              {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+            </select>
+            <a href="/help" target="_blank" rel="noreferrer" className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{t('Help centre')}</a>
             <button
               onClick={handleLogout}
               className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
             >
               <LogOut className="h-4 w-4" />
-              Logout
+              {t('Logout')}
             </button>
           </div>
         )}

@@ -3,12 +3,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Public pages
 import Landing from './pages/public/Landing';
 import Pricing from './pages/public/Pricing';
-import Blog from './pages/public/Blog';
 import Contact from './pages/public/Contact';
 import Faq from './pages/public/Faq';
 import Privacy from './pages/public/Privacy';
-import AppPrivacy from './pages/public/AppPrivacy';
 import Terms from './pages/public/Terms';
+import Refund from './pages/public/Refund';
+import Help from './pages/public/Help';
+import JoinForm from './pages/public/JoinForm';
 
 // Auth pages
 import SignIn from './pages/auth/SignIn';
@@ -30,10 +31,12 @@ import { ROOT_ADMIN_NAV, ADMIN_NAV, SUBADMIN_NAV, MEMBER_NAV } from './config/na
 // Eagerly load every page under each role folder, keyed by file path.
 // Nav config (config/navigation.js) is the single source of truth for which
 // page backs which route — add a page there + a matching file here and it's wired up.
-const rootAdminPages = import.meta.glob('./pages/root-admin/*.jsx', { eager: true });
-const adminPages = import.meta.glob('./pages/admin/*.jsx', { eager: true });
-const subadminPages = import.meta.glob('./pages/subadmin/*.jsx', { eager: true });
-const memberPages = import.meta.glob('./pages/member/*.jsx', { eager: true });
+// Test files (*.test.jsx) sit next to the pages; they import vitest and call vi.mock(),
+// which throws in the browser and blanks the whole app, so they are excluded here.
+const rootAdminPages = import.meta.glob(['./pages/root-admin/*.jsx', '!./pages/root-admin/*.test.jsx'], { eager: true });
+const adminPages = import.meta.glob(['./pages/admin/*.jsx', '!./pages/admin/*.test.jsx'], { eager: true });
+const subadminPages = import.meta.glob(['./pages/subadmin/*.jsx', '!./pages/subadmin/*.test.jsx'], { eager: true });
+const memberPages = import.meta.glob(['./pages/member/*.jsx', '!./pages/member/*.test.jsx'], { eager: true });
 
 const resolvePage = (pages, folder, name) => pages[`./pages/${folder}/${name}.jsx`]?.default;
 
@@ -56,12 +59,15 @@ function App() {
         {/* ── Public Website Routes ── */}
         <Route path="/" element={<Landing />} />
         <Route path="/pricing" element={<Pricing />} />
-        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog" element={<Navigate to="/" replace />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/privacy" element={<Privacy />} />
-        <Route path="/privacy/app-privacy" element={<AppPrivacy />} />
+        <Route path="/privacy/app-privacy" element={<Navigate to="/privacy" replace />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/refund" element={<Refund />} />
+        <Route path="/help" element={<Help />} />
+        <Route path="/join/:key" element={<JoinForm />} />
 
         {/* ── Auth Routes ── */}
         <Route path="/login" element={<SignIn />} />

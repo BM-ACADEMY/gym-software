@@ -18,6 +18,27 @@ const subscriberSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PlatformPlan'
   },
+  // Code-defined plan (config/plans.js). Null during the free trial, where the
+  // trial plan applies automatically. paidUntil is the end of the last paid
+  // period; status is computed from dates (services/subscription.js).
+  planKey: {
+    type: String,
+    enum: ['solo', 'starter', 'growth', 'pro'],
+  },
+  billingCycle: {
+    type: String,
+    enum: ['monthly', 'yearly'],
+  },
+  paidUntil: {
+    type: Date
+  },
+  // Global-ready settings. Only INR/GST/India are switched on in Phase 1.
+  country: { type: String, default: 'IN' },
+  // Indian state or UT of the gym; decides CGST+SGST (same state as seller) or IGST on invoices.
+  state: { type: String, trim: true },
+  currency: { type: String, default: 'INR' },
+  timezone: { type: String, default: 'Asia/Kolkata' },
+  language: { type: String, enum: ['en', 'ta', 'hi'], default: 'en' },
   nextBillingDate: {
     type: Date
   },
@@ -85,6 +106,34 @@ const subscriberSchema = new mongoose.Schema({
   gstRate: {
     type: Number,
     default: 18
+  },
+  // Gated behind WHATSAPP_PHONE_NUMBER_ID/WHATSAPP_ACCESS_TOKEN in .env, same
+  // demo/live pattern as SMS — enabling this without those env vars set just
+  // logs messages instead of sending them (see utils/whatsapp.js).
+  whatsappEnabled: {
+    type: Boolean,
+    default: false
+  },
+  // Which WhatsApp automations run for this gym (all on by default once
+  // whatsappEnabled is switched on; whatsappEnabled means the gym confirms its
+  // members have agreed to receive reminders).
+  automations: {
+    renewal: { type: Boolean, default: true },
+    dues: { type: Boolean, default: true },
+    absence: { type: Boolean, default: true },
+    dailySummary: { type: Boolean, default: true },
+    // Owner autopilot reports: made for every gym; sent to the owner's WhatsApp only on a tap unless reportsAutoSend is on.
+    weeklyReport: { type: Boolean, default: true },
+    monthlyReport: { type: Boolean, default: true },
+    reportsAutoSend: { type: Boolean, default: false },
+  },
+  // Secret part of the gym's public enquiry link (/join/<key>). Not the gym id. Owner can replace it.
+  leadFormKey: { type: String, index: { unique: true, sparse: true } },
+  // UPI ID printed in payment reminders, e.g. irongym@upi
+  upiId: { type: String, trim: true },
+  whatsappNumber: {
+    type: String,
+    trim: true
   }
 }, { timestamps: true });
 

@@ -1,0 +1,16 @@
+{
+  "name": "afra-products",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Workspace root for the shared packages and the product servers (Salon, Mart, Dine, Cloth, Wash, Hire, Super Admin). The gym server and client keep their own package files. Written, not yet run by a person.",
+  "workspaces": ["packages/*", "apps/admin", "apps/hire", "apps/salon", "apps/mart", "apps/dine", "apps/cloth", "apps/wash"],
+  "scripts": {
+    "test:products": "npm test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "jest": "^30.5.1",
+    "supertest": "^7.1.4",
+    "vitest": "^3.2.4"
+  },
+  "license": "UNLICENSED"
+}

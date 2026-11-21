@@ -1,0 +1,98 @@
+'use strict';
+// Salon (Groom) records. The app passes its own mongoose. Every record carries tenantId (the business) and every query
+// in routes filters by it; the tenant guard (packages/core-server) throws if a query runs outside a tenant context.
+// Money: whole rupees with a currency code. Times: minutes from midnight (600 = 10:00), dates 'YYYY-MM-DD' in IST.
+const { tenantPlugin } = require('../../../packages/core-server/src');
+
+module.exports = (mongoose) => {
+  const { Schema } = mongoose;
+  const castId = (v) => new mongoose.Types.ObjectId(String(v));
+  const T = { type: Schema.Types.ObjectId, required: true, index: true };
+  const define = (name, schema, indexes = [], scoped = true) => {
+    if (mongoose.models[name]) return mongoose.models[name];
+    const s = new Schema(schema, { timestamps: true });
+    indexes.forEach(([f, o]) => s.index(f, o));
+    if (scoped) s.plugin(tenantPlugin, { field: 'tenantId', castId });
+    return mongoose.model(name, s);
+  };
+  // The business itself: not scoped by tenantId.
+  const Tenant = define('SalonTenant', {
+    businessName: { type: String, required: true, maxlength: 120 }, state: String, preset: { type: String, enum: ['salon', 'spa', 'barber', 'clinic'], default: 'salon' },
+    currency: { type: String, default: 'INR' }, trialEndsAt: Date, paidUntil: Date, planKey: String, billingCycle: String, planStartedAt: Date, isActive: { type: Boolean, default: true },
+    termsAcceptedAt: Date, termsVersion: String,
+    // Public booking link: secret token. Rotating it kills the old link.
+    bookingToken: { type: String, index: true, unique: true, sparse: true },
+    bookingMode: { type: String, enum: ['instant', 'approve'], default: 'instant' },
+    windows: { type: [[Number]], default: [[600, 780], [1080, 1260]] }, closedWeekdays: { type: [Number], default: [0] }, // 0 = Sunday
+    slotStep: { type: Number, default: 30 }, bufferMins: { type: Number, default: 0 },
+    taxMode: { type: String, enum: ['gst_inclusive', 'gst_exclusive', 'none'], default: 'none' }, gstin: { type: String, maxlength: 15 }, address: { type: String, maxlength: 200 }, phone: String,
+    festivals: { type: [{ name: String, date: String, offer: String }], default: [] }, // owner's own list; we do not invent dates
+    loyaltyRule: Schema.Types.Mixed, // { enabled, earnPer100, pointValueRupees, maxRedeemShare, minRedeem } core-pos loyalty; off until the owner turns it on
+    discountRule: Schema.Types.Mixed, // D-30 { staff: 'any'|'limit'|'owner_only', maxPercent } see src/discountPolicy.js
+    commissionRules: Schema.Types.Mixed, // { default, byService, byStaff, byStaffService } see src/commission.js
+  }, [], false);
+  const User = define('SalonUser', {
+    tenantId: T, name: String, email: { type: String, required: true, unique: true, lowercase: true, trim: true }, role: { type: String, enum: ['admin', 'staff', 'doctor'], default: 'admin' },
+    staffId: Schema.Types.ObjectId, passwordHash: { type: String, required: true, select: false }, failedLogins: { type: Number, default: 0 }, lockedUntil: Date,
+    isActive: { type: Boolean, default: true }, lastLoginAt: Date, phone: { type: String, trim: true },
+  });
+  const Service = define('SalonService', {
+    tenantId: T, key: { type: String, required: true, maxlength: 40 }, name: { type: String, required: true, maxlength: 80 }, mins: { type: Number, required: true, min: 5, max: 600 },
+    price: { type: Number, default: 0, min: 0 }, currency: { type: String, default: 'INR' }, gstRate: { type: Number, default: 0 }, hsn: { type: String, maxlength: 12 }, cycleDays: Number, uses: [{ _id: false, productId: Schema.Types.ObjectId, qty: Number }], isActive: { type: Boolean, default: true },
+  }, [[{ tenantId: 1, key: 1 }, { unique: true }]]);
+  const Staff = define('SalonStaff', {
+    tenantId: T, name: { type: String, required: true, maxlength: 80 }, phone: String, serviceKeys: [String], isActive: { type: Boolean, default: true }, baseSalary: { type: Number, default: 0, min: 0 }, // monthly, whole rupees (INR)
+  });
+  const Customer = define('SalonCustomer', {
+    tenantId: T, name: { type: String, required: true, maxlength: 120 }, phone: { type: String, required: true }, note: { type: String, maxlength: 300 },
+    preferredStaffId: Schema.Types.ObjectId, birthday: String, anniversary: String, doNotContact: { type: Boolean, default: false },
+    lastVisit: String, lastServiceKey: String, loyaltyBalance: { type: Number, default: 0 }, anonymisedAt: Date, // set when the owner deletes the person on request: details removed, bills kept
+    consent: { at: Date, source: String }, // booking-link consent tick, or owner records that the customer agreed
+  }, [[{ tenantId: 1, phone: 1 }, { unique: true }]]);
+  // `active` is true while the visit holds the slot (booked or pending). The unique index only covers active rows,
+  // so two people tapping the same slot cannot both win, and a cancelled visit frees the slot again.
+  const Appointment = define('SalonAppointment', {
+    tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, customerId: { type: Schema.Types.ObjectId, required: true },
+    serviceKey: { type: String, required: true }, serviceName: String, date: { type: String, required: true }, start: { type: Number, required: true }, mins: { type: Number, required: true },
+    status: { type: String, enum: ['booked', 'pending', 'done', 'noshow', 'cancelled'], default: 'booked' }, active: { type: Boolean, default: true },
+    source: { type: String, enum: ['owner', 'public', 'walkin'], default: 'owner' }, bodyArea: { type: String, enum: ['foot', 'knee', 'hip', 'spine', 'rehab', 'other'] }, advance: Number, currency: { type: String, default: 'INR' }, billId: Schema.Types.ObjectId, reviewAsked: Boolean,
+  }, [[{ tenantId: 1, staffId: 1, date: 1, start: 1 }, { unique: true, partialFilterExpression: { active: true } }], [{ tenantId: 1, date: 1 }, {}]]);
+  const Queue = define('SalonQueue', {
+    tenantId: T, name: { type: String, required: true, maxlength: 120 }, phone: String, serviceKey: String, staffId: Schema.Types.ObjectId, status: { type: String, enum: ['waiting', 'serving', 'done', 'left'], default: 'waiting' }, date: { type: String, required: true },
+  }, [[{ tenantId: 1, date: 1, status: 1 }, {}]]);
+  const Bill = define('SalonBill', {
+    tenantId: T, number: { type: String, required: true }, customerId: Schema.Types.ObjectId, appointmentId: Schema.Types.ObjectId, clientId: String, date: { type: String, required: true },
+    lines: [Schema.Types.Mixed], subtotal: Number, discount: Number, discountReason: { type: String, maxlength: 120 }, discountBy: { type: String, enum: ['owner', 'staff'] }, discountPercent: Number, taxable: Number, gst: Number, cgst: Number, sgst: Number, igst: Number, total: Number,
+    taxMode: String, gstMode: String, currency: { type: String, default: 'INR' }, payments: [Schema.Types.Mixed], received: Number, change: Number, credit: Number, due: Number, status: String,
+    commissions: Schema.Types.Mixed, // { staffId: rupees }
+    refunded: { type: Number, default: 0 }, voidReason: { type: String, maxlength: 120 }, voidedBy: String, voidedAt: Date, statusBeforeVoid: String,
+  }, [[{ tenantId: 1, number: 1 }, { unique: true }], [{ tenantId: 1, clientId: 1 }, { unique: true, partialFilterExpression: { clientId: { $type: 'string' } } }], [{ tenantId: 1, date: 1 }, {}]]);
+  const Counter = define('SalonCounter', { tenantId: T, key: { type: String, required: true }, seq: { type: Number, default: 0 } }, [[{ tenantId: 1, key: 1 }, { unique: true }]]);
+  const Expense = define('SalonExpense', {
+    tenantId: T, date: { type: String, required: true }, category: { type: String, enum: ['rent', 'salary', 'products', 'electricity', 'marketing', 'repairs', 'other'], default: 'other' },
+    amount: { type: Number, required: true, min: 1 }, currency: { type: String, default: 'INR' }, paidTo: { type: String, maxlength: 120 }, method: { type: String, enum: ['cash', 'upi', 'card', 'bank'], default: 'cash' },
+    paid: { type: Boolean, default: true }, dueDate: String, note: { type: String, maxlength: 200 },
+  }, [[{ tenantId: 1, date: 1 }, {}]]);
+  const DayClose = define('SalonDayClose', {
+    tenantId: T, date: { type: String, required: true }, openingCash: Number, cashSales: Number, cashExpenses: Number, expected: Number, counted: Number, difference: Number, note: { type: String, maxlength: 200 }, currency: { type: String, default: 'INR' },
+  }, [[{ tenantId: 1, date: 1 }, { unique: true }]]);
+  // Audit trail: who did what, never the customer's details or the note text.
+  const Audit = define('SalonAudit', { tenantId: T, by: String, action: { type: String, required: true }, ref: String }, [[{ tenantId: 1, createdAt: -1 }, {}]]);
+  // Loyalty ledger: the rows are the truth, Customer.loyaltyBalance is the quick copy used by the guarded redeem.
+  const LoyaltyEntry = define('SalonLoyalty', { tenantId: T, customerId: { type: Schema.Types.ObjectId, required: true }, points: { type: Number, required: true }, reason: { type: String, enum: ['earn', 'redeem', 'import', 'reverse', 'adjust'], required: true }, billId: Schema.Types.ObjectId, note: { type: String, maxlength: 120 } }, [[{ tenantId: 1, customerId: 1, createdAt: -1 }, {}]]);
+  const Package = define('SalonPackage', { tenantId: T, customerId: { type: Schema.Types.ObjectId, required: true }, name: { type: String, required: true, maxlength: 80 }, serviceKey: String, total: { type: Number, required: true }, left: { type: Number, required: true }, price: Number, currency: { type: String, default: 'INR' }, expiresOn: String, active: { type: Boolean, default: true } }, [[{ tenantId: 1, customerId: 1 }, {}]]);
+  const PackageUse = define('SalonPackageUse', { tenantId: T, packageId: { type: Schema.Types.ObjectId, required: true }, by: String, appointmentId: Schema.Types.ObjectId, undone: Boolean }, [[{ tenantId: 1, packageId: 1, createdAt: -1 }, {}]]);
+  // A refund on a bill that stands. `taxable` and `gst` are the refund split in the bill's own share, so accounts and GST stay right.
+  // Retail and consumable products. `stock` moves only through guarded $inc updates; every change has a StockMove row.
+  const Product = define('SalonProduct', { tenantId: T, name: { type: String, required: true, maxlength: 80 }, unit: { type: String, default: 'pcs', maxlength: 12 }, stock: { type: Number, default: 0 }, reorderLevel: { type: Number, default: 0 }, price: { type: Number, default: 0, min: 0 }, currency: { type: String, default: 'INR' }, gstRate: { type: Number, default: 0 }, forSale: { type: Boolean, default: false }, isActive: { type: Boolean, default: true } }, [[{ tenantId: 1, name: 1 }, {}]]);
+  const StockMove = define('SalonStockMove', { tenantId: T, productId: { type: Schema.Types.ObjectId, required: true }, qty: { type: Number, required: true }, reason: { type: String, enum: ['purchase', 'use', 'sale', 'adjust', 'count', 'void-restore'], required: true }, ref: String, by: String, date: { type: String, required: true } }, [[{ tenantId: 1, productId: 1, date: -1 }, {}], [{ tenantId: 1, ref: 1 }, {}]]);
+  const StockCount = define('SalonStockCount', { tenantId: T, productId: { type: Schema.Types.ObjectId, required: true }, productName: String, date: { type: String, required: true }, system: Number, counted: Number, diff: Number, by: String }, [[{ tenantId: 1, date: -1 }, {}]]);
+  // Clinic notes: off until a lawyer has reviewed patient records (CLINIC_NOTES_ENABLED). Only the doctor and the owner can read them.
+  const ClinicNote = define('SalonClinicNote', { tenantId: T, customerId: { type: Schema.Types.ObjectId, required: true }, appointmentId: Schema.Types.ObjectId, note: { type: String, required: true, maxlength: 2000 }, by: String, byRole: String, date: { type: String, required: true } }, [[{ tenantId: 1, customerId: 1, date: -1 }, {}]]);
+  const Return = define('SalonReturn', { tenantId: T, number: { type: String, required: true }, billId: { type: Schema.Types.ObjectId, required: true }, billNumber: String, date: { type: String, required: true }, amount: { type: Number, required: true, min: 1 }, taxable: Number, gst: Number, method: { type: String, enum: ['cash', 'upi', 'card', 'bank'], required: true }, reason: { type: String, required: true, maxlength: 120 }, by: String, currency: { type: String, default: 'INR' } }, [[{ tenantId: 1, number: 1 }, { unique: true }], [{ tenantId: 1, date: 1 }, {}]]);
+  const Attendance = define('SalonAttendance', { tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, day: { type: String, required: true }, status: { type: String, enum: ['present', 'half', 'absent', 'paid_leave', 'unpaid_leave'], required: true } }, [[{ tenantId: 1, staffId: 1, day: 1 }, { unique: true }]]);
+  const Leave = define('SalonLeave', { tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, from: { type: String, required: true }, to: { type: String, required: true }, kind: { type: String, enum: ['paid', 'unpaid'], default: 'unpaid' }, status: { type: String, enum: ['requested', 'approved', 'rejected'], default: 'requested' }, note: { type: String, maxlength: 200 } }, [[{ tenantId: 1, status: 1 }, {}]]);
+  const Shift = define('SalonShift', { tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, weekday: { type: Number, min: 0, max: 6 }, start: Number, end: Number }, [[{ tenantId: 1, staffId: 1 }, {}]]);
+  const Advance = define('SalonAdvance', { tenantId: T, staffId: { type: Schema.Types.ObjectId, required: true }, date: { type: String, required: true }, amount: { type: Number, required: true, min: 1 }, currency: { type: String, default: 'INR' }, note: { type: String, maxlength: 120 } }, [[{ tenantId: 1, staffId: 1, date: 1 }, {}]]);
+  return { ClinicNote, Product, StockMove, StockCount, Return, Attendance, Leave, Shift, Advance, LoyaltyEntry, Package, PackageUse, Expense, DayClose, Audit, Tenant, User, Service, Staff, Customer, Appointment, Queue, Bill, Counter };
+};

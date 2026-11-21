@@ -1,0 +1,10 @@
+{
+  "name": "@afra/cloth",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloth: billing, variants and stock for textile and garment shops. Written, not yet tested by a person.",
+  "main": "src/index.js",
+  "dependencies": { "express": "^5.2.1", "mongoose": "^9.7.4" },
+  "scripts": { "test": "jest" },
+  "license": "UNLICENSED"
+}

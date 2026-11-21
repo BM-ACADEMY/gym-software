@@ -15,9 +15,29 @@ const DUMMY_SECRET = 'dummy-gateway-dev-secret-not-for-production';
 
 const getConfig = async () => SystemSettings.getSetting('payment_gateway', { provider: '', keyId: '', keySecret: '' });
 
+// In production there is NO fallback secret: if Root Admin has not saved a
+// real gateway secret, signing and verifying both fail closed. (A fixed,
+// publicly known secret would let anyone forge a "payment received" webhook.)
 const getSecret = async () => {
   const config = await getConfig();
-  return config.keySecret || DUMMY_SECRET;
+  if (config.keySecret) return config.keySecret;
+  if (process.env.NODE_ENV === 'production') {
+    const err = new Error('Payment gateway is not configured');
+    err.status = 503;
+    throw err;
+  }
+  return DUMMY_SECRET;
+};
+
+// The "simulate payment" shortcuts only exist for local development and the
+// test suite. They are never available in production, whatever gateway is set.
+const simulationAllowed = () => process.env.NODE_ENV !== 'production';
+
+// True when no real gateway is configured (orders would be dummy ones that
+// nobody can pay).
+const isRealGatewayConfigured = async () => {
+  const config = await getConfig();
+  return config.provider === 'razorpay' && Boolean(config.keyId && config.keySecret);
 };
 
 const signPayload = (payload, secret) =>
@@ -77,4 +97,4 @@ const verifyRazorpayCheckoutSignature = ({ orderId, paymentId, signature, keySec
   return crypto.timingSafeEqual(a, b);
 };
 
-module.exports = { getConfig, createOrder, buildSimulatedWebhook, verifySignature, verifyRazorpayCheckoutSignature };
+module.exports = { getConfig, simulationAllowed, isRealGatewayConfigured, createOrder, buildSimulatedWebhook, verifySignature, verifyRazorpayCheckoutSignature };

@@ -24,7 +24,7 @@ const notificationSchema = new mongoose.Schema(
     },
     channel: {
       type: String,
-      enum: ['push', 'email', 'sms', 'in_app'],
+      enum: ['push', 'email', 'sms', 'whatsapp', 'in_app'],
       required: true,
     },
     message: {
@@ -37,10 +37,17 @@ const notificationSchema = new mongoose.Schema(
     readAt: {
       type: Date,
     },
+    // WhatsApp automations: which approved template went out, the outcome, and a
+    // key that makes each reminder fire exactly once (unique when set).
+    templateName: { type: String },
+    status: { type: String, enum: ['sent', 'demo', 'failed'] },
+    error: { type: String },
+    dedupeKey: { type: String },
   },
   { timestamps: true }
 );
 
+notificationSchema.index({ dedupeKey: 1 }, { unique: true, partialFilterExpression: { dedupeKey: { $type: 'string' } } });
 notificationSchema.index({ subscriberId: 1, recipientType: 1, recipientId: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Notification', notificationSchema);

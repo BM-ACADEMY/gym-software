@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { CalendarClock, Flame, IdCard, TicketCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CalendarClock, Flame, IdCard, TicketCheck, Wallet } from 'lucide-react';
 import { Card, CardTitle, Page, PageHeader, Stat } from '../subadmin/ui';
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import apiClient from '../../api/client';
 
+const paymentStatusTone = { overdue: 'text-red-600', partial: 'text-amber-600', pending: 'text-gray-600' };
+const paymentStatusLabel = { overdue: 'Overdue', partial: 'Partially paid', pending: 'Due' };
+
 const Dashboard = () => {
   const user = useSelector(selectCurrentUser);
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [showQr, setShowQr] = useState(false);
@@ -35,19 +40,44 @@ const Dashboard = () => {
             </button>
           </div>
 
-          <Card>
-            <CardTitle title="Next PT session" />
-            <div className="p-5">
-              {data.nextSession ? (
-                <div>
-                  <p className="font-semibold text-gray-900">{new Date(data.nextSession.scheduledAt).toLocaleString()}</p>
-                  <p className="mt-1 text-sm text-gray-500">with {data.nextSession.subAdminId?.name || 'your trainer'}</p>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400">No upcoming PT sessions.</p>
-              )}
-            </div>
-          </Card>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardTitle title="Next PT session" />
+              <div className="p-5">
+                {data.nextSession ? (
+                  <div>
+                    <p className="font-semibold text-gray-900">{new Date(data.nextSession.scheduledAt).toLocaleString()}</p>
+                    <p className="mt-1 text-sm text-gray-500">with {data.nextSession.subAdminId?.name || 'your trainer'}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400">No upcoming PT sessions.</p>
+                )}
+              </div>
+            </Card>
+
+            <Card>
+              <CardTitle title="Next payment" />
+              <div className="p-5">
+                {data.nextPayment ? (
+                  <button onClick={() => navigate('/member/payments')} className="flex w-full items-center justify-between gap-3 text-left">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><Wallet className="h-5 w-5" /></span>
+                      <div>
+                        <p className="font-semibold text-gray-900">₹{data.nextPayment.balanceDue.toLocaleString('en-IN')}</p>
+                        <p className={`mt-0.5 text-xs font-medium ${paymentStatusTone[data.nextPayment.effectiveStatus] || 'text-gray-500'}`}>
+                          {paymentStatusLabel[data.nextPayment.effectiveStatus] || 'Due'}
+                          {data.nextPayment.dueDate && ` · ${new Date(data.nextPayment.dueDate).toLocaleDateString()}`}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold text-teal-600">Pay now →</span>
+                  </button>
+                ) : (
+                  <p className="text-sm text-gray-400">No pending payments — you're all caught up.</p>
+                )}
+              </div>
+            </Card>
+          </div>
         </>
       )}
 

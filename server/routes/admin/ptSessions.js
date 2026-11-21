@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { bookSession, listSessions, rescheduleSession, cancelSession, completeSession, noShowSession, suggestSlots, listActivePackages, sellPackage, listMemberPackages } = require('../../controllers/admin/ptSessions');
 const { protect, authorize } = require('../../middleware/auth');
+const { codeFeatureGuard } = require('../../middleware/planFeatureGuard');
 
-router.use(protect, authorize('admin'));
+router.use(protect, authorize('admin'), codeFeatureGuard('pt-sessions'));
 
 router.get('/suggest-slots', suggestSlots);
 router.get('/packages', listActivePackages);

@@ -8,6 +8,7 @@ router.use('/payments', require('./payments'));
 router.use('/pt-sessions', require('./ptSessions'));
 router.use('/workout-diet-plan', require('./workoutDietPlan'));
 router.use('/notifications', require('./notifications'));
+router.use('/classes', require('./classes'));
 router.use('/settings', require('./settings'));
 
 module.exports = router;

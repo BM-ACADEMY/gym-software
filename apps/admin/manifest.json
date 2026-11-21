@@ -1,0 +1,1031 @@
+{
+  "product": "admin",
+  "title": "Afra Super Admin",
+  "navData": {
+    "overview": "/overview"
+  },
+  "nav": [
+    {
+      "key": "today",
+      "label": "Today",
+      "screen": "resource",
+      "resource": "today"
+    },
+    {
+      "key": "todo",
+      "label": "Marketing to-do",
+      "screen": "resource",
+      "resource": "todo"
+    },
+    {
+      "key": "calendar",
+      "label": "Calendar",
+      "screen": "resource",
+      "resource": "calendar"
+    },
+    {
+      "key": "plan",
+      "label": "Week plan",
+      "screen": "resource",
+      "resource": "plan"
+    },
+    {
+      "key": "renewals",
+      "label": "Renewals",
+      "screen": "resource",
+      "resource": "renewals",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
+      "key": "accounts",
+      "label": "Accounts",
+      "screen": "resource",
+      "resource": "accounts",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
+      "key": "health",
+      "label": "Gym health",
+      "screen": "resource",
+      "resource": "health",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
+      "key": "ideas",
+      "label": "Ideas",
+      "screen": "resource",
+      "resource": "ideas"
+    },
+    {
+      "key": "waitlist",
+      "label": "Waiting list",
+      "screen": "resource",
+      "resource": "waitlist",
+      "roles": [
+        "root_admin",
+        "marketing"
+      ]
+    },
+    {
+      "key": "announcements",
+      "label": "Announcements",
+      "screen": "resource",
+      "resource": "announcements",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
+      "key": "audit",
+      "label": "Audit trail",
+      "screen": "resource",
+      "resource": "audit",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
+      "key": "overview",
+      "label": "Overview",
+      "screen": "stats",
+      "stats": "overview",
+      "roles": [
+        "root_admin"
+      ]
+    },
+    {
+      "key": "product",
+      "label": "Product",
+      "screen": "stats",
+      "stats": "product",
+      "from": {
+        "source": "overview",
+        "path": "products",
+        "idKey": "product",
+        "labelKey": "product"
+      },
+      "roles": [
+        "root_admin"
+      ]
+    }
+  ],
+  "stats": {
+    "overview": {
+      "label": "All products",
+      "endpoint": "/overview",
+      "refreshMs": 60000,
+      "attention": "attention",
+      "cards": [
+        {
+          "label": "Businesses",
+          "path": "totals.businesses",
+          "type": "number"
+        },
+        {
+          "label": "Paying",
+          "path": "totals.paying",
+          "type": "number"
+        },
+        {
+          "label": "Active in 7 days",
+          "path": "totals.active7d",
+          "type": "number"
+        },
+        {
+          "label": "On trial",
+          "path": "totals.trial",
+          "type": "number"
+        },
+        {
+          "label": "MRR",
+          "path": "totals.mrr",
+          "type": "money"
+        },
+        {
+          "label": "Open tickets",
+          "path": "totals.openTickets",
+          "type": "number"
+        },
+        {
+          "label": "AI spent today",
+          "path": "totals.aiCostTodayInr",
+          "type": "money"
+        },
+        {
+          "label": "AI daily budget",
+          "path": "totals.aiBudgetInr",
+          "type": "money"
+        },
+        {
+          "label": "WhatsApp today",
+          "path": "totals.whatsappSentToday",
+          "type": "number"
+        }
+      ],
+      "tables": [
+        {
+          "label": "By product",
+          "rows": "products",
+          "columns": [
+            {
+              "key": "product",
+              "label": "Product"
+            },
+            {
+              "key": "state",
+              "label": "State",
+              "type": "pill"
+            },
+            {
+              "key": "businesses.total",
+              "label": "Businesses",
+              "type": "number"
+            },
+            {
+              "key": "businesses.paying",
+              "label": "Paying",
+              "type": "number"
+            },
+            {
+              "key": "businesses.active7d",
+              "label": "Active 7 days",
+              "type": "number"
+            },
+            {
+              "key": "mrr",
+              "label": "MRR",
+              "type": "money"
+            },
+            {
+              "key": "openTickets",
+              "label": "Tickets",
+              "type": "number"
+            }
+          ]
+        }
+      ]
+    },
+    "product": {
+      "label": "Product",
+      "endpoint": "/overview",
+      "refreshMs": 60000,
+      "tables": [
+        {
+          "label": "Products shown (filtered by the menu choice)",
+          "rows": "products",
+          "columns": [
+            {
+              "key": "product",
+              "label": "Product"
+            },
+            {
+              "key": "state",
+              "label": "State",
+              "type": "pill"
+            },
+            {
+              "key": "businesses.trial",
+              "label": "Trial",
+              "type": "number"
+            },
+            {
+              "key": "businesses.grace",
+              "label": "Grace",
+              "type": "number"
+            },
+            {
+              "key": "businesses.expired",
+              "label": "Expired",
+              "type": "number"
+            },
+            {
+              "key": "ai.callsToday",
+              "label": "AI calls today",
+              "type": "number"
+            },
+            {
+              "key": "ai.costTodayInr",
+              "label": "AI cost today",
+              "type": "money"
+            },
+            {
+              "key": "whatsappSentToday",
+              "label": "WhatsApp today",
+              "type": "number"
+            },
+            {
+              "key": "businesses.active7d",
+              "label": "Active 7 days",
+              "type": "number"
+            }
+          ]
+        },
+        {
+          "label": "Ending soon",
+          "rows": "products.0.endingSoon",
+          "empty": "Nothing ending soon.",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Business"
+            },
+            {
+              "key": "kind",
+              "label": "Type",
+              "type": "pill"
+            },
+            {
+              "key": "daysLeft",
+              "label": "Days left",
+              "type": "number"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resources": {
+    "today": {
+      "label": "Today",
+      "endpoint": "/marketing/today",
+      "readOnly": true,
+      "empty": "Nothing needs you today.",
+      "columns": [
+        {
+          "key": "title",
+          "label": "What"
+        },
+        {
+          "key": "reason",
+          "label": "Why"
+        },
+        {
+          "key": "product",
+          "label": "Product"
+        },
+        {
+          "key": "channel",
+          "label": "Channel",
+          "type": "pill"
+        },
+        {
+          "key": "due",
+          "label": "Due",
+          "type": "date"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Approve",
+          "method": "POST",
+          "path": "/marketing/items/:id/approve",
+          "when": {
+            "key": "status",
+            "equals": "suggested"
+          }
+        },
+        {
+          "label": "Snooze 3 days",
+          "method": "POST",
+          "path": "/marketing/items/:id/snooze",
+          "when": {
+            "key": "status",
+            "equals": "suggested"
+          }
+        },
+        {
+          "label": "Skip",
+          "method": "POST",
+          "path": "/marketing/items/:id/skip",
+          "when": {
+            "key": "status",
+            "equals": "suggested"
+          }
+        },
+        {
+          "label": "Done",
+          "method": "POST",
+          "path": "/marketing/items/:id/done",
+          "when": {
+            "key": "status",
+            "equals": "approved"
+          }
+        }
+      ]
+    },
+    "todo": {
+      "label": "Marketing to-do",
+      "endpoint": "/marketing/items",
+      "readOnly": true,
+      "empty": "No items yet. The owner can press Find new suggestions.",
+      "columns": [
+        {
+          "key": "title",
+          "label": "What"
+        },
+        {
+          "key": "aiTitle",
+          "label": "Clearer wording (AI)"
+        },
+        {
+          "key": "aiNote",
+          "label": "Tip (AI)"
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "pill"
+        },
+        {
+          "key": "channel",
+          "label": "Channel",
+          "type": "pill"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "pill"
+        },
+        {
+          "key": "due",
+          "label": "Due",
+          "type": "date"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Approve",
+          "method": "POST",
+          "path": "/marketing/items/:id/approve",
+          "when": {
+            "key": "status",
+            "equals": "suggested"
+          }
+        },
+        {
+          "label": "Skip",
+          "method": "POST",
+          "path": "/marketing/items/:id/skip",
+          "when": {
+            "key": "status",
+            "equals": "suggested"
+          }
+        },
+        {
+          "label": "Done",
+          "method": "POST",
+          "path": "/marketing/items/:id/done",
+          "when": {
+            "key": "status",
+            "equals": "approved"
+          }
+        },
+        {
+          "label": "Bring back",
+          "method": "POST",
+          "path": "/marketing/items/:id/reopen",
+          "when": {
+            "key": "status",
+            "equals": "skipped"
+          }
+        }
+      ],
+      "canAdd": true,
+      "searchable": false,
+      "toolbar": [
+        {
+          "label": "Find new suggestions",
+          "method": "POST",
+          "path": "/marketing/refresh",
+          "done": "Checked."
+        },
+        {
+          "label": "Write clearer wording (AI)",
+          "method": "POST",
+          "path": "/marketing/ai-wording",
+          "done": "Done. Open items now show clearer wording where AI could write it."
+        }
+      ],
+      "fields": [
+        {
+          "key": "title",
+          "label": "What to do",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Why",
+          "type": "textarea",
+          "required": true
+        },
+        {
+          "key": "channel",
+          "label": "Channel",
+          "type": "select",
+          "required": true,
+          "options": [
+            "instagram",
+            "youtube",
+            "whatsapp_channel",
+            "website",
+            "email",
+            "call",
+            "other"
+          ]
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            {
+              "value": "decision_today",
+              "label": "Decide today"
+            },
+            {
+              "value": "this_week",
+              "label": "This week"
+            },
+            {
+              "value": "later",
+              "label": "Later"
+            }
+          ]
+        },
+        {
+          "key": "due",
+          "label": "Due date",
+          "type": "date"
+        }
+      ]
+    },
+    "calendar": {
+      "label": "Calendar",
+      "endpoint": "/marketing/calendar",
+      "readOnly": true,
+      "empty": "No dates yet. Add festivals and launches (the owner edits this list).",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Event"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date"
+        }
+      ],
+      "canAdd": true,
+      "searchable": false,
+      "fields": [
+        {
+          "key": "name",
+          "label": "Event (festival, launch, campaign)",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "DELETE",
+          "path": "/marketing/calendar/:id",
+          "confirm": "Tap again to remove"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Week plan",
+      "endpoint": "/marketing/plan",
+      "readOnly": true,
+      "searchable": false,
+      "empty": "Nothing planned. Press Find new suggestions on the Marketing to-do page.",
+      "columns": [
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "date"
+        },
+        {
+          "key": "weekday",
+          "label": ""
+        },
+        {
+          "key": "title",
+          "label": "What"
+        },
+        {
+          "key": "product",
+          "label": "Product"
+        },
+        {
+          "key": "channel",
+          "label": "Channel",
+          "type": "pill"
+        },
+        {
+          "key": "kind",
+          "label": "Type",
+          "type": "pill"
+        }
+      ]
+    },
+    "renewals": {
+      "label": "Renewals and follow-ups",
+      "endpoint": "/accounts/renewals",
+      "readOnly": true,
+      "empty": "No account needs a follow-up right now.",
+      "columns": [
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "pill"
+        },
+        {
+          "key": "business",
+          "label": "Business"
+        },
+        {
+          "key": "owner",
+          "label": "Owner"
+        },
+        {
+          "key": "status",
+          "label": "Plan status",
+          "type": "pill"
+        },
+        {
+          "key": "daysLeft",
+          "label": "Days left",
+          "type": "number"
+        },
+        {
+          "key": "stage",
+          "label": "What to do",
+          "type": "pill"
+        },
+        {
+          "key": "canContact",
+          "label": "OK to call",
+          "type": "pill"
+        },
+        {
+          "key": "joined",
+          "label": "Joined",
+          "type": "date"
+        }
+      ]
+    },
+    "accounts": {
+      "label": "All accounts",
+      "endpoint": "/accounts/list",
+      "readOnly": true,
+      "empty": "No accounts yet, or the products are not connected.",
+      "columns": [
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "pill"
+        },
+        {
+          "key": "business",
+          "label": "Business"
+        },
+        {
+          "key": "owner",
+          "label": "Owner"
+        },
+        {
+          "key": "status",
+          "label": "Plan status",
+          "type": "pill"
+        },
+        {
+          "key": "daysLeft",
+          "label": "Days left",
+          "type": "number"
+        },
+        {
+          "key": "stage",
+          "label": "What to do",
+          "type": "pill"
+        },
+        {
+          "key": "canContact",
+          "label": "OK to call",
+          "type": "pill"
+        },
+        {
+          "key": "joined",
+          "label": "Joined",
+          "type": "date"
+        }
+      ]
+    },
+    "health": {
+      "label": "Gym health",
+      "endpoint": "/health/list",
+      "readOnly": true,
+      "empty": "No accounts yet, or the products are not connected.",
+      "columns": [
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "pill"
+        },
+        {
+          "key": "business",
+          "label": "Business"
+        },
+        {
+          "key": "level",
+          "label": "Health",
+          "type": "pill"
+        },
+        {
+          "key": "health",
+          "label": "Score",
+          "type": "number"
+        },
+        {
+          "key": "plan",
+          "label": "Plan",
+          "type": "pill"
+        },
+        {
+          "key": "members",
+          "label": "Members",
+          "type": "number"
+        },
+        {
+          "key": "checkins14",
+          "label": "Check-ins (14 days)",
+          "type": "number"
+        },
+        {
+          "key": "why",
+          "label": "Why"
+        },
+        {
+          "key": "nudge",
+          "label": "Suggested help"
+        }
+      ]
+    },
+    "audit": {
+      "label": "Audit trail",
+      "endpoint": "/audit/list",
+      "readOnly": true,
+      "empty": "Nothing recorded yet. Actions you and the DM team take in Super Admin appear here.",
+      "columns": [
+        {
+          "key": "at",
+          "label": "When",
+          "type": "date"
+        },
+        {
+          "key": "who",
+          "label": "Who"
+        },
+        {
+          "key": "action",
+          "label": "What",
+          "type": "pill"
+        },
+        {
+          "key": "ref",
+          "label": "Item"
+        },
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "number"
+        },
+        {
+          "key": "reason",
+          "label": "Note"
+        }
+      ],
+      "toolbar": []
+    },
+    "announcements": {
+      "label": "Announcements",
+      "endpoint": "/announcements",
+      "canAdd": true,
+      "readOnly": true,
+      "empty": "No notices yet. Add one to show a short message inside the products.",
+      "columns": [
+        {
+          "key": "title",
+          "label": "Title"
+        },
+        {
+          "key": "body",
+          "label": "Message"
+        },
+        {
+          "key": "products",
+          "label": "Shown in",
+          "type": "tags"
+        },
+        {
+          "key": "endsAt",
+          "label": "Ends",
+          "type": "date"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Remove",
+          "method": "DELETE",
+          "path": "/announcements/:id",
+          "confirm": true,
+          "done": "Removed."
+        }
+      ],
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title (short)",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Message (no links, no names)",
+          "type": "textarea",
+          "required": true
+        },
+        {
+          "key": "endsAt",
+          "label": "Show until (up to 30 days)",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "products",
+          "label": "Products (fit, groom, mart, dine, cloth, wash, hire; empty means all)",
+          "type": "tags"
+        }
+      ],
+      "toolbar": []
+    },
+    "ideas": {
+      "label": "Ideas and suggestions",
+      "endpoint": "/ideas",
+      "canAdd": true,
+      "readOnly": true,
+      "searchable": true,
+      "empty": "No ideas yet. Add one, or press Load starting ideas.",
+      "columns": [
+        {
+          "key": "title",
+          "label": "Idea"
+        },
+        {
+          "key": "detail",
+          "label": "Why"
+        },
+        {
+          "key": "area",
+          "label": "For",
+          "type": "pill"
+        },
+        {
+          "key": "impact",
+          "label": "Impact",
+          "type": "pill"
+        },
+        {
+          "key": "version",
+          "label": "Version",
+          "type": "pill"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        },
+        {
+          "key": "by",
+          "label": "Added by"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Plan for v2",
+          "method": "POST",
+          "path": "/ideas/:id/v2"
+        },
+        {
+          "label": "Plan for v3",
+          "method": "POST",
+          "path": "/ideas/:id/v3"
+        },
+        {
+          "label": "Start",
+          "method": "POST",
+          "path": "/ideas/:id/doing"
+        },
+        {
+          "label": "Done",
+          "method": "POST",
+          "path": "/ideas/:id/done"
+        },
+        {
+          "label": "Drop",
+          "method": "POST",
+          "path": "/ideas/:id/drop",
+          "confirm": true
+        },
+        {
+          "label": "Reopen",
+          "method": "POST",
+          "path": "/ideas/:id/reopen"
+        }
+      ],
+      "toolbar": [
+        {
+          "label": "Load starting ideas",
+          "method": "POST",
+          "path": "/ideas/seed",
+          "done": "Done."
+        }
+      ],
+      "fields": [
+        {
+          "key": "title",
+          "label": "Idea (short)",
+          "required": true
+        },
+        {
+          "key": "detail",
+          "label": "Why it would help (no links)",
+          "type": "textarea"
+        },
+        {
+          "key": "area",
+          "label": "For which product",
+          "type": "select",
+          "options": [
+            "all",
+            "fit",
+            "groom",
+            "mart",
+            "dine",
+            "cloth",
+            "wash",
+            "hire",
+            "admin",
+            "marketing"
+          ]
+        },
+        {
+          "key": "impact",
+          "label": "How much it would help",
+          "type": "select",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      ]
+    },
+    "waitlist": {
+      "label": "Waiting list",
+      "endpoint": "/waitlist",
+      "readOnly": true,
+      "searchable": true,
+      "empty": "Nobody on the list yet. People join from the pilot pages.",
+      "columns": [
+        {
+          "key": "name",
+          "label": "Name"
+        },
+        {
+          "key": "phone",
+          "label": "Phone"
+        },
+        {
+          "key": "email",
+          "label": "Email"
+        },
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "pill"
+        },
+        {
+          "key": "businessType",
+          "label": "Business"
+        },
+        {
+          "key": "city",
+          "label": "City"
+        },
+        {
+          "key": "source",
+          "label": "Came from",
+          "type": "pill"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "pill"
+        },
+        {
+          "key": "createdAt",
+          "label": "Joined",
+          "type": "date"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Contacted",
+          "method": "POST",
+          "path": "/waitlist/:id/contacted",
+          "when": {
+            "key": "status",
+            "equals": "new"
+          },
+          "done": "Marked as contacted."
+        },
+        {
+          "label": "Delete (they asked)",
+          "method": "DELETE",
+          "path": "/waitlist/:id",
+          "confirm": true,
+          "done": "Deleted."
+        }
+      ],
+      "downloads": [
+        {
+          "label": "Download the list (owner only)",
+          "path": "/waitlist/export.csv",
+          "filename": "waitlist.csv"
+        }
+      ]
+    }
+  }
+}

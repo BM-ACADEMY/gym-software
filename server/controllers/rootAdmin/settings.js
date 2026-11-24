@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const RootAdmin = require('../../models/RootAdmin');
 const SystemSettings = require('../../models/SystemSettings');
+const { modeOf, validateGatewayUpdate } = require('../../services/gatewayKeys');
 
 const DEFAULT_BRANDING = { platformName: 'GymDesk', logoUrl: '', primaryColor: '#0d9488' };
 
@@ -27,6 +28,7 @@ const getSettings = async (req, res) => {
         paymentGateway: {
           provider: paymentGateway.provider || '',
           keyId: paymentGateway.keyId || '',
+          mode: modeOf(paymentGateway.keyId),
           hasSecret: Boolean(paymentGateway.keySecret),
           keySecretMasked: maskSecret(paymentGateway.keySecret),
         },
@@ -106,18 +108,18 @@ const updateNotificationTemplates = async (req, res) => {
 // @route   PUT /api/root-admin/settings/payment-gateway
 const updatePaymentGateway = async (req, res) => {
   try {
-    const { provider, keyId, keySecret } = req.body;
     const current = await SystemSettings.getSetting('payment_gateway', { provider: '', keyId: '', keySecret: '' });
-    const updated = {
-      provider: provider !== undefined ? provider : current.provider,
-      keyId: keyId !== undefined ? keyId : current.keyId,
-      keySecret: keySecret ? keySecret : current.keySecret,
-    };
+    const check = validateGatewayUpdate(req.body || {}, current);
+    if (check.error) return res.status(400).json({ success: false, message: check.error });
+    const updated = check.value;
     await SystemSettings.setSetting('payment_gateway', updated, 'Payment gateway credentials (secret stored, never returned by the API)');
+    // RM-11: Razorpay keeps test and live webhooks apart, each with its own secret. After a switch the
+    // RAZORPAY_WEBHOOK_SECRET on the server must be the new mode's one, or every webhook is refused.
+    if (check.modeChanged) console.warn(`[payment] Razorpay keys switched to ${check.mode.toUpperCase()} mode by root admin ${req.user.id}`);
     res.status(200).json({
       success: true,
-      message: 'Payment gateway settings updated successfully',
-      data: { provider: updated.provider, keyId: updated.keyId, hasSecret: Boolean(updated.keySecret) },
+      message: check.modeChanged ? `Saved. Razorpay is now in ${check.mode.toUpperCase()} mode: change the webhook secret on the server too.` : 'Payment gateway settings updated successfully',
+      data: { provider: updated.provider, keyId: updated.keyId, mode: check.mode, hasSecret: Boolean(updated.keySecret) },
     });
   } catch (error) {
     console.error(error);

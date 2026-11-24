@@ -43,7 +43,7 @@ If a gate item is not done by the go / no-go time, the launch moves one day; it 
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
 | RM-10 | Full QA workbook run; Business Rules R01 to R30 decided (1D-01) | Staff, Kamarudeen, Claude | 23 Nov | TODO |
-| RM-11 | Switch Razorpay to live keys; CA check of GST invoices | Aakash, CA | 24 Nov (keys); GST check OPEN | TODO (human) |
+| RM-11 | Switch Razorpay to live keys; CA check of GST invoices. Steps: `docs/products/RAZORPAY_LIVE_STEPS.md`. Root Admin now refuses a new key ID saved without its secret and shows LIVE / Test (WRITTEN 24 Nov, 8 unit checks passed under a stand-in runner; `npm test` by Aakash) | Aakash, CA | 24 Nov (keys); GST check OPEN | TODO (human) |
 | RM-12 | Invite 10 gyms on paid plans (1D-02) | Kamarudeen | 24 to 30 Nov | TODO (human) |
 | RM-13 | Decide the product name (GymDesk clash) and trademark check; lawyer reviews privacy and refund pages | Kamarudeen, lawyer | 23 Nov (name), 27 Nov (lawyer) | OPEN |
 

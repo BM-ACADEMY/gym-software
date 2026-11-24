@@ -185,7 +185,7 @@ const RootAdminSettings = () => {
       const res = await apiClient.put('/root-admin/settings/payment-gateway', payload);
       setPaymentGateway((pg) => ({ ...pg, ...res.data.data }));
       setNewSecret('');
-      showToast('Payment gateway settings saved');
+      showToast(res.data.message || 'Payment gateway settings saved');
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to save payment gateway', 'error');
     } finally {
@@ -267,7 +267,9 @@ const RootAdminSettings = () => {
                 </label>
                 <Input label="Key ID" value={paymentGateway.keyId || ''} onChange={(e) => setPaymentGateway({ ...paymentGateway, keyId: e.target.value })} />
               </div>
-              <Input label={`Key secret ${paymentGateway.hasSecret ? `(currently ${paymentGateway.keySecretMasked})` : ''}`} type="password" value={newSecret} onChange={(e) => setNewSecret(e.target.value)} placeholder={paymentGateway.hasSecret ? 'Leave blank to keep current secret' : 'Enter secret key'} />
+              {paymentGateway.mode === 'live' && <p className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700">LIVE mode: payments take real money.</p>}
+              {paymentGateway.mode === 'test' && <p className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-700">Test mode: no real money moves.</p>}
+              <Input label={`Key secret ${paymentGateway.hasSecret ? `(currently ${paymentGateway.keySecretMasked})` : ''}`} type="password" value={newSecret} onChange={(e) => setNewSecret(e.target.value)} placeholder={paymentGateway.hasSecret ? 'Leave blank to keep current secret (a new key ID needs its secret)' : 'Enter secret key'} />
             </SectionCard>
           </>
         )}

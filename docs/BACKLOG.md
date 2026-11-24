@@ -31,7 +31,7 @@ If a gate item is not done by the go / no-go time, the launch moves one day; it 
 | --- | --- | --- | --- | --- |
 | RM-01 | Run `npm test` (server and client); send failures to Claude, who fixes first (ownerReports, leads suites matter most) | Aakash | 21 Nov | TODO (human) |
 | RM-02 | Repo private; change every password that was in HANDOVER.md (P0-02) | Aakash | 21 Nov | DONE 24 Nov: repo private (checked by Claude: GitHub returns 404 signed out); passwords changed per Kamarudeen, not checked by Claude |
-| RM-03 | Cross-gym and join-form attack tests on Leads and Owner reports; log the 25 old failed tests as bugs (P0-04) | Dev B | 23 Nov | TODO (human) |
+| RM-03 | Cross-gym and join-form attack tests on Leads and Owner reports; log the 25 old failed tests as bugs (P0-04) | Dev B | 23 Nov | IN PROGRESS 24 Nov: 9 automated attack tests in `server/tests/attackLeadsReports.test.js`, all pass (Claude, local test database); no hole found. Still to do: Dev B attacks the live site, and P0-04 (needs the QA workbook) |
 | RM-04 | Phone tests of Leads, Owner reports, sign-up, payment, check-in; results in the features sheet | Staff 1, Staff 2 | 23 Nov | TODO (human) |
 | RM-05 | Razorpay test key in Fit Root Admin; one Rs 1 test payment (P0-05) | Aakash | 22 Nov | TODO (human) |
 | RM-06 | Production env checked; backup to R2 uploaded and one restore tested (P0-03) | Aakash | 23 Nov | TODO (human) |

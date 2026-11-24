@@ -37,7 +37,7 @@ If a gate item is not done by the go / no-go time, the launch moves one day; it 
 | RM-06 | Production env checked; backup to R2 uploaded and one restore tested (P0-03) | Aakash | 23 Nov | TODO (human) |
 | RM-07 | Renew Hostinger server srv2104872 (expires 28 Nov) | Kamarudeen approves, Aakash pays | 25 Nov | TODO (human) |
 | RM-08 | Submit WhatsApp templates to Meta (incl. the two owner report ones); open the WhatsApp Business account on a separate GymDesk number | Aakash, Kamarudeen | 22 Nov | TODO (human) |
-| RM-09 | Fix everything the tests find | Claude | rolling | TODO |
+| RM-09 | Fix everything the tests find. 24 Nov: Claude ran the gym tests on a local copy (throwaway in-memory database, not the team test database): server 409/409 and client 17/17 pass, client build OK. The one failure was in the test itself (`leads.test.js` never switched the rate limit on); fixed. The five other products not run yet | Claude | rolling | IN PROGRESS |
 
 ### 24 to 30 Nov: soft launch, starting 24 Nov (gate: all must-pass tests pass, 10 gyms active, no payment or data incident)
 | ID | Task | Owner | Due | Status |

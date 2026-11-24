@@ -63,9 +63,16 @@ describe('lead capture and CRM', () => {
     expect((await submit(key, { name: 'Bot', phone: '9876543210', consent: true, website: 'http://spam' })).status).toBe(201);
     expect(await Lead.countDocuments({ subscriberId: t.subscriber._id })).toBe(0); // nothing saved
     expect((await submit(key, { name: { $ne: '' }, phone: '9876543210', consent: true })).status).toBe(400);
-    let last;
-    for (let i = 0; i < 12; i += 1) last = await submit(key, { name: 'Test', phone: '98765432' + String(10 + i), consent: true });
-    expect(last.status).toBe(429);
+    // Rate limits are off in tests unless asked for (middleware/security.js).
+    process.env.RATE_LIMIT_IN_TESTS = '1';
+    try {
+      let last;
+      for (let i = 0; i < 12; i += 1) last = await submit(key, { name: 'Test', phone: '98765432' + String(10 + i), consent: true });
+      expect(last.status).toBe(429);
+    } finally {
+      delete process.env.RATE_LIMIT_IN_TESTS;
+      _resetRateLimits();
+    }
   });
 
   test('an expired or switched-off gym takes no new enquiries', async () => {

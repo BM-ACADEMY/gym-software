@@ -30,7 +30,7 @@ If a gate item is not done by the go / no-go time, the launch moves one day; it 
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
 | RM-01 | Run `npm test` (server and client); send failures to Claude, who fixes first (ownerReports, leads suites matter most) | Aakash | 21 Nov | TODO (human) |
-| RM-02 | Repo private; change every password that was in HANDOVER.md (P0-02) | Aakash | 21 Nov | TODO (human) |
+| RM-02 | Repo private; change every password that was in HANDOVER.md (P0-02) | Aakash | 21 Nov | DONE 24 Nov: repo private (checked by Claude: GitHub returns 404 signed out); passwords changed per Kamarudeen, not checked by Claude |
 | RM-03 | Cross-gym and join-form attack tests on Leads and Owner reports; log the 25 old failed tests as bugs (P0-04) | Dev B | 23 Nov | TODO (human) |
 | RM-04 | Phone tests of Leads, Owner reports, sign-up, payment, check-in; results in the features sheet | Staff 1, Staff 2 | 23 Nov | TODO (human) |
 | RM-05 | Razorpay test key in Fit Root Admin; one Rs 1 test payment (P0-05) | Aakash | 22 Nov | TODO (human) |
@@ -69,7 +69,7 @@ If a gate item is not done by the go / no-go time, the launch moves one day; it 
 | ID | Task | Status | Acceptance |
 | --- | --- | --- | --- |
 | P0-01 | Security fixes on `pilot-security-fixes` (commit 21cba9c) | WRITTEN | `npm test` passes incl. `tests/pilotSecurity.test.js`; Security and Tenant suites green on staging |
-| P0-02 | Make GitHub repo private, change every password that was in HANDOVER.md (the four demo accounts: Root Admin, Gym Owner, Sub-Admin, Member, plus any real login that reused them). 28 Oct: `seedDemoUsers.js` no longer holds passwords; it needs `DEMO_SEED_PASSWORD` | TODO (human) | Old passwords fail |
+| P0-02 | Make GitHub repo private, change every password that was in HANDOVER.md (the four demo accounts: Root Admin, Gym Owner, Sub-Admin, Member, plus any real login that reused them). 28 Oct: `seedDemoUsers.js` no longer holds passwords; it needs `DEMO_SEED_PASSWORD` | DONE 24 Nov (see RM-02) | Old passwords fail |
 | P0-03 | Production env set from `server/.env.example`; paid hosting; Atlas backups, one restore tested | TODO (human); guide in `docs/OPS.md` | Restore drill done |
 | P0-04 | Log the 25 failed P1 tests from the QA workbook as bugs | TODO (human) | Bug Log filled |
 | P0-05 | Razorpay exists (get test keys via Dev A, confirm company name + GST). Apply for WhatsApp Business API (separate GymDesk number). CA check on GST invoices. No SMS/DLT | TODO (human) | WhatsApp application submitted; test keys saved in Settings |

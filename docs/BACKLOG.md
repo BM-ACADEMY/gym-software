@@ -42,7 +42,7 @@ If a gate item is not done by the go / no-go time, the launch moves one day; it 
 ### 24 to 30 Nov: soft launch, starting 24 Nov (gate: all must-pass tests pass, 10 gyms active, no payment or data incident)
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| RM-10 | Full QA workbook run; Business Rules R01 to R30 decided (1D-01) | Staff, Kamarudeen, Claude | 23 Nov | IN PROGRESS 25 Nov: v2 workbook has 12 rule tests (no R01 to R30 list); 8 decided, see DECISIONS D-32; PT cancel/move rule changed in code. Open: rules 2, 8, 9; gym delete with 30-day restore not built; staff run of the 96 P1 tests not started |
+| RM-10 | Full QA workbook run; Business Rules R01 to R30 decided (1D-01) | Staff, Kamarudeen, Claude | 23 Nov | IN PROGRESS 25 Nov: v2 workbook has 12 rule tests (no R01 to R30 list); all decided, see DECISIONS D-32; PT cancel/move and one-phone-per-member rules changed in code. Open: gym delete with 30-day restore not built; staff run of the 96 P1 tests not started |
 | RM-11 | Switch Razorpay to live keys; CA check of GST invoices. Steps: `docs/products/RAZORPAY_LIVE_STEPS.md`. Root Admin now refuses a new key ID saved without its secret and shows LIVE / Test (WRITTEN 24 Nov, 8 unit checks passed under a stand-in runner; `npm test` by Aakash) | Aakash, CA | 24 Nov (keys); GST check OPEN | TODO (human) |
 | RM-12 | Invite 10 gyms on paid plans (1D-02) | Kamarudeen | 24 to 30 Nov | TODO (human) |
 | RM-13 | Decide the product name (GymDesk clash) and trademark check; lawyer reviews privacy and refund pages | Kamarudeen, lawyer | 23 Nov (name), 27 Nov (lawyer) | OPEN |

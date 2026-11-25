@@ -6,6 +6,13 @@ const { generateMemberQrDataUrl } = require('../../utils/qrcode');
 
 const STATUS_VALUES = ['trial', 'active', 'expiring', 'expired', 'frozen', 'cancelled'];
 
+// RM-10 (Kamarudeen, 25 Nov): one phone number belongs to one member per gym. Another gym may have it too.
+const phoneTaken = (subscriberId, phone, exceptId) => {
+  if (typeof phone !== 'string' || !phone.trim()) return null;
+  return Member.exists({ subscriberId, phone: phone.trim(), ...(exceptId ? { _id: { $ne: exceptId } } : {}) });
+};
+const PHONE_TAKEN = 'A member with this phone number already exists for this gym';
+
 // A sub-admin's `permissions` map is a Mongoose Map when hydrated from the DB
 // (as it is on req.subAdmin, set by permissionGuard) — this normalizes both
 // that and a plain object so callers don't need to know which they got.
@@ -208,6 +215,9 @@ const createMember = async (req, res) => {
     if (!name) {
       return res.status(400).json({ success: false, message: 'Member name is required' });
     }
+    if (await phoneTaken(req.user.subscriberId, phone)) {
+      return res.status(409).json({ success: false, message: PHONE_TAKEN });
+    }
 
     let planTrainerFields;
     try {
@@ -257,6 +267,9 @@ const updateMember = async (req, res) => {
     }
 
     const { name, phone, email, photo, gender, goal, medicalNotes, status } = req.body;
+    if (phone !== undefined && phone !== member.phone && await phoneTaken(req.user.subscriberId, phone, member._id)) {
+      return res.status(409).json({ success: false, message: PHONE_TAKEN });
+    }
     if (name !== undefined) member.name = name;
     if (phone !== undefined) member.phone = phone;
     if (email !== undefined) member.email = email;

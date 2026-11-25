@@ -34,6 +34,7 @@ const importMembers = async (req, res) => {
 
     for (const rec of records) {
       if (existingPhones.has(rec.phone)) { skippedExisting++; continue; }
+      existingPhones.add(rec.phone); // the same number twice in one file is imported once (RM-10)
       if (toCreate.length >= capacity) {
         problems.push({ row: rec.row, name: rec.name, message: 'Your plan member limit is full. Upgrade to add more.' });
         continue;

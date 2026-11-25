@@ -1,9 +1,8 @@
 const PTSession = require('../../models/PTSession');
 const Member = require('../../models/Member');
 
-// Doc: "cancel/reschedule within policy window" — sessions can't be
-// cancelled/rescheduled within this many hours of their start time.
-const POLICY_WINDOW_HOURS = 2;
+// RM-10 (Kamarudeen, 25 Nov): a member may cancel or move a session any time
+// until it starts, the same day included. The old rule was 2 hours before.
 
 // @desc    View own PT sessions
 // @route   GET /api/member/pt-sessions
@@ -44,17 +43,17 @@ const requestSession = async (req, res) => {
   }
 };
 
-const withinPolicyWindow = (session) => session.scheduledAt.getTime() - Date.now() < POLICY_WINDOW_HOURS * 60 * 60 * 1000;
+const hasStarted = (session) => session.scheduledAt.getTime() <= Date.now();
 
-// @desc    Cancel a session (must be outside the policy window)
+// @desc    Cancel a session (any time before it starts)
 // @route   PATCH /api/member/pt-sessions/:id/cancel
 const cancelSession = async (req, res) => {
   try {
     const session = await PTSession.findOne({ _id: req.params.id, memberId: req.user.id });
     if (!session) return res.status(404).json({ success: false, message: 'Session not found' });
     if (session.status !== 'scheduled') return res.status(400).json({ success: false, message: `This session is already ${session.status}` });
-    if (withinPolicyWindow(session)) {
-      return res.status(400).json({ success: false, message: `Sessions can only be cancelled more than ${POLICY_WINDOW_HOURS} hours in advance` });
+    if (hasStarted(session)) {
+      return res.status(400).json({ success: false, message: 'This session has already started, so it cannot be cancelled' });
     }
     session.status = 'cancelled';
     await session.save();
@@ -65,26 +64,30 @@ const cancelSession = async (req, res) => {
   }
 };
 
-// @desc    Reschedule a session (must be outside the policy window)
+// @desc    Reschedule a session (any time before it starts, to a time that has not passed)
 // @route   PUT /api/member/pt-sessions/:id/reschedule
 const rescheduleSession = async (req, res) => {
   try {
     const { scheduledAt } = req.body;
     if (!scheduledAt) return res.status(400).json({ success: false, message: 'scheduledAt is required' });
+    const newTime = new Date(scheduledAt);
+    if (Number.isNaN(newTime.getTime()) || newTime.getTime() <= Date.now()) {
+      return res.status(400).json({ success: false, message: 'Pick a time that has not passed yet' });
+    }
 
     const session = await PTSession.findOne({ _id: req.params.id, memberId: req.user.id });
     if (!session) return res.status(404).json({ success: false, message: 'Session not found' });
     if (session.status !== 'scheduled') return res.status(400).json({ success: false, message: `This session is already ${session.status}` });
-    if (withinPolicyWindow(session)) {
-      return res.status(400).json({ success: false, message: `Sessions can only be rescheduled more than ${POLICY_WINDOW_HOURS} hours in advance` });
+    if (hasStarted(session)) {
+      return res.status(400).json({ success: false, message: 'This session has already started, so it cannot be moved' });
     }
 
     const clash = await PTSession.findOne({
-      _id: { $ne: session._id }, subscriberId: req.user.subscriberId, subAdminId: session.subAdminId, scheduledAt: new Date(scheduledAt), status: 'scheduled',
+      _id: { $ne: session._id }, subscriberId: req.user.subscriberId, subAdminId: session.subAdminId, scheduledAt: newTime, status: 'scheduled',
     });
     if (clash) return res.status(400).json({ success: false, message: 'Your trainer already has a session booked at that time' });
 
-    session.scheduledAt = new Date(scheduledAt);
+    session.scheduledAt = newTime;
     await session.save();
     res.status(200).json({ success: true, message: 'Session rescheduled', data: session });
   } catch (error) {

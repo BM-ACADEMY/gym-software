@@ -113,3 +113,16 @@ Kamarudeen (Salon question): staff can give a discount, but the owner must know 
 2. **Lead capture + CRM is not limited by plan** (AUTO-DEFAULT, Tier 3 to confirm): pricing is Kamarudeen's call, easy to gate later in Plan settings.
 3. **Not built:** live biometric sync (needs device model and vendor spec; SCOPE says not blind) and multi-branch (Tier 3).
 4. **Open for Kamarudeen: name clash.** "GymDesk" is close to MyGymDesk (India) and Gymdesk (US). RepSetu is one candidate. Needs a trademark check by the lawyer before the name is fixed.
+
+## D-32 (25 Nov): business rules from the QA workbook v2 (RM-10, Kamarudeen)
+The v2 workbook has no R01 to R30 list; these are its 12 tests whose result depends on a rule. "Code" says what the app does now.
+1. **LIFE-06 late renewal:** the new period starts on the renewal date, not backdated. Code: already so.
+2. **PLAT-06 gym upgrade:** the old plan closes, the new plan starts at once, no refund. Code: new plan starts at once and no money goes back, but unused days of the old plan are taken off the new price (up to 90%). OPEN: keep that credit or remove it.
+3. **PT-08 no-show commission:** depends on the trainer: monthly salary, commission, or both. Code: already so (salary and commission % per trainer; commission is a % of PT money collected, so a no-show changes nothing).
+4. **PT-04, PT-05 reschedule:** a member may move a session any time until it starts, the same day included; the owner and trainer can always move it. Code: changed 25 Nov (was blocked within 2 hours).
+5. **CUST-04 cancel:** a member who cannot attend may cancel any time until the session starts. Code: changed 25 Nov (same change).
+6. **ATT-04 expired member at check-in:** block. Code: already the default; a gym can still switch to "warn" in Settings.
+7. **ATT-09 missed check-out:** left blank. Code: already so.
+8. **MEM-03 same phone twice:** answer "no". OPEN: what it means. Code: the same phone is allowed twice, in the same gym and in another gym.
+9. **PERM-16, PERM-17 Trainer access template:** OPEN, explained again to Kamarudeen.
+10. **ROOT-04 deleting a gym:** data stays 30 days in Root Admin, then it can be restored or deleted for good. Code: NOT so; delete removes everything at once, for good. Needs building (RM-10 follow-up); until then, do not delete a gym (suspend it instead).

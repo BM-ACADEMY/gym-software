@@ -53,6 +53,14 @@ setTimeout(() => {
   }, NOTIFICATION_RULES_INTERVAL_MS);
 }, 10000);
 
+// RM-10: gyms that have been in Root Admin's deleted list for 30 days are deleted for good. Hourly; each gym once.
+setTimeout(() => {
+  const { purgeExpired } = require('./services/gymBin');
+  const tick = () => purgeExpired().then((n) => n && console.log(`Deleted ${n} gym(s) after 30 days in the deleted list`)).catch((err) => console.error('Gym bin clean-up failed:', err));
+  tick();
+  setInterval(tick, 60 * 60 * 1000);
+}, 50000);
+
 // WhatsApp automations (renewals, dues, absence, owner summary): every 15 minutes.
 // Each message has a unique dedupe key, so overlapping or repeated runs never double-send.
 setTimeout(() => {

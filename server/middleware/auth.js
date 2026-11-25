@@ -38,7 +38,11 @@ const protect = async (req, res, next) => {
     // Root Admin's own impersonation session (support/troubleshooting), and
     // submitting a support ticket — the one way to ask for reactivation.
     if (SUSPENDABLE_ROLES.includes(decoded.role) && decoded.subscriberId) {
-      const subscriber = await Subscriber.findById(decoded.subscriberId).select('isActive trialEndsAt planStartedAt paidUntil planKey');
+      const subscriber = await Subscriber.findById(decoded.subscriberId).select('isActive trialEndsAt planStartedAt paidUntil planKey deletedAt');
+      // A gym in Root Admin's deleted list (RM-10) is closed to everyone in it, reading included.
+      if (subscriber?.deletedAt) {
+        return res.status(403).json({ success: false, gymDeleted: true, message: 'This gym account has been closed. Please contact support.' });
+      }
       const sub = computeStatus(subscriber);
       const suspended = sub.status === 'suspended';
       const trialExpired = Boolean(sub.trialExpired);

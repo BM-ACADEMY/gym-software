@@ -46,6 +46,10 @@ const subscriberSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  // RM-10 (D-32 rule 10): a deleted gym waits 30 days in Root Admin's bin, closed to its users, then is removed for good.
+  deletedAt: { type: Date, default: null },
+  deletedBy: { type: mongoose.Schema.Types.ObjectId },
+  activeBeforeDelete: { type: Boolean },
   trialEndsAt: {
     type: Date
   },

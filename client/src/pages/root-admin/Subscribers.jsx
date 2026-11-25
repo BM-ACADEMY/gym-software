@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Building2, LogIn, Power, Search, Trash2 } from 'lucide-react';
+import { Building2, LogIn, Power, RotateCcw, Search, Trash2 } from 'lucide-react';
 import apiClient from '../../api/client';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
@@ -13,6 +13,8 @@ const Subscribers = () => {
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmPurge, setConfirmPurge] = useState(null);
+  const inBin = status === 'deleted';
   const [platformPlans, setPlatformPlans] = useState([]);
   const [planSelection, setPlanSelection] = useState('');
   const [planSaving, setPlanSaving] = useState(false);
@@ -101,6 +103,26 @@ const Subscribers = () => {
     }
   };
 
+  // RM-10: a deleted gym waits 30 days in the deleted list; from there it can be restored or deleted for good.
+  const doRestore = async (subscriber) => {
+    try {
+      await apiClient.post(`/root-admin/subscribers/${subscriber._id}/restore`);
+      await fetchSubscribers();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to restore subscriber');
+    }
+  };
+
+  const doPurge = async () => {
+    try {
+      await apiClient.delete(`/root-admin/subscribers/${confirmPurge._id}/permanent`);
+      setConfirmPurge(null);
+      await fetchSubscribers();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete subscriber');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 sm:p-8">
       <div className="mx-auto max-w-6xl">
@@ -120,6 +142,7 @@ const Subscribers = () => {
             <option value="">All statuses</option>
             <option value="active">Active</option>
             <option value="inactive">Suspended</option>
+            <option value="deleted">Deleted (kept 30 days)</option>
           </select>
         </div>
 
@@ -132,20 +155,29 @@ const Subscribers = () => {
               {loading ? (
                 <tr><td colSpan={6} className="px-5 py-10 text-center text-gray-400">Loading...</td></tr>
               ) : subscribers.length === 0 ? (
-                <tr><td colSpan={6} className="px-5 py-10 text-center text-gray-400"><Building2 className="mx-auto mb-2 h-6 w-6" />No subscribers found.</td></tr>
+                <tr><td colSpan={6} className="px-5 py-10 text-center text-gray-400"><Building2 className="mx-auto mb-2 h-6 w-6" />{inBin ? 'No deleted gyms.' : 'No subscribers found.'}</td></tr>
               ) : subscribers.map((s) => (
                 <tr key={s._id} className={!s.isActive ? 'opacity-60' : ''}>
                   <td className="px-5 py-4"><button onClick={() => openDetail(s)} className="font-semibold text-gray-900 hover:text-teal-700">{s.gymName}</button></td>
                   <td className="px-5 py-4 text-gray-600">{s.owner?.name || '—'}</td>
                   <td className="px-5 py-4 capitalize text-gray-600">{s.plan}</td>
                   <td className="px-5 py-4 text-gray-600">{new Date(s.createdAt).toLocaleDateString()}</td>
-                  <td className="px-5 py-4"><Badge tone={s.isActive ? 'green' : 'gray'}>{s.isActive ? 'Active' : 'Suspended'}</Badge></td>
+                  <td className="px-5 py-4">{s.deletedAt
+                    ? <Badge tone="red">Deleted for good on {new Date(s.purgeAt).toLocaleDateString()}</Badge>
+                    : <Badge tone={s.isActive ? 'green' : 'gray'}>{s.isActive ? 'Active' : 'Suspended'}</Badge>}</td>
                   <td className="px-5 py-4">
+                    {s.deletedAt ? (
+                      <div className="flex gap-1">
+                        <button onClick={() => doRestore(s)} title="Restore" className="rounded-lg p-2 text-teal-600 hover:bg-teal-50"><RotateCcw className="h-4 w-4" /></button>
+                        <button onClick={() => setConfirmPurge(s)} title="Delete for good" className="rounded-lg p-2 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
+                      </div>
+                    ) : (
                     <div className="flex gap-1">
                       <button onClick={() => impersonate(s)} title="Impersonate" className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"><LogIn className="h-4 w-4" /></button>
                       <button onClick={() => toggleActive(s)} title={s.isActive ? 'Suspend' : 'Activate'} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"><Power className="h-4 w-4" /></button>
                       <button onClick={() => setConfirmDelete(s)} title="Delete" className="rounded-lg p-2 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
                     </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -205,10 +237,19 @@ const Subscribers = () => {
       <Modal open={!!confirmDelete} onClose={() => setConfirmDelete(null)} title="Delete subscriber" footer={
         <>
           <button onClick={() => setConfirmDelete(null)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button onClick={doDelete} className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Delete permanently</button>
+          <button onClick={doDelete} className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Delete</button>
         </>
       }>
-        <p className="text-sm text-gray-600">This permanently deletes <b>{confirmDelete?.gymName}</b> and all its members, staff, payments, and history. This cannot be undone.</p>
+        <p className="text-sm text-gray-600"><b>{confirmDelete?.gymName}</b> will be closed for its owner, staff and members at once. Everything is kept for 30 days in "Deleted (kept 30 days)", where you can restore it. After 30 days it is deleted for good.</p>
+      </Modal>
+
+      <Modal open={!!confirmPurge} onClose={() => setConfirmPurge(null)} title="Delete for good" footer={
+        <>
+          <button onClick={() => setConfirmPurge(null)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
+          <button onClick={doPurge} className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Delete for good</button>
+        </>
+      }>
+        <p className="text-sm text-gray-600">This deletes <b>{confirmPurge?.gymName}</b> and all its members, staff, payments and history now. It cannot be undone.</p>
       </Modal>
     </div>
   );

@@ -4,6 +4,7 @@ const Admin = require('../models/Admin');
 const Member = require('../models/Member');
 const Payment = require('../models/Payment');
 const PTSession = require('../models/PTSession');
+const Subscriber = require('../models/Subscriber');
 const { sendSms } = require('../utils/sms');
 const { sendEmail } = require('../utils/email');
 const { suggestBestSendHour } = require('./ai');
@@ -107,11 +108,16 @@ const shouldSendNow = async (recipientId) => {
 // Each accepts an optional subscriberId to scope a single gym's manual "run now",
 // or runs platform-wide when called by the background scheduler.
 
+// Platform-wide runs skip gyms in Root Admin's deleted list (RM-10): their members get nothing.
+const gymScope = async (subscriberId) => (subscriberId
+  ? { subscriberId }
+  : { subscriberId: { $nin: await Subscriber.find({ deletedAt: { $ne: null } }).distinct('_id') } });
+
 const runPlanExpiryReminders = async (subscriberId) => {
   const now = new Date();
   const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
   const since3Days = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-  const base = { status: 'active', ...(subscriberId && { subscriberId }) };
+  const base = { status: 'active', ...(await gymScope(subscriberId)) };
 
   const expiringSoon = await Member.find({ ...base, expiresAt: { $gt: now, $lte: in3Days } });
   const justExpired = await Member.find({ ...base, expiresAt: { $gt: since3Days, $lte: now } });
@@ -140,7 +146,7 @@ const runPlanExpiryReminders = async (subscriberId) => {
 };
 
 const runPaymentOverdueReminders = async (subscriberId) => {
-  const query = { status: { $in: ['pending', 'partial'] }, dueDate: { $lt: new Date() }, ...(subscriberId && { subscriberId }) };
+  const query = { status: { $in: ['pending', 'partial'] }, dueDate: { $lt: new Date() }, ...(await gymScope(subscriberId)) };
   const overdue = await Payment.find(query).populate('memberId');
 
   const bySubscriber = new Map();
@@ -183,7 +189,7 @@ const runPaymentOverdueReminders = async (subscriberId) => {
 const runPTSessionReminders = async (subscriberId) => {
   const now = new Date();
   const in1Hour = new Date(now.getTime() + 60 * 60 * 1000);
-  const query = { status: 'scheduled', scheduledAt: { $gt: now, $lte: in1Hour }, ...(subscriberId && { subscriberId }) };
+  const query = { status: 'scheduled', scheduledAt: { $gt: now, $lte: in1Hour }, ...(await gymScope(subscriberId)) };
   const sessions = await PTSession.find(query).populate('memberId').populate('subAdminId');
 
   let sent = 0;

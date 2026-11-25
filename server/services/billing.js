@@ -19,6 +19,7 @@ const runBillingCycle = async () => {
   const due = await Subscriber.find({
     platformPlanId: { $ne: null },
     nextBillingDate: { $lte: new Date() },
+    deletedAt: null, // never bill a gym in the deleted list (RM-10)
   });
 
   let generated = 0;

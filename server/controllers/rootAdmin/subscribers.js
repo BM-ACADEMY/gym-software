@@ -5,24 +5,20 @@ const Admin = require('../../models/Admin');
 const SubAdmin = require('../../models/SubAdmin');
 const Member = require('../../models/Member');
 const Payment = require('../../models/Payment');
-const PTSession = require('../../models/PTSession');
-const Workout = require('../../models/Workout');
-const WorkoutTemplate = require('../../models/WorkoutTemplate');
-const Attendance = require('../../models/Attendance');
-const Expense = require('../../models/Expense');
-const Trial = require('../../models/Trial');
-const Notification = require('../../models/Notification');
-const AuditLog = require('../../models/AuditLog');
 const PlatformPlan = require('../../models/PlatformPlan');
 const { generateToken } = require('../../utils/jwt');
 const { logAudit } = require('../../utils/auditLog');
+const bin = require('../../services/gymBin');
+
+const IN_BIN = 'This gym is in the deleted list. Restore it first.';
 
 // @desc    List/search/filter all gyms
 // @route   GET /api/root-admin/subscribers
 const listSubscribers = async (req, res) => {
   try {
     const { search, status, dateFrom, dateTo } = req.query;
-    const query = {};
+    // status=deleted lists the 30-day bin; every other view leaves binned gyms out.
+    const query = { deletedAt: status === 'deleted' ? { $ne: null } : null };
     if (search) query.gymName = { $regex: escapeRegex(search), $options: 'i' };
     if (status === 'active') query.isActive = true;
     if (status === 'inactive') query.isActive = false;
@@ -36,7 +32,9 @@ const listSubscribers = async (req, res) => {
     const admins = await Admin.find({ subscriberId: { $in: subscribers.map((s) => s._id) } }).select('subscriberId name email phone');
     const adminBySubscriber = new Map(admins.map((a) => [String(a.subscriberId), a]));
 
-    const data = subscribers.map((s) => ({ ...s.toObject(), owner: adminBySubscriber.get(String(s._id)) || null }));
+    const data = subscribers.map((s) => ({
+      ...s.toObject(), owner: adminBySubscriber.get(String(s._id)) || null, ...(s.deletedAt && { purgeAt: bin.purgeDate(s.deletedAt) }),
+    }));
     res.status(200).json({ success: true, message: 'Subscribers fetched successfully', data });
   } catch (error) {
     console.error(error);
@@ -138,6 +136,7 @@ const suspendSubscriber = async (req, res) => {
 // @route   PATCH /api/root-admin/subscribers/:id/activate
 const activateSubscriber = async (req, res) => {
   try {
+    if (await Subscriber.exists({ _id: req.params.id, deletedAt: { $ne: null } })) return res.status(400).json({ success: false, message: IN_BIN });
     const subscriber = await Subscriber.findByIdAndUpdate(req.params.id, { isActive: true }, { returnDocument: 'after' });
     if (!subscriber) return res.status(404).json({ success: false, message: 'Subscriber not found' });
     await logAudit({ subscriberId: subscriber._id, actingRole: 'root_admin', actingUserId: req.user.id, module: 'subscribers', action: 'activate', targetId: subscriber._id });
@@ -148,33 +147,51 @@ const activateSubscriber = async (req, res) => {
   }
 };
 
-// @desc    Permanently delete a gym and everything that belongs to it
+const findGym = async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) { res.status(404).json({ success: false, message: 'Subscriber not found' }); return null; }
+  const subscriber = await Subscriber.findById(req.params.id);
+  if (!subscriber) { res.status(404).json({ success: false, message: 'Subscriber not found' }); return null; }
+  return subscriber;
+};
+
+// @desc    Delete a gym: it goes to the deleted list for 30 days, closed to its users, and can be restored (RM-10)
 // @route   DELETE /api/root-admin/subscribers/:id
 const deleteSubscriber = async (req, res) => {
   try {
-    const subscriber = await Subscriber.findById(req.params.id);
-    if (!subscriber) return res.status(404).json({ success: false, message: 'Subscriber not found' });
+    const subscriber = await findGym(req, res); if (!subscriber) return;
+    if (subscriber.deletedAt) return res.status(400).json({ success: false, message: 'This gym is already in the deleted list.' });
+    const purgeAt = await bin.moveToBin(subscriber, req.user.id);
+    await logAudit({ subscriberId: subscriber._id, actingRole: 'root_admin', actingUserId: req.user.id, module: 'subscribers', action: 'move_to_deleted', targetId: subscriber._id });
+    res.status(200).json({ success: true, message: `${subscriber.gymName} is in the deleted list. It can be restored until ${purgeAt.toDateString()}.`, data: { purgeAt } });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
 
-    const id = req.params.id;
-    await Promise.all([
-      Admin.deleteMany({ subscriberId: id }),
-      SubAdmin.deleteMany({ subscriberId: id }),
-      Member.deleteMany({ subscriberId: id }),
-      Payment.deleteMany({ subscriberId: id }),
-      PTSession.deleteMany({ subscriberId: id }),
-      Workout.deleteMany({ subscriberId: id }),
-      WorkoutTemplate.deleteMany({ subscriberId: id }),
-      Attendance.deleteMany({ subscriberId: id }),
-      Expense.deleteMany({ subscriberId: id }),
-      Trial.deleteMany({ subscriberId: id }),
-      Notification.deleteMany({ subscriberId: id }),
-    ]);
-    // Audit log of the deletion itself is written after the deletion (and not
-    // scoped-deleted along with the rest) so there's a record it happened.
-    await Subscriber.deleteOne({ _id: id });
-    await AuditLog.create({ subscriberId: id, actingRole: 'root_admin', actingUserId: req.user.id, module: 'subscribers', action: 'delete', targetId: id });
+// @desc    Bring a gym back from the deleted list, with everything it had
+// @route   POST /api/root-admin/subscribers/:id/restore
+const restoreSubscriber = async (req, res) => {
+  try {
+    const subscriber = await findGym(req, res); if (!subscriber) return;
+    if (!subscriber.deletedAt) return res.status(400).json({ success: false, message: 'This gym is not in the deleted list.' });
+    await bin.restoreFromBin(subscriber);
+    await logAudit({ subscriberId: subscriber._id, actingRole: 'root_admin', actingUserId: req.user.id, module: 'subscribers', action: 'restore', targetId: subscriber._id });
+    res.status(200).json({ success: true, message: `${subscriber.gymName} has been restored`, data: subscriber });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
 
-    res.status(200).json({ success: true, message: `${subscriber.gymName} and all its data have been deleted` });
+// @desc    Delete a gym and all its data for good. Only from the deleted list, so it always takes two steps.
+// @route   DELETE /api/root-admin/subscribers/:id/permanent
+const purgeSubscriber = async (req, res) => {
+  try {
+    const subscriber = await findGym(req, res); if (!subscriber) return;
+    if (!subscriber.deletedAt) return res.status(400).json({ success: false, message: 'Delete the gym first; it can be removed for good from the deleted list.' });
+    await bin.purgeGym(subscriber._id, req.user.id);
+    res.status(200).json({ success: true, message: `${subscriber.gymName} and all its data have been deleted for good` });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -187,6 +204,7 @@ const impersonateSubscriber = async (req, res) => {
   try {
     const subscriber = await Subscriber.findById(req.params.id);
     if (!subscriber) return res.status(404).json({ success: false, message: 'Subscriber not found' });
+    if (subscriber.deletedAt) return res.status(400).json({ success: false, message: IN_BIN });
 
     const admin = await Admin.findOne({ subscriberId: req.params.id });
     if (!admin) return res.status(404).json({ success: false, message: 'This gym has no owner account to impersonate' });
@@ -209,4 +227,4 @@ const impersonateSubscriber = async (req, res) => {
   }
 };
 
-module.exports = { listSubscribers, getSubscriberDetail, overrideSubscriberPlan, suspendSubscriber, activateSubscriber, deleteSubscriber, impersonateSubscriber };
+module.exports = { listSubscribers, getSubscriberDetail, overrideSubscriberPlan, suspendSubscriber, activateSubscriber, deleteSubscriber, restoreSubscriber, purgeSubscriber, impersonateSubscriber };

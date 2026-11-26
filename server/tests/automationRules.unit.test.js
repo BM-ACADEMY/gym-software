@@ -68,7 +68,7 @@ describe('whatsapp helpers and templates', () => {
   });
   test('render and ordered params', () => {
     const p = { name: 'Ravi', gym: 'Iron House', days: 7, phone: '9876543210' };
-    expect(render('gymdesk_renewal_reminder', p)).toBe('Hi Ravi, your membership at Iron House ends in 7 day(s). Renew now to keep your access without a break. Questions? Call 9876543210.');
+    expect(render('gymdesk_renewal_reminder', p)).toBe('Hi Ravi, your membership at Iron House ends in 7 day(s). Renew now to keep your access without a break. Questions? Call 9876543210 for help.');
     expect(orderedParams('gymdesk_renewal_reminder', p)).toEqual(['Ravi', 'Iron House', '7', '9876543210']);
     expect(orderedParams('gymdesk_absence_checkin', { name: 'A\nB', gym: 'G', days: 11 })[0]).toBe('A B');
   });

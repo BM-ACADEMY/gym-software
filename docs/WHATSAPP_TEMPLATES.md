@@ -17,7 +17,7 @@ Source of truth: `server/config/whatsappTemplates.js`.
 - Parameters in order: {{1}} = name, {{2}} = gym, {{3}} = days, {{4}} = phone
 - Body:
 
-> Hi {{1}}, your membership at {{2}} ends in {{3}} day(s). Renew now to keep your access without a break. Questions? Call {{4}}.
+> Hi {{1}}, your membership at {{2}} ends in {{3}} day(s). Renew now to keep your access without a break. Questions? Call {{4}} for help.
 
 - Sample values for Meta: Ravi | Iron House Gym | 7 | 9876543210
 
@@ -37,7 +37,7 @@ Source of truth: `server/config/whatsappTemplates.js`.
 - Parameters in order: {{1}} = name, {{2}} = gym, {{3}} = phone
 - Body:
 
-> Hi {{1}}, we miss you at {{2}}! Your membership ended recently. Come back this week and we will get you started again. Call {{3}}.
+> Hi {{1}}, we miss you at {{2}}! Your membership ended recently. Come back this week and we will get you started again. Call {{3}} to book your visit.
 
 - Sample values for Meta: Ravi | Iron House Gym | 9876543210
 

@@ -7,7 +7,7 @@
 const TEMPLATES = {
   gymdesk_renewal_reminder: {
     params: ['name', 'gym', 'days', 'phone'],
-    body: 'Hi {{1}}, your membership at {{2}} ends in {{3}} day(s). Renew now to keep your access without a break. Questions? Call {{4}}.',
+    body: 'Hi {{1}}, your membership at {{2}} ends in {{3}} day(s). Renew now to keep your access without a break. Questions? Call {{4}} for help.',
   },
   gymdesk_plan_expired: {
     params: ['name', 'gym', 'phone'],
@@ -15,7 +15,7 @@ const TEMPLATES = {
   },
   gymdesk_winback: {
     params: ['name', 'gym', 'phone'],
-    body: 'Hi {{1}}, we miss you at {{2}}! Your membership ended recently. Come back this week and we will get you started again. Call {{3}}.',
+    body: 'Hi {{1}}, we miss you at {{2}}! Your membership ended recently. Come back this week and we will get you started again. Call {{3}} to book your visit.',
   },
   gymdesk_dues_reminder: {
     params: ['name', 'gym', 'amount', 'upi', 'phone'],

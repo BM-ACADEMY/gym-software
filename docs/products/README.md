@@ -1,7 +1,7 @@
 # Afra Ventures product suite: scope index
 
 Written 28 Oct 2026. Owner decision (D-09): every product launches as real, competitive software, planned the way the gym was.
-No demo-only or waitlist-only launches. Owner target dates below are Mohamed's from 28 Oct and are replaced by the weekly plan in `docs/BACKLOG.md` (decision D-32, 28 Nov); Claude's date confidence is reported in each Daily Brief.
+No demo-only or waitlist-only launches. Owner target dates below are Mohamed's from 28 Oct and are replaced by the weekly plan in `docs/BACKLOG.md` (D-32, 28 Nov). "Launch" now means ready to sell, with the 10-line checklist in the backlog (D-33); Claude's date confidence is reported in each Daily Brief.
 
 | # | Product | Address (working) | Owner target: phase 1 starts (invite-only, 3 to 10 real businesses) | Scope file |
 | --- | --- | --- | --- | --- |

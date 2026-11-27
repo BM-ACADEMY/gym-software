@@ -174,6 +174,12 @@ const Billing = () => {
         <div className={`rounded-xl px-4 py-3 text-sm font-medium ${message.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>{message.text}</div>
       )}
 
+      {info.testCharge && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
+          Rs 1 test price is on for this gym until {new Date(info.testCharge.expiresAt).toLocaleTimeString()}: choose Solo, Monthly. The card below still shows the normal price; the payment window will ask for Rs 1.
+        </div>
+      )}
+
       {!info.state && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
           <p className="mb-3 text-sm font-medium text-amber-900">{t('Before you pay, tell us your state. It decides how GST appears on your invoice. Add your GST number if you have one, to claim input credit.')}</p>
@@ -246,7 +252,7 @@ const Billing = () => {
                     <td className="p-3 font-medium">{p.invoiceNo || '-'}</td>
                     <td className="p-3">{fmtDate(p.paidAt)}</td>
                     <td className="p-3 capitalize">{p.planKey} ({p.cycle})</td>
-                    <td className="p-3">{rupees(p.total)}</td>
+                    <td className="p-3">{rupees(p.total)}{p.status === 'refunded' && <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">{t('Refunded')}</span>}</td>
                     <td className="p-3"><button onClick={() => downloadInvoice(p)} className="inline-flex items-center gap-1 text-teal-700 hover:underline"><Download className="h-4 w-4" />PDF</button></td>
                   </tr>
                 ))}

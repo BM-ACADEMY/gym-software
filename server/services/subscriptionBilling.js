@@ -9,6 +9,7 @@ const { computeStatus } = require('./subscription');
 const M = require('./billingMath');
 const gateway = require('./paymentGateway');
 const promoSvc = require('./promo');
+const testCharge = require('./testCharge');
 
 const sellerState = () => process.env.SELLER_STATE || 'Puducherry';
 const invoicePrefix = () => process.env.INVOICE_PREFIX || 'AV';
@@ -49,8 +50,13 @@ const buildQuote = async (subscriberId, planKey, cycle, now = new Date(), promoC
   if (!subscriber.state) {
     throw fail(400, 'Please select your state first. It decides how GST is shown on your invoice.', 'state_required');
   }
+  const gstMode = M.gstModeFor(subscriber.state, sellerState());
+  // RM-11: Root Admin's one-time Rs 1 live test price for this one gym (Solo monthly only). No promo on top.
+  if (planKey === testCharge.PLAN && cycle === testCharge.CYCLE && (await testCharge.activeFor(subscriberId, now))) {
+    return { subscriber, rule: { ...rule, creditRupees: 0 }, quote: testCharge.quote(gstMode), plan, promo: null };
+  }
   const promo = promoCode ? await promoSvc.checkPromo(promoCode, { subscriberId, planKey, now }) : null;
-  const quote = M.quote({ plan: planKey, cycle, creditRupees: rule.creditRupees, gstMode: M.gstModeFor(subscriber.state, sellerState()), discountPercent: promo ? promo.percentOff : 0 });
+  const quote = M.quote({ plan: planKey, cycle, creditRupees: rule.creditRupees, gstMode, discountPercent: promo ? promo.percentOff : 0 });
   return { subscriber, rule, quote, plan, promo };
 };
 
@@ -79,6 +85,7 @@ const startCheckout = async (subscriberId, planKey, cycle, promoCode) => {
     razorpayOrderId: order.orderId, buyerName: subscriber.gymName,
     buyerGstin: subscriber.gstEnabled ? subscriber.gstNumber : undefined,
     buyerState: subscriber.state,
+    testCharge: Boolean(quote.testCharge),
   });
 
   return { orderId: order.orderId, amount: quote.total, currency: 'INR', keyId: order.keyId || null, provider: order.provider, quote };
@@ -135,6 +142,8 @@ const activate = async ({ orderId, paymentId, paidAmountRupees }, now = new Date
     }
     await applyToSubscriber(p);
     await promoSvc.redeemForPayment(p);
+    // RM-11: the Rs 1 test price is used up by its first paid order.
+    if (claimed && p.testCharge) await testCharge.clear();
   }
   return p;
 };

@@ -38,6 +38,7 @@ const schema = new mongoose.Schema(
     periodStart: Date,
     periodEnd: Date,
     note: String,
+    testCharge: { type: Boolean, default: false }, // RM-11 one-time Rs 1 live test price set by Root Admin
     // Snapshot of the buyer at purchase time, printed on the invoice.
     buyerName: String,
     buyerGstin: String,

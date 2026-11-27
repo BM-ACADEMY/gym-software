@@ -2,6 +2,9 @@ const bcrypt = require('bcryptjs');
 const RootAdmin = require('../../models/RootAdmin');
 const SystemSettings = require('../../models/SystemSettings');
 const { modeOf, validateGatewayUpdate } = require('../../services/gatewayKeys');
+const mongoose = require('mongoose');
+const Subscriber = require('../../models/Subscriber');
+const testCharge = require('../../services/testCharge');
 
 const DEFAULT_BRANDING = { platformName: 'GymDesk', logoUrl: '', primaryColor: '#0d9488' };
 
@@ -127,4 +130,45 @@ const updatePaymentGateway = async (req, res) => {
   }
 };
 
-module.exports = { getSettings, updateProfile, updateBranding, updateNotificationTemplates, updatePaymentGateway };
+// @desc    RM-11: the one-time Rs 1 test price (one gym, Solo monthly, 30 minutes, used up by its first payment)
+// @route   GET /api/root-admin/settings/test-charge
+const getTestCharge = async (req, res) => {
+  try {
+    const charge = await testCharge.get();
+    const active = charge && new Date(charge.expiresAt) > new Date() ? charge : null;
+    res.status(200).json({ success: true, data: active });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @route   PUT /api/root-admin/settings/test-charge  { subscriberId }
+const setTestCharge = async (req, res) => {
+  try {
+    const id = typeof req.body?.subscriberId === 'string' ? req.body.subscriberId : '';
+    if (!mongoose.isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Choose the internal test gym' });
+    const gym = await Subscriber.findById(id).select('gymName state deletedAt isActive');
+    if (!gym || gym.deletedAt) return res.status(404).json({ success: false, message: 'Gym not found' });
+    if (!gym.state) return res.status(400).json({ success: false, message: 'Set the state on this gym first (Plan & Billing). It decides the GST on the invoice.' });
+    const value = await testCharge.set({ subscriberId: gym._id, gymName: gym.gymName, by: req.user.id });
+    console.warn(`[payment] Rs ${value.amount} test price turned on for gym ${gym._id} by root admin ${req.user.id} until ${value.expiresAt}`);
+    res.status(200).json({ success: true, message: `Rs ${value.amount} test price is on for ${gym.gymName} (Solo monthly) for ${testCharge.MINUTES} minutes.`, data: value });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @route   DELETE /api/root-admin/settings/test-charge
+const clearTestCharge = async (req, res) => {
+  try {
+    await testCharge.clear();
+    res.status(200).json({ success: true, message: 'Test price turned off', data: null });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports = { getSettings, updateProfile, updateBranding, updateNotificationTemplates, updatePaymentGateway, getTestCharge, setTestCharge, clearTestCharge };

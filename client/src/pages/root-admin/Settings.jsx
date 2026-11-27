@@ -93,6 +93,42 @@ const RootAdminSettings = () => {
   const [templates, setTemplates] = useState({});
   const [paymentGateway, setPaymentGateway] = useState(null);
   const [newSecret, setNewSecret] = useState('');
+  // RM-11: one-time Rs 1 test price for one internal gym.
+  const [testCharge, setTestCharge] = useState(null);
+  const [gyms, setGyms] = useState([]);
+  const [testGymId, setTestGymId] = useState('');
+
+  const loadTestCharge = async () => {
+    try {
+      const [c, g] = await Promise.all([apiClient.get('/root-admin/settings/test-charge'), apiClient.get('/root-admin/subscribers')]);
+      setTestCharge(c.data.data);
+      setGyms(Array.isArray(g.data.data) ? g.data.data : []);
+    } catch { /* section shows empty; the rest of the page still works */ }
+  };
+  useEffect(() => { loadTestCharge(); }, []);
+
+  const turnOnTestCharge = async () => {
+    if (!testGymId) return showToast('Choose the internal test gym', 'error');
+    const gym = gyms.find((g) => g._id === testGymId);
+    if (!window.confirm(`Turn on the Rs 1 price for "${gym?.gymName}" only (Solo monthly, 30 minutes)?`)) return;
+    try {
+      const res = await apiClient.put('/root-admin/settings/test-charge', { subscriberId: testGymId });
+      setTestCharge(res.data.data);
+      showToast(res.data.message);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Could not turn on the test price', 'error');
+    }
+  };
+
+  const turnOffTestCharge = async () => {
+    try {
+      await apiClient.delete('/root-admin/settings/test-charge');
+      setTestCharge(null);
+      showToast('Test price turned off');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Could not turn off the test price', 'error');
+    }
+  };
   const [savingSection, setSavingSection] = useState('');
 
   const showToast = (msg, type = 'success') => {
@@ -270,6 +306,28 @@ const RootAdminSettings = () => {
               {paymentGateway.mode === 'live' && <p className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700">LIVE mode: payments take real money.</p>}
               {paymentGateway.mode === 'test' && <p className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-700">Test mode: no real money moves.</p>}
               <Input label={`Key secret ${paymentGateway.hasSecret ? `(currently ${paymentGateway.keySecretMasked})` : ''}`} type="password" value={newSecret} onChange={(e) => setNewSecret(e.target.value)} placeholder={paymentGateway.hasSecret ? 'Leave blank to keep current secret (a new key ID needs its secret)' : 'Enter secret key'} />
+            </SectionCard>
+
+            <SectionCard icon={CreditCard} title="Rs 1 test payment" description="One internal gym pays Rs 1 for Solo monthly. Other gyms and the pricing page keep normal prices.">
+              {testCharge ? (
+                <div className="space-y-3">
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-800">
+                    On for {testCharge.gymName} until {new Date(testCharge.expiresAt).toLocaleTimeString()}. It turns off by itself after the first paid order.
+                  </p>
+                  <button onClick={turnOffTestCharge} className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Turn off now</button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-end gap-3">
+                  <label className="block min-w-[14rem] flex-1"><span className="mb-1 block text-sm font-medium text-gray-700">Internal test gym (not a customer)</span>
+                    <select value={testGymId} onChange={(e) => setTestGymId(e.target.value)} className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm">
+                      <option value="">Choose a gym</option>
+                      {gyms.map((g) => <option key={g._id} value={g._id}>{g.gymName}</option>)}
+                    </select>
+                  </label>
+                  <button onClick={turnOnTestCharge} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700">Turn on for 30 minutes</button>
+                </div>
+              )}
+              {paymentGateway.mode === 'live' && <p className="text-xs text-red-600">Keys are LIVE: this takes Rs 1 of real money. Refund it from the Razorpay dashboard.</p>}
             </SectionCard>
           </>
         )}

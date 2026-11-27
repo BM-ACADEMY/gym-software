@@ -4,6 +4,37 @@ Status values: TODO, IN PROGRESS, WRITTEN (code pushed, not yet tested by a huma
 Claude: update this file in the same commit as the work. Work in ID order within a phase unless blocked.
 Days are estimates for Claude-written code, excluding human test time.
 
+## ROADMAP: one product launches every week (set 28 Nov, Kamarudeen; replaces the dates in the Gym roadmap and README below where they differ)
+
+"Launch" here means the invite-only start with 3 to 10 real businesses (as in `docs/products/README.md`). A product launches on its Monday only if its gate is green on the Friday before; if not, only that product slips a week and the rest keep their order (Kamarudeen decides each Friday).
+
+| Week (Mon) | Product | Launch | Gate day (Fri before) | Notes |
+| --- | --- | --- | --- | --- |
+| 1: 30 Nov | Gym (Fit) | Soft launch, 10 invited gyms on paid plans | Already deployed 18 Nov; needs tests (RM-01 to RM-08) | Public sign-up (`PUBLIC_SIGNUP=true`) and ads: 15 Dec, the fallback date in SCOPE |
+| 2: 7 Dec | Groom (Salon, Spa, Barber, Clinic) | Invite-only start | 4 Dec | Needs `SAL-DB` (real database test) green |
+| 3: 14 Dec | Mart | Invite-only start | 11 Dec | `MRT-14` human tests; billing screen check |
+| 4: 21 Dec | Dine | Invite-only start | 18 Dec | `DIN-QA`, alcohol policy check `DIN-R2` for pub mode |
+| 5: 28 Dec | Cloth | Invite-only start | 25 Dec | `CLO-07` screens and templates; festival week, plan staff cover |
+| 6: 4 Jan | Wash | Invite-only start | 1 Jan | `WSH-11` photo storage decision first (Kamarudeen) |
+| 7: 11 Jan | Hire | Invite-only start | 8 Jan | Hire AI parsing stays off until the lawyer confirms the privacy wording |
+
+Every product follows the same week:
+- **Mon to Tue before:** Claude fixes what the last tests found; scope file and marketing claims checked against what is built.
+- **Wed:** staff run the product's QA workbook on phones (fake data only).
+- **Thu:** Dev B attack suite (cross-business reads, abuse of public pages); Aakash runs `npm test` and the real-database tests.
+- **Fri:** go or no-go by Kamarudeen using the product's gate. Claude reports what is written, not tested.
+- **Mon:** invite 3 to 10 businesses; one deploy by Aakash or Kamarudeen (the background deploy command, never interrupted).
+- **Following week:** collect feedback, fix, and keep the next product on schedule.
+
+Needed before any launch week (shared, one-off):
+| ID | Task | Owner | Due |
+| --- | --- | --- | --- |
+| WK-01 | Renew Hostinger server srv2104872 (expired or expiring 28 Nov; confirm it is renewed) | Kamarudeen approves, Aakash pays | Now |
+| WK-02 | Razorpay live keys and CA check of GST invoices | Aakash, CA | Before 30 Nov |
+| WK-03 | WhatsApp Business account, templates submitted to Meta (gym first, then each product's) | Aakash, Kamarudeen | Gym by 30 Nov; each product a week before its launch |
+| WK-04 | Server capacity check: 8 apps share one 2-core server (CPU was 71% during the 18 Nov deploy); decide whether to upgrade before week 4 | Aakash, Kamarudeen | 11 Dec |
+| WK-05 | Decide product name (GymDesk clash) and have the lawyer check it | Kamarudeen, lawyer | Before 15 Dec public gym launch |
+
 ## ROADMAP: Gym (Fit) first launch (added 19 Nov; first launch moved to 24 Nov on 21 Nov by Kamarudeen; planned dates are targets, owners in brackets)
 
 Status values as below. This section is the short list; the detailed rows are in the phases that follow.

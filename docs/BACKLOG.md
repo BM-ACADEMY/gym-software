@@ -6,7 +6,7 @@ Days are estimates for Claude-written code, excluding human test time.
 
 ## ROADMAP: one product launches every week (set 28 Nov by Kamarudeen; replaces the older dates in this file and in `docs/products/README.md`)
 
-"Launch" = the invite-only start with 3 to 10 real businesses. A product launches on its Monday only if its gate is green on the Friday before. If not, only that product slips a week; the others keep their order (Kamarudeen decides each Friday).
+"Launch" = ready to sell: a business can sign up, pay and use the product on a phone without help, and the product has passed the sell-ready checklist below (UI and testing included). The first buyers are 3 to 10 invited businesses. A product launches on its Monday only if its gate is green on the Friday before. If not, only that product slips a week; the others keep their order (Kamarudeen decides each Friday).
 
 ### Who does what (roles)
 | Role | Who | Does |
@@ -24,6 +24,23 @@ One sprint = one week, Monday to Sunday.
 - **Wed to Thu:** the next product's gate runs: staff QA on phones (Wed), Dev B attack suite and Dev A real-database tests (Thu).
 - **Friday, gate and review:** Kamarudeen's go or no-go for the next product; short review of what slipped and why.
 - **Monday:** the product launches (invites sent, deployed the day before by Dev A). Tasks are assigned the Saturday before, so the team starts Monday knowing what to do.
+
+### What "launch" means: the sell-ready checklist (Kamarudeen, 28 Nov)
+A product is launched only when every line is green on the gate day. A line can be waived only by Kamarudeen, in writing in `docs/DECISIONS.md`, with the reason. Claude reports each line as "written, not tested" until a human has run it.
+| # | Line | Green when | Who checks |
+| --- | --- | --- | --- |
+| 1 | UI finished | Every Phase 1 screen of the product is built and looks right on a real phone (Android and iPhone): no placeholder text, no broken layout, empty and error states, sensible loading, the languages the landing page promises. Kamarudeen has looked at every screen on his own phone and signed it off | Claude builds; Kamarudeen approves; Staff 1 and 2 check |
+| 2 | Tests pass | `npm test` green; real-database tests green; the product's QA workbook has every P1 test passed by a person; Dev B attack suite clean (no cross-business access, no abuse of public pages); no open serious bug | Aakash, Staff 1 and 2, Dev B |
+| 3 | Money works | Plans and prices approved by Kamarudeen (above the cost floor); live Razorpay checkout works with one real Rs 1 payment and refund; trial, renewal and expiry behave; GST invoice checked by the CA | Aakash, CA, Kamarudeen |
+| 4 | Self-serve onboarding | A new owner can sign up, set up and make a first bill, booking or entry without an Afra person; import or sample data works | Staff 1 and 2 (fresh account) |
+| 5 | Selling pages | Landing page, pricing and FAQ are live and say only what is built and tested (`MARKETING_CLAIMS.md`); no "works" claims for untested features | Claude writes; Kamarudeen approves |
+| 6 | Legal | Terms, privacy and refund pages in place and checked by the lawyer; consent for WhatsApp; data download and delete work | Lawyer, Kamarudeen |
+| 7 | Support ready | Help articles, ticket flow and a support WhatsApp or email with a named person who answers within the promised time | Claude, Staff 1 |
+| 8 | WhatsApp | The product's templates are approved by Meta, or the product is sold without WhatsApp and the pages do not promise it | Aakash |
+| 9 | Operations | Deployed with all health checks passing; backup restored once; Super Admin shows the product; rollback known | Aakash |
+| 10 | Guides and demo | Owner guide (SOP) written; a demo account with fake data for sales and investors | Claude |
+
+**Reality check on dates:** today several products still have unfinished screens in the backlog (for example Dine `DIN-UI`, Cloth `CLO-07`, Wash `WSH-10`). Their UI tasks are in the sprint tables so they finish before the gate. If a line is not green on the Friday, that product slips and the others keep their order. Check the at-risk products at every Saturday planning.
 
 ### Launch calendar
 | Sprint | Week | Launches (Mon) | Next product's gate (Fri) |
@@ -66,6 +83,8 @@ Status values as in the rest of this file. Every task has one owner.
 | S1-09 | Groom: fix findings; check claims match what is built | Claude | Mon 30 Nov to Thu 3 Dec | TODO |
 | S1-10 | CA check of GST invoices (WK-02) | CA, Aakash arranges | Fri 4 Dec | TODO (human) |
 | S1-11 | Decide the product name (GymDesk clash); lawyer checks the trademark (WK-05) | Kamarudeen, Lawyer | Fri 4 Dec | OPEN |
+| S1-11a | Groom UI: Kamarudeen reviews every screen on his phone (checklist line 1); Claude finishes what looks unfinished; selling pages, help articles and guide ready (lines 5, 7, 10) | Kamarudeen reviews, Claude fixes | Mon 30 Nov to Thu 3 Dec | TODO |
+| S1-11b | Groom: sell-ready checklist lines 1 to 10 checked | Kamarudeen with Aakash, Staff 1, Staff 2 | Fri 4 Dec | TODO |
 | S1-12 | Groom go or no-go | Kamarudeen | Fri 4 Dec | TODO |
 
 **Sprint 2 (7 to 13 Dec): Groom launch; Mart gate**
@@ -79,6 +98,8 @@ Status values as in the rest of this file. Every task has one owner.
 | S2-06 | Mart: attack suite | Dev B | Thu 10 Dec | TODO (human) |
 | S2-07 | Mart: fix findings; Groom feedback fixes | Claude | Mon 7 to Thu 10 Dec | TODO |
 | S2-08 | Server capacity check (8 apps on one 2-core server; WK-04); decide on an upgrade | Aakash, Kamarudeen | Fri 11 Dec | TODO |
+| S2-08a | Mart UI: Kamarudeen reviews every screen on his phone; Claude finishes; selling pages, help articles and guide ready | Kamarudeen reviews, Claude fixes | Mon 7 to Thu 10 Dec | TODO |
+| S2-08b | Mart: sell-ready checklist lines 1 to 10 checked | Kamarudeen with Aakash, Staff 1, Staff 2 | Fri 11 Dec | TODO |
 | S2-09 | Mart go or no-go | Kamarudeen | Fri 11 Dec | TODO |
 
 **Sprint 3 (14 to 20 Dec): Mart launch; Gym goes public; Dine gate**
@@ -93,6 +114,8 @@ Status values as in the rest of this file. Every task has one owner.
 | S3-07 | Dine: attack suite | Dev B | Thu 17 Dec | TODO (human) |
 | S3-08 | Dine: fix findings; floor-price table (`DIN-P1`) prepared for the owner | Claude | Mon 14 to Thu 17 Dec | TODO |
 | S3-09 | Decide whether pub mode is charged extra (`DIN-P1`, Tier 3) | Kamarudeen | Wed 16 Dec | OPEN |
+| S3-09a | Dine UI: own screens finished (table, kitchen display, QR menu, KOT print; `DIN-UI`); Kamarudeen reviews every screen on his phone; selling pages, help articles and guide ready | Claude builds, Kamarudeen reviews | Mon 14 to Thu 17 Dec | TODO |
+| S3-09b | Dine: sell-ready checklist lines 1 to 10 checked | Kamarudeen with Aakash, Staff 1, Staff 2 | Fri 18 Dec | TODO |
 | S3-10 | Dine go or no-go | Kamarudeen | Fri 18 Dec | TODO |
 
 **Sprint 4 (21 to 27 Dec): Dine launch; Cloth gate**
@@ -103,6 +126,8 @@ Status values as in the rest of this file. Every task has one owner.
 | S4-03 | Cloth: finish screens, customer pages and `cloth_*` templates (`CLO-07`) | Claude | Tue 22 Dec | TODO |
 | S4-04 | Submit Cloth WhatsApp templates | Aakash | Tue 22 Dec | TODO (human) |
 | S4-05 | Cloth: real-database tests, then QA workbook on phones, then attack suite | Aakash (Mon), Staff 1 and 2 (Wed), Dev B (Thu) | Mon 21 to Thu 24 Dec | TODO (human) |
+| S4-05a | Cloth UI: customer import screen, catalogue, labels and the screens in `CLO-07` finished; Kamarudeen reviews every screen on his phone; selling pages, help articles and guide ready | Claude builds, Kamarudeen reviews | Mon 21 to Wed 23 Dec | TODO |
+| S4-05b | Cloth: sell-ready checklist lines 1 to 10 checked | Kamarudeen with Aakash, Staff 1, Staff 2 | Thu 24 Dec | TODO |
 | S4-06 | Cloth go or no-go (Friday 25 Dec is a holiday) | Kamarudeen | Thu 24 Dec | TODO |
 
 **Sprint 5 (28 Dec to 3 Jan): Cloth launch; Wash gate**
@@ -114,6 +139,8 @@ Status values as in the rest of this file. Every task has one owner.
 | S5-04 | Wash: photo storage set up (only after S5-03), real-database tests | Aakash | Tue 29 Dec | TODO (human) |
 | S5-05 | Wash: QR and photo upload test on a real phone (`WSH-12`); QA workbook | Staff 1, Staff 2 | Wed 30 Dec | TODO (human) |
 | S5-06 | Wash: attack suite | Dev B | Wed 30 Dec | TODO (human) |
+| S5-06a | Wash UI: panel screens in `WSH-10` (import, export, refunds, dues, photos, shifts) finished; Kamarudeen reviews every screen on his phone; selling pages, help articles and guide ready | Claude builds, Kamarudeen reviews | Mon 28 to Wed 30 Dec | TODO |
+| S5-06b | Wash: sell-ready checklist lines 1 to 10 checked | Kamarudeen with Aakash, Staff 1, Staff 2 | Thu 31 Dec | TODO |
 | S5-07 | Wash go or no-go (Friday 1 Jan is a holiday) | Kamarudeen | Thu 31 Dec | TODO |
 
 **Sprint 6 (4 to 10 Jan): Wash launch; Hire gate**
@@ -123,6 +150,8 @@ Status values as in the rest of this file. Every task has one owner.
 | S6-02 | Deploy Wash; invite 3 to 10 car washes | Aakash deploys, Kamarudeen invites | Mon 4 Jan | TODO (human) |
 | S6-03 | Lawyer confirms Hire privacy wording (resume text goes to an outside AI service); until then Hire AI reading stays off | Lawyer, Kamarudeen | Wed 6 Jan | OPEN |
 | S6-04 | Hire: real-database tests, QA workbook, attack suite | Aakash (Mon), Staff 1 and 2 (Wed), Dev B (Thu) | Mon 4 to Thu 7 Jan | TODO (human) |
+| S6-04a | Hire UI: Kamarudeen reviews every screen on his phone; Claude finishes; selling pages, help articles and guide ready | Kamarudeen reviews, Claude fixes | Mon 4 to Thu 7 Jan | TODO |
+| S6-04b | Hire: sell-ready checklist lines 1 to 10 checked | Kamarudeen with Aakash, Staff 1, Staff 2 | Fri 8 Jan | TODO |
 | S6-05 | Hire go or no-go | Kamarudeen | Fri 8 Jan | TODO |
 
 **Sprint 7 (11 to 17 Jan): Hire launch; review**

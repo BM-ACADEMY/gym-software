@@ -1,4 +1,6 @@
-# Razorpay LIVE switch for the gym (Fit): step by step (RM-11, written 24 Nov, not yet run by anyone)
+# Razorpay LIVE switch for the gym (Fit): step by step (RM-11, written 24 Nov, step 5 changed 27 Nov, not yet run by anyone)
+
+The 27 Nov code (Rs 1 test price, refunded rows kept) must be deployed to fit.afraventures.in before step 5.
 
 Goal: switch fit.afraventures.in from test keys to live keys, prove one real Rs 1 payment works end to end, then refund it.
 Real money moves in this run. Do it before the 12:00 go / no-go and before any gym is invited (RM-12).
@@ -37,18 +39,20 @@ The server reads `RAZORPAY_WEBHOOK_SECRET` from the env file first. If the test 
 3. Expect the message "Saved. Razorpay is now in LIVE mode..." and the red line "LIVE mode: payments take real money."
 
 ## 5. Aakash: the Rs 1 payment and refund
-There is no Rs 1 plan, so the Solo monthly price is set to Rs 1 for a few minutes. It is live for every gym while it is set, so do it before any gym is invited and put it back straight after.
-1. Root Admin, Plan Settings, Solo: monthly price **1**, Save. (Write down the price first; today it is Rs 249.)
-2. Sign in as the internal gym, Plan & Billing, choose Solo, monthly. The quote should show Rs 1 total (GST on Rs 1 rounds to Rs 0).
+Since 27 Nov there is a one-time **Rs 1 test price** for one gym only. Do **not** change the Solo price in Plan Settings any more: that changed it for every gym and the public pricing page.
+The test price applies only to the gym you choose, only to Solo monthly, ends after 30 minutes, and turns itself off after the first paid order.
+Rehearse it once with the **test** keys first (no real money, Razorpay test card or test UPI), then do it for real after step 4.
+1. Root Admin, Settings, **Rs 1 test payment**: choose the internal test gym, click **Turn on for 30 minutes**, confirm. (The gym must have its state set first.)
+2. Sign in as the internal gym, Plan & Billing. A yellow line says the Rs 1 test price is on. Choose Monthly, then Solo. The card still shows Rs 249; the Razorpay window must ask for **Rs 1** (GST on Rs 1 rounds to Rs 0). If it asks for more, close it and stop.
 3. Pay with your own UPI or card in the Razorpay window.
-4. **Straight away:** Root Admin, Plan Settings, Solo, Reset (or type 249), Save. Open the public pricing page and check Solo shows Rs 249 again.
+4. Root Admin, Settings: the Rs 1 section should be back to "Choose a gym" (used up). Another gym and the pricing page never saw Rs 1.
 5. Check, and write down pass or fail for each:
    - the window closed and the gym shows Solo with an end date;
    - "Your payments" shows the Rs 1 row with an invoice number; the invoice PDF opens;
    - Razorpay dashboard (Live), Payments: the payment shows **Captured**;
    - Razorpay dashboard (Live), Webhooks, this webhook: the `payment.captured` / `order.paid` deliveries show 200.
 6. Refund: Razorpay dashboard (Live), Payments, this payment, Issue refund, full amount (Rs 1).
-7. Check after a few minutes: the webhook shows a 200 for `refund.processed`; the payment row in the app is marked refunded. The gym's plan is **not** ended automatically (by design): end the internal gym's plan by hand if you want it clean.
+7. Check after a few minutes: the webhook shows a 200 for `refund.processed`; the payment row in "Your payments" stays there with a **Refunded** tag and its invoice PDF still opens (before 27 Nov the row disappeared). The gym's plan is **not** ended automatically (by design): end the internal gym's plan by hand if you want it clean.
 8. The Rs 1 settles to the bank minus Razorpay's fee; the refund is debited from the Razorpay balance. If the balance is too low, Razorpay holds the refund until the next settlement: that is normal.
 
 ## 6. Decision for Kamarudeen and the CA: test invoices and the Rs 1 invoice

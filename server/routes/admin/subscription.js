@@ -6,6 +6,7 @@ const Member = require('../../models/Member');
 const SubAdmin = require('../../models/SubAdmin');
 const { computeStatus, effectivePlan } = require('../../services/subscription');
 const { listPlans, priceFor, GST_RATE, GRACE_DAYS } = require('../../config/plans');
+const testCharge = require('../../services/testCharge');
 
 // GET /api/admin/subscription: what the owner sees on the Billing page and
 // in the trial/expiry banner. Always readable, even when the gym is locked.
@@ -16,9 +17,10 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
 
     const status = computeStatus(subscriber);
     const plan = effectivePlan(subscriber);
-    const [members, staff] = await Promise.all([
+    const [members, staff, charge] = await Promise.all([
       Member.countDocuments({ subscriberId: subscriber._id, status: { $ne: 'cancelled' } }),
       SubAdmin.countDocuments({ subscriberId: subscriber._id, isActive: { $ne: false } }),
+      testCharge.activeFor(subscriber._id),
     ]);
 
     res.json({
@@ -36,6 +38,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
         sellerState: process.env.SELLER_STATE || 'Puducherry',
         usage: { members, staff },
         gstRate: GST_RATE,
+        testCharge: charge ? { amount: charge.amount, currency: 'INR', plan: charge.plan, cycle: charge.cycle, expiresAt: charge.expiresAt } : null,
         plans: listPlans().map((p) => ({
           key: p.key, name: p.name, memberLimit: p.memberLimit, staffLimit: p.staffLimit, features: p.features, whatsappPerMonth: p.whatsappPerMonth, aiCallsPerMonth: p.aiCallsPerMonth,
           monthly: priceFor(p.key, 'monthly'), yearly: priceFor(p.key, 'yearly'),
@@ -114,13 +117,14 @@ router.post('/simulate', protect, authorize('admin'), handle(async (req, res) =>
 
 // GET /api/admin/subscription/payments
 router.get('/payments', protect, authorize('admin'), handle(async (req, res) => {
-  const list = await SubscriptionPayment.find({ subscriberId: req.user.subscriberId, status: 'paid' }).sort({ paidAt: -1 }).limit(100);
+  // Refunded payments stay listed: the gym keeps its tax invoice.
+  const list = await SubscriptionPayment.find({ subscriberId: req.user.subscriberId, status: { $in: ['paid', 'refunded'] } }).sort({ paidAt: -1 }).limit(100);
   res.json({ success: true, data: list });
 }));
 
 // GET /api/admin/subscription/payments/:id/invoice
 router.get('/payments/:id/invoice', protect, authorize('admin'), handle(async (req, res) => {
-  const p = await SubscriptionPayment.findOne({ _id: req.params.id, subscriberId: req.user.subscriberId, status: 'paid' });
+  const p = await SubscriptionPayment.findOne({ _id: req.params.id, subscriberId: req.user.subscriberId, status: { $in: ['paid', 'refunded'] } });
   if (!p) return res.status(404).json({ success: false, message: 'Invoice not found' });
   streamSubscriptionInvoice(res, p);
 }));

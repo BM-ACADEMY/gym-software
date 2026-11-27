@@ -20,10 +20,10 @@ Days are estimates for Claude-written code, excluding human test time.
 
 ### Sprint rhythm (default; Kamarudeen can change)
 One sprint = one week, Monday to Sunday.
-- **Monday, sprint planning (about 30 minutes):** go through the task table below, confirm every task has one named owner and a date, add anything new, drop what will not fit. Claude updates this file the same day.
+- **Saturday 4:00 pm IST, sprint planning for the coming week (about 30 minutes):** go through the task table below, confirm every task has one named owner and a date, add anything new, drop what will not fit. Claude updates this file the same evening. First one: Sat 28 Nov, 4 pm.
 - **Wed to Thu:** the next product's gate runs: staff QA on phones (Wed), Dev B attack suite and Dev A real-database tests (Thu).
 - **Friday, gate and review:** Kamarudeen's go or no-go for the next product; short review of what slipped and why.
-- **Monday:** the product launches (invites sent, deployed the day before by Dev A).
+- **Monday:** the product launches (invites sent, deployed the day before by Dev A). Tasks are assigned the Saturday before, so the team starts Monday knowing what to do.
 
 ### Launch calendar
 | Sprint | Week | Launches (Mon) | Next product's gate (Fri) |
@@ -37,7 +37,7 @@ One sprint = one week, Monday to Sunday.
 | 6 | 4 to 10 Jan | Wash | Hire, Fri 8 Jan |
 | 7 | 11 to 17 Jan | Hire | Review of all seven; plan Phase 2 |
 
-### Sprint tasks (assigned at each Monday planning; owners below are the starting proposal)
+### Sprint tasks (assigned at each Saturday 4 pm planning; owners below are the starting proposal)
 Status values as in the rest of this file. Every task has one owner.
 
 **Sprint 0 (Sat 28 to Sun 29 Nov): get Gym ready**
@@ -55,7 +55,7 @@ Status values as in the rest of this file. Every task has one owner.
 **Sprint 1 (30 Nov to 6 Dec): Gym soft launch; Groom gate**
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| S1-01 | Sprint planning: confirm owners, name Staff 1 and Staff 2 | Kamarudeen | Mon 30 Nov | TODO |
+| S1-01 | Sprint planning for Sprint 1 (with the Sprint 0 checks): confirm owners, name Staff 1 and Staff 2 | Kamarudeen | Sat 28 Nov, 4 pm | TODO |
 | S1-02 | Invite 10 gyms on paid plans (1D-02) | Kamarudeen | Mon 30 Nov to Fri 4 Dec | TODO (human) |
 | S1-03 | Open the WhatsApp Business account on a separate GymDesk number; submit the gym templates (incl. the two owner report ones) to Meta | Aakash, Kamarudeen | Tue 1 Dec | TODO (human) |
 | S1-04 | Backup to R2 uploaded and one restore tested (P0-03) | Aakash | Wed 2 Dec | TODO (human) |
@@ -71,7 +71,7 @@ Status values as in the rest of this file. Every task has one owner.
 **Sprint 2 (7 to 13 Dec): Groom launch; Mart gate**
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| S2-01 | Sprint planning | Kamarudeen | Mon 7 Dec | TODO |
+| S2-01 | Sprint planning for Sprint 2 | Kamarudeen | Sat 5 Dec, 4 pm | TODO |
 | S2-02 | Deploy Groom; invite 3 to 10 salons, spas or barbers | Aakash deploys, Kamarudeen invites | Mon 7 Dec | TODO (human) |
 | S2-03 | Submit Mart WhatsApp templates to Meta | Aakash | Mon 7 Dec | TODO (human) |
 | S2-04 | Mart: human tests `MRT-14` (UPI QR, offline bill, password change); billing screen check | Staff 2 | Wed 9 Dec | TODO (human) |
@@ -84,7 +84,7 @@ Status values as in the rest of this file. Every task has one owner.
 **Sprint 3 (14 to 20 Dec): Mart launch; Gym goes public; Dine gate**
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| S3-01 | Sprint planning | Kamarudeen | Mon 14 Dec | TODO |
+| S3-01 | Sprint planning for Sprint 3 | Kamarudeen | Sat 12 Dec, 4 pm | TODO |
 | S3-02 | Deploy Mart; invite 3 to 10 shops | Aakash deploys, Kamarudeen invites | Mon 14 Dec | TODO (human) |
 | S3-03 | Gym public launch: `PUBLIC_SIGNUP=true`, landing page open, ads at Rs 1,000 a day (1D-03); watch cost per paying gym (target under Rs 3,000) | Kamarudeen (ads), Aakash (switch) | Tue 15 Dec | TODO (human) |
 | S3-04 | Submit Dine WhatsApp templates (`dine_winback`, `dine_slow_hour`, `dine_review`); Meta alcohol policy check for pub mode (`DIN-R2`) | Aakash, Kamarudeen | Mon 14 Dec | TODO (human) |
@@ -98,7 +98,7 @@ Status values as in the rest of this file. Every task has one owner.
 **Sprint 4 (21 to 27 Dec): Dine launch; Cloth gate**
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| S4-01 | Sprint planning | Kamarudeen | Mon 21 Dec | TODO |
+| S4-01 | Sprint planning for Sprint 4 | Kamarudeen | Sat 19 Dec, 4 pm | TODO |
 | S4-02 | Deploy Dine; invite 3 to 10 restaurants or cafes | Aakash deploys, Kamarudeen invites | Mon 21 Dec | TODO (human) |
 | S4-03 | Cloth: finish screens, customer pages and `cloth_*` templates (`CLO-07`) | Claude | Tue 22 Dec | TODO |
 | S4-04 | Submit Cloth WhatsApp templates | Aakash | Tue 22 Dec | TODO (human) |
@@ -108,7 +108,7 @@ Status values as in the rest of this file. Every task has one owner.
 **Sprint 5 (28 Dec to 3 Jan): Cloth launch; Wash gate**
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| S5-01 | Sprint planning | Kamarudeen | Mon 28 Dec | TODO |
+| S5-01 | Sprint planning for Sprint 5 | Kamarudeen | Sat 26 Dec, 4 pm | TODO |
 | S5-02 | Deploy Cloth; invite 3 to 10 shops | Aakash deploys, Kamarudeen invites | Mon 28 Dec | TODO (human) |
 | S5-03 | Decide where Wash photos are stored and for how long (`WSH-11`, `WSH-P1`) | Kamarudeen | Mon 28 Dec | OPEN |
 | S5-04 | Wash: photo storage set up (only after S5-03), real-database tests | Aakash | Tue 29 Dec | TODO (human) |
@@ -119,7 +119,7 @@ Status values as in the rest of this file. Every task has one owner.
 **Sprint 6 (4 to 10 Jan): Wash launch; Hire gate**
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| S6-01 | Sprint planning | Kamarudeen | Mon 4 Jan | TODO |
+| S6-01 | Sprint planning for Sprint 6 | Kamarudeen | Sat 2 Jan, 4 pm | TODO |
 | S6-02 | Deploy Wash; invite 3 to 10 car washes | Aakash deploys, Kamarudeen invites | Mon 4 Jan | TODO (human) |
 | S6-03 | Lawyer confirms Hire privacy wording (resume text goes to an outside AI service); until then Hire AI reading stays off | Lawyer, Kamarudeen | Wed 6 Jan | OPEN |
 | S6-04 | Hire: real-database tests, QA workbook, attack suite | Aakash (Mon), Staff 1 and 2 (Wed), Dev B (Thu) | Mon 4 to Thu 7 Jan | TODO (human) |
@@ -128,7 +128,7 @@ Status values as in the rest of this file. Every task has one owner.
 **Sprint 7 (11 to 17 Jan): Hire launch; review**
 | ID | Task | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| S7-01 | Sprint planning | Kamarudeen | Mon 11 Jan | TODO |
+| S7-01 | Sprint planning for Sprint 7 | Kamarudeen | Sat 9 Jan, 4 pm | TODO |
 | S7-02 | Deploy Hire; invite 3 to 10 agencies | Aakash deploys, Kamarudeen invites | Mon 11 Jan | TODO (human) |
 | S7-03 | Review all seven products: what slipped, real usage, AI and WhatsApp cost (1E-05) | Kamarudeen, Claude | Fri 15 Jan | TODO |
 | S7-04 | Plan Phase 2 (biometric live sync needs the device model; multi-branch is Tier 3; Lead CRM plan limits; WhatsApp direct vs a provider) | Kamarudeen decides, Claude plans | Fri 15 Jan | OPEN |

@@ -14,17 +14,21 @@ const normalizePhone = (phone, countryCode = '91') => {
   return null;
 };
 
+// The WA_* names are the ones in the AFRA Ventures number setup (27 Nov 2026); the older
+// WHATSAPP_* names still work so an existing env file keeps sending. WA_* wins when both are set.
+const env = (wa, old) => (process.env[wa] || process.env[old] || '').trim();
 const credentials = () => ({
-  phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
-  accessToken: process.env.WHATSAPP_ACCESS_TOKEN,
+  phoneNumberId: env('WA_PHONE_NUMBER_ID', 'WHATSAPP_PHONE_NUMBER_ID'),
+  accessToken: env('WA_TOKEN', 'WHATSAPP_ACCESS_TOKEN'),
 });
+const templateLang = () => env('WA_TEMPLATE_LANG', 'WHATSAPP_TEMPLATE_LANG') || 'en';
 
 const isConfigured = () => {
   const c = credentials();
   return Boolean(c.phoneNumberId && c.accessToken);
 };
 
-const sendTemplate = async ({ to, template, params, lang = process.env.WHATSAPP_TEMPLATE_LANG || 'en', countryCode = '91' }) => {
+const sendTemplate = async ({ to, template, params, lang = templateLang(), countryCode = '91' }) => {
   const phone = normalizePhone(to, countryCode);
   if (!phone) return { ok: false, demo: false, error: 'invalid_phone' };
 

@@ -1,4 +1,10 @@
-# WhatsApp templates to submit to Meta
+# WhatsApp templates (GymDesk): all 8 APPROVED
+
+**Status 27 Nov 2026:** all 8 templates below are approved by Meta in the **AFRA Ventures** WhatsApp account (+91 78269 97187, customers see "AFRA Ventures"), language `en`, word for word as written here. `gymdesk_renewal_reminder` and `gymdesk_winback` were reworded for Meta; the text here is the approved one.
+
+**How GymDesk sends:** its own Meta app "GymDesk" and system user `gymdesk-server` (token never expires). Send only: no webhook is connected for GymDesk on this number, because Getnera and TeamPulse already receive its messages. Only `gymdesk_*` templates are GymDesk's; the others in that account belong to other AFRA products.
+
+**Server settings** (in `/etc/afraprod/gym.env` only, never in git, docs or chat): `WA_TOKEN`, `WA_PHONE_NUMBER_ID`, `WA_WABA_ID`, `WA_TEMPLATE_LANG=en`. Leave `WHATSAPP_VERIFY_TOKEN` and `WHATSAPP_APP_SECRET` empty. The values are in the company password manager.
 
 Submit each template below in WhatsApp Manager (Message templates), language English, body only (no header, footer or buttons).
 The name and the order of {{1}}, {{2}} must match exactly, because the server fills them in that order.
@@ -17,13 +23,13 @@ Source of truth: `server/config/whatsappTemplates.js`.
 - Parameters in order: {{1}} = name, {{2}} = gym, {{3}} = days, {{4}} = phone
 - Body:
 
-> Hi {{1}}, your membership at {{2}} ends in {{3}} day(s). Renew now to keep your access without a break. Questions? Call {{4}}.
+> Hi {{1}}, your membership at {{2}} ends in {{3}} day(s). Renew now to keep your access without a break. Questions? Call {{4}} for help.
 
 - Sample values for Meta: Ravi | Iron House Gym | 7 | 9876543210
 
 ## gymdesk_plan_expired
 
-- Category: UTILITY
+- Category: MARKETING (approved by Meta as marketing)
 - Parameters in order: {{1}} = name, {{2}} = gym, {{3}} = phone
 - Body:
 
@@ -33,11 +39,11 @@ Source of truth: `server/config/whatsappTemplates.js`.
 
 ## gymdesk_winback
 
-- Category: MARKETING (Meta will very likely treat a win-back as marketing)
+- Category: MARKETING (approved)
 - Parameters in order: {{1}} = name, {{2}} = gym, {{3}} = phone
 - Body:
 
-> Hi {{1}}, we miss you at {{2}}! Your membership ended recently. Come back this week and we will get you started again. Call {{3}}.
+> Hi {{1}}, we miss you at {{2}}! Your membership ended recently. Come back this week and we will get you started again. Call {{3}} to book your visit.
 
 - Sample values for Meta: Ravi | Iron House Gym | 9876543210
 
@@ -53,7 +59,7 @@ Source of truth: `server/config/whatsappTemplates.js`.
 
 ## gymdesk_absence_checkin
 
-- Category: MARKETING (likely; a check-in nudge is promotional in Meta's view)
+- Category: MARKETING (approved)
 - Parameters in order: {{1}} = name, {{2}} = gym, {{3}} = days
 - Body:
 

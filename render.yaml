@@ -26,7 +26,7 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
-      - key: WHATSAPP_PHONE_NUMBER_ID
+      - key: WA_PHONE_NUMBER_ID
         sync: false
-      - key: WHATSAPP_ACCESS_TOKEN
+      - key: WA_TOKEN
         sync: false
